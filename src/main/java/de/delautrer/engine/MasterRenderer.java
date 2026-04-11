@@ -1,0 +1,108 @@
+package de.delautrer.engine;
+
+import de.delautrer.engine.graphics.*;
+import de.delautrer.engine.input.InputManager;
+import de.delautrer.engine.player.Camera;
+import de.delautrer.engine.window.Window;
+import de.delautrer.game.interaction.PlayerInteraction;
+import de.delautrer.game.ui.DebugOverlay;
+import de.delautrer.game.ui.UIRenderer;
+import de.delautrer.game.world.Chunk;
+import de.delautrer.game.world.Environment;
+import de.delautrer.game.world.World;
+import org.joml.Matrix4f;
+
+public class MasterRenderer {
+    private final VulkanContext vulkanContext;
+    private final Window window;
+
+    private final VulkanRenderer renderer;
+    private final UIRenderer uiRenderer;
+
+    private VulkanTextureArray worldTexture;
+    private VulkanTexture guiTexture;
+    private VulkanTexture fontTexture;
+    private VulkanMesh highlightMesh;
+    private VulkanFont font;
+
+    private int lastVisibleChunkCount = 0;
+
+    public MasterRenderer(VulkanContext vulkanContext, Window window) {
+        this.vulkanContext = vulkanContext;
+        this.window = window;
+        this.renderer = new VulkanRenderer(vulkanContext, window);
+        this.uiRenderer = new UIRenderer(vulkanContext, renderer.getWidth(), renderer.getHeight());
+
+        initResources();
+    }
+
+    private void initResources() {
+        worldTexture = new VulkanTextureArray(vulkanContext, renderer.getCommandBuffers(), renderer.getGraphicsLayout(), "src/main/resources/texture.png");
+        guiTexture = new VulkanTexture(vulkanContext, renderer.getCommandBuffers(), renderer.getUiLayout(), "src/main/resources/gui.png");
+
+        font = new VulkanFont("src/main/resources/MinecraftRegular-Bmg3.otf", 24.0f);
+        if (font.getRgbaPixels() != null) {
+            fontTexture = new VulkanTexture(vulkanContext, renderer.getCommandBuffers(), renderer.getUiLayout(), font.getRgbaPixels(), font.BITMAP_SIZE, font.BITMAP_SIZE);
+        }
+
+        highlightMesh = new VulkanMesh(vulkanContext, Chunk.getHighlightVertices(), Chunk.getHighlightIndices());
+    }
+
+    public void rebuildUI(PlayerInteraction interaction, InputManager input, DebugOverlay debugOverlay) {
+        uiRenderer.rebuildMesh(
+                renderer.getWidth(), renderer.getHeight(),
+                interaction.getInventory(), input.getMouseX(), input.getMouseY(),
+                interaction.getHoveredSlot(), debugOverlay, font
+        );
+    }
+
+    public boolean drawFrame(Camera camera, World world, Environment environment, PlayerInteraction interaction) {
+        float aspect = (float) renderer.getWidth() / (float) renderer.getHeight();
+        Matrix4f view = camera.getViewMatrix();
+        Matrix4f proj = new Matrix4f().perspective((float) Math.toRadians(45.0f), aspect, 0.1f, 1000.0f);
+        proj.m11(proj.m11() * -1); // Vulkan Y-Flip
+        Matrix4f mvp = new Matrix4f(proj).mul(view);
+
+        RenderPacket packet = new RenderPacket();
+        packet.mvp = mvp;
+        packet.proj = proj;
+        packet.view = view;
+        packet.ortho = new Matrix4f().ortho(0.0f, renderer.getWidth(), renderer.getHeight(), 0.0f, -1.0f, 1.0f);
+
+        java.util.List<VulkanMesh> visible = world.getVisibleMeshes(mvp);
+        packet.visibleMeshes = visible;
+        lastVisibleChunkCount = visible.size();
+
+        packet.highlightMesh = highlightMesh;
+        packet.uiMesh = uiRenderer.getGuiMesh();
+        packet.guiTexture = guiTexture;
+        packet.textMesh = uiRenderer.getTextMesh();
+        packet.fontTexture = fontTexture;
+        packet.worldTexture = worldTexture;
+        packet.selectedBlockPos = interaction.getSelectedBlockPos();
+
+        packet.globalLight = environment.getGlobalLight();
+        packet.skyR = environment.getSkyR();
+        packet.skyG = environment.getSkyG();
+        packet.skyB = environment.getSkyB();
+
+        return renderer.render(packet);
+    }
+
+    public void recreate(PlayerInteraction interaction, InputManager input, DebugOverlay debugOverlay) {
+        renderer.recreate(window);
+        rebuildUI(interaction, input, debugOverlay);
+    }
+
+    public int getLastVisibleChunkCount() { return lastVisibleChunkCount; }
+
+    public void cleanup() {
+        if (worldTexture != null) worldTexture.cleanup();
+        if (guiTexture != null) guiTexture.cleanup();
+        if (fontTexture != null) fontTexture.cleanup();
+        if (uiRenderer != null) uiRenderer.cleanup();
+        if (highlightMesh != null) highlightMesh.cleanup();
+        if (font != null) font.cleanup();
+        if (renderer != null) renderer.cleanup();
+    }
+}

@@ -1,5 +1,7 @@
 package de.delautrer.game.world;
 
+import de.delautrer.game.blocks.Block;
+import de.delautrer.game.blocks.BlockRegistry;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,93 +31,30 @@ public class Chunk {
             for (int y = 0; y < HEIGHT; y++) {
                 for (int z = 0; z < SIZE; z++) {
                     byte id = blocks[x][y][z];
-                    if (id != 0) addBlockToMesh(x, y, z, id, cm);
+                    if (id != 0) {
+                        // HIER PASSIERT DIE MAGIE: Dynamischer Aufruf der Block-Klasse
+                        Block block = BlockRegistry.get(id);
+                        block.generateMesh(x, y, z, this, cm);
+                    }
                 }
             }
         }
     }
 
-    private int getTexLayer(BlockType type, int face) {
-        if (face == 0) return type.texTop;     // Oben
-        if (face == 1) return type.texBottom;  // Unten
-        return type.texSide;                   // Seiten
-    }
-
-    private void addBlockToMesh(int x, int y, int z, byte id, ChunkManager cm) {
-        BlockType type = BlockType.getById(id);
-        float h = getWaterHeight(x, y, z, cm);
-        float yTop = y + h;
-
-        float lightTop = 1.0f, lightBot = 0.4f, lightFrontBack = 0.8f, lightLeftRight = 0.65f;
-
-        // Top Face (face = 0)
-        boolean drawTop = isTransparent(x, y + 1, z, cm, id, h);
-        if (id == 4 && h < 0.99f) drawTop = true;
-
-        if (drawTop) {
-            float ao0 = getAO(x, y+1, z, -1, 0, 0, 0, 0, -1, cm);
-            float ao1 = getAO(x, y+1, z, -1, 0, 0, 0, 0, 1, cm);
-            float ao2 = getAO(x, y+1, z, 1, 0, 0, 0, 0, 1, cm);
-            float ao3 = getAO(x, y+1, z, 1, 0, 0, 0, 0, -1, cm);
-            addFace(x,yTop,z,ao0,  x,yTop,z+1,ao1,  x+1,yTop,z+1,ao2,  x+1,yTop,z,ao3,  getTexLayer(type, 0), lightTop, id);
-        }
-
-        // Bottom Face (face = 1)
-        if (isTransparent(x, y - 1, z, cm, id, h)) {
-            float ao0 = getAO(x, y-1, z, -1, 0, 0, 0, 0, 1, cm);
-            float ao1 = getAO(x, y-1, z, -1, 0, 0, 0, 0, -1, cm);
-            float ao2 = getAO(x, y-1, z, 1, 0, 0, 0, 0, -1, cm);
-            float ao3 = getAO(x, y-1, z, 1, 0, 0, 0, 0, 1, cm);
-            addFace(x,y,z+1,ao0,  x,y,z,ao1,  x+1,y,z,ao2,  x+1,y,z+1,ao3,  getTexLayer(type, 1), lightBot, id);
-        }
-
-        // Z+ Face (face = 2)
-        if (isTransparent(x, y, z + 1, cm, id, h)) {
-            float ao0 = getAO(x, y, z+1, -1, 0, 0, 0, -1, 0, cm);
-            float ao1 = getAO(x, y, z+1, 1, 0, 0, 0, -1, 0, cm);
-            float ao2 = getAO(x, y, z+1, 1, 0, 0, 0, 1, 0, cm);
-            float ao3 = getAO(x, y, z+1, -1, 0, 0, 0, 1, 0, cm);
-            addFace(x,y,z+1,ao0,  x+1,y,z+1,ao1,  x+1,yTop,z+1,ao2,  x,yTop,z+1,ao3,  getTexLayer(type, 2), lightFrontBack, id);
-        }
-        // Z- Face (face = 2)
-        if (isTransparent(x, y, z - 1, cm, id, h)) {
-            float ao0 = getAO(x, y, z-1, 1, 0, 0, 0, -1, 0, cm);
-            float ao1 = getAO(x, y, z-1, -1, 0, 0, 0, -1, 0, cm);
-            float ao2 = getAO(x, y, z-1, -1, 0, 0, 0, 1, 0, cm);
-            float ao3 = getAO(x, y, z-1, 1, 0, 0, 0, 1, 0, cm);
-            addFace(x+1,y,z,ao0,  x,y,z,ao1,  x,yTop,z,ao2,  x+1,yTop,z,ao3,  getTexLayer(type, 2), lightFrontBack, id);
-        }
-        // X- Face (face = 2)
-        if (isTransparent(x - 1, y, z, cm, id, h)) {
-            float ao0 = getAO(x-1, y, z, 0, -1, 0, 0, 0, -1, cm);
-            float ao1 = getAO(x-1, y, z, 0, -1, 0, 0, 0, 1, cm);
-            float ao2 = getAO(x-1, y, z, 0, 1, 0, 0, 0, 1, cm);
-            float ao3 = getAO(x-1, y, z, 0, 1, 0, 0, 0, -1, cm);
-            addFace(x,y,z,ao0,  x,y,z+1,ao1,  x,yTop,z+1,ao2,  x,yTop,z,ao3,  getTexLayer(type, 2), lightLeftRight, id);
-        }
-        // X+ Face (face = 2)
-        if (isTransparent(x + 1, y, z, cm, id, h)) {
-            float ao0 = getAO(x+1, y, z, 0, -1, 0, 0, 0, 1, cm);
-            float ao1 = getAO(x+1, y, z, 0, -1, 0, 0, 0, -1, cm);
-            float ao2 = getAO(x+1, y, z, 0, 1, 0, 0, 0, -1, cm);
-            float ao3 = getAO(x+1, y, z, 0, 1, 0, 0, 0, 1, cm);
-            addFace(x+1,y,z+1,ao0,  x+1,y,z,ao1,  x+1,yTop,z,ao2,  x+1,yTop,z+1,ao3,  getTexLayer(type, 2), lightLeftRight, id);
-        }
-    }
-
-    private void addFace(float x0, float y0, float z0, float ao0,
-                         float x1, float y1, float z1, float ao1,
-                         float x2, float y2, float z2, float ao2,
-                         float x3, float y3, float z3, float ao3,
-                         int texLayer, float directionalLight, byte id) {
+    // Von den Blöcken aufgerufen, um Daten ins Mesh zu schreiben
+    public void addFace(float x0, float y0, float z0, float ao0,
+                        float x1, float y1, float z1, float ao1,
+                        float x2, float y2, float z2, float ao2,
+                        float x3, float y3, float z3, float ao3,
+                        int texLayer, float directionalLight, Block block) {
 
         float ox = worldX * SIZE, oz = worldZ * SIZE;
         float u0 = 0.0f, v0 = 0.0f, u1 = 1.0f, v1 = 1.0f;
         int offset = vertices.size() / 10;
         float r = 1.0f, g = 1.0f, b = 1.0f, alpha = 1.0f;
 
-        // Halbdurchsichtiges Wasser!
-        if (id == 4) {
+        // Wasser Farben/Transparenz
+        if (block == BlockRegistry.WATER) {
             r = 0.2f; g = 0.5f; b = 1.0f; alpha = 0.7f;
             directionalLight = Math.min(1.0f, directionalLight * 1.2f);
         }
@@ -139,12 +78,7 @@ public class Chunk {
         }
     }
 
-    private boolean isSolid(int x, int y, int z, ChunkManager cm) {
-        byte id = getBlockAt(x, y, z, cm);
-        return BlockType.getById(id).isSolid;
-    }
-
-    private byte getBlockAt(int x, int y, int z, ChunkManager cm) {
+    public byte getBlockAt(int x, int y, int z, ChunkManager cm) {
         if (y < 0 || y >= HEIGHT) return 0;
         if (x >= 0 && x < SIZE && z >= 0 && z < SIZE) return blocks[x][y][z];
         if (cm == null) return 0;
@@ -153,56 +87,19 @@ public class Chunk {
         return neighbor.getBlock(Math.floorMod(worldX * SIZE + x, SIZE), y, Math.floorMod(worldZ * SIZE + z, SIZE));
     }
 
-    private float getWaterHeight(int x, int y, int z, ChunkManager cm) {
-        if (y < 0 || y >= HEIGHT) return 1.0f;
-        byte type = getBlockAt(x, y, z, cm);
-        if (type != 4) return 1.0f;
-        if (getBlockAt(x, y + 1, z, cm) == 4) return 1.0f;
-
-        byte state = 0;
-        if (x >= 0 && x < SIZE && z >= 0 && z < SIZE) state = states[x][y][z];
-        else {
-            Chunk n = cm.getChunkAtBlock(worldX * SIZE + x, y, worldZ * SIZE + z);
-            if (n != null) state = n.getState(Math.floorMod(worldX * SIZE + x, SIZE), y, Math.floorMod(worldZ * SIZE + z, SIZE));
-        }
-        return Math.max(0.1f, state / 9.0f);
+    public byte getStateAt(int x, int y, int z, ChunkManager cm) {
+        if (y < 0 || y >= HEIGHT) return 0;
+        if (x >= 0 && x < SIZE && z >= 0 && z < SIZE) return states[x][y][z];
+        if (cm == null) return 0;
+        Chunk neighbor = cm.getChunkAtBlock(worldX * SIZE + x, y, worldZ * SIZE + z);
+        if (neighbor == null) return 0;
+        return neighbor.getState(Math.floorMod(worldX * SIZE + x, SIZE), y, Math.floorMod(worldZ * SIZE + z, SIZE));
     }
 
-    // DIE NEUE, SAUBERE TRANSPARENZ-LOGIK!
-    private boolean isTransparent(int x, int y, int z, ChunkManager cm, byte currentType, float currentH) {
-        if (y < 0) return false;
-        if (y >= HEIGHT) return true;
-
-        byte neighborId = getBlockAt(x, y, z, cm);
-        BlockType neighborType = BlockType.getById(neighborId);
-
-        if (neighborId == 0) return true;
-        if (currentType == 4) {
-            if (neighborId == 4) {
-                float neighborH = getWaterHeight(x, y, z, cm);
-                return currentH > neighborH + 0.01f;
-            }
-            return neighborType.isTransparent;
-        }
-
-        BlockType thisType = BlockType.getById(currentType);
-        if (thisType.isTransparent && currentType == neighborId) {
-            return false;
-        }
-
-        return neighborType.isTransparent;
-    }
-
-    private boolean castsAOShadow(int x, int y, int z, ChunkManager cm) {
-        byte id = getBlockAt(x, y, z, cm);
-        if (id == 0) return false;
-        return !BlockType.getById(id).isTransparent;
-    }
-
-    private float getAO(int x, int y, int z, int dx1, int dy1, int dz1, int dx2, int dy2, int dz2, ChunkManager cm) {
-        boolean side1 = castsAOShadow(x + dx1, y + dy1, z + dz1, cm);
-        boolean side2 = castsAOShadow(x + dx2, y + dy2, z + dz2, cm);
-        boolean corner = castsAOShadow(x + dx1 + dx2, y + dy1 + dy2, z + dz1 + dz2, cm);
+    public float getAO(int x, int y, int z, int dx1, int dy1, int dz1, int dx2, int dy2, int dz2, ChunkManager cm) {
+        boolean side1 = !BlockRegistry.get(getBlockAt(x + dx1, y + dy1, z + dz1, cm)).isTransparent;
+        boolean side2 = !BlockRegistry.get(getBlockAt(x + dx2, y + dy2, z + dz2, cm)).isTransparent;
+        boolean corner = !BlockRegistry.get(getBlockAt(x + dx1 + dx2, y + dy1 + dy2, z + dz1 + dz2, cm)).isTransparent;
 
         if (side1 && side2) return 0.5f;
         int count = (side1 ? 1 : 0) + (side2 ? 1 : 0) + (corner ? 1 : 0);
@@ -219,6 +116,7 @@ public class Chunk {
         if (x < 0 || x >= SIZE || y < 0 || y >= HEIGHT || z < 0 || z >= SIZE) return 0;
         return states[x][y][z];
     }
+
     public void setBlock(int x, int y, int z, byte type, byte state) {
         if (x < 0 || x >= SIZE || y < 0 || y >= HEIGHT || z < 0 || z >= SIZE) return;
         blocks[x][y][z] = type;

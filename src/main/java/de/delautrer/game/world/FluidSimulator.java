@@ -1,6 +1,7 @@
 package de.delautrer.game.world;
 
 import de.delautrer.engine.graphics.VulkanContext;
+import de.delautrer.game.blocks.BlockRegistry;
 import org.joml.Vector2i;
 import org.lwjgl.vulkan.VK10;
 
@@ -28,13 +29,17 @@ public class FluidSimulator {
         List<int[]> updates = new ArrayList<>();
         Set<Chunk> activeChunks = new HashSet<>();
 
+        // Performance-Optimierung: IDs nur einmal pro Tick abfragen!
+        byte waterId = BlockRegistry.WATER.getId();
+        byte airId = BlockRegistry.AIR.getId();
+
         // 1. Chunks mit Wasser und ihre direkten Nachbarn aktivieren
         for (Chunk chunk : chunkManager.getLoadedChunks()) {
             boolean hasWater = false;
             for (int y = 0; y < Chunk.HEIGHT; y++) {
                 for (int x = 0; x < Chunk.SIZE; x++) {
                     for (int z = 0; z < Chunk.SIZE; z++) {
-                        if (chunk.getBlock(x, y, z) == 4) {
+                        if (chunk.getBlock(x, y, z) == waterId) {
                             hasWater = true;
                             break;
                         }
@@ -71,12 +76,12 @@ public class FluidSimulator {
                         byte currentBlock = chunk.getBlock(x, y, z);
                         byte currentState = chunk.getState(x, y, z);
 
-                        if (currentBlock != 0 && currentBlock != 4) continue;
+                        if (currentBlock != airId && currentBlock != waterId) continue;
 
-                        byte expected = getExpectedWaterState(gX, y, gZ);
+                        byte expected = getExpectedWaterState(gX, y, gZ, waterId, airId);
 
-                        if (expected != currentState || (expected > 0 && currentBlock == 0) || (expected == 0 && currentBlock == 4)) {
-                            updates.add(new int[]{gX, y, gZ, expected > 0 ? 4 : 0, expected});
+                        if (expected != currentState || (expected > 0 && currentBlock == airId) || (expected == 0 && currentBlock == waterId)) {
+                            updates.add(new int[]{gX, y, gZ, expected > 0 ? waterId : airId, expected});
                         }
                     }
                 }
@@ -122,9 +127,9 @@ public class FluidSimulator {
     // --- SICHERE HILFSMETHODEN ---
 
     private byte getBlock(int x, int y, int z) {
-        if (y < 0 || y >= Chunk.HEIGHT) return 0;
+        if (y < 0 || y >= Chunk.HEIGHT) return BlockRegistry.AIR.getId();
         Chunk c = chunkManager.getChunkAtBlock(x, y, z);
-        if (c == null) return 0;
+        if (c == null) return BlockRegistry.AIR.getId();
         return c.getBlock(Math.floorMod(x, Chunk.SIZE), y, Math.floorMod(z, Chunk.SIZE));
     }
 
@@ -135,13 +140,13 @@ public class FluidSimulator {
         return c.getState(Math.floorMod(x, Chunk.SIZE), y, Math.floorMod(z, Chunk.SIZE));
     }
 
-    private boolean isSolid(int x, int y, int z) {
+    private boolean isSolid(int x, int y, int z, byte waterId, byte airId) {
         if (y < 0 || y >= Chunk.HEIGHT) return true;
         Chunk c = chunkManager.getChunkAtBlock(x, y, z);
         if (c == null) return true;
 
         byte b = c.getBlock(Math.floorMod(x, Chunk.SIZE), y, Math.floorMod(z, Chunk.SIZE));
-        return b != 0 && b != 4;
+        return b != airId && b != waterId;
     }
 
     private int opposite(int dir) {
@@ -153,17 +158,17 @@ public class FluidSimulator {
 
     // --- DER PERFEKTIONIERTE ALGORITHMUS ---
 
-    private byte getExpectedWaterState(int x, int y, int z) {
+    private byte getExpectedWaterState(int x, int y, int z, byte waterId, byte airId) {
         byte currentB = getBlock(x, y, z);
         byte currentS = getState(x, y, z);
 
         // 1. Eine gesetzte Quelle bleibt immer eine Quelle
-        if (currentB == 4 && currentS == 8) {
+        if (currentB == waterId && currentS == 8) {
             return 8;
         }
 
         // 2. Fallendes Wasser
-        if (getBlock(x, y + 1, z) == 4) {
+        if (getBlock(x, y + 1, z) == waterId) {
             return 7;
         }
 
@@ -172,13 +177,13 @@ public class FluidSimulator {
         for (int i = 0; i < 4; i++) {
             int nx = x + DIRS[i][0];
             int nz = z + DIRS[i][1];
-            if (getBlock(nx, y, nz) == 4 && getState(nx, y, nz) == 8) {
+            if (getBlock(nx, y, nz) == waterId && getState(nx, y, nz) == 8) {
                 sources++;
             }
         }
         if (sources >= 2) {
             byte below = getBlock(x, y - 1, z);
-            if (below != 0 && below != 4) {
+            if (below != airId && below != waterId) {
                 return 8;
             }
         }
@@ -190,20 +195,20 @@ public class FluidSimulator {
             int nx = x + DIRS[i][0];
             int nz = z + DIRS[i][1];
 
-            if (getBlock(nx, y, nz) == 4) {
+            if (getBlock(nx, y, nz) == waterId) {
                 byte ns = getState(nx, y, nz);
 
                 byte neighborBelow = getBlock(nx, y - 1, nz);
                 byte neighborBelowState = getState(nx, y - 1, nz);
 
                 // Ein Nachbar fällt, wenn unter ihm Luft ist.
-                boolean neighborIsFalling = (neighborBelow == 0) || (neighborBelow == 4 && neighborBelowState < 8);
+                boolean neighborIsFalling = (neighborBelow == airId) || (neighborBelow == waterId && neighborBelowState < 8);
 
                 // WICHTIG: Wasser darf sich horizontal NUR ausbreiten, wenn der Nachbar
                 // auf einem festen Block liegt. Fallendes Wasser (oder Quellen in der Luft)
                 // breiten sich strikt nicht zur Seite aus, sondern fallen nur!
                 if (!neighborIsFalling) {
-                    if (ns > 1 && canFlowInto(nx, y, nz, opposite(i))) {
+                    if (ns > 1 && canFlowInto(nx, y, nz, opposite(i), waterId, airId)) {
                         if (ns > maxFlowLevel) {
                             maxFlowLevel = ns;
                         }
@@ -218,7 +223,7 @@ public class FluidSimulator {
 
     // --- DER LOCH-SUCH-ALGORITHMUS ---
 
-    private boolean canFlowInto(int wx, int wy, int wz, int dirToUs) {
+    private boolean canFlowInto(int wx, int wy, int wz, int dirToUs, byte waterId, byte airId) {
         int[] costs = new int[4];
         int minCost = 999;
 
@@ -226,12 +231,12 @@ public class FluidSimulator {
             int nx = wx + DIRS[i][0];
             int nz = wz + DIRS[i][1];
 
-            if (isSolid(nx, wy, nz)) {
+            if (isSolid(nx, wy, nz, waterId, airId)) {
                 costs[i] = 999;
-            } else if (!isSolid(nx, wy - 1, nz)) {
+            } else if (!isSolid(nx, wy - 1, nz, waterId, airId)) {
                 costs[i] = 0;
             } else {
-                costs[i] = calculateDropCost(nx, wy, nz, 1, opposite(i));
+                costs[i] = calculateDropCost(nx, wy, nz, 1, opposite(i), waterId, airId);
             }
 
             if (costs[i] < minCost) {
@@ -240,17 +245,17 @@ public class FluidSimulator {
         }
 
         if (minCost > 4) {
-            return !isSolid(wx + DIRS[dirToUs][0], wy, wz + DIRS[dirToUs][1]);
+            return !isSolid(wx + DIRS[dirToUs][0], wy, wz + DIRS[dirToUs][1], waterId, airId);
         }
 
         return costs[dirToUs] == minCost;
     }
 
-    private int calculateDropCost(int x, int y, int z, int distance, int incomingDir) {
+    private int calculateDropCost(int x, int y, int z, int distance, int incomingDir, byte waterId, byte airId) {
         if (distance > 4) return 999;
-        if (isSolid(x, y, z)) return 999;
+        if (isSolid(x, y, z, waterId, airId)) return 999;
 
-        if (!isSolid(x, y - 1, z)) {
+        if (!isSolid(x, y - 1, z, waterId, airId)) {
             return distance;
         }
 
@@ -261,7 +266,7 @@ public class FluidSimulator {
             int nx = x + DIRS[i][0];
             int nz = z + DIRS[i][1];
 
-            int cost = calculateDropCost(nx, y, nz, distance + 1, opposite(i));
+            int cost = calculateDropCost(nx, y, nz, distance + 1, opposite(i), waterId, airId);
             if (cost < minCost) minCost = cost;
         }
 

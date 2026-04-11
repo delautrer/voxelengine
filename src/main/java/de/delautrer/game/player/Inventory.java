@@ -18,7 +18,7 @@ public class Inventory {
 
         // Wir füllen das Inventar zum Testen mit allen existierenden Items
         int i = 0;
-        for (de.delautrer.game.items.ItemType item : ItemRegistry.getAll().values()) {
+        for (de.delautrer.game.items.Item item : ItemRegistry.getAll().values()) {
             slots[i++] = new ItemStack(item, 64);
             if (i >= TOTAL_SIZE) break;
         }

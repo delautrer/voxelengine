@@ -1,25 +1,41 @@
 package de.delautrer.game.items;
 
-import de.delautrer.game.world.BlockType;
+import de.delautrer.engine.Constants;
+import de.delautrer.game.blocks.BlockRegistry;
 import java.util.HashMap;
 import java.util.Map;
 
 public class ItemRegistry {
-    private static final Map<Integer, ItemType> ITEMS = new HashMap<>();
+
+    private static final Map<String, Item> ITEMS = new HashMap<>();
+
+    public static final Item GRASS_BLOCK  = register("grass", new BlockItem("Grass", 0, BlockRegistry.GRASS));
+    public static final Item DIRT_BLOCK   = register("dirt", new BlockItem("Dirt", 1, BlockRegistry.DIRT));
+    public static final Item STONE_BLOCK  = register("stone", new BlockItem("Stone", 2, BlockRegistry.STONE));
+    public static final Item WATER_BUCKET = register("water_bucket", new BlockItem("Water bucket", 3, BlockRegistry.WATER));
+    public static final Item GLASS_BLOCK  = register("glass", new BlockItem("Glass", 4, BlockRegistry.GLASS));
+    public static final Item LEAVES_BLOCK = register("leaves", new BlockItem("Leaves", 5, BlockRegistry.LEAVES));
 
     public static void init() {
-        register(1, new ItemType("Grass", 0, BlockType.GRASS));
-        register(2, new ItemType("Dirt", 1, BlockType.DIRT));
-        register(3, new ItemType("Stone", 2, BlockType.STONE));
-        register(4, new ItemType("Water bucket", 3, BlockType.WATER));
-        register(5, new ItemType("Glass", 3, BlockType.GLASS));
-        register(6, new ItemType("Leaves", 3, BlockType.LEAVES));
+        System.out.println("ItemRegistry initialized. " + ITEMS.size() + " Items loaded.");
     }
 
-    private static void register(int id, ItemType item) {
-        ITEMS.put(id, item);
+    private static Item register(String path, Item item) {
+        String fullId = Constants.NAMESPACE + ":" + path;
+
+        if (ITEMS.containsKey(fullId)) {
+            throw new RuntimeException("Item-ID " + fullId + " already used!");
+        }
+
+        ITEMS.put(fullId, item);
+        return item;
     }
 
-    public static ItemType get(int id) { return ITEMS.get(id); }
-    public static Map<Integer, ItemType> getAll() { return ITEMS; }
+    public static Item get(String fullId) {
+        return ITEMS.get(fullId);
+    }
+
+    public static Map<String, Item> getAll() {
+        return ITEMS;
+    }
 }
