@@ -1,5 +1,6 @@
 package de.delautrer.engine.graphics;
 
+import de.delautrer.engine.utils.AssetManager;
 import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
@@ -18,7 +19,6 @@ public class VulkanTexture {
     private long descriptorPool;
     private long descriptorSet;
 
-    // --- 1. KONSTRUKTOR (Für Dateipfade, z.B. gui.png) ---
     public VulkanTexture(VulkanContext context, VulkanCommandBuffers commandBuffers, long descriptorSetLayout, String path) {
         this.context = context;
         createTextureImage(commandBuffers, path);
@@ -28,7 +28,6 @@ public class VulkanTexture {
         createDescriptorSet(descriptorSetLayout);
     }
 
-    // --- 2. NEUER KONSTRUKTOR (Für rohe Pixeldaten, z.B. Font) ---
     public VulkanTexture(VulkanContext context, VulkanCommandBuffers commandBuffers, long descriptorSetLayout, ByteBuffer pixels, int width, int height) {
         this.context = context;
         createTextureImage(commandBuffers, pixels, width, height);
@@ -38,17 +37,17 @@ public class VulkanTexture {
         createDescriptorSet(descriptorSetLayout);
     }
 
-    // --- METHODE FÜR DATEIPFAD ---
     private void createTextureImage(VulkanCommandBuffers commandBuffers, String path) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             IntBuffer pWidth = stack.mallocInt(1);
             IntBuffer pHeight = stack.mallocInt(1);
             IntBuffer pChannels = stack.mallocInt(1);
 
-            ByteBuffer pixels = STBImage.stbi_load(path, pWidth, pHeight, pChannels, STBImage.STBI_rgb_alpha);
+            ByteBuffer fileBuffer = AssetManager.loadResource(path);
+            ByteBuffer pixels = STBImage.stbi_load_from_memory(fileBuffer, pWidth, pHeight, pChannels, STBImage.STBI_rgb_alpha);
 
             if (pixels == null) {
-                throw new RuntimeException("Failed to load texture image: " + path);
+                throw new RuntimeException("Failed to load texture image: " + path + " -> " + STBImage.stbi_failure_reason());
             }
 
             int texWidth = pWidth.get(0);
@@ -82,7 +81,6 @@ public class VulkanTexture {
         }
     }
 
-    // --- NEUE METHODE FÜR PIXELDATEN (ByteBuffer) ---
     private void createTextureImage(VulkanCommandBuffers commandBuffers, ByteBuffer pixels, int texWidth, int texHeight) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             long imageSize = (long) texWidth * texHeight * 4;
@@ -96,7 +94,6 @@ public class VulkanTexture {
             org.lwjgl.system.MemoryUtil.memCopy(org.lwjgl.system.MemoryUtil.memAddress(pixels), destAddress, imageSize);
             VK10.vkUnmapMemory(context.getDevice(), stagingBuffer.getBufferMemory());
 
-            // Pixel wurden kopiert, jetzt Vulkan-Image erstellen
             createImage(texWidth, texHeight, VK10.VK_FORMAT_R8G8B8A8_SRGB, VK10.VK_IMAGE_TILING_OPTIMAL,
                     VK10.VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK10.VK_IMAGE_USAGE_SAMPLED_BIT,
                     VK10.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);

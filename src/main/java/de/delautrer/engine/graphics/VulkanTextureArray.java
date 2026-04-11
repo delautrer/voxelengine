@@ -1,5 +1,6 @@
 package de.delautrer.engine.graphics;
 
+import de.delautrer.engine.utils.AssetManager;
 import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
@@ -35,10 +36,11 @@ public class VulkanTextureArray {
             IntBuffer pHeight = stack.mallocInt(1);
             IntBuffer pChannels = stack.mallocInt(1);
 
-            ByteBuffer pixels = STBImage.stbi_load(path, pWidth, pHeight, pChannels, STBImage.STBI_rgb_alpha);
+            ByteBuffer fileBuffer = AssetManager.loadResource(path);
+            ByteBuffer pixels = STBImage.stbi_load_from_memory(fileBuffer, pWidth, pHeight, pChannels, STBImage.STBI_rgb_alpha);
 
             if (pixels == null) {
-                throw new RuntimeException("Failed to load texture image: " + path);
+                throw new RuntimeException("Failed to load texture image array: " + path);
             }
 
             int texWidth = pWidth.get(0);
@@ -61,7 +63,6 @@ public class VulkanTextureArray {
 
             STBImage.stbi_image_free(pixels);
 
-            // WICHTIG: Erstelle das Image mit Breite/Höhe EINES EINZELNEN Blocks und 256 Layern!
             createImageArray(tileSizeX, tileSizeY, layerCount, VK10.VK_FORMAT_R8G8B8A8_SRGB, VK10.VK_IMAGE_TILING_OPTIMAL,
                     VK10.VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK10.VK_IMAGE_USAGE_SAMPLED_BIT,
                     VK10.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
@@ -69,7 +70,6 @@ public class VulkanTextureArray {
             transitionImageLayout(commandBuffers, textureImage, VK10.VK_FORMAT_R8G8B8A8_SRGB,
                     VK10.VK_IMAGE_LAYOUT_UNDEFINED, VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, layerCount);
 
-            // Zerschneide den Atlas und lade die Layer einzeln hoch
             copyBufferToImageLayers(commandBuffers, stagingBuffer.getBuffer(), textureImage, texWidth, texHeight, tileSizeX, tileSizeY, tilesX, layerCount);
 
             transitionImageLayout(commandBuffers, textureImage, VK10.VK_FORMAT_R8G8B8A8_SRGB,

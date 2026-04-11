@@ -1,5 +1,6 @@
 package de.delautrer.engine.graphics;
 
+import de.delautrer.engine.utils.AssetManager;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.stb.STBTTBakedChar;
 import org.lwjgl.stb.STBTruetype;
@@ -18,11 +19,8 @@ public class VulkanFont {
 
     public VulkanFont(String fontPath, float fontHeight) {
         charData = STBTTBakedChar.malloc(96);
-
         try {
-            byte[] fontBytes = Files.readAllBytes(Paths.get(fontPath));
-            ByteBuffer ttfBuffer = BufferUtils.createByteBuffer(fontBytes.length);
-            ttfBuffer.put(fontBytes).flip();
+            ByteBuffer ttfBuffer = AssetManager.loadResource(fontPath);
 
             ByteBuffer alphaBitmap = BufferUtils.createByteBuffer(BITMAP_SIZE * BITMAP_SIZE);
             STBTruetype.stbtt_BakeFontBitmap(ttfBuffer, fontHeight, alphaBitmap, BITMAP_SIZE, BITMAP_SIZE, 32, charData);
@@ -37,7 +35,7 @@ public class VulkanFont {
             }
             rgbaBitmap.flip();
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             System.err.println("Error loading font: " + fontPath);
             e.printStackTrace();
         }
