@@ -42,8 +42,8 @@ public class World {
         return c.getBlock(Math.floorMod(x, Chunk.SIZE), y, Math.floorMod(z, Chunk.SIZE));
     }
 
-    public void update(InputManager input, Vector3f cameraFront, float deltaTime) {
-        player.update(input, chunkManager, cameraFront, deltaTime);
+    public void update(InputManager input, Vector3f cameraFront, boolean isInventoryOpen, float deltaTime) {
+        player.update(input, chunkManager, cameraFront, isInventoryOpen, deltaTime);
         chunkManager.update(player.position.x, player.position.z);
 
         // Wasser Physik-Tick über den Simulator!

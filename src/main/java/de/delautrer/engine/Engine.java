@@ -116,16 +116,20 @@ public class Engine {
             }
 
             environment.update(deltaTime);
-            world.update(inputManager, camera.getFront(), deltaTime);
+            world.update(inputManager, camera.getFront(), interaction.getInventory().isOpen(), deltaTime);
 
             if (!interaction.getInventory().isOpen()) {
                 camera.update(window.getHandle(), deltaTime, player.getEyePosition());
             } else {
                 camera.setPosition(player.getEyePosition());
-                uiNeedsRebuild = true; // Für das Item-Hovering muss das Inventar jeden Frame updaten
+                uiNeedsRebuild = true; // Für das Item-Hovering
             }
 
-            interaction.update(inputManager);
+            if (debugOverlay.isVisible()) {
+                uiNeedsRebuild = true;
+            }
+
+            interaction.update(inputManager, deltaTime);
 
             // --- RENDER LOGIK ---
             if (window.isFramebufferResized()) {
@@ -146,7 +150,7 @@ public class Engine {
                 }
             }
 
-            inputManager.update();
+            interaction.update(inputManager, deltaTime);
         }
         VK10.vkDeviceWaitIdle(vulkanContext.getDevice());
     }
