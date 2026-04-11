@@ -12,6 +12,8 @@ public class ItemRegistry {
         register(2, new ItemType("Dirt", 1, BlockType.DIRT));
         register(3, new ItemType("Stone", 2, BlockType.STONE));
         register(4, new ItemType("Water bucket", 3, BlockType.WATER));
+        register(5, new ItemType("Glass", 3, BlockType.GLASS));
+        register(6, new ItemType("Leaves", 3, BlockType.LEAVES));
     }
 
     private static void register(int id, ItemType item) {
