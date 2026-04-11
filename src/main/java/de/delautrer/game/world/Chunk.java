@@ -1,0 +1,227 @@
+package de.delautrer.game.world;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class Chunk {
+    public static final int SIZE = 16;
+    public static final int HEIGHT = 64;
+
+    private final byte[][][] blocks = new byte[SIZE][HEIGHT][SIZE];
+    private final byte[][][] states = new byte[SIZE][HEIGHT][SIZE];
+
+    private final int worldX, worldZ;
+    private final List<Float> vertices = new ArrayList<>();
+    private final List<Integer> indices = new ArrayList<>();
+
+    private static final float[] highlightVertices = { 0,0,0, 1,0,0, 1,1,0, 0,1,0, 0,0,1, 1,0,1, 1,1,1, 0,1,1 };
+    private static final int[] highlightIndices = { 0,1, 1,2, 2,3, 3,0, 4,5, 5,6, 6,7, 7,4, 0,4, 1,5, 2,6, 3,7 };
+
+    public Chunk(int worldX, int worldZ) {
+        this.worldX = worldX;
+        this.worldZ = worldZ;
+    }
+
+    public void rebuildMesh(ChunkManager cm) {
+        vertices.clear();
+        indices.clear();
+        for (int x = 0; x < SIZE; x++) {
+            for (int y = 0; y < HEIGHT; y++) {
+                for (int z = 0; z < SIZE; z++) {
+                    byte id = blocks[x][y][z];
+                    if (id != 0) addBlockToMesh(x, y, z, id, cm);
+                }
+            }
+        }
+    }
+
+    private int getTexLayer(BlockType type, int face) {
+        // face: 0=Top, 1=Bottom, 2=Side
+        if (face == 0) return type.texTop;
+        if (face == 1) return type.texBottom;
+        return type.texSide;
+    }
+
+    private void addBlockToMesh(int x, int y, int z, byte id, ChunkManager cm) {
+        BlockType type = BlockType.getById(id);
+        float h = getWaterHeight(x, y, z, cm);
+        float yTop = y + h;
+
+        float lightTop = 1.0f, lightBot = 0.4f, lightFrontBack = 0.8f, lightLeftRight = 0.65f;
+
+        // Top Face
+        boolean drawTop = isTransparent(x, y + 1, z, cm, id, h);
+        if (id == 4 && h < 0.99f) drawTop = true; // Wasser-Oberfläche immer zeichnen wenn nicht voll
+
+        if (drawTop) {
+            float ao0 = getAO(x, y+1, z, -1, 0, 0, 0, 0, -1, cm);
+            float ao1 = getAO(x, y+1, z, -1, 0, 0, 0, 0, 1, cm);
+            float ao2 = getAO(x, y+1, z, 1, 0, 0, 0, 0, 1, cm);
+            float ao3 = getAO(x, y+1, z, 1, 0, 0, 0, 0, -1, cm);
+            addFace(x,yTop,z,ao0,  x,yTop,z+1,ao1,  x+1,yTop,z+1,ao2,  x+1,yTop,z,ao3,  getTexLayer(type, 0), lightTop, id);
+        }
+
+        // Bottom Face
+        if (isTransparent(x, y - 1, z, cm, id, h)) {
+            float ao0 = getAO(x, y-1, z, -1, 0, 0, 0, 0, 1, cm);
+            float ao1 = getAO(x, y-1, z, -1, 0, 0, 0, 0, -1, cm);
+            float ao2 = getAO(x, y-1, z, 1, 0, 0, 0, 0, -1, cm);
+            float ao3 = getAO(x, y-1, z, 1, 0, 0, 0, 0, 1, cm);
+            addFace(x,y,z+1,ao0,  x,y,z,ao1,  x+1,y,z,ao2,  x+1,y,z+1,ao3,  getTexLayer(type, 1), lightBot, id);
+        }
+
+        // Side Faces (Front, Back, Left, Right)
+        // Z+
+        if (isTransparent(x, y, z + 1, cm, id, h)) {
+            float ao0 = getAO(x, y, z+1, -1, 0, 0, 0, -1, 0, cm);
+            float ao1 = getAO(x, y, z+1, 1, 0, 0, 0, -1, 0, cm);
+            float ao2 = getAO(x, y, z+1, 1, 0, 0, 0, 1, 0, cm);
+            float ao3 = getAO(x, y, z+1, -1, 0, 0, 0, 1, 0, cm);
+            addFace(x,y,z+1,ao0,  x+1,y,z+1,ao1,  x+1,yTop,z+1,ao2,  x,yTop,z+1,ao3,  getTexLayer(type, 2), lightFrontBack, id);
+        }
+        // Z-
+        if (isTransparent(x, y, z - 1, cm, id, h)) {
+            float ao0 = getAO(x, y, z-1, 1, 0, 0, 0, -1, 0, cm);
+            float ao1 = getAO(x, y, z-1, -1, 0, 0, 0, -1, 0, cm);
+            float ao2 = getAO(x, y, z-1, -1, 0, 0, 0, 1, 0, cm);
+            float ao3 = getAO(x, y, z-1, 1, 0, 0, 0, 1, 0, cm);
+            addFace(x+1,y,z,ao0,  x,y,z,ao1,  x,yTop,z,ao2,  x+1,yTop,z,ao3,  getTexLayer(type, 2), lightFrontBack, id);
+        }
+        // X-
+        if (isTransparent(x - 1, y, z, cm, id, h)) {
+            float ao0 = getAO(x-1, y, z, 0, -1, 0, 0, 0, -1, cm);
+            float ao1 = getAO(x-1, y, z, 0, -1, 0, 0, 0, 1, cm);
+            float ao2 = getAO(x-1, y, z, 0, 1, 0, 0, 0, 1, cm);
+            float ao3 = getAO(x-1, y, z, 0, 1, 0, 0, 0, -1, cm);
+            addFace(x,y,z,ao0,  x,y,z+1,ao1,  x,yTop,z+1,ao2,  x,yTop,z,ao3,  getTexLayer(type, 2), lightLeftRight, id);
+        }
+        // X+
+        if (isTransparent(x + 1, y, z, cm, id, h)) {
+            float ao0 = getAO(x+1, y, z, 0, -1, 0, 0, 0, 1, cm);
+            float ao1 = getAO(x+1, y, z, 0, -1, 0, 0, 0, -1, cm);
+            float ao2 = getAO(x+1, y, z, 0, 1, 0, 0, 0, -1, cm);
+            float ao3 = getAO(x+1, y, z, 0, 1, 0, 0, 0, 1, cm);
+            addFace(x+1,y,z+1,ao0,  x+1,y,z,ao1,  x+1,yTop,z,ao2,  x+1,yTop,z+1,ao3,  getTexLayer(type, 2), lightLeftRight, id);
+        }
+    }
+
+    private void addFace(float x0, float y0, float z0, float ao0,
+                         float x1, float y1, float z1, float ao1,
+                         float x2, float y2, float z2, float ao2,
+                         float x3, float y3, float z3, float ao3,
+                         int texLayer, float directionalLight, byte id) {
+
+        float ox = worldX * SIZE, oz = worldZ * SIZE;
+        float u0 = 0.0f, v0 = 0.0f;
+        float u1 = 1.0f, v1 = 1.0f;
+
+        int offset = vertices.size() / 10;
+        float r = 1.0f, g = 1.0f, b = 1.0f, alpha = 1.0f;
+
+        if (id == 4) { // Wasser-Spezialfarben
+            r = 0.2f; g = 0.5f; b = 1.0f; alpha = 0.7f;
+            directionalLight = Math.min(1.0f, directionalLight * 1.2f);
+        }
+
+        float c0 = ao0 * directionalLight, c1 = ao1 * directionalLight;
+        float c2 = ao2 * directionalLight, c3 = ao3 * directionalLight;
+
+        vertices.addAll(List.of(
+                x0 + ox, y0, z0 + oz, c0 * r, c0 * g, c0 * b, alpha, u0, v1, (float)texLayer,
+                x1 + ox, y1, z1 + oz, c1 * r, c1 * g, c1 * b, alpha, u1, v1, (float)texLayer,
+                x2 + ox, y2, z2 + oz, c2 * r, c2 * g, c2 * b, alpha, u1, v0, (float)texLayer,
+                x3 + ox, y3, z3 + oz, c3 * r, c3 * g, c3 * b, alpha, u0, v0, (float)texLayer
+        ));
+
+        if (ao0 + ao2 > ao1 + ao3) {
+            indices.addAll(List.of(offset + 1, offset + 2, offset + 3, offset + 3, offset + 0, offset + 1));
+        } else {
+            indices.addAll(List.of(offset + 0, offset + 1, offset + 2, offset + 2, offset + 3, offset + 0));
+        }
+    }
+
+    private boolean isSolid(int x, int y, int z, ChunkManager cm) {
+        byte id = getBlockAt(x, y, z, cm);
+        return BlockType.getById(id).isSolid;
+    }
+
+    private byte getBlockAt(int x, int y, int z, ChunkManager cm) {
+        if (y < 0 || y >= HEIGHT) return 0;
+        if (x >= 0 && x < SIZE && z >= 0 && z < SIZE) return blocks[x][y][z];
+        if (cm == null) return 0;
+        Chunk neighbor = cm.getChunkAtBlock(worldX * SIZE + x, y, worldZ * SIZE + z);
+        if (neighbor == null) return 0;
+        return neighbor.getBlock(Math.floorMod(worldX * SIZE + x, SIZE), y, Math.floorMod(worldZ * SIZE + z, SIZE));
+    }
+
+    private float getWaterHeight(int x, int y, int z, ChunkManager cm) {
+        if (y < 0 || y >= HEIGHT) return 1.0f;
+        byte type = getBlockAt(x, y, z, cm);
+        if (type != 4) return 1.0f;
+        if (getBlockAt(x, y + 1, z, cm) == 4) return 1.0f;
+
+        byte state = 0;
+        if (x >= 0 && x < SIZE && z >= 0 && z < SIZE) state = states[x][y][z];
+        else {
+            Chunk n = cm.getChunkAtBlock(worldX * SIZE + x, y, worldZ * SIZE + z);
+            if (n != null) state = n.getState(Math.floorMod(worldX * SIZE + x, SIZE), y, Math.floorMod(worldZ * SIZE + z, SIZE));
+        }
+        return Math.max(0.1f, state / 9.0f);
+    }
+
+    private boolean isTransparent(int x, int y, int z, ChunkManager cm, byte currentType, float currentH) {
+        if (y < 0) return false;
+        if (y >= HEIGHT) return true;
+        byte neighborType = getBlockAt(x, y, z, cm);
+        float neighborH = (neighborType == 4) ? getWaterHeight(x, y, z, cm) : 1.0f;
+
+        if (currentType > 0 && currentType < 4) return neighborType == 0 || neighborType == 4;
+        if (currentType == 4) {
+            if (neighborType == 0) return true;
+            if (neighborType == 4) return currentH > neighborH + 0.01f;
+            return false;
+        }
+        return neighborType == 0;
+    }
+
+    private float getAO(int x, int y, int z, int dx1, int dy1, int dz1, int dx2, int dy2, int dz2, ChunkManager cm) {
+        boolean side1 = isSolid(x + dx1, y + dy1, z + dz1, cm);
+        boolean side2 = isSolid(x + dx2, y + dy2, z + dz2, cm);
+        boolean corner = isSolid(x + dx1 + dx2, y + dy1 + dy2, z + dz1 + dz2, cm);
+        if (side1 && side2) return 0.5f;
+        int count = (side1 ? 1 : 0) + (side2 ? 1 : 0) + (corner ? 1 : 0);
+        return switch (count) {
+            case 0 -> 1.0f;
+            case 1 -> 0.8f;
+            case 2 -> 0.6f;
+            default -> 0.5f;
+        };
+    }
+
+    public byte getBlock(int x, int y, int z) { return getBlockAt(x,y,z, null); }
+    public byte getState(int x, int y, int z) {
+        if (x < 0 || x >= SIZE || y < 0 || y >= HEIGHT || z < 0 || z >= SIZE) return 0;
+        return states[x][y][z];
+    }
+    public void setBlock(int x, int y, int z, byte type, byte state) {
+        if (x < 0 || x >= SIZE || y < 0 || y >= HEIGHT || z < 0 || z >= SIZE) return;
+        blocks[x][y][z] = type;
+        states[x][y][z] = state;
+    }
+    public void setBlock(int x, int y, int z, byte type) { setBlock(x, y, z, type, (byte)0); }
+    public void clearMeshCache() { vertices.clear(); indices.clear(); }
+    public float[] getVertices() {
+        float[] arr = new float[vertices.size()];
+        for (int i = 0; i < vertices.size(); i++) arr[i] = vertices.get(i);
+        return arr;
+    }
+    public int[] getIndices() {
+        int[] arr = new int[indices.size()];
+        for (int i = 0; i < indices.size(); i++) arr[i] = indices.get(i);
+        return arr;
+    }
+    public static float[] getHighlightVertices() { return highlightVertices; }
+    public static int[] getHighlightIndices() { return highlightIndices; }
+    public int getWorldX() { return worldX; }
+    public int getWorldZ() { return worldZ; }
+}
