@@ -3,6 +3,7 @@ package de.delautrer.game.world;
 import de.delautrer.engine.graphics.VulkanContext;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.engine.player.Player;
+import de.delautrer.game.blocks.BlockRegistry;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 
@@ -58,57 +59,84 @@ public class World {
         }
     }
 
-    public Vector3i raycast(Vector3f origin, Vector3f direction, float maxDist) {
-        // (Lasse den kompletten Raycast-Code hier exakt so wie er vorher war)
-        float x = origin.x;
-        float y = origin.y;
-        float z = origin.z;
+    // --- NEU: Die Hilfsklasse für das Raycast-Ergebnis ---
+    public static class RaycastResult {
+        public final Vector3i hitPos;
+        public final Vector3i adjacentPos;
 
-        int ix = (int) Math.floor(x);
-        int iy = (int) Math.floor(y);
-        int iz = (int) Math.floor(z);
+        public RaycastResult(Vector3i hitPos, Vector3i adjacentPos) {
+            this.hitPos = hitPos;
+            this.adjacentPos = adjacentPos;
+        }
+    }
 
-        float dx = direction.x;
-        float dy = direction.y;
-        float dz = direction.z;
+    // --- NEU: Der 3D DDA Algorithmus ---
+    public RaycastResult raycast(Vector3f start, Vector3f dir, float maxDistance) {
+        int x = (int) Math.floor(start.x);
+        int y = (int) Math.floor(start.y);
+        int z = (int) Math.floor(start.z);
 
-        int stepX = (dx > 0) ? 1 : -1;
-        int stepY = (dy > 0) ? 1 : -1;
-        int stepZ = (dz > 0) ? 1 : -1;
+        // Die Richtung, in die wir springen (+1, -1 oder 0)
+        int stepX = Float.compare(dir.x, 0.0f);
+        int stepY = Float.compare(dir.y, 0.0f);
+        int stepZ = Float.compare(dir.z, 0.0f);
 
-        float deltaX = Math.abs(1 / dx);
-        float deltaY = Math.abs(1 / dy);
-        float deltaZ = Math.abs(1 / dz);
+        // Wie weit muss der Strahl wandern, um genau 1 Block in X/Y/Z-Richtung voranzukommen?
+        float tDeltaX = stepX != 0 ? Math.abs(1.0f / dir.x) : Float.MAX_VALUE;
+        float tDeltaY = stepY != 0 ? Math.abs(1.0f / dir.y) : Float.MAX_VALUE;
+        float tDeltaZ = stepZ != 0 ? Math.abs(1.0f / dir.z) : Float.MAX_VALUE;
 
-        float maxX = (stepX > 0) ? (ix + 1 - x) * deltaX : (x - ix) * deltaX;
-        float maxY = (stepY > 0) ? (iy + 1 - y) * deltaY : (y - iy) * deltaY;
-        float maxZ = (stepZ > 0) ? (iz + 1 - z) * deltaZ : (z - iz) * deltaZ;
+        // Wie weit ist es bis zur ALLERERSTEN Blockgrenze?
+        float tMaxX = stepX > 0 ? (x + 1.0f - start.x) * tDeltaX : (start.x - x) * tDeltaX;
+        float tMaxY = stepY > 0 ? (y + 1.0f - start.y) * tDeltaY : (start.y - y) * tDeltaY;
+        float tMaxZ = stepZ > 0 ? (z + 1.0f - start.z) * tDeltaZ : (start.z - z) * tDeltaZ;
 
-        float dist = 0;
-        while (dist < maxDist) {
-            if (maxX < maxY) {
-                if (maxX < maxZ) {
-                    ix += stepX;
-                    dist = maxX;
-                    maxX += deltaX;
+        Vector3i lastPos = new Vector3i(x, y, z);
+        float dist = 0.0f;
+
+        byte air = BlockRegistry.AIR.getId();
+        byte water = BlockRegistry.WATER.getId();
+
+        // Prüfen, ob der Spieler mit dem Kopf bereits in einem Block steckt
+        byte startBlock = getBlockAt(x, y, z);
+        if (startBlock != air && startBlock != water) {
+            return new RaycastResult(new Vector3i(x, y, z), new Vector3i(x, y, z));
+        }
+
+        // Die magische Voxel-Traversal-Schleife
+        while (dist <= maxDistance) {
+            if (tMaxX < tMaxY) {
+                if (tMaxX < tMaxZ) {
+                    lastPos.set(x, y, z);
+                    x += stepX;
+                    dist = tMaxX;
+                    tMaxX += tDeltaX;
                 } else {
-                    iz += stepZ;
-                    dist = maxZ;
-                    maxZ += deltaZ;
+                    lastPos.set(x, y, z);
+                    z += stepZ;
+                    dist = tMaxZ;
+                    tMaxZ += tDeltaZ;
                 }
             } else {
-                if (maxY < maxZ) {
-                    iy += stepY;
-                    dist = maxY;
-                    maxY += deltaY;
+                if (tMaxY < tMaxZ) {
+                    lastPos.set(x, y, z);
+                    y += stepY;
+                    dist = tMaxY;
+                    tMaxY += tDeltaY;
                 } else {
-                    iz += stepZ;
-                    dist = maxZ;
-                    maxZ += deltaZ;
+                    lastPos.set(x, y, z);
+                    z += stepZ;
+                    dist = tMaxZ;
+                    tMaxZ += tDeltaZ;
                 }
             }
-            if (getBlockAt(ix, iy, iz) != 0 && getBlockAt(ix, iy, iz) != 4) {
-                return new org.joml.Vector3i(ix, iy, iz);
+
+            if (dist > maxDistance) break;
+
+            byte blockId = getBlockAt(x, y, z);
+            if (blockId != air && blockId != water) {
+                // Treffer! Wir geben den getroffenen Block UND die vorherige Position (lastPos) zurück!
+                return new RaycastResult(new Vector3i(x, y, z), new Vector3i(lastPos));
             }
         }
         return null;

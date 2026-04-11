@@ -9,7 +9,6 @@ import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.World;
 import de.delautrer.game.items.ItemStack;
 import de.delautrer.game.items.BlockItem;
-import org.joml.Vector3f;
 import org.joml.Vector3i;
 import org.lwjgl.vulkan.VK10;
 import de.delautrer.engine.events.EventBus;
@@ -25,6 +24,7 @@ public class PlayerInteraction {
 
     private int hoveredSlot = -1;
     private Vector3i selectedBlockPos = null;
+    private Vector3i adjacentBlockPos = null; // NEU: Merken wir uns direkt aus dem Raycast
 
     public PlayerInteraction(World world, Camera camera, Player player, VulkanContext vulkanContext, EventBus eventBus) {
         this.world = world;
@@ -55,7 +55,16 @@ public class PlayerInteraction {
             hoveredSlot = -1;
         }
 
-        selectedBlockPos = world.raycast(camera.getPosition(), camera.getFront(), 6.0f);
+        // --- DER NEUE, SAUBERE RAYCAST ---
+        World.RaycastResult result = world.raycast(camera.getPosition(), camera.getFront(), 6.0f);
+        if (result != null) {
+            selectedBlockPos = result.hitPos;
+            adjacentBlockPos = result.adjacentPos;
+        } else {
+            selectedBlockPos = null;
+            adjacentBlockPos = null;
+        }
+
         if (!camera.isCursorCaptured()) return;
 
         for (int i = 0; i < 9; i++) {
@@ -75,48 +84,22 @@ public class PlayerInteraction {
         if (selectedBlockPos == null) return;
 
         if (isBreak) {
-            // Block abbauen (Später lagern wir das in eine "ToolItem"-Klasse aus)
             Chunk targetChunk = world.getChunkManager().getChunkAtBlock(selectedBlockPos.x, selectedBlockPos.y, selectedBlockPos.z);
             if (targetChunk != null) {
                 targetChunk.setBlock(Math.floorMod(selectedBlockPos.x, Chunk.SIZE), selectedBlockPos.y, Math.floorMod(selectedBlockPos.z, Chunk.SIZE), (byte)0);
                 updateChunkMesh(targetChunk, Math.floorMod(selectedBlockPos.x, Chunk.SIZE), Math.floorMod(selectedBlockPos.z, Chunk.SIZE));
             }
         } else {
-            // Block / Item benutzen!
             ItemStack heldStack = inventory.getSelectedHotbarStack();
             if (heldStack == null) return;
 
-            Vector3i adjacentPos = calculateAdjacentPos();
-
-            // Wir übergeben dem Item einfach die Kontrolle. Es entscheidet, was passiert!
-            heldStack.type.onUseRightClick(world, player, selectedBlockPos, adjacentPos, this);
+            // Wir übergeben einfach die adjacentBlockPos, die wir vom DDA-Algorithmus bekommen haben!
+            heldStack.type.onUseRightClick(world, player, selectedBlockPos, adjacentBlockPos, this);
         }
     }
 
-    private Vector3i calculateAdjacentPos() {
-        Vector3f pos = new Vector3f(camera.getPosition());
-        Vector3f dir = new Vector3f(camera.getFront());
-        float step = 0.01f;
-        Vector3f currentPos = new Vector3f(pos);
-        Vector3i lastEmptyPos = new Vector3i((int)Math.floor(pos.x), (int)Math.floor(pos.y), (int)Math.floor(pos.z));
+    // ACHTUNG: Die Methode calculateAdjacentPos() existiert hier nicht mehr! (Einfach löschen)
 
-        for(float d = 0; d < 6.0f; d += step) {
-            int bx = (int) Math.floor(currentPos.x);
-            int by = (int) Math.floor(currentPos.y);
-            int bz = (int) Math.floor(currentPos.z);
-
-            byte hitBlock = world.getBlockAt(bx, by, bz);
-
-            if (hitBlock != 0 && hitBlock != 4) {
-                return lastEmptyPos;
-            }
-            lastEmptyPos.set(bx, by, bz);
-            currentPos.add(dir.x * step, dir.y * step, dir.z * step);
-        }
-        return null;
-    }
-
-    // ACHTUNG: Das ist jetzt 'public', damit Items das Mesh nach dem Bauen neu laden können
     public void updateChunkMesh(Chunk c, int localX, int localZ) {
         VK10.vkDeviceWaitIdle(vulkanContext.getDevice());
         c.rebuildMesh(world.getChunkManager());
