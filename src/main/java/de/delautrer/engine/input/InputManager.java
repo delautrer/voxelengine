@@ -11,6 +11,7 @@ public class InputManager {
     private final Map<String, Integer> mouseBindings = new HashMap<>();
     private final Map<String, Boolean> previousActionStates = new HashMap<>();
 
+    private double scrollY = 0;
     private float mouseX, mouseY;
     private int windowWidth, windowHeight;
 
@@ -44,6 +45,11 @@ public class InputManager {
 
         mouseBindings.put("INTERACT_BREAK", GLFW.GLFW_MOUSE_BUTTON_LEFT);
         mouseBindings.put("INTERACT_PLACE", GLFW.GLFW_MOUSE_BUTTON_RIGHT);
+        mouseBindings.put("PICK_BLOCK", GLFW.GLFW_MOUSE_BUTTON_MIDDLE);
+
+        org.lwjgl.glfw.GLFW.glfwSetScrollCallback(windowHandle, (window, xoffset, yoffset) -> {
+            scrollY = yoffset;
+        });
     }
 
     public void update() {
@@ -61,6 +67,12 @@ public class InputManager {
         GLFW.glfwGetWindowSize(windowHandle, w, h);
         windowWidth = w[0];
         windowHeight = h[0];
+    }
+
+    public double consumeScroll() {
+        double temp = scrollY;
+        scrollY = 0;
+        return temp;
     }
 
     public void setCursorHover(boolean isHovering) {

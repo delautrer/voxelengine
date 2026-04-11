@@ -63,6 +63,9 @@ public class Camera {
         yaw += (float) xoffset;
         pitch += (float) yoffset;
 
+        yaw %= 360.0f;
+        if (yaw < 0.0f) yaw += 360.0f;
+
         if (pitch > 89.0f) pitch = 89.0f;
         if (pitch < -89.0f) pitch = -89.0f;
 

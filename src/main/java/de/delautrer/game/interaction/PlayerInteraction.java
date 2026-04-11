@@ -24,7 +24,10 @@ public class PlayerInteraction {
 
     private int hoveredSlot = -1;
     private Vector3i selectedBlockPos = null;
-    private Vector3i adjacentBlockPos = null; // NEU: Merken wir uns direkt aus dem Raycast
+    private Vector3i adjacentBlockPos = null;
+
+    private float interactTimer = 0.0f;
+    private final float INTERACT_COOLDOWN = 0.66f;
 
     public PlayerInteraction(World world, Camera camera, Player player, VulkanContext vulkanContext, EventBus eventBus) {
         this.world = world;
@@ -35,7 +38,7 @@ public class PlayerInteraction {
         this.inventory = new Inventory();
     }
 
-    public void update(InputManager input) {
+    public void update(InputManager input, float deltaTime) {
         if (input.isActionJustPressed("INVENTORY")) {
             inventory.toggle();
             eventBus.publish(new de.delautrer.game.events.InventoryToggleEvent(inventory.isOpen()));
@@ -49,13 +52,11 @@ public class PlayerInteraction {
 
             if (input.isActionJustPressed("INTERACT_BREAK")) {
                 if (hoveredSlot != -1) inventory.handleSlotClick(hoveredSlot);
-            }
-            return;
+            }return;
         } else {
             hoveredSlot = -1;
         }
 
-        // --- DER NEUE, SAUBERE RAYCAST ---
         World.RaycastResult result = world.raycast(camera.getPosition(), camera.getFront(), 6.0f);
         if (result != null) {
             selectedBlockPos = result.hitPos;
@@ -67,6 +68,7 @@ public class PlayerInteraction {
 
         if (!camera.isCursorCaptured()) return;
 
+        // --- FEATURE: TASTEN 1-9 ---
         for (int i = 0; i < 9; i++) {
             if (input.isActionJustPressed("SLOT_" + (i + 1))) {
                 inventory.setSelectedSlot(i);
@@ -74,8 +76,52 @@ public class PlayerInteraction {
             }
         }
 
-        if (input.isActionJustPressed("INTERACT_BREAK")) handleMouseClick(true);
-        else if (input.isActionJustPressed("INTERACT_PLACE")) handleMouseClick(false);
+        // --- FEATURE: MAUSRAD SCROLLEN ---
+        double scroll = input.consumeScroll();
+        if (scroll != 0) {
+            int newSlot = inventory.getSelectedSlot() - (int) Math.signum(scroll);
+
+            if (newSlot < 0) newSlot = 8;
+            else if (newSlot > 8) newSlot = 0;
+
+            inventory.setSelectedSlot(newSlot);
+            eventBus.publish(new de.delautrer.game.events.HotbarSlotChangeEvent(newSlot));
+        }
+
+        // --- FEATURE: PICK BLOCK (Mittlere Maustaste) ---
+        if (input.isActionJustPressed("PICK_BLOCK")) {
+            if (selectedBlockPos != null) {
+                byte targetId = world.getBlockAt(selectedBlockPos.x, selectedBlockPos.y, selectedBlockPos.z);
+                for (int i = 0; i < 9; i++) {
+                    ItemStack stack = inventory.getStack(i);
+                    if (stack != null && stack.type instanceof BlockItem) {
+                        if (((BlockItem)stack.type).block.getId() == targetId) {
+                            inventory.setSelectedSlot(i);
+                            eventBus.publish(new de.delautrer.game.events.HotbarSlotChangeEvent(i));
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (interactTimer > 0) {
+            interactTimer -= deltaTime;
+        }
+
+        if (input.isActionActive("INTERACT_BREAK")) {
+            if (interactTimer <= 0) {
+                handleMouseClick(true);
+                interactTimer = INTERACT_COOLDOWN;
+            }
+        } else if (input.isActionActive("INTERACT_PLACE")) {
+            if (interactTimer <= 0) {
+                handleMouseClick(false);
+                interactTimer = INTERACT_COOLDOWN;
+            }
+        } else {
+            interactTimer = 0.0f;
+        }
     }
 
     public int getHoveredSlot() { return hoveredSlot; }
