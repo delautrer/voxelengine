@@ -9,7 +9,9 @@ public class RenderPacket {
     public List<VulkanMesh> visibleMeshes;
     public VulkanMesh highlightMesh;
     public VulkanMesh uiMesh;
+    public VulkanMesh textMesh;
 
+    public VulkanTexture fontTexture;
     public VulkanTextureArray worldTexture;
     public VulkanTexture guiTexture;
 

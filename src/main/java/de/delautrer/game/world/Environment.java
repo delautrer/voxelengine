@@ -16,6 +16,7 @@ public class Environment {
         skyB = 0.08f + 0.84f * globalLight;
     }
 
+    public float getTimeOfDay() { return timeOfDay; }
     public float getGlobalLight() { return globalLight; }
     public float getSkyR() { return skyR; }
     public float getSkyG() { return skyG; }

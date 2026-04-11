@@ -6,9 +6,10 @@ import de.delautrer.engine.input.InputManager;
 import de.delautrer.engine.player.Camera;
 import de.delautrer.engine.player.Player;
 import de.delautrer.engine.window.Window;
-import de.delautrer.game.events.InventoryToggleEvent; // NEUES EVENT
+import de.delautrer.game.events.InventoryToggleEvent;
 import de.delautrer.game.interaction.PlayerInteraction;
 import de.delautrer.game.ui.UIRenderer;
+import de.delautrer.game.ui.DebugOverlay;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.Environment;
 import de.delautrer.game.world.World;
@@ -33,13 +34,22 @@ public class Engine {
 
     private VulkanTextureArray worldTexture;
     private VulkanTexture guiTexture;
+    private VulkanTexture fontTexture;
+
     private VulkanMesh highlightMesh;
     private UIRenderer uiRenderer;
+
+    private DebugOverlay debugOverlay;
+    private VulkanFont font;
+    private int lastVisibleChunkCount = 0;
 
     private float deltaTime = 0.0f;
     private float lastFrame = 0.0f;
     private int lastSelectedSlot = -1;
     private boolean lastInventoryState = false;
+
+    // NEU: Damit die Engine merkt, wenn das F3-Menü geschlossen wird!
+    private boolean lastDebugState = false;
 
     public void run() {
         init();
@@ -63,9 +73,33 @@ public class Engine {
         worldTexture = new VulkanTextureArray(vulkanContext, renderer.getCommandBuffers(), renderer.getGraphicsLayout(), "src/main/resources/texture.png");
         guiTexture = new VulkanTexture(vulkanContext, renderer.getCommandBuffers(), renderer.getUiLayout(), "src/main/resources/gui.png");
 
+        font = new VulkanFont("src/main/resources/MinecraftRegular-Bmg3.otf", 24.0f);
+        if (font.getRgbaPixels() != null) {
+            fontTexture = new VulkanTexture(vulkanContext, renderer.getCommandBuffers(), renderer.getUiLayout(), font.getRgbaPixels(), font.BITMAP_SIZE, font.BITMAP_SIZE);
+        }
+
         highlightMesh = new VulkanMesh(vulkanContext, Chunk.getHighlightVertices(), Chunk.getHighlightIndices());
         uiRenderer = new UIRenderer(vulkanContext, renderer.getWidth(), renderer.getHeight());
         camera = new Camera();
+
+        debugOverlay = new DebugOverlay();
+
+        debugOverlay.addLine("Version", () -> "0.1-Alpha");
+        debugOverlay.addLine("FPS", () -> {
+            if (deltaTime <= 0) return "0";
+            return String.format("%d", (int)(1.0f / deltaTime));
+        });
+        debugOverlay.addLine("Chunks (Geladen/Sichtbar)", () ->
+                world.getChunkManager().getMeshes().size() + " / " + lastVisibleChunkCount
+        );
+        debugOverlay.addLine("Player XYZ", () -> String.format("%.2f / %.2f / %.2f",
+                player.position.x, player.position.y, player.position.z));
+        debugOverlay.addLine("Player Yaw/Pitch", () -> String.format("%.1f / %.1f",
+                camera.getYaw(), camera.getPitch()));
+        debugOverlay.addLine("Chunk Pos", () -> String.format("%d / %d",
+                (int)Math.floor(player.position.x / Chunk.SIZE),
+                (int)Math.floor(player.position.z / Chunk.SIZE)));
+        debugOverlay.addLine("Daytime", () -> String.format("%.2f", environment.getTimeOfDay()));
 
         eventBus.subscribe(InventoryToggleEvent.class, event -> {
             if (event.isOpen) window.enableCursor();
@@ -85,6 +119,10 @@ public class Engine {
             lastFrame = currentFrameTime;
 
             window.pollEvents();
+
+            if (inputManager.isActionJustPressed("DEBUG_MENU")) {
+                debugOverlay.toggle();
+            }
 
             environment.update(deltaTime);
             world.update(inputManager, camera.getFront(), deltaTime);
@@ -113,17 +151,20 @@ public class Engine {
 
     private void recreateRenderer() {
         renderer.recreate(window);
-        uiRenderer.rebuildMesh(renderer.getWidth(), renderer.getHeight(), interaction.getInventory(), inputManager.getMouseX(), inputManager.getMouseY(), interaction.getHoveredSlot());
+        uiRenderer.rebuildMesh(renderer.getWidth(), renderer.getHeight(), interaction.getInventory(), inputManager.getMouseX(), inputManager.getMouseY(), interaction.getHoveredSlot(), debugOverlay, font);
     }
 
     private boolean drawFrame() {
         boolean invOpen = interaction.getInventory().isOpen();
         int currentSlot = interaction.getInventory().getSelectedSlot();
+        boolean currentDebugState = debugOverlay.isVisible();
 
-        if (invOpen || currentSlot != lastSelectedSlot || invOpen != lastInventoryState) {
-            uiRenderer.rebuildMesh(renderer.getWidth(), renderer.getHeight(), interaction.getInventory(), inputManager.getMouseX(), inputManager.getMouseY(), interaction.getHoveredSlot());
+        // HIER IST DER LOGIK-FIX: currentDebugState != lastDebugState prüft, ob das Menü gerade geschlossen wurde!
+        if (invOpen || currentSlot != lastSelectedSlot || invOpen != lastInventoryState || currentDebugState || currentDebugState != lastDebugState) {
+            uiRenderer.rebuildMesh(renderer.getWidth(), renderer.getHeight(), interaction.getInventory(), inputManager.getMouseX(), inputManager.getMouseY(), interaction.getHoveredSlot(), debugOverlay, font);
             lastSelectedSlot = currentSlot;
             lastInventoryState = invOpen;
+            lastDebugState = currentDebugState; // Status für den nächsten Frame merken
         }
 
         float aspect = (float) renderer.getWidth() / (float) renderer.getHeight();
@@ -138,13 +179,18 @@ public class Engine {
         packet.view = view;
         packet.ortho = new Matrix4f().ortho(0.0f, renderer.getWidth(), renderer.getHeight(), 0.0f, -1.0f, 1.0f);
 
-        packet.visibleMeshes = world.getVisibleMeshes(mvp);
+        java.util.List<de.delautrer.engine.graphics.VulkanMesh> visible = world.getVisibleMeshes(mvp);
+        packet.visibleMeshes = visible;
+        lastVisibleChunkCount = visible.size();
+
         packet.highlightMesh = highlightMesh;
-        packet.uiMesh = uiRenderer.getMesh();
+
+        packet.uiMesh = uiRenderer.getGuiMesh();
+        packet.guiTexture = guiTexture;
+        packet.textMesh = uiRenderer.getTextMesh();
+        packet.fontTexture = fontTexture;
 
         packet.worldTexture = worldTexture;
-        packet.guiTexture = guiTexture;
-
         packet.selectedBlockPos = interaction.getSelectedBlockPos();
 
         packet.globalLight = environment.getGlobalLight();
@@ -160,8 +206,11 @@ public class Engine {
 
         if (worldTexture != null) worldTexture.cleanup();
         if (guiTexture != null) guiTexture.cleanup();
+        if (fontTexture != null) fontTexture.cleanup();
+
         if (uiRenderer != null) uiRenderer.cleanup();
         if (highlightMesh != null) highlightMesh.cleanup();
+        if (font != null) font.cleanup();
 
         if (renderer != null) renderer.cleanup();
         if (world != null && world.getChunkManager() != null) world.getChunkManager().cleanup();

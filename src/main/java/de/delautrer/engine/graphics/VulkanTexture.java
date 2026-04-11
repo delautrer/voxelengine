@@ -18,6 +18,7 @@ public class VulkanTexture {
     private long descriptorPool;
     private long descriptorSet;
 
+    // --- 1. KONSTRUKTOR (Für Dateipfade, z.B. gui.png) ---
     public VulkanTexture(VulkanContext context, VulkanCommandBuffers commandBuffers, long descriptorSetLayout, String path) {
         this.context = context;
         createTextureImage(commandBuffers, path);
@@ -27,13 +28,23 @@ public class VulkanTexture {
         createDescriptorSet(descriptorSetLayout);
     }
 
+    // --- 2. NEUER KONSTRUKTOR (Für rohe Pixeldaten, z.B. Font) ---
+    public VulkanTexture(VulkanContext context, VulkanCommandBuffers commandBuffers, long descriptorSetLayout, ByteBuffer pixels, int width, int height) {
+        this.context = context;
+        createTextureImage(commandBuffers, pixels, width, height);
+        createTextureImageView();
+        createTextureSampler();
+        createDescriptorPool();
+        createDescriptorSet(descriptorSetLayout);
+    }
+
+    // --- METHODE FÜR DATEIPFAD ---
     private void createTextureImage(VulkanCommandBuffers commandBuffers, String path) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             IntBuffer pWidth = stack.mallocInt(1);
             IntBuffer pHeight = stack.mallocInt(1);
             IntBuffer pChannels = stack.mallocInt(1);
 
-            //STBImage.stbi_set_flip_vertically_on_load(true);
             ByteBuffer pixels = STBImage.stbi_load(path, pWidth, pHeight, pChannels, STBImage.STBI_rgb_alpha);
 
             if (pixels == null) {
@@ -55,6 +66,37 @@ public class VulkanTexture {
 
             STBImage.stbi_image_free(pixels);
 
+            createImage(texWidth, texHeight, VK10.VK_FORMAT_R8G8B8A8_SRGB, VK10.VK_IMAGE_TILING_OPTIMAL,
+                    VK10.VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK10.VK_IMAGE_USAGE_SAMPLED_BIT,
+                    VK10.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+            transitionImageLayout(commandBuffers, textureImage, VK10.VK_FORMAT_R8G8B8A8_SRGB,
+                    VK10.VK_IMAGE_LAYOUT_UNDEFINED, VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+            copyBufferToImage(commandBuffers, stagingBuffer.getBuffer(), textureImage, texWidth, texHeight);
+
+            transitionImageLayout(commandBuffers, textureImage, VK10.VK_FORMAT_R8G8B8A8_SRGB,
+                    VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK10.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+            stagingBuffer.cleanup();
+        }
+    }
+
+    // --- NEUE METHODE FÜR PIXELDATEN (ByteBuffer) ---
+    private void createTextureImage(VulkanCommandBuffers commandBuffers, ByteBuffer pixels, int texWidth, int texHeight) {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            long imageSize = (long) texWidth * texHeight * 4;
+
+            VulkanBuffer stagingBuffer = new VulkanBuffer(context, imageSize, VK10.VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                    VK10.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK10.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+            org.lwjgl.PointerBuffer data = stack.mallocPointer(1);
+            VK10.vkMapMemory(context.getDevice(), stagingBuffer.getBufferMemory(), 0, imageSize, 0, data);
+            long destAddress = data.get(0);
+            org.lwjgl.system.MemoryUtil.memCopy(org.lwjgl.system.MemoryUtil.memAddress(pixels), destAddress, imageSize);
+            VK10.vkUnmapMemory(context.getDevice(), stagingBuffer.getBufferMemory());
+
+            // Pixel wurden kopiert, jetzt Vulkan-Image erstellen
             createImage(texWidth, texHeight, VK10.VK_FORMAT_R8G8B8A8_SRGB, VK10.VK_IMAGE_TILING_OPTIMAL,
                     VK10.VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK10.VK_IMAGE_USAGE_SAMPLED_BIT,
                     VK10.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);

@@ -93,6 +93,14 @@ public class Camera {
         return front;
     }
 
+    public float getYaw() {
+        return yaw;
+    }
+
+    public float getPitch() {
+        return pitch;
+    }
+
     public boolean isCursorCaptured() {
         return cursorCaptured;
     }

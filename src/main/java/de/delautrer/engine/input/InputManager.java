@@ -14,14 +14,12 @@ public class InputManager {
     private float mouseX, mouseY;
     private int windowWidth, windowHeight;
 
-    // NEU: Cursor Handles
     private final long normalCursor;
     private final long handCursor;
 
     public InputManager(long windowHandle) {
         this.windowHandle = windowHandle;
 
-        // Cursors vom Betriebssystem laden
         this.normalCursor = GLFW.glfwCreateStandardCursor(GLFW.GLFW_ARROW_CURSOR);
         this.handCursor = GLFW.glfwCreateStandardCursor(GLFW.GLFW_HAND_CURSOR);
 
@@ -37,6 +35,9 @@ public class InputManager {
         keyBindings.put("SNEAK", GLFW.GLFW_KEY_LEFT_SHIFT);
 
         keyBindings.put("INVENTORY", GLFW.GLFW_KEY_E);
+
+        keyBindings.put("DEBUG_MENU", GLFW.GLFW_KEY_F3);
+
         for (int i = 0; i < 9; i++) {
             keyBindings.put("SLOT_" + (i + 1), GLFW.GLFW_KEY_1 + i);
         }
@@ -62,7 +63,6 @@ public class InputManager {
         windowHeight = h[0];
     }
 
-    // NEU: Ändert das Aussehen des Mauszeigers
     public void setCursorHover(boolean isHovering) {
         GLFW.glfwSetCursor(windowHandle, isHovering ? handCursor : normalCursor);
     }
