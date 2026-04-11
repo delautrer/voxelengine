@@ -2,8 +2,6 @@ package de.delautrer.game.world;
 
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Chunk {
     public static final int SIZE = 16;
@@ -13,8 +11,14 @@ public class Chunk {
     private final byte[][][] states = new byte[SIZE][HEIGHT][SIZE];
 
     private final int worldX, worldZ;
-    private final List<Float> vertices = new ArrayList<>();
-    private final List<Integer> indices = new ArrayList<>();
+
+    // --- NEU: Primitive Arrays statt ArrayLists! ---
+    // Wir starten mit einer moderaten Größe und vergrößern sie bei Bedarf
+    private float[] vertices = new float[4096];
+    private int vertexCount = 0;
+
+    private int[] indices = new int[1024];
+    private int indexCount = 0;
 
     private static final float[] highlightVertices = { 0,0,0, 1,0,0, 1,1,0, 0,1,0, 0,0,1, 1,0,1, 1,1,1, 0,1,1 };
     private static final int[] highlightIndices = { 0,1, 1,2, 2,3, 3,0, 4,5, 5,6, 6,7, 7,4, 0,4, 1,5, 2,6, 3,7 };
@@ -25,14 +29,16 @@ public class Chunk {
     }
 
     public void rebuildMesh(ChunkManager cm) {
-        vertices.clear();
-        indices.clear();
+        // Statt eine Liste zu leeren, setzen wir einfach die Zähler auf 0.
+        // Die alten Daten im Array werden später einfach überschrieben! (0 Garbage!)
+        vertexCount = 0;
+        indexCount = 0;
+
         for (int x = 0; x < SIZE; x++) {
             for (int y = 0; y < HEIGHT; y++) {
                 for (int z = 0; z < SIZE; z++) {
                     byte id = blocks[x][y][z];
                     if (id != 0) {
-                        // HIER PASSIERT DIE MAGIE: Dynamischer Aufruf der Block-Klasse
                         Block block = BlockRegistry.get(id);
                         block.generateMesh(x, y, z, this, cm);
                     }
@@ -41,7 +47,23 @@ public class Chunk {
         }
     }
 
-    // Von den Blöcken aufgerufen, um Daten ins Mesh zu schreiben
+    // --- NEU: Array-Resizing Logik ---
+    private void ensureVertexCapacity(int additionalSize) {
+        if (vertexCount + additionalSize > vertices.length) {
+            float[] newArr = new float[Math.max(vertices.length * 2, vertexCount + additionalSize)];
+            System.arraycopy(vertices, 0, newArr, 0, vertexCount);
+            vertices = newArr;
+        }
+    }
+
+    private void ensureIndexCapacity(int additionalSize) {
+        if (indexCount + additionalSize > indices.length) {
+            int[] newArr = new int[Math.max(indices.length * 2, indexCount + additionalSize)];
+            System.arraycopy(indices, 0, newArr, 0, indexCount);
+            indices = newArr;
+        }
+    }
+
     public void addFace(float x0, float y0, float z0, float ao0,
                         float x1, float y1, float z1, float ao1,
                         float x2, float y2, float z2, float ao2,
@@ -50,10 +72,12 @@ public class Chunk {
 
         float ox = worldX * SIZE, oz = worldZ * SIZE;
         float u0 = 0.0f, v0 = 0.0f, u1 = 1.0f, v1 = 1.0f;
-        int offset = vertices.size() / 10;
+
+        // Da jeder Vertex 10 Floats hat, ist der Offset für den Index:
+        int offset = vertexCount / 10;
+
         float r = 1.0f, g = 1.0f, b = 1.0f, alpha = 1.0f;
 
-        // Wasser Farben/Transparenz
         if (block == BlockRegistry.WATER) {
             r = 0.2f; g = 0.5f; b = 1.0f; alpha = 0.7f;
             directionalLight = Math.min(1.0f, directionalLight * 1.2f);
@@ -64,17 +88,39 @@ public class Chunk {
         float c2 = ao2 * directionalLight;
         float c3 = ao3 * directionalLight;
 
-        vertices.addAll(List.of(
-                x0 + ox, y0, z0 + oz, c0 * r, c0 * g, c0 * b, alpha, u0, v1, (float)texLayer,
-                x1 + ox, y1, z1 + oz, c1 * r, c1 * g, c1 * b, alpha, u1, v1, (float)texLayer,
-                x2 + ox, y2, z2 + oz, c2 * r, c2 * g, c2 * b, alpha, u1, v0, (float)texLayer,
-                x3 + ox, y3, z3 + oz, c3 * r, c3 * g, c3 * b, alpha, u0, v0, (float)texLayer
-        ));
+        // Wir brauchen 40 Floats für 4 Vertices (4 * 10)
+        ensureVertexCapacity(40);
+
+        // Vertex 0
+        vertices[vertexCount++] = x0 + ox; vertices[vertexCount++] = y0; vertices[vertexCount++] = z0 + oz;
+        vertices[vertexCount++] = c0 * r;  vertices[vertexCount++] = c0 * g; vertices[vertexCount++] = c0 * b; vertices[vertexCount++] = alpha;
+        vertices[vertexCount++] = u0;      vertices[vertexCount++] = v1; vertices[vertexCount++] = texLayer;
+
+        // Vertex 1
+        vertices[vertexCount++] = x1 + ox; vertices[vertexCount++] = y1; vertices[vertexCount++] = z1 + oz;
+        vertices[vertexCount++] = c1 * r;  vertices[vertexCount++] = c1 * g; vertices[vertexCount++] = c1 * b; vertices[vertexCount++] = alpha;
+        vertices[vertexCount++] = u1;      vertices[vertexCount++] = v1; vertices[vertexCount++] = texLayer;
+
+        // Vertex 2
+        vertices[vertexCount++] = x2 + ox; vertices[vertexCount++] = y2; vertices[vertexCount++] = z2 + oz;
+        vertices[vertexCount++] = c2 * r;  vertices[vertexCount++] = c2 * g; vertices[vertexCount++] = c2 * b; vertices[vertexCount++] = alpha;
+        vertices[vertexCount++] = u1;      vertices[vertexCount++] = v0; vertices[vertexCount++] = texLayer;
+
+        // Vertex 3
+        vertices[vertexCount++] = x3 + ox; vertices[vertexCount++] = y3; vertices[vertexCount++] = z3 + oz;
+        vertices[vertexCount++] = c3 * r;  vertices[vertexCount++] = c3 * g; vertices[vertexCount++] = c3 * b; vertices[vertexCount++] = alpha;
+        vertices[vertexCount++] = u0;      vertices[vertexCount++] = v0; vertices[vertexCount++] = texLayer;
+
+
+        // Wir brauchen 6 Integers für 2 Dreiecke
+        ensureIndexCapacity(6);
 
         if (ao0 + ao2 > ao1 + ao3) {
-            indices.addAll(List.of(offset + 1, offset + 2, offset + 3, offset + 3, offset + 0, offset + 1));
+            indices[indexCount++] = offset + 1; indices[indexCount++] = offset + 2; indices[indexCount++] = offset + 3;
+            indices[indexCount++] = offset + 3; indices[indexCount++] = offset + 0; indices[indexCount++] = offset + 1;
         } else {
-            indices.addAll(List.of(offset + 0, offset + 1, offset + 2, offset + 2, offset + 3, offset + 0));
+            indices[indexCount++] = offset + 0; indices[indexCount++] = offset + 1; indices[indexCount++] = offset + 2;
+            indices[indexCount++] = offset + 2; indices[indexCount++] = offset + 3; indices[indexCount++] = offset + 0;
         }
     }
 
@@ -124,17 +170,26 @@ public class Chunk {
     }
     public void setBlock(int x, int y, int z, byte type) { setBlock(x, y, z, type, (byte)0); }
 
-    public void clearMeshCache() { vertices.clear(); indices.clear(); }
+    public void clearMeshCache() {
+        vertexCount = 0;
+        indexCount = 0;
+    }
+
+    // --- NEU: Wir geben eine Kopie genau in der benötigten Größe zurück ---
+    // Das ist die einzige Stelle pro Chunk-Update, an der noch ein Objekt (das passgenaue Array)
+    // für Vulkan erstellt wird. Das ist extrem speichereffizient!
     public float[] getVertices() {
-        float[] arr = new float[vertices.size()];
-        for (int i = 0; i < vertices.size(); i++) arr[i] = vertices.get(i);
+        float[] arr = new float[vertexCount];
+        System.arraycopy(vertices, 0, arr, 0, vertexCount);
         return arr;
     }
+
     public int[] getIndices() {
-        int[] arr = new int[indices.size()];
-        for (int i = 0; i < indices.size(); i++) arr[i] = indices.get(i);
+        int[] arr = new int[indexCount];
+        System.arraycopy(indices, 0, arr, 0, indexCount);
         return arr;
     }
+
     public static float[] getHighlightVertices() { return highlightVertices; }
     public static int[] getHighlightIndices() { return highlightIndices; }
     public int getWorldX() { return worldX; }
