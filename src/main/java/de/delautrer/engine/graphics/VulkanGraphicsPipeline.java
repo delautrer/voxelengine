@@ -30,18 +30,17 @@ public class VulkanGraphicsPipeline {
             stages.get(0).sType(VK10.VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO).stage(VK10.VK_SHADER_STAGE_VERTEX_BIT).module(vertModule).pName(stack.UTF8("main"));
             stages.get(1).sType(VK10.VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO).stage(VK10.VK_SHADER_STAGE_FRAGMENT_BIT).module(fragModule).pName(stack.UTF8("main"));
 
-            // --- ÄNDERUNG FÜR TEXTURE ARRAYS ---
-            // Vertex Input (Stride ist jetzt 10: x,y,z, r,g,b,a, u,v, layer)
+            // --- ÄNDERUNG FÜR BELEUCHTUNG (Stride ist jetzt 12: x,y,z, r,g,b,a, u,v, layer, skyLight, blockLight) ---
             VkVertexInputBindingDescription.Buffer binding = VkVertexInputBindingDescription.calloc(1, stack);
-            binding.binding(0).stride(10 * Float.BYTES).inputRate(VK10.VK_VERTEX_INPUT_RATE_VERTEX);
+            binding.binding(0).stride(12 * Float.BYTES).inputRate(VK10.VK_VERTEX_INPUT_RATE_VERTEX);
 
-            // Wir brauchen jetzt 4 Attribute (vorher 3)
-            VkVertexInputAttributeDescription.Buffer attributes = VkVertexInputAttributeDescription.calloc(4, stack);
+            VkVertexInputAttributeDescription.Buffer attributes = VkVertexInputAttributeDescription.calloc(5, stack);
             attributes.get(0).binding(0).location(0).format(VK10.VK_FORMAT_R32G32B32_SFLOAT).offset(0);
             attributes.get(1).binding(0).location(1).format(VK10.VK_FORMAT_R32G32B32A32_SFLOAT).offset(3 * Float.BYTES);
             attributes.get(2).binding(0).location(2).format(VK10.VK_FORMAT_R32G32_SFLOAT).offset(7 * Float.BYTES);
-            // NEU: inTexLayer (1 Float) an Position 9
             attributes.get(3).binding(0).location(3).format(VK10.VK_FORMAT_R32_SFLOAT).offset(9 * Float.BYTES);
+
+            attributes.get(4).binding(0).location(4).format(VK10.VK_FORMAT_R32G32_SFLOAT).offset(10 * Float.BYTES);
 
             VkPipelineVertexInputStateCreateInfo vertexInput = VkPipelineVertexInputStateCreateInfo.calloc(stack)
                     .sType(VK10.VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO)

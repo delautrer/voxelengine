@@ -16,21 +16,19 @@ public class ChunkManager {
     private final Map<Vector2i, Chunk> chunks = new ConcurrentHashMap<>();
     private final Map<Vector2i, VulkanMesh> meshes = new ConcurrentHashMap<>();
 
-    // --- NEU: MULTI-THREADING VARIABLEN ---
     private final ExecutorService chunkExecutor;
     private final ConcurrentLinkedQueue<Chunk> meshUploadQueue = new ConcurrentLinkedQueue<>();
     private final java.util.Set<Vector2i> chunksInPreparation = ConcurrentHashMap.newKeySet();
+    private final LightEngine lightEngine;
 
     private final VulkanContext context;
     private final int renderDistance = 3;
 
     public ChunkManager(VulkanContext context) {
         this.context = context;
-
-        // Wir nutzen alle verfügbaren CPU-Kerne, lassen aber 2 übrig
-        // (Einen für das Betriebssystem und einen für unseren Render-Loop)
         int threads = Math.max(1, Runtime.getRuntime().availableProcessors() - 2);
         this.chunkExecutor = Executors.newFixedThreadPool(threads);
+        this.lightEngine = new LightEngine(this);
     }
 
     public void update(float playerX, float playerZ) {
@@ -38,16 +36,25 @@ public class ChunkManager {
         int pZ = (int) Math.floor(playerZ / Chunk.SIZE);
 
         // 1. CHUNKS INITIALISIEREN (Daten anlegen oder aus Speicher laden)
-        // Wir laden in einem etwas größeren Radius als wir rendern (dataDistance)
         int dataDistance = renderDistance + 1;
+
+        java.util.List<Chunk> newlyGeneratedChunks = new java.util.ArrayList<>();
+
         for (int x = pX - dataDistance; x <= pX + dataDistance; x++) {
             for (int z = pZ - dataDistance; z <= pZ + dataDistance; z++) {
                 Vector2i pos = new Vector2i(x, z);
                 if (!chunks.containsKey(pos)) {
-                    chunks.put(pos, new Chunk(x, z));
-                    worldGenerator.generate(chunks.get(pos));
+                    Chunk newChunk = new Chunk(x, z);
+                    chunks.put(pos, newChunk);
+                    worldGenerator.generate(newChunk);
+                    newChunk.calculateSunlight();
+                    newlyGeneratedChunks.add(newChunk);
                 }
             }
+        }
+
+        for (Chunk c : newlyGeneratedChunks) {
+            lightEngine.initSkyLightForChunk(c);
         }
 
         // 2. MESHES IM HINTERGRUND BERECHNEN (Multi-Threading)
@@ -122,6 +129,8 @@ public class ChunkManager {
     }
 
     public Map<Vector2i, VulkanMesh> getMeshes() { return meshes; }
+
+    public LightEngine getLightEngine() { return lightEngine; }
 
     public Chunk getChunkAtBlock(int worldX, int worldY, int worldZ) {
         int cx = (int) Math.floor((float)worldX / Chunk.SIZE);

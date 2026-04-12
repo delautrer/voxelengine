@@ -6,6 +6,7 @@ import de.delautrer.engine.player.Camera;
 import de.delautrer.engine.player.Player;
 import de.delautrer.game.player.Inventory;
 import de.delautrer.game.world.Chunk;
+import de.delautrer.game.world.LightEngine;
 import de.delautrer.game.world.World;
 import de.delautrer.game.items.ItemStack;
 import de.delautrer.game.items.BlockItem;
@@ -132,6 +133,13 @@ public class PlayerInteraction {
     }
 
     public void updateChunkMesh(Chunk c, int localX, int localZ) {
+        LightEngine le = world.getChunkManager().getLightEngine();
+
+        c.recalculateSunlightColumn(localX, localZ, le);
+        le.processLightUpdates();
+
+        // (Hier fehlt in Zukunft noch die Logik, um Nachbar-Chunks neu zu rendern, falls das Licht über Chunk-Grenzen fließt!)
+
         VK10.vkDeviceWaitIdle(vulkanContext.getDevice());
         c.rebuildMesh(world.getChunkManager());
 

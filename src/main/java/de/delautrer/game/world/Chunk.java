@@ -9,6 +9,7 @@ public class Chunk {
 
     private final byte[][][] blocks = new byte[SIZE][HEIGHT][SIZE];
     private final byte[][][] states = new byte[SIZE][HEIGHT][SIZE];
+    private final byte[][][] lightMap = new byte[SIZE][HEIGHT][SIZE];
 
     private final int worldX, worldZ;
 
@@ -68,13 +69,15 @@ public class Chunk {
                         float x1, float y1, float z1, float ao1,
                         float x2, float y2, float z2, float ao2,
                         float x3, float y3, float z3, float ao3,
-                        int texLayer, float directionalLight, Block block) {
+                        int texLayer, float directionalLight, Block block,
+                        float sl0, float sl1, float sl2, float sl3,
+                        float bl0, float bl1, float bl2, float bl3) {
 
         float ox = worldX * SIZE, oz = worldZ * SIZE;
         float u0 = 0.0f, v0 = 0.0f, u1 = 1.0f, v1 = 1.0f;
 
-        // Da jeder Vertex 10 Floats hat, ist der Offset für den Index:
-        int offset = vertexCount / 10;
+        // Da jeder Vertex 12 Floats hat, ist der Offset für den Index:
+        int offset = vertexCount / 12;
 
         float r = 1.0f, g = 1.0f, b = 1.0f, alpha = 1.0f;
 
@@ -88,28 +91,31 @@ public class Chunk {
         float c2 = ao2 * directionalLight;
         float c3 = ao3 * directionalLight;
 
-        // Wir brauchen 40 Floats für 4 Vertices (4 * 10)
-        ensureVertexCapacity(40);
+        ensureVertexCapacity(48);
 
         // Vertex 0
         vertices[vertexCount++] = x0 + ox; vertices[vertexCount++] = y0; vertices[vertexCount++] = z0 + oz;
         vertices[vertexCount++] = c0 * r;  vertices[vertexCount++] = c0 * g; vertices[vertexCount++] = c0 * b; vertices[vertexCount++] = alpha;
         vertices[vertexCount++] = u0;      vertices[vertexCount++] = v1; vertices[vertexCount++] = texLayer;
+        vertices[vertexCount++] = sl0;     vertices[vertexCount++] = bl0;
 
         // Vertex 1
         vertices[vertexCount++] = x1 + ox; vertices[vertexCount++] = y1; vertices[vertexCount++] = z1 + oz;
         vertices[vertexCount++] = c1 * r;  vertices[vertexCount++] = c1 * g; vertices[vertexCount++] = c1 * b; vertices[vertexCount++] = alpha;
         vertices[vertexCount++] = u1;      vertices[vertexCount++] = v1; vertices[vertexCount++] = texLayer;
+        vertices[vertexCount++] = sl1;     vertices[vertexCount++] = bl1;
 
         // Vertex 2
         vertices[vertexCount++] = x2 + ox; vertices[vertexCount++] = y2; vertices[vertexCount++] = z2 + oz;
         vertices[vertexCount++] = c2 * r;  vertices[vertexCount++] = c2 * g; vertices[vertexCount++] = c2 * b; vertices[vertexCount++] = alpha;
         vertices[vertexCount++] = u1;      vertices[vertexCount++] = v0; vertices[vertexCount++] = texLayer;
+        vertices[vertexCount++] = sl2;     vertices[vertexCount++] = bl2;
 
         // Vertex 3
         vertices[vertexCount++] = x3 + ox; vertices[vertexCount++] = y3; vertices[vertexCount++] = z3 + oz;
         vertices[vertexCount++] = c3 * r;  vertices[vertexCount++] = c3 * g; vertices[vertexCount++] = c3 * b; vertices[vertexCount++] = alpha;
         vertices[vertexCount++] = u0;      vertices[vertexCount++] = v0; vertices[vertexCount++] = texLayer;
+        vertices[vertexCount++] = sl3;     vertices[vertexCount++] = bl3;
 
 
         // Wir brauchen 6 Integers für 2 Dreiecke
@@ -175,9 +181,6 @@ public class Chunk {
         indexCount = 0;
     }
 
-    // --- NEU: Wir geben eine Kopie genau in der benötigten Größe zurück ---
-    // Das ist die einzige Stelle pro Chunk-Update, an der noch ein Objekt (das passgenaue Array)
-    // für Vulkan erstellt wird. Das ist extrem speichereffizient!
     public float[] getVertices() {
         float[] arr = new float[vertexCount];
         System.arraycopy(vertices, 0, arr, 0, vertexCount);
@@ -188,6 +191,106 @@ public class Chunk {
         int[] arr = new int[indexCount];
         System.arraycopy(indices, 0, arr, 0, indexCount);
         return arr;
+    }
+
+    public int getBlockLight(int x, int y, int z) {
+        if (x < 0 || x >= SIZE || y < 0 || y >= HEIGHT || z < 0 || z >= SIZE) return 0;
+        return lightMap[x][y][z] & 0x0F;
+    }
+
+    public int getSkyLight(int x, int y, int z) {
+        if (x < 0 || x >= SIZE || y < 0 || y >= HEIGHT || z < 0 || z >= SIZE) return 15;
+        return (lightMap[x][y][z] >> 4) & 0x0F;
+    }
+
+    public void setBlockLight(int x, int y, int z, int val) {
+        if (x < 0 || x >= SIZE || y < 0 || y >= HEIGHT || z < 0 || z >= SIZE) return;
+        lightMap[x][y][z] = (byte) ((lightMap[x][y][z] & 0xF0) | (val & 0x0F));
+    }
+
+    public void setSkyLight(int x, int y, int z, int val) {
+        if (x < 0 || x >= SIZE || y < 0 || y >= HEIGHT || z < 0 || z >= SIZE) return;
+        lightMap[x][y][z] = (byte) ((lightMap[x][y][z] & 0x0F) | ((val & 0x0F) << 4));
+    }
+
+    public int getSkyLightAt(int x, int y, int z, ChunkManager cm) {
+        if (y < 0 || y >= HEIGHT) return 15;
+        if (x >= 0 && x < SIZE && z >= 0 && z < SIZE) return getSkyLight(x, y, z);
+        if (cm == null) return 15;
+        Chunk neighbor = cm.getChunkAtBlock(worldX * SIZE + x, y, worldZ * SIZE + z);
+        return neighbor != null ? neighbor.getSkyLight(Math.floorMod(worldX * SIZE + x, SIZE), y, Math.floorMod(worldZ * SIZE + z, SIZE)) : 15;
+    }
+
+    public int getBlockLightAt(int x, int y, int z, ChunkManager cm) {
+        if (y < 0 || y >= HEIGHT) return 0;
+        if (x >= 0 && x < SIZE && z >= 0 && z < SIZE) return getBlockLight(x, y, z);
+        if (cm == null) return 0;
+        Chunk neighbor = cm.getChunkAtBlock(worldX * SIZE + x, y, worldZ * SIZE + z);
+        return neighbor != null ? neighbor.getBlockLight(Math.floorMod(worldX * SIZE + x, SIZE), y, Math.floorMod(worldZ * SIZE + z, SIZE)) : 0;
+    }
+
+    public float getSmoothSkyLight(int x, int y, int z, int dx1, int dy1, int dz1, int dx2, int dy2, int dz2, ChunkManager cm) {
+        float center = getSkyLightAt(x, y, z, cm);
+        float side1 = getSkyLightAt(x + dx1, y + dy1, z + dz1, cm);
+        float side2 = getSkyLightAt(x + dx2, y + dy2, z + dz2, cm);
+        float corner = getSkyLightAt(x + dx1 + dx2, y + dy1 + dy2, z + dz1 + dz2, cm);
+
+        return (center + side1 + side2 + corner) / 60.0f;
+    }
+
+    public float getSmoothBlockLight(int x, int y, int z, int dx1, int dy1, int dz1, int dx2, int dy2, int dz2, ChunkManager cm) {
+        float center = getBlockLightAt(x, y, z, cm);
+        float side1 = getBlockLightAt(x + dx1, y + dy1, z + dz1, cm);
+        float side2 = getBlockLightAt(x + dx2, y + dy2, z + dz2, cm);
+        float corner = getBlockLightAt(x + dx1 + dx2, y + dy1 + dy2, z + dz1 + dz2, cm);
+
+        return (center + side1 + side2 + corner) / 60.0f;
+    }
+
+    public void recalculateSunlightColumn(int x, int z, LightEngine lightEngine) {
+        int currentLight = 15;
+        for (int y = HEIGHT - 1; y >= 0; y--) {
+            byte blockId = blocks[x][y][z];
+            int oldLight = getSkyLight(x, y, z); // Wir merken uns das alte Licht
+
+            if (blockId != 0) {
+                Block block = BlockRegistry.get(blockId);
+                if (block != null && block.isTransparent) {
+                    if (block.getId() == BlockRegistry.WATER.getId()) {
+                        currentLight = Math.max(0, currentLight - 2);
+                    }
+                } else {
+                    currentLight = 0; // Fester Block blockiert alles
+                }
+            }
+
+            // Wenn sich das Licht verändert hat, alarmieren wir die Engine!
+            if (currentLight != oldLight) {
+                setSkyLight(x, y, z, currentLight);
+
+                if (lightEngine != null) {
+                    int globalX = this.worldX * SIZE + x;
+                    int globalZ = this.worldZ * SIZE + z;
+
+                    if (currentLight < oldLight) {
+                        // Licht wurde blockiert -> Aussaugen!
+                        lightEngine.addSkyLightRemoval(globalX, y, globalZ, oldLight);
+                    } else {
+                        // Block abgebaut, Sonne kommt rein -> Fluten!
+                        lightEngine.addSkyLightUpdate(globalX, y, globalZ);
+                    }
+                }
+            }
+        }
+    }
+
+    // Damit das Generieren weiterhin klappt, müssen wir bei calculateSunlight null übergeben:
+    public void calculateSunlight() {
+        for (int x = 0; x < SIZE; x++) {
+            for (int z = 0; z < SIZE; z++) {
+                recalculateSunlightColumn(x, z, null);
+            }
+        }
     }
 
     public static float[] getHighlightVertices() { return highlightVertices; }
