@@ -22,7 +22,6 @@ public class PlayerInteraction {
     private final EventBus eventBus;
     private final Inventory inventory;
 
-    private int hoveredSlot = -1;
     private Vector3i selectedBlockPos = null;
     private Vector3i adjacentBlockPos = null;
 
@@ -45,16 +44,7 @@ public class PlayerInteraction {
         }
 
         if (inventory.isOpen()) {
-            hoveredSlot = inventory.getClickedSlot(input.getMouseX(), input.getMouseY(), input.getWindowWidth(), input.getWindowHeight());
-            boolean hasItem = (hoveredSlot != -1 && inventory.getStack(hoveredSlot) != null);
-            boolean holdingItem = (inventory.getMouseStack() != null);
-            input.setCursorHover(hasItem || holdingItem);
-
-            if (input.isActionJustPressed("INTERACT_BREAK")) {
-                if (hoveredSlot != -1) inventory.handleSlotClick(hoveredSlot);
-            }return;
-        } else {
-            hoveredSlot = -1;
+            return;
         }
 
         World.RaycastResult result = world.raycast(camera.getPosition(), camera.getFront(), 6.0f);
@@ -123,8 +113,6 @@ public class PlayerInteraction {
             interactTimer = 0.0f;
         }
     }
-
-    public int getHoveredSlot() { return hoveredSlot; }
 
     private void handleMouseClick(boolean isBreak) {
         if (selectedBlockPos == null) return;

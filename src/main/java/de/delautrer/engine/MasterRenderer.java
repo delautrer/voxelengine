@@ -51,8 +51,8 @@ public class MasterRenderer {
     public void rebuildUI(PlayerInteraction interaction, InputManager input, DebugOverlay debugOverlay) {
         uiRenderer.rebuildMesh(
                 renderer.getWidth(), renderer.getHeight(),
-                interaction.getInventory(), input.getMouseX(), input.getMouseY(),
-                interaction.getHoveredSlot(), debugOverlay, font
+                input, interaction, input.getMouseX(), input.getMouseY(),
+                debugOverlay, font
         );
     }
 
