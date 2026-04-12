@@ -27,7 +27,7 @@ public class PlayerInteraction {
     private Vector3i adjacentBlockPos = null;
 
     private float interactTimer = 0.0f;
-    private final float INTERACT_COOLDOWN = 0.66f;
+    private final float INTERACT_COOLDOWN = 0.52f;
 
     public PlayerInteraction(World world, Camera camera, Player player, VulkanContext vulkanContext, EventBus eventBus) {
         this.world = world;
@@ -139,12 +139,9 @@ public class PlayerInteraction {
             ItemStack heldStack = inventory.getSelectedHotbarStack();
             if (heldStack == null) return;
 
-            // Wir übergeben einfach die adjacentBlockPos, die wir vom DDA-Algorithmus bekommen haben!
             heldStack.type.onUseRightClick(world, player, selectedBlockPos, adjacentBlockPos, this);
         }
     }
-
-    // ACHTUNG: Die Methode calculateAdjacentPos() existiert hier nicht mehr! (Einfach löschen)
 
     public void updateChunkMesh(Chunk c, int localX, int localZ) {
         VK10.vkDeviceWaitIdle(vulkanContext.getDevice());
@@ -171,9 +168,4 @@ public class PlayerInteraction {
     public Vector3i getSelectedBlockPos() { return selectedBlockPos; }
     public Inventory getInventory() { return inventory; }
 
-    public byte getSelectedBlockType() {
-        ItemStack stack = inventory.getSelectedHotbarStack();
-        if (stack == null || !(stack.type instanceof BlockItem)) return 0;
-        return ((BlockItem)stack.type).block.getId();
-    }
 }

@@ -150,7 +150,7 @@ public class Engine {
                 }
             }
 
-            interaction.update(inputManager, deltaTime);
+            inputManager.update();
         }
         VK10.vkDeviceWaitIdle(vulkanContext.getDevice());
     }
