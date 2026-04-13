@@ -6,28 +6,46 @@ import org.joml.Vector2i;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class AsyncChunkBuilder {
 
     private final ExecutorService executor = Executors.newFixedThreadPool(Math.max(1, Runtime.getRuntime().availableProcessors() - 1));
     private final ConcurrentLinkedQueue<ChunkBuildResult> readyMeshes = new ConcurrentLinkedQueue<>();
 
+    // NEU: Ein Set, das sich merkt, ob ein Chunk bereits in der Warteschlange ist
+    private final Set<Chunk> currentlyBuilding = ConcurrentHashMap.newKeySet();
+
     public void queueRebuild(Chunk chunk, ChunkManager cm) {
+        // Wenn er schon in der Schlange ist, ignorieren wir den doppelten Auftrag! (Spart massiv CPU)
+        if (!currentlyBuilding.add(chunk)) {
+            return;
+        }
+
         executor.submit(() -> {
-            MeshData data = chunk.generateMeshData(cm);
-            readyMeshes.add(new ChunkBuildResult(chunk, data));
+            try {
+                MeshData data = chunk.generateMeshData(cm);
+                readyMeshes.add(new ChunkBuildResult(chunk, data));
+            } finally {
+                currentlyBuilding.remove(chunk);
+            }
         });
     }
 
     public void uploadReadyMeshes(ChunkManager cm) {
-        while (!readyMeshes.isEmpty()) {
-            ChunkBuildResult result = readyMeshes.poll();
+        if (!readyMeshes.isEmpty()) {
+            org.lwjgl.vulkan.VK10.vkQueueWaitIdle(cm.getContext().getGraphicsQueue());
 
-            Vector2i pos = new Vector2i(result.chunk.getWorldX(), result.chunk.getWorldZ());
-            de.delautrer.engine.graphics.VulkanMesh mesh = cm.getMeshes().get(pos);
+            while (!readyMeshes.isEmpty()) {
+                ChunkBuildResult result = readyMeshes.poll();
 
-            if (mesh != null) {
-                mesh.updateMesh(result.data);
+                org.joml.Vector2i pos = new org.joml.Vector2i(result.chunk.getWorldX(), result.chunk.getWorldZ());
+                de.delautrer.engine.graphics.VulkanMesh mesh = cm.getMeshes().get(pos);
+
+                if (mesh != null) {
+                    mesh.updateMesh(result.data);
+                }
             }
         }
     }

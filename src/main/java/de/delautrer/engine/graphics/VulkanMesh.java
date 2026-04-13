@@ -29,14 +29,14 @@ public class VulkanMesh {
 
     // --- DIE NEUE UPDATE METHODE ---
     public void updateMesh(MeshData data) {
-        VK10.vkQueueWaitIdle(context.getGraphicsQueue());
+        //VK10.vkQueueWaitIdle(context.getGraphicsQueue());
         cleanup();
         createBuffers(data.vertices, data.indices);
     }
 
     // Falls du die alte Methode noch irgendwo hast (kann eigentlich weg):
     public void updateMesh(Chunk chunk) {
-        VK10.vkQueueWaitIdle(context.getGraphicsQueue());
+        //VK10.vkQueueWaitIdle(context.getGraphicsQueue());
         cleanup();
         createBuffers(chunk.getVertices(), chunk.getIndices());
     }

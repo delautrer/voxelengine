@@ -1,9 +1,9 @@
 package de.delautrer.game.blocks;
 
-import de.delautrer.engine.physics.AABB;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
-import org.joml.Vector3f;
+import de.delautrer.game.world.World;
+import org.joml.Vector3i;
 
 public abstract class Block {
     private byte internalId;
@@ -54,4 +54,15 @@ public abstract class Block {
     }
 
     public abstract void generateMesh(int x, int y, int z, Chunk chunk, ChunkManager cm);
+
+    /**
+     * Wird aufgerufen, wenn sich direkt neben diesem Block ein anderer Block ändert.
+     * (z.B. Spieler baut etwas ab, Wasser fließt daneben, etc.)
+     */
+    public void onNeighborChanged(World world, int x, int y, int z, Vector3i neighborPos, byte newNeighborId) {}
+
+    /**
+     * Wird vom TickScheduler aufgerufen, wenn die geplante Zeit abgelaufen ist.
+     */
+    public void scheduledTick(World world, int x, int y, int z) {}
 }

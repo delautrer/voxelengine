@@ -1,7 +1,6 @@
 package de.delautrer.engine;
 
 import de.delautrer.engine.events.EventBus;
-import de.delautrer.engine.MasterRenderer;
 import de.delautrer.engine.graphics.VulkanContext;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.engine.player.Camera;
@@ -30,7 +29,7 @@ public class Engine {
     private Player player;
     private PlayerInteraction interaction;
 
-    private WorldEventHandler  worldEventHandler;
+    private WorldEventHandler worldEventHandler;
 
     private EventBus eventBus;
     private InputManager inputManager;

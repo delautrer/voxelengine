@@ -141,6 +141,9 @@ public class ChunkManager {
     }
 
     public AsyncChunkBuilder getAsyncBuilder() { return asyncBuilder; }
+    public VulkanContext getContext() {
+        return context;
+    }
 
     public void cleanup() {
         chunkExecutor.shutdownNow();

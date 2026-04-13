@@ -3,7 +3,6 @@ package de.delautrer.game.world;
 import de.delautrer.engine.events.EventBus;
 import de.delautrer.engine.graphics.VulkanContext;
 import de.delautrer.engine.input.InputManager;
-import de.delautrer.engine.physics.AABB;
 import de.delautrer.engine.player.Player;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
@@ -13,7 +12,7 @@ import org.joml.Vector3i;
 public class World {
     private final EventBus eventBus;
     private final ChunkManager chunkManager;
-    private final FluidSimulator fluidSimulator; // NEU!
+    private final TickScheduler tickScheduler;
     private final Player player;
 
     private float waterTimer = 0.0f;
@@ -21,7 +20,7 @@ public class World {
     public World(VulkanContext context, Player player, EventBus eventBus) {
         this.eventBus = eventBus;
         this.chunkManager = new ChunkManager(context);
-        this.fluidSimulator = new FluidSimulator(chunkManager, context); // NEU!
+        this.tickScheduler = new TickScheduler(this);
         this.player = player;
 
         chunkManager.update(player.position.x, player.position.z);
@@ -50,17 +49,10 @@ public class World {
     public byte getBlockAt(Vector3i pos) {
         return getBlockAt(pos.x, pos.y, pos.z);
     }
-
     public void update(InputManager input, Vector3f cameraFront, boolean isInventoryOpen, float deltaTime) {
         player.update(input, chunkManager, cameraFront, isInventoryOpen, deltaTime);
         chunkManager.update(player.position.x, player.position.z);
-
-        // Wasser Physik-Tick über den Simulator!
-        waterTimer += deltaTime;
-        if (waterTimer >= 0.3f) {
-            fluidSimulator.tick();
-            waterTimer = 0.0f;
-        }
+        tickScheduler.update(deltaTime);
 
         if (player.position.y < -50) {
             player.position.set(findSafeSpawn((int)player.position.x, (int)player.position.z));
@@ -80,7 +72,7 @@ public class World {
         int localZ = Math.floorMod(z, Chunk.SIZE);
 
         byte oldBlockId = targetChunk.getBlock(localX, y, localZ);
-        if (oldBlockId == newBlockId) return; // Nichts zu tun
+        if (oldBlockId == newBlockId) return;
 
         // 1. Blockdaten ändern
         targetChunk.setBlock(localX, y, localZ, newBlockId);
@@ -92,8 +84,13 @@ public class World {
         // 3. Neighbor-Updates feuern (Oben, Unten, Nord, Süd, Ost, West)
         int[][] dirs = {{0,1,0}, {0,-1,0}, {1,0,0}, {-1,0,0}, {0,0,1}, {0,0,-1}};
         for (int[] dir : dirs) {
-            Vector3i nPos = new Vector3i(x + dir[0], y + dir[1], z + dir[2]);
+            org.joml.Vector3i nPos = new org.joml.Vector3i(x + dir[0], y + dir[1], z + dir[2]);
             eventBus.publish(new de.delautrer.game.events.BlockNeighborUpdateEvent(nPos, pos, newBlockId));
+        }
+
+        de.delautrer.game.blocks.Block placedBlock = de.delautrer.game.blocks.BlockRegistry.get(newBlockId);
+        if (placedBlock != null) {
+            placedBlock.onNeighborChanged(this, x, y, z, new org.joml.Vector3i(x, y - 1, z), oldBlockId);
         }
     }
 
@@ -103,7 +100,6 @@ public class World {
         }
     }
 
-    // Neue Überladung, um BlockStates (wie beim Wasser) direkt mitzusetzen
     public void setBlockWithState(int x, int y, int z, byte newBlockId, byte newState) {
         if (y < 0 || y >= de.delautrer.game.world.Chunk.HEIGHT) return;
 
@@ -114,6 +110,9 @@ public class World {
         int localZ = Math.floorMod(z, de.delautrer.game.world.Chunk.SIZE);
 
         byte oldBlockId = targetChunk.getBlock(localX, y, localZ);
+        byte oldState = targetChunk.getState(localX, y, localZ);
+
+        if (oldBlockId == newBlockId && oldState == newState) return;
 
         targetChunk.setBlock(localX, y, localZ, newBlockId, newState);
 
@@ -124,6 +123,11 @@ public class World {
         for (int[] dir : dirs) {
             org.joml.Vector3i nPos = new org.joml.Vector3i(x + dir[0], y + dir[1], z + dir[2]);
             eventBus.publish(new de.delautrer.game.events.BlockNeighborUpdateEvent(nPos, pos, newBlockId));
+        }
+
+        de.delautrer.game.blocks.Block placedBlock = de.delautrer.game.blocks.BlockRegistry.get(newBlockId);
+        if (placedBlock != null) {
+            placedBlock.onNeighborChanged(this, x, y, z, new org.joml.Vector3i(x, y - 1, z), oldBlockId);
         }
     }
 
@@ -223,6 +227,9 @@ public class World {
         return visibleMeshes;
     }
 
+    public TickScheduler getTickScheduler() {
+        return tickScheduler;
+    }
     public ChunkManager getChunkManager() { return chunkManager; }
     public Player getPlayer() { return player; }
 }

@@ -4,8 +4,6 @@ import de.delautrer.engine.events.EventBus;
 import de.delautrer.engine.graphics.VulkanContext;
 import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.events.BlockChangeEvent;
-import org.joml.Vector2i;
-import org.lwjgl.vulkan.VK10;
 import java.util.Set;
 
 public class WorldEventHandler {
@@ -16,7 +14,10 @@ public class WorldEventHandler {
     public WorldEventHandler(World world, VulkanContext context, EventBus eventBus) {
         this.world = world;
         this.vulkanContext = context;
+
+        // EventListener registrieren
         eventBus.subscribe(BlockChangeEvent.class, this::onBlockChange);
+        eventBus.subscribe(de.delautrer.game.events.BlockNeighborUpdateEvent.class, this::onNeighborUpdate);
     }
 
     private void onBlockChange(BlockChangeEvent event) {
@@ -59,6 +60,14 @@ public class WorldEventHandler {
         AsyncChunkBuilder asyncBuilder = world.getChunkManager().getAsyncBuilder();
         for (Chunk chunkToUpdate : chunksToRebuild) {
             asyncBuilder.queueRebuild(chunkToUpdate, world.getChunkManager());
+        }
+    }
+
+    private void onNeighborUpdate(de.delautrer.game.events.BlockNeighborUpdateEvent event) {
+        byte receiverId = world.getBlockAt(event.pos.x, event.pos.y, event.pos.z);
+        if (receiverId != 0) {
+            de.delautrer.game.blocks.Block receiverBlock = de.delautrer.game.blocks.BlockRegistry.get(receiverId);
+            receiverBlock.onNeighborChanged(world, event.pos.x, event.pos.y, event.pos.z, event.neighborPos, event.changedNeighborId);
         }
     }
 }

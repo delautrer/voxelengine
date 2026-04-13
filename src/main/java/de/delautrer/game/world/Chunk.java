@@ -28,10 +28,9 @@ public class Chunk {
         this.worldZ = worldZ;
     }
 
-    public MeshData generateMeshData(ChunkManager cm) {
+    public synchronized MeshData generateMeshData(ChunkManager cm) {
         vertexCount = 0;
         indexCount = 0;
-
         for (int x = 0; x < SIZE; x++) {
             for (int y = 0; y < HEIGHT; y++) {
                 for (int z = 0; z < SIZE; z++) {
