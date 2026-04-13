@@ -2,8 +2,10 @@ package de.delautrer.game.interaction;
 
 import de.delautrer.engine.graphics.VulkanContext;
 import de.delautrer.engine.input.InputManager;
+import de.delautrer.engine.physics.AABB;
 import de.delautrer.engine.player.Camera;
 import de.delautrer.engine.player.Player;
+import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.player.Inventory;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.LightEngine;
@@ -121,14 +123,56 @@ public class PlayerInteraction {
         if (isBreak) {
             Chunk targetChunk = world.getChunkManager().getChunkAtBlock(selectedBlockPos.x, selectedBlockPos.y, selectedBlockPos.z);
             if (targetChunk != null) {
-                targetChunk.setBlock(Math.floorMod(selectedBlockPos.x, Chunk.SIZE), selectedBlockPos.y, Math.floorMod(selectedBlockPos.z, Chunk.SIZE), (byte)0);
-                updateChunkMesh(targetChunk, Math.floorMod(selectedBlockPos.x, Chunk.SIZE), Math.floorMod(selectedBlockPos.z, Chunk.SIZE));
+                int localX = Math.floorMod(selectedBlockPos.x, Chunk.SIZE);
+                int localY = selectedBlockPos.y;
+                int localZ = Math.floorMod(selectedBlockPos.z, Chunk.SIZE);
+
+                byte oldBlockId = targetChunk.getBlock(localX, localY, localZ);
+                int oldEmission = de.delautrer.game.blocks.BlockRegistry.get(oldBlockId).getLightEmission();
+
+                if (oldEmission > 0) {
+                    world.getChunkManager().getLightEngine().removeBlockLight(selectedBlockPos.x, localY, selectedBlockPos.z, oldEmission);
+                }
+
+                targetChunk.setBlock(localX, localY, localZ, (byte)0);
+                world.getChunkManager().getLightEngine().notifyBlockChanged(selectedBlockPos.x, localY, selectedBlockPos.z);
+                updateChunkMesh(targetChunk, localX, localZ);
             }
         } else {
             ItemStack heldStack = inventory.getSelectedHotbarStack();
             if (heldStack == null) return;
 
+            int oldBlockLight = 0;
+            if (adjacentBlockPos != null) {
+                oldBlockLight = world.getChunkManager().getLightEngine().getBlockLight(adjacentBlockPos.x, adjacentBlockPos.y, adjacentBlockPos.z);
+            }
+
             heldStack.type.onUseRightClick(world, player, selectedBlockPos, adjacentBlockPos, this);
+
+            if (adjacentBlockPos != null) {
+                byte placedBlockId = world.getBlockAt(adjacentBlockPos.x, adjacentBlockPos.y, adjacentBlockPos.z);
+                if (placedBlockId != 0) {
+
+                    LightEngine le = world.getChunkManager().getLightEngine();
+                    de.delautrer.game.blocks.Block placedBlock = de.delautrer.game.blocks.BlockRegistry.get(placedBlockId);
+
+                    if (!placedBlock.isTransparent && oldBlockLight > 0) {
+                        le.removeBlockLight(adjacentBlockPos.x, adjacentBlockPos.y, adjacentBlockPos.z, oldBlockLight);
+                    }
+
+                    int newEmission = placedBlock.getLightEmission();
+                    if (newEmission > 0) {
+                        le.addBlockLightSource(adjacentBlockPos.x, adjacentBlockPos.y, adjacentBlockPos.z, newEmission);
+                    }
+
+                    Chunk targetChunk = world.getChunkManager().getChunkAtBlock(adjacentBlockPos.x, adjacentBlockPos.y, adjacentBlockPos.z);
+                    if (targetChunk != null) {
+                        int localX = Math.floorMod(adjacentBlockPos.x, Chunk.SIZE);
+                        int localZ = Math.floorMod(adjacentBlockPos.z, Chunk.SIZE);
+                        updateChunkMesh(targetChunk, localX, localZ);
+                    }
+                }
+            }
         }
     }
 
@@ -138,18 +182,23 @@ public class PlayerInteraction {
         c.recalculateSunlightColumn(localX, localZ, le);
         le.processLightUpdates();
 
-        // (Hier fehlt in Zukunft noch die Logik, um Nachbar-Chunks neu zu rendern, falls das Licht über Chunk-Grenzen fließt!)
+        java.util.Set<Chunk> chunksToRebuild = le.getAndClearDirtiedChunks();
+        chunksToRebuild.add(c);
+
+        if (localX == 0) chunksToRebuild.add(world.getChunkManager().getChunkAtBlock((c.getWorldX() - 1) * Chunk.SIZE, 0, c.getWorldZ() * Chunk.SIZE));
+        if (localX == Chunk.SIZE - 1) chunksToRebuild.add(world.getChunkManager().getChunkAtBlock((c.getWorldX() + 1) * Chunk.SIZE, 0, c.getWorldZ() * Chunk.SIZE));
+        if (localZ == 0) chunksToRebuild.add(world.getChunkManager().getChunkAtBlock(c.getWorldX() * Chunk.SIZE, 0, (c.getWorldZ() - 1) * Chunk.SIZE));
+        if (localZ == Chunk.SIZE - 1) chunksToRebuild.add(world.getChunkManager().getChunkAtBlock(c.getWorldX() * Chunk.SIZE, 0, (c.getWorldZ() + 1) * Chunk.SIZE));
+
+        chunksToRebuild.remove(null);
 
         VK10.vkDeviceWaitIdle(vulkanContext.getDevice());
-        c.rebuildMesh(world.getChunkManager());
 
-        de.delautrer.engine.graphics.VulkanMesh mesh = world.getChunkManager().getMeshes().get(new org.joml.Vector2i(c.getWorldX(), c.getWorldZ()));
-        if (mesh != null) mesh.updateMesh(c);
-
-        if (localX == 0) rebuildNeighbor(c.getWorldX() - 1, c.getWorldZ());
-        if (localX == Chunk.SIZE - 1) rebuildNeighbor(c.getWorldX() + 1, c.getWorldZ());
-        if (localZ == 0) rebuildNeighbor(c.getWorldX(), c.getWorldZ() - 1);
-        if (localZ == Chunk.SIZE - 1) rebuildNeighbor(c.getWorldX(), c.getWorldZ() + 1);
+        for (Chunk chunkToUpdate : chunksToRebuild) {
+            chunkToUpdate.rebuildMesh(world.getChunkManager());
+            de.delautrer.engine.graphics.VulkanMesh mesh = world.getChunkManager().getMeshes().get(new org.joml.Vector2i(chunkToUpdate.getWorldX(), chunkToUpdate.getWorldZ()));
+            if (mesh != null) mesh.updateMesh(chunkToUpdate);
+        }
     }
 
     private void rebuildNeighbor(int worldX, int worldZ) {

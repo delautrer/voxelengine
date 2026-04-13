@@ -6,7 +6,7 @@ import de.delautrer.game.world.ChunkManager;
 public class WaterBlock extends Block {
 
     public WaterBlock() {
-        super(false, true);
+        super(false, true, true);
     }
 
     private float getWaterHeight(int x, int y, int z, Chunk chunk, ChunkManager cm) {
@@ -49,7 +49,7 @@ public class WaterBlock extends Block {
             float bl2 = chunk.getSmoothBlockLight(x, y+1, z, 1, 0, 0, 0, 0, 1, cm);
             float bl3 = chunk.getSmoothBlockLight(x, y+1, z, 1, 0, 0, 0, 0, -1, cm);
 
-            chunk.addFace(x,yTop,z,1, x,yTop,z+1,1, x+1,yTop,z+1,1, x+1,yTop,z,1, texLayer, lightTop, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
+            chunk.addFace(x,yTop,z,1, x,yTop,z+1,1, x+1,yTop,z+1,1, x+1,yTop,z,1,0.0f, 0.0f, 1.0f, 1.0f, texLayer, lightTop, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
         }
 
         // BOTTOM
@@ -65,7 +65,7 @@ public class WaterBlock extends Block {
             float bl2 = chunk.getSmoothBlockLight(x, y-1, z, 1, 0, 0, 0, 0, -1, cm);
             float bl3 = chunk.getSmoothBlockLight(x, y-1, z, 1, 0, 0, 0, 0, 1, cm);
 
-            chunk.addFace(x,y,z+1,1, x,y,z,1, x+1,y,z,1, x+1,y,z+1,1, texLayer, lightBot, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
+            chunk.addFace(x,y,z+1,1, x,y,z,1, x+1,y,z,1, x+1,y,z+1,1,0.0f, 0.0f, 1.0f, 1.0f, texLayer, lightBot, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
         }
 
         // Z PLUS (Front)
@@ -81,7 +81,7 @@ public class WaterBlock extends Block {
             float bl2 = chunk.getSmoothBlockLight(x, y, z+1, 1, 0, 0, 0, 1, 0, cm);
             float bl3 = chunk.getSmoothBlockLight(x, y, z+1, -1, 0, 0, 0, 1, 0, cm);
 
-            chunk.addFace(x,y,z+1,1, x+1,y,z+1,1, x+1,yTop,z+1,1, x,yTop,z+1,1, texLayer, lightFrontBack, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
+            chunk.addFace(x,y,z+1,1, x+1,y,z+1,1, x+1,yTop,z+1,1, x,yTop,z+1,1,0.0f, 0.0f, 1.0f, 1.0f, texLayer, lightFrontBack, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
         }
 
         // Z MINUS (Back)
@@ -97,7 +97,7 @@ public class WaterBlock extends Block {
             float bl2 = chunk.getSmoothBlockLight(x, y, z-1, -1, 0, 0, 0, 1, 0, cm);
             float bl3 = chunk.getSmoothBlockLight(x, y, z-1, 1, 0, 0, 0, 1, 0, cm);
 
-            chunk.addFace(x+1,y,z,1, x,y,z,1, x,yTop,z,1, x+1,yTop,z,1, texLayer, lightFrontBack, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
+            chunk.addFace(x+1,y,z,1, x,y,z,1, x,yTop,z,1, x+1,yTop,z,1,0.0f, 0.0f, 1.0f, 1.0f, texLayer, lightFrontBack, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
         }
 
         // X MINUS (Left)
@@ -113,7 +113,7 @@ public class WaterBlock extends Block {
             float bl2 = chunk.getSmoothBlockLight(x-1, y, z, 0, 1, 0, 0, 0, 1, cm);
             float bl3 = chunk.getSmoothBlockLight(x-1, y, z, 0, 1, 0, 0, 0, -1, cm);
 
-            chunk.addFace(x,y,z,1, x,y,z+1,1, x,yTop,z+1,1, x,yTop,z,1, texLayer, lightLeftRight, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
+            chunk.addFace(x,y,z,1, x,y,z+1,1, x,yTop,z+1,1, x,yTop,z,1,0.0f, 0.0f, 1.0f, 1.0f, texLayer, lightLeftRight, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
         }
 
         // X PLUS (Right)
@@ -129,7 +129,7 @@ public class WaterBlock extends Block {
             float bl2 = chunk.getSmoothBlockLight(x+1, y, z, 0, 1, 0, 0, 0, -1, cm);
             float bl3 = chunk.getSmoothBlockLight(x+1, y, z, 0, 1, 0, 0, 0, 1, cm);
 
-            chunk.addFace(x+1,y,z+1,1, x+1,y,z,1, x+1,yTop,z,1, x+1,yTop,z+1,1, texLayer, lightLeftRight, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
+            chunk.addFace(x+1,y,z+1,1, x+1,y,z,1, x+1,yTop,z,1, x+1,yTop,z+1,1,0.0f, 0.0f, 1.0f, 1.0f, texLayer, lightLeftRight, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
         }
     }
 }

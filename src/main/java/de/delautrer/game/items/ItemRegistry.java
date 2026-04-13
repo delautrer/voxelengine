@@ -15,6 +15,7 @@ public class ItemRegistry {
     public static final Item WATER_BUCKET = register("water_bucket", new BlockItem("Water bucket", 3, BlockRegistry.WATER));
     public static final Item GLASS_BLOCK  = register("glass", new BlockItem("Glass", 4, BlockRegistry.GLASS));
     public static final Item LEAVES_BLOCK = register("leaves", new BlockItem("Leaves", 5, BlockRegistry.LEAVES));
+    public static final Item TORCH = register("torch", new BlockItem("Torch", 6, BlockRegistry.TORCH));
 
     public static void init() {
         System.out.println("ItemRegistry initialized. " + ITEMS.size() + " Items loaded.");

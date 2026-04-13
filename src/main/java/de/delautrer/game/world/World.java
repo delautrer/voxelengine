@@ -2,7 +2,9 @@ package de.delautrer.game.world;
 
 import de.delautrer.engine.graphics.VulkanContext;
 import de.delautrer.engine.input.InputManager;
+import de.delautrer.engine.physics.AABB;
 import de.delautrer.engine.player.Player;
+import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
@@ -42,6 +44,10 @@ public class World {
         return c.getBlock(Math.floorMod(x, Chunk.SIZE), y, Math.floorMod(z, Chunk.SIZE));
     }
 
+    public byte getBlockAt(Vector3i pos) {
+        return getBlockAt(pos.x, pos.y, pos.z);
+    }
+
     public void update(InputManager input, Vector3f cameraFront, boolean isInventoryOpen, float deltaTime) {
         player.update(input, chunkManager, cameraFront, isInventoryOpen, deltaTime);
         chunkManager.update(player.position.x, player.position.z);
@@ -59,7 +65,6 @@ public class World {
         }
     }
 
-    // --- NEU: Die Hilfsklasse für das Raycast-Ergebnis ---
     public static class RaycastResult {
         public final Vector3i hitPos;
         public final Vector3i adjacentPos;
@@ -70,13 +75,11 @@ public class World {
         }
     }
 
-    // --- NEU: Der 3D DDA Algorithmus ---
     public RaycastResult raycast(Vector3f start, Vector3f dir, float maxDistance) {
         int x = (int) Math.floor(start.x);
         int y = (int) Math.floor(start.y);
         int z = (int) Math.floor(start.z);
 
-        // Die Richtung, in die wir springen (+1, -1 oder 0)
         int stepX = Float.compare(dir.x, 0.0f);
         int stepY = Float.compare(dir.y, 0.0f);
         int stepZ = Float.compare(dir.z, 0.0f);
@@ -94,12 +97,10 @@ public class World {
         Vector3i lastPos = new Vector3i(x, y, z);
         float dist = 0.0f;
 
-        byte air = BlockRegistry.AIR.getId();
-        byte water = BlockRegistry.WATER.getId();
-
         // Prüfen, ob der Spieler mit dem Kopf bereits in einem Block steckt
-        byte startBlock = getBlockAt(x, y, z);
-        if (startBlock != air && startBlock != water) {
+        byte startBlockId = getBlockAt(x, y, z);
+        Block startBlock = BlockRegistry.get(startBlockId);
+        if (!startBlock.isRaycastable) {
             return new RaycastResult(new Vector3i(x, y, z), new Vector3i(x, y, z));
         }
 
@@ -134,8 +135,8 @@ public class World {
             if (dist > maxDistance) break;
 
             byte blockId = getBlockAt(x, y, z);
-            if (blockId != air && blockId != water) {
-                // Treffer! Wir geben den getroffenen Block UND die vorherige Position (lastPos) zurück!
+            Block block = BlockRegistry.get(blockId);
+            if (!block.isRaycastable) {
                 return new RaycastResult(new Vector3i(x, y, z), new Vector3i(lastPos));
             }
         }

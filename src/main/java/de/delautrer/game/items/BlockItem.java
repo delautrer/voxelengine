@@ -36,7 +36,7 @@ public class BlockItem extends Item {
                 if (block == BlockRegistry.WATER) placeChunk.setBlock(lx, adjacentBlock.y, lz, block.getId(), (byte)8);
                 else placeChunk.setBlock(lx, adjacentBlock.y, lz, block.getId());
 
-                interaction.updateChunkMesh(placeChunk, lx, lz);
+                //interaction.updateChunkMesh(placeChunk, lx, lz);
             }
         }
     }

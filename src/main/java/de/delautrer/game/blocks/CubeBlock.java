@@ -36,7 +36,7 @@ public class CubeBlock extends Block {
             float bl2 = chunk.getSmoothBlockLight(x, y+1, z, 1, 0, 0, 0, 0, 1, cm);
             float bl3 = chunk.getSmoothBlockLight(x, y+1, z, 1, 0, 0, 0, 0, -1, cm);
 
-            chunk.addFace(x,y+1,z,ao0, x,y+1,z+1,ao1, x+1,y+1,z+1,ao2, x+1,y+1,z,ao3, texTop, lightTop, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
+            chunk.addFace(x,y+1,z,ao0, x,y+1,z+1,ao1, x+1,y+1,z+1,ao2, x+1,y+1,z,ao3, 0.0f, 0.0f, 1.0f, 1.0f, texTop, lightTop, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
         }
 
         // BOTTOM
@@ -57,7 +57,7 @@ public class CubeBlock extends Block {
             float bl2 = chunk.getSmoothBlockLight(x, y-1, z, 1, 0, 0, 0, 0, -1, cm);
             float bl3 = chunk.getSmoothBlockLight(x, y-1, z, 1, 0, 0, 0, 0, 1, cm);
 
-            chunk.addFace(x,y,z+1,ao0, x,y,z,ao1, x+1,y,z,ao2, x+1,y,z+1,ao3, texBottom, lightBot, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
+            chunk.addFace(x,y,z+1,ao0, x,y,z,ao1, x+1,y,z,ao2, x+1,y,z+1,ao3,0.0f, 0.0f, 1.0f, 1.0f, texBottom, lightBot, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
         }
 
         // Z PLUS (Front)
@@ -78,7 +78,7 @@ public class CubeBlock extends Block {
             float bl2 = chunk.getSmoothBlockLight(x, y, z+1, 1, 0, 0, 0, 1, 0, cm);
             float bl3 = chunk.getSmoothBlockLight(x, y, z+1, -1, 0, 0, 0, 1, 0, cm);
 
-            chunk.addFace(x,y,z+1,ao0, x+1,y,z+1,ao1, x+1,y+1,z+1,ao2, x,y+1,z+1,ao3, texSide, lightFrontBack, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
+            chunk.addFace(x,y,z+1,ao0, x+1,y,z+1,ao1, x+1,y+1,z+1,ao2, x,y+1,z+1,ao3,0.0f, 0.0f, 1.0f, 1.0f, texSide, lightFrontBack, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
         }
 
         // Z MINUS (Back)
@@ -99,7 +99,7 @@ public class CubeBlock extends Block {
             float bl2 = chunk.getSmoothBlockLight(x, y, z-1, -1, 0, 0, 0, 1, 0, cm);
             float bl3 = chunk.getSmoothBlockLight(x, y, z-1, 1, 0, 0, 0, 1, 0, cm);
 
-            chunk.addFace(x+1,y,z,ao0, x,y,z,ao1, x,y+1,z,ao2, x+1,y+1,z,ao3, texSide, lightFrontBack, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
+            chunk.addFace(x+1,y,z,ao0, x,y,z,ao1, x,y+1,z,ao2, x+1,y+1,z,ao3,0.0f, 0.0f, 1.0f, 1.0f, texSide, lightFrontBack, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
         }
 
         // X MINUS (Left)
@@ -120,7 +120,7 @@ public class CubeBlock extends Block {
             float bl2 = chunk.getSmoothBlockLight(x-1, y, z, 0, 1, 0, 0, 0, 1, cm);
             float bl3 = chunk.getSmoothBlockLight(x-1, y, z, 0, 1, 0, 0, 0, -1, cm);
 
-            chunk.addFace(x,y,z,ao0, x,y,z+1,ao1, x,y+1,z+1,ao2, x,y+1,z,ao3, texSide, lightLeftRight, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
+            chunk.addFace(x,y,z,ao0, x,y,z+1,ao1, x,y+1,z+1,ao2, x,y+1,z,ao3,0.0f, 0.0f, 1.0f, 1.0f, texSide, lightLeftRight, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
         }
 
         // X PLUS (Right)
@@ -141,7 +141,7 @@ public class CubeBlock extends Block {
             float bl2 = chunk.getSmoothBlockLight(x+1, y, z, 0, 1, 0, 0, 0, -1, cm);
             float bl3 = chunk.getSmoothBlockLight(x+1, y, z, 0, 1, 0, 0, 0, 1, cm);
 
-            chunk.addFace(x+1,y,z+1,ao0, x+1,y,z,ao1, x+1,y+1,z,ao2, x+1,y+1,z+1,ao3, texSide, lightLeftRight, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
+            chunk.addFace(x+1,y,z+1,ao0, x+1,y,z,ao1, x+1,y+1,z,ao2, x+1,y+1,z+1,ao3,0.0f, 0.0f, 1.0f, 1.0f, texSide, lightLeftRight, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
         }
     }
 }

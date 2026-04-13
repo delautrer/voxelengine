@@ -1,7 +1,9 @@
 package de.delautrer.game.blocks;
 
+import de.delautrer.engine.physics.AABB;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
+import org.joml.Vector3f;
 
 public abstract class Block {
     private byte internalId; // Wird von der Registry zugewiesen!
@@ -10,10 +12,21 @@ public abstract class Block {
 
     public final boolean isSolid;
     public final boolean isTransparent;
+    public final boolean isPassable;
+    public final boolean isRaycastable;
 
     public Block(boolean isSolid, boolean isTransparent) {
+        this(isSolid, isTransparent, false, false);
+    }
+
+    public Block(boolean isSolid, boolean isTransparent, boolean isPassable) {
+        this(isSolid, isTransparent, isPassable, false);
+    }
+    public Block(boolean isSolid, boolean isTransparent, boolean isPassable,  boolean isRaycastable) {
         this.isSolid = isSolid;
         this.isTransparent = isTransparent;
+        this.isPassable = isPassable;
+        this.isRaycastable = isRaycastable;
     }
 
     public byte getId() { return internalId; }
@@ -28,9 +41,16 @@ public abstract class Block {
     }
 
     public boolean shouldRenderFaceAgainst(Block neighborBlock, float myHeight, float neighborHeight) {
-        if (neighborBlock.getId() == 0) return true; // Gegen Luft
+        if (neighborBlock.getId() == 0) return true;
         if (this.isTransparent && this.getId() == neighborBlock.getId()) return false;
         return neighborBlock.isTransparent;
+    }
+
+    public float[] getHighlightVertices() {
+        return new float[]{ 0,0,0, 1,0,0, 1,1,0, 0,1,0, 0,0,1, 1,0,1, 1,1,1, 0,1,1 };
+    }
+    public int[] getHighlightIndices() {
+        return new int[]{ 0,1, 1,2, 2,3, 3,0, 4,5, 5,6, 6,7, 7,4, 0,4, 1,5, 2,6, 3,7 };
     }
 
     public abstract void generateMesh(int x, int y, int z, Chunk chunk, ChunkManager cm);

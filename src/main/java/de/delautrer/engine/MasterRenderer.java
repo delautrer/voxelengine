@@ -4,6 +4,8 @@ import de.delautrer.engine.graphics.*;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.engine.player.Camera;
 import de.delautrer.engine.window.Window;
+import de.delautrer.game.blocks.Block;
+import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.interaction.PlayerInteraction;
 import de.delautrer.game.ui.DebugOverlay;
 import de.delautrer.game.ui.UIRenderer;
@@ -11,6 +13,7 @@ import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.Environment;
 import de.delautrer.game.world.World;
 import org.joml.Matrix4f;
+import org.joml.Vector3i;
 
 public class MasterRenderer {
     private final VulkanContext vulkanContext;
@@ -73,13 +76,21 @@ public class MasterRenderer {
         packet.visibleMeshes = visible;
         lastVisibleChunkCount = visible.size();
 
-        packet.highlightMesh = highlightMesh;
+        //packet.highlightMesh = highlightMesh;
         packet.uiMesh = uiRenderer.getGuiMesh();
         packet.guiTexture = guiTexture;
         packet.textMesh = uiRenderer.getTextMesh();
         packet.fontTexture = fontTexture;
         packet.worldTexture = worldTexture;
-        packet.selectedBlockPos = interaction.getSelectedBlockPos();
+        Vector3i selectedBlockPos = interaction.getSelectedBlockPos();
+        packet.selectedBlockPos = selectedBlockPos;
+        if(selectedBlockPos != null) {
+            byte selectedBlockId = world.getBlockAt(selectedBlockPos);
+            Block block = BlockRegistry.get(selectedBlockId);
+            packet.highlightMesh = new VulkanMesh(vulkanContext, block.getHighlightVertices(), block.getHighlightIndices());
+        } else {
+            packet.highlightMesh = highlightMesh;
+        }
 
         packet.globalLight = environment.getGlobalLight();
         packet.skyR = environment.getSkyR();

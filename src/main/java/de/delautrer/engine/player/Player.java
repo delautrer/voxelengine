@@ -2,6 +2,7 @@ package de.delautrer.engine.player;
 
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.engine.physics.AABB;
+import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
 import org.joml.Vector3f;
@@ -136,7 +137,8 @@ public class Player {
                     if (c != null) {
                         byte block = c.getBlock(Math.floorMod(x, Chunk.SIZE), y, Math.floorMod(z, Chunk.SIZE));
                         // 0 = Luft, 4 = Wasser (Beides fällt man durch!)
-                        if (block != 0 && block != 4) return true;
+                        //if (block != 0 && block != 4) return true;
+                        if(block != 0 && !BlockRegistry.get(block).isPassable) return true;
                     }
                 }
             }
@@ -152,7 +154,8 @@ public class Player {
                     Chunk c = chunkManager.getChunkAtBlock(x, y, z);
                     if (c != null) {
                         byte block = c.getBlock(Math.floorMod(x, Chunk.SIZE), y, Math.floorMod(z, Chunk.SIZE));
-                        if (block != 0 && block != 4) return true;
+                        //if (block != 0 && block != 4) return true;
+                        if(block != 0 && !BlockRegistry.get(block).isPassable) return true;
                     }
                 }
             }

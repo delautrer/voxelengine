@@ -66,15 +66,10 @@ public class VulkanRenderer {
             int imageIndex = pImageIndex.get(0);
             VK10.vkResetFences(context.getDevice(), inFlightFence);
 
-            // 1. Aufnahme Starten
             VkCommandBuffer cmd = commandBuffers.beginRecording(imageIndex, swapchain, renderPass, framebuffers, packet.skyR, packet.skyG, packet.skyB);
-
-            // 2. MAGIE: Alle Systeme der Reihe nach rendern lassen
             for (IRenderSystem system : renderSystems) {
                 system.render(cmd, packet);
             }
-
-            // 3. Aufnahme Beenden
             commandBuffers.endRecording(cmd);
 
             VkSubmitInfo submitInfo = VkSubmitInfo.calloc(stack)

@@ -13,8 +13,6 @@ public class Chunk {
 
     private final int worldX, worldZ;
 
-    // --- NEU: Primitive Arrays statt ArrayLists! ---
-    // Wir starten mit einer moderaten Größe und vergrößern sie bei Bedarf
     private float[] vertices = new float[4096];
     private int vertexCount = 0;
 
@@ -30,8 +28,6 @@ public class Chunk {
     }
 
     public void rebuildMesh(ChunkManager cm) {
-        // Statt eine Liste zu leeren, setzen wir einfach die Zähler auf 0.
-        // Die alten Daten im Array werden später einfach überschrieben! (0 Garbage!)
         vertexCount = 0;
         indexCount = 0;
 
@@ -69,12 +65,13 @@ public class Chunk {
                         float x1, float y1, float z1, float ao1,
                         float x2, float y2, float z2, float ao2,
                         float x3, float y3, float z3, float ao3,
+                        float u0, float v0, float u1, float v1, // <-- NEU
                         int texLayer, float directionalLight, Block block,
                         float sl0, float sl1, float sl2, float sl3,
                         float bl0, float bl1, float bl2, float bl3) {
 
         float ox = worldX * SIZE, oz = worldZ * SIZE;
-        float u0 = 0.0f, v0 = 0.0f, u1 = 1.0f, v1 = 1.0f;
+        //float u0 = 0.0f, v0 = 0.0f, u1 = 1.0f, v1 = 1.0f;
 
         // Da jeder Vertex 12 Floats hat, ist der Offset für den Index:
         int offset = vertexCount / 12;
@@ -153,13 +150,15 @@ public class Chunk {
         boolean side2 = !BlockRegistry.get(getBlockAt(x + dx2, y + dy2, z + dz2, cm)).isTransparent;
         boolean corner = !BlockRegistry.get(getBlockAt(x + dx1 + dx2, y + dy1 + dy2, z + dz1 + dz2, cm)).isTransparent;
 
-        if (side1 && side2) return 0.5f;
+        // Wenn beide Seiten blockiert sind, ist die Ecke definitiv dunkel (egal ob der diagonale Eck-Block da ist oder nicht)
+        if (side1 && side2) return 0.75f; // Vorher: 0.5f
+
         int count = (side1 ? 1 : 0) + (side2 ? 1 : 0) + (corner ? 1 : 0);
         return switch (count) {
             case 0 -> 1.0f;
-            case 1 -> 0.8f;
-            case 2 -> 0.6f;
-            default -> 0.5f;
+            case 1 -> 0.90f;
+            case 2 -> 0.82f;
+            default -> 0.75f;
         };
     }
 
@@ -230,21 +229,26 @@ public class Chunk {
     }
 
     public float getSmoothSkyLight(int x, int y, int z, int dx1, int dy1, int dz1, int dx2, int dy2, int dz2, ChunkManager cm) {
-        float center = getSkyLightAt(x, y, z, cm);
-        float side1 = getSkyLightAt(x + dx1, y + dy1, z + dz1, cm);
-        float side2 = getSkyLightAt(x + dx2, y + dy2, z + dz2, cm);
-        float corner = getSkyLightAt(x + dx1 + dx2, y + dy1 + dy2, z + dz1 + dz2, cm);
+        float center = lightToBrightness(getSkyLightAt(x, y, z, cm));
+        float side1 = lightToBrightness(getSkyLightAt(x + dx1, y + dy1, z + dz1, cm));
+        float side2 = lightToBrightness(getSkyLightAt(x + dx2, y + dy2, z + dz2, cm));
+        float corner = lightToBrightness(getSkyLightAt(x + dx1 + dx2, y + dy1 + dy2, z + dz1 + dz2, cm));
 
-        return (center + side1 + side2 + corner) / 60.0f;
+        return (center + side1 + side2 + corner) / 4.0f;
     }
 
     public float getSmoothBlockLight(int x, int y, int z, int dx1, int dy1, int dz1, int dx2, int dy2, int dz2, ChunkManager cm) {
-        float center = getBlockLightAt(x, y, z, cm);
-        float side1 = getBlockLightAt(x + dx1, y + dy1, z + dz1, cm);
-        float side2 = getBlockLightAt(x + dx2, y + dy2, z + dz2, cm);
-        float corner = getBlockLightAt(x + dx1 + dx2, y + dy1 + dy2, z + dz1 + dz2, cm);
+        float center = lightToBrightness(getBlockLightAt(x, y, z, cm));
+        float side1 = lightToBrightness(getBlockLightAt(x + dx1, y + dy1, z + dz1, cm));
+        float side2 = lightToBrightness(getBlockLightAt(x + dx2, y + dy2, z + dz2, cm));
+        float corner = lightToBrightness(getBlockLightAt(x + dx1 + dx2, y + dy1 + dy2, z + dz1 + dz2, cm));
 
-        return (center + side1 + side2 + corner) / 60.0f;
+        return (center + side1 + side2 + corner) / 4.0f;
+    }
+
+    private float lightToBrightness(float lightLevel) {
+        if (lightLevel <= 0) return 0.0f;
+        return (float) Math.pow(0.8f, 15.0f - lightLevel);
     }
 
     public void recalculateSunlightColumn(int x, int z, LightEngine lightEngine) {

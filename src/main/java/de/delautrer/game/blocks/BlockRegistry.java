@@ -22,13 +22,14 @@ public class BlockRegistry {
     public static final Block WATER = register("water", new WaterBlock());
     public static final Block GLASS = register("glass", new CubeBlock(true, true, 5, 5, 5));
     public static final Block LEAVES = register("leaves", new CubeBlock(true, true, 6, 6, 6));
+    public static final Block TORCH = register("torch", new TorchBlock(7));
 
     public static void init() {
         System.out.println("BlockRegistry initialized. " + BLOCKS.size() + " Blocks loaded.");
     }
 
     private static Block registerAir() {
-        Block air = new Block(false, true) {
+        Block air = new Block(false, true, true, true) {
             @Override public void generateMesh(int x, int y, int z, de.delautrer.game.world.Chunk chunk, de.delautrer.game.world.ChunkManager cm) {}
         };
         air.setId((byte) 0);
