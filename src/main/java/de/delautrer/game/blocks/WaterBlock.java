@@ -6,7 +6,7 @@ import de.delautrer.game.world.ChunkManager;
 public class WaterBlock extends Block {
 
     public WaterBlock() {
-        super(false, true, true);
+        super(false, true, true, false);
     }
 
     private float getWaterHeight(int x, int y, int z, Chunk chunk, ChunkManager cm) {

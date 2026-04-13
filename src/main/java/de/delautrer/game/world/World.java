@@ -1,5 +1,6 @@
 package de.delautrer.game.world;
 
+import de.delautrer.engine.events.EventBus;
 import de.delautrer.engine.graphics.VulkanContext;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.engine.physics.AABB;
@@ -10,13 +11,15 @@ import org.joml.Vector3f;
 import org.joml.Vector3i;
 
 public class World {
+    private final EventBus eventBus;
     private final ChunkManager chunkManager;
     private final FluidSimulator fluidSimulator; // NEU!
     private final Player player;
 
     private float waterTimer = 0.0f;
 
-    public World(VulkanContext context, Player player) {
+    public World(VulkanContext context, Player player, EventBus eventBus) {
+        this.eventBus = eventBus;
         this.chunkManager = new ChunkManager(context);
         this.fluidSimulator = new FluidSimulator(chunkManager, context); // NEU!
         this.player = player;
@@ -63,6 +66,65 @@ public class World {
             player.position.set(findSafeSpawn((int)player.position.x, (int)player.position.z));
             player.velocity.set(0);
         }
+
+        chunkManager.getAsyncBuilder().uploadReadyMeshes(chunkManager);
+    }
+
+    public void setBlock(int x, int y, int z, byte newBlockId) {
+        if (y < 0 || y >= Chunk.HEIGHT) return;
+
+        Chunk targetChunk = chunkManager.getChunkAtBlock(x, y, z);
+        if (targetChunk == null) return;
+
+        int localX = Math.floorMod(x, Chunk.SIZE);
+        int localZ = Math.floorMod(z, Chunk.SIZE);
+
+        byte oldBlockId = targetChunk.getBlock(localX, y, localZ);
+        if (oldBlockId == newBlockId) return; // Nichts zu tun
+
+        // 1. Blockdaten ändern
+        targetChunk.setBlock(localX, y, localZ, newBlockId);
+
+        // 2. Zentrales Change-Event feuern (Licht & Renderer lauschen hier!)
+        Vector3i pos = new Vector3i(x, y, z);
+        eventBus.publish(new de.delautrer.game.events.BlockChangeEvent(pos, oldBlockId, newBlockId, targetChunk));
+
+        // 3. Neighbor-Updates feuern (Oben, Unten, Nord, Süd, Ost, West)
+        int[][] dirs = {{0,1,0}, {0,-1,0}, {1,0,0}, {-1,0,0}, {0,0,1}, {0,0,-1}};
+        for (int[] dir : dirs) {
+            Vector3i nPos = new Vector3i(x + dir[0], y + dir[1], z + dir[2]);
+            eventBus.publish(new de.delautrer.game.events.BlockNeighborUpdateEvent(nPos, pos, newBlockId));
+        }
+    }
+
+    public void setBlock(Vector3i pos, byte newBlockId) {
+        if (pos != null) {
+            setBlock(pos.x, pos.y, pos.z, newBlockId);
+        }
+    }
+
+    // Neue Überladung, um BlockStates (wie beim Wasser) direkt mitzusetzen
+    public void setBlockWithState(int x, int y, int z, byte newBlockId, byte newState) {
+        if (y < 0 || y >= de.delautrer.game.world.Chunk.HEIGHT) return;
+
+        de.delautrer.game.world.Chunk targetChunk = chunkManager.getChunkAtBlock(x, y, z);
+        if (targetChunk == null) return;
+
+        int localX = Math.floorMod(x, de.delautrer.game.world.Chunk.SIZE);
+        int localZ = Math.floorMod(z, de.delautrer.game.world.Chunk.SIZE);
+
+        byte oldBlockId = targetChunk.getBlock(localX, y, localZ);
+
+        targetChunk.setBlock(localX, y, localZ, newBlockId, newState);
+
+        org.joml.Vector3i pos = new org.joml.Vector3i(x, y, z);
+        eventBus.publish(new de.delautrer.game.events.BlockChangeEvent(pos, oldBlockId, newBlockId, targetChunk));
+
+        int[][] dirs = {{0,1,0}, {0,-1,0}, {1,0,0}, {-1,0,0}, {0,0,1}, {0,0,-1}};
+        for (int[] dir : dirs) {
+            org.joml.Vector3i nPos = new org.joml.Vector3i(x + dir[0], y + dir[1], z + dir[2]);
+            eventBus.publish(new de.delautrer.game.events.BlockNeighborUpdateEvent(nPos, pos, newBlockId));
+        }
     }
 
     public static class RaycastResult {
@@ -84,12 +146,10 @@ public class World {
         int stepY = Float.compare(dir.y, 0.0f);
         int stepZ = Float.compare(dir.z, 0.0f);
 
-        // Wie weit muss der Strahl wandern, um genau 1 Block in X/Y/Z-Richtung voranzukommen?
         float tDeltaX = stepX != 0 ? Math.abs(1.0f / dir.x) : Float.MAX_VALUE;
         float tDeltaY = stepY != 0 ? Math.abs(1.0f / dir.y) : Float.MAX_VALUE;
         float tDeltaZ = stepZ != 0 ? Math.abs(1.0f / dir.z) : Float.MAX_VALUE;
 
-        // Wie weit ist es bis zur ALLERERSTEN Blockgrenze?
         float tMaxX = stepX > 0 ? (x + 1.0f - start.x) * tDeltaX : (start.x - x) * tDeltaX;
         float tMaxY = stepY > 0 ? (y + 1.0f - start.y) * tDeltaY : (start.y - y) * tDeltaY;
         float tMaxZ = stepZ > 0 ? (z + 1.0f - start.z) * tDeltaZ : (start.z - z) * tDeltaZ;
@@ -97,14 +157,12 @@ public class World {
         Vector3i lastPos = new Vector3i(x, y, z);
         float dist = 0.0f;
 
-        // Prüfen, ob der Spieler mit dem Kopf bereits in einem Block steckt
         byte startBlockId = getBlockAt(x, y, z);
         Block startBlock = BlockRegistry.get(startBlockId);
-        if (!startBlock.isRaycastable) {
+        if (startBlock.isRaycastable) {
             return new RaycastResult(new Vector3i(x, y, z), new Vector3i(x, y, z));
         }
 
-        // Die magische Voxel-Traversal-Schleife
         while (dist <= maxDistance) {
             if (tMaxX < tMaxY) {
                 if (tMaxX < tMaxZ) {
@@ -136,7 +194,7 @@ public class World {
 
             byte blockId = getBlockAt(x, y, z);
             Block block = BlockRegistry.get(blockId);
-            if (!block.isRaycastable) {
+            if (block.isRaycastable) {
                 return new RaycastResult(new Vector3i(x, y, z), new Vector3i(lastPos));
             }
         }

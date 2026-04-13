@@ -15,6 +15,7 @@ import de.delautrer.game.ui.DebugOverlay;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.Environment;
 import de.delautrer.game.world.World;
+import de.delautrer.game.world.WorldEventHandler;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.vulkan.VK10;
 
@@ -28,6 +29,8 @@ public class Engine {
     private Camera camera;
     private Player player;
     private PlayerInteraction interaction;
+
+    private WorldEventHandler  worldEventHandler;
 
     private EventBus eventBus;
     private InputManager inputManager;
@@ -56,7 +59,8 @@ public class Engine {
         environment = new Environment();
 
         player = new Player();
-        world = new World(vulkanContext, player);
+        world = new World(vulkanContext, player, eventBus);
+        worldEventHandler = new WorldEventHandler(world, vulkanContext, eventBus);
         camera = new Camera();
 
         // Der MasterRenderer übernimmt die gesamte Vulkan-Last

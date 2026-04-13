@@ -12,19 +12,31 @@ public class VulkanMesh {
     private VulkanBuffer indexBuffer;
     private int indexCount;
 
-    // Normaler Konstruktor für einen Chunk
     public VulkanMesh(VulkanContext context, Chunk chunk) {
         this.context = context;
         createBuffers(chunk.getVertices(), chunk.getIndices());
     }
 
-    // Neuer Konstruktor für das statische Highlight-Mesh
     public VulkanMesh(VulkanContext context, float[] vertices, int[] indices) {
         this.context = context;
         createBuffers(vertices, indices);
     }
 
+    public VulkanMesh(VulkanContext context, MeshData data) {
+        this.context = context;
+        createBuffers(data.vertices, data.indices);
+    }
+
+    // --- DIE NEUE UPDATE METHODE ---
+    public void updateMesh(MeshData data) {
+        VK10.vkQueueWaitIdle(context.getGraphicsQueue());
+        cleanup();
+        createBuffers(data.vertices, data.indices);
+    }
+
+    // Falls du die alte Methode noch irgendwo hast (kann eigentlich weg):
     public void updateMesh(Chunk chunk) {
+        VK10.vkQueueWaitIdle(context.getGraphicsQueue());
         cleanup();
         createBuffers(chunk.getVertices(), chunk.getIndices());
     }

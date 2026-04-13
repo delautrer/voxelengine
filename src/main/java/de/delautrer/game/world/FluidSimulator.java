@@ -104,7 +104,7 @@ public class FluidSimulator {
                 VK10.vkDeviceWaitIdle(context.getDevice());
                 for (Chunk c : dirtyChunks) {
                     if (c != null) {
-                        c.rebuildMesh(chunkManager);
+                        c.generateMeshData(chunkManager);
                         Vector2i pos = new Vector2i(c.getWorldX(), c.getWorldZ());
                         if (chunkManager.getMeshes().containsKey(pos)) {
                             chunkManager.getMeshes().get(pos).updateMesh(c);

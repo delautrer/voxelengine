@@ -1,5 +1,6 @@
 package de.delautrer.game.world;
 
+import de.delautrer.engine.graphics.MeshData;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
 
@@ -27,7 +28,7 @@ public class Chunk {
         this.worldZ = worldZ;
     }
 
-    public void rebuildMesh(ChunkManager cm) {
+    public MeshData generateMeshData(ChunkManager cm) {
         vertexCount = 0;
         indexCount = 0;
 
@@ -42,9 +43,9 @@ public class Chunk {
                 }
             }
         }
+        return new MeshData(getVertices(), getIndices());
     }
 
-    // --- NEU: Array-Resizing Logik ---
     private void ensureVertexCapacity(int additionalSize) {
         if (vertexCount + additionalSize > vertices.length) {
             float[] newArr = new float[Math.max(vertices.length * 2, vertexCount + additionalSize)];
@@ -65,15 +66,13 @@ public class Chunk {
                         float x1, float y1, float z1, float ao1,
                         float x2, float y2, float z2, float ao2,
                         float x3, float y3, float z3, float ao3,
-                        float u0, float v0, float u1, float v1, // <-- NEU
+                        float u0, float v0, float u1, float v1,
                         int texLayer, float directionalLight, Block block,
                         float sl0, float sl1, float sl2, float sl3,
                         float bl0, float bl1, float bl2, float bl3) {
 
         float ox = worldX * SIZE, oz = worldZ * SIZE;
-        //float u0 = 0.0f, v0 = 0.0f, u1 = 1.0f, v1 = 1.0f;
 
-        // Da jeder Vertex 12 Floats hat, ist der Offset für den Index:
         int offset = vertexCount / 12;
 
         float r = 1.0f, g = 1.0f, b = 1.0f, alpha = 1.0f;
@@ -114,8 +113,6 @@ public class Chunk {
         vertices[vertexCount++] = u0;      vertices[vertexCount++] = v0; vertices[vertexCount++] = texLayer;
         vertices[vertexCount++] = sl3;     vertices[vertexCount++] = bl3;
 
-
-        // Wir brauchen 6 Integers für 2 Dreiecke
         ensureIndexCapacity(6);
 
         if (ao0 + ao2 > ao1 + ao3) {
@@ -150,7 +147,6 @@ public class Chunk {
         boolean side2 = !BlockRegistry.get(getBlockAt(x + dx2, y + dy2, z + dz2, cm)).isTransparent;
         boolean corner = !BlockRegistry.get(getBlockAt(x + dx1 + dx2, y + dy1 + dy2, z + dz1 + dz2, cm)).isTransparent;
 
-        // Wenn beide Seiten blockiert sind, ist die Ecke definitiv dunkel (egal ob der diagonale Eck-Block da ist oder nicht)
         if (side1 && side2) return 0.75f; // Vorher: 0.5f
 
         int count = (side1 ? 1 : 0) + (side2 ? 1 : 0) + (corner ? 1 : 0);

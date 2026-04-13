@@ -16,6 +16,7 @@ public class ChunkManager {
     private final Map<Vector2i, Chunk> chunks = new ConcurrentHashMap<>();
     private final Map<Vector2i, VulkanMesh> meshes = new ConcurrentHashMap<>();
 
+    private final AsyncChunkBuilder asyncBuilder;
     private final ExecutorService chunkExecutor;
     private final ConcurrentLinkedQueue<Chunk> meshUploadQueue = new ConcurrentLinkedQueue<>();
     private final java.util.Set<Vector2i> chunksInPreparation = ConcurrentHashMap.newKeySet();
@@ -29,6 +30,7 @@ public class ChunkManager {
         int threads = Math.max(1, Runtime.getRuntime().availableProcessors() - 2);
         this.chunkExecutor = Executors.newFixedThreadPool(threads);
         this.lightEngine = new LightEngine(this);
+        this.asyncBuilder = new AsyncChunkBuilder();
     }
 
     public void update(float playerX, float playerZ) {
@@ -68,7 +70,7 @@ public class ChunkManager {
 
                     chunkExecutor.submit(() -> {
                         try {
-                            c.rebuildMesh(this);
+                            c.generateMeshData(this);
                             meshUploadQueue.add(c);
                         } catch (Exception e) {
                             System.err.println("Fehler beim Chunk-Meshing: " + e.getMessage());
@@ -138,11 +140,14 @@ public class ChunkManager {
         return chunks.get(new Vector2i(cx, cz));
     }
 
+    public AsyncChunkBuilder getAsyncBuilder() { return asyncBuilder; }
+
     public void cleanup() {
         chunkExecutor.shutdownNow();
         VK10.vkDeviceWaitIdle(context.getDevice());
         for (VulkanMesh mesh : meshes.values()) mesh.cleanup();
         meshes.clear();
         chunks.clear();
+        if (asyncBuilder != null) asyncBuilder.cleanup();
     }
 }

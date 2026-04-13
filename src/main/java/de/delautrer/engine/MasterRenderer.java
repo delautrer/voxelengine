@@ -76,7 +76,6 @@ public class MasterRenderer {
         packet.visibleMeshes = visible;
         lastVisibleChunkCount = visible.size();
 
-        //packet.highlightMesh = highlightMesh;
         packet.uiMesh = uiRenderer.getGuiMesh();
         packet.guiTexture = guiTexture;
         packet.textMesh = uiRenderer.getTextMesh();

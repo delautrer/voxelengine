@@ -6,7 +6,7 @@ import de.delautrer.game.world.ChunkManager;
 import org.joml.Vector3f;
 
 public abstract class Block {
-    private byte internalId; // Wird von der Registry zugewiesen!
+    private byte internalId;
 
     protected int lightEmission = 0;
 
@@ -16,11 +16,11 @@ public abstract class Block {
     public final boolean isRaycastable;
 
     public Block(boolean isSolid, boolean isTransparent) {
-        this(isSolid, isTransparent, false, false);
+        this(isSolid, isTransparent, false, true);
     }
 
     public Block(boolean isSolid, boolean isTransparent, boolean isPassable) {
-        this(isSolid, isTransparent, isPassable, false);
+        this(isSolid, isTransparent, isPassable, true);
     }
     public Block(boolean isSolid, boolean isTransparent, boolean isPassable,  boolean isRaycastable) {
         this.isSolid = isSolid;

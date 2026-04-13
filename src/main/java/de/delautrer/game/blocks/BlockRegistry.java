@@ -29,7 +29,7 @@ public class BlockRegistry {
     }
 
     private static Block registerAir() {
-        Block air = new Block(false, true, true, true) {
+        Block air = new Block(false, true, true, false) {
             @Override public void generateMesh(int x, int y, int z, de.delautrer.game.world.Chunk chunk, de.delautrer.game.world.ChunkManager cm) {}
         };
         air.setId((byte) 0);
