@@ -1,16 +1,28 @@
 package de.delautrer.game.blocks;
 
+import de.delautrer.game.blocks.state.Property;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
 import de.delautrer.game.world.World;
+import de.delautrer.game.blocks.state.IntProperty;
+import de.delautrer.game.blocks.state.BlockState;
 import org.joml.Vector3i;
+
+import java.util.List;
 
 public class WaterBlock extends Block {
 
     private static final int[][] DIRS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
 
+    public static final IntProperty LEVEL = IntProperty.create("level", 0, 8);
+
     public WaterBlock() {
         super(false, true, true, false);
+    }
+
+    @Override
+    protected void appendProperties(List<Property<?>> properties) {
+        properties.add(LEVEL);
     }
 
     @Override
@@ -20,68 +32,64 @@ public class WaterBlock extends Block {
 
     @Override
     public void scheduledTick(World world, int x, int y, int z) {
-        Chunk chunk = world.getChunkManager().getChunkAtBlock(x, y, z);
-        if (chunk == null) return;
+        BlockState currentStateObj = world.getBlockState(x, y, z);
+        if (currentStateObj.getBlock() != this) return;
 
-        byte currentState = chunk.getState(Math.floorMod(x, Chunk.SIZE), y, Math.floorMod(z, Chunk.SIZE));
-        byte expectedState = calculateExpectedState(world, x, y, z, currentState);
+        int currentLevel = currentStateObj.getValue(LEVEL);
+        int expectedLevel = calculateExpectedState(world, x, y, z, currentLevel);
 
-        if (expectedState == 0) {
-            world.setBlock(x, y, z, (byte) 0);
+        if (expectedLevel == 0) {
+            world.setBlockState(x, y, z, BlockRegistry.AIR.getDefaultState());
             return;
-        } else if (expectedState != currentState) {
-            world.setBlockWithState(x, y, z, getId(), expectedState);
-            currentState = expectedState;
+        } else if (expectedLevel != currentLevel) {
+            BlockState newState = getDefaultState().with(LEVEL, expectedLevel);
+            world.setBlockState(x, y, z, newState);
+            currentLevel = expectedLevel;
         }
 
-        if (currentState > 0) {
-            tryFlow(world, x, y, z, currentState);
+        if (currentLevel > 0) {
+            tryFlow(world, x, y, z, currentLevel);
         }
     }
 
-    private void tryFlow(World world, int x, int y, int z, byte currentState) {
-        byte airId = BlockRegistry.AIR.getId();
-        byte waterId = getId();
-
-        byte blockBelow = world.getBlockAt(x, y - 1, z);
-        byte stateBelow = getWaterState(world, x, y - 1, z);
+    private void tryFlow(World world, int x, int y, int z, int currentLevel) {
+        BlockState blockBelow = world.getBlockState(x, y - 1, z);
 
         // 1. Fallen hat höchste Priorität
-        if (blockBelow == airId || (blockBelow == waterId && stateBelow < 8)) {
-            world.setBlockWithState(x, y - 1, z, waterId, (byte) 7);
-            return; // Wenn es fällt, breitet es sich NICHT zur Seite aus!
+        if (blockBelow.getBlock() == BlockRegistry.AIR || (blockBelow.getBlock() == this && blockBelow.getValue(LEVEL) < 8)) {
+            world.setBlockState(x, y - 1, z, getDefaultState().with(LEVEL, 7));
+            return;
         }
 
-        // 2. Deine originale Loch-Such-Logik!
-        if (currentState > 1) {
+        // 2. Loch-Such-Logik
+        if (currentLevel > 1) {
             for (int i = 0; i < 4; i++) {
                 int nx = x + DIRS[i][0];
                 int nz = z + DIRS[i][1];
 
-                if (world.getBlockAt(nx, y, nz) == airId) {
-                    if (canFlowInto(world, x, y, z, i, waterId, airId)) {
-                        world.setBlockWithState(nx, y, nz, waterId, (byte) (currentState - 1));
+                if (world.getBlockState(nx, y, nz).getBlock() == BlockRegistry.AIR) {
+                    if (canFlowInto(world, x, y, z, i)) {
+                        world.setBlockState(nx, y, nz, getDefaultState().with(LEVEL, currentLevel - 1));
                     }
                 }
             }
         }
     }
 
-    private byte calculateExpectedState(World world, int x, int y, int z, byte currentState) {
-        byte airId = BlockRegistry.AIR.getId();
-        byte waterId = getId();
+    private int calculateExpectedState(World world, int x, int y, int z, int currentLevel) {
+        if (currentLevel == 8) return 8;
 
-        if (currentState == 8) return 8;
-
-        if (world.getBlockAt(x, y + 1, z) == waterId) return 7;
+        if (world.getBlockState(x, y + 1, z).getBlock() == this) return 7;
 
         int sources = 0;
         for (int[] dir : DIRS) {
-            if (getWaterState(world, x + dir[0], y, z + dir[1]) == 8) sources++;
+            BlockState neighbor = world.getBlockState(x + dir[0], y, z + dir[1]);
+            if (neighbor.getBlock() == this && neighbor.getValue(LEVEL) == 8) sources++;
         }
+
         if (sources >= 2) {
-            byte blockBelow = world.getBlockAt(x, y - 1, z);
-            if (blockBelow != airId && blockBelow != waterId) {
+            BlockState blockBelow = world.getBlockState(x, y - 1, z);
+            if (blockBelow.getBlock() != BlockRegistry.AIR && blockBelow.getBlock() != this) {
                 return 8;
             }
         }
@@ -91,17 +99,16 @@ public class WaterBlock extends Block {
             int nx = x + DIRS[i][0];
             int nz = z + DIRS[i][1];
 
-            if (world.getBlockAt(nx, y, nz) == waterId) {
-                byte ns = getWaterState(world, nx, y, nz);
-                byte neighborBelow = world.getBlockAt(nx, y - 1, nz);
-                byte neighborBelowState = getWaterState(world, nx, y - 1, nz);
+            BlockState neighbor = world.getBlockState(nx, y, nz);
+            if (neighbor.getBlock() == this) {
+                int ns = neighbor.getValue(LEVEL);
+                BlockState neighborBelow = world.getBlockState(nx, y - 1, nz);
 
-                // WICHTIG: Das hatte ich vergessen. Wasser fließt horizontal NICHT aus fallendem Wasser!
-                boolean neighborIsFalling = (neighborBelow == airId) || (neighborBelow == waterId && neighborBelowState < 8);
+                boolean neighborIsFalling = (neighborBelow.getBlock() == BlockRegistry.AIR) ||
+                        (neighborBelow.getBlock() == this && neighborBelow.getValue(LEVEL) < 8);
 
                 if (!neighborIsFalling) {
-                    // Der "canFlowInto"-Check muss hier prüfen, ob der Nachbar (nx, nz) in unsere Richtung (opposite) fließen darf!
-                    if (ns > 1 && canFlowInto(world, nx, y, nz, opposite(i), waterId, airId)) {
+                    if (ns > 1 && canFlowInto(world, nx, y, nz, opposite(i))) {
                         if (ns > maxFlowLevel) {
                             maxFlowLevel = ns;
                         }
@@ -110,10 +117,10 @@ public class WaterBlock extends Block {
             }
         }
 
-        return maxFlowLevel > 1 ? (byte) (maxFlowLevel - 1) : 0;
+        return maxFlowLevel > 1 ? (maxFlowLevel - 1) : 0;
     }
 
-    private boolean canFlowInto(World world, int wx, int wy, int wz, int dirToUs, byte waterId, byte airId) {
+    private boolean canFlowInto(World world, int wx, int wy, int wz, int dirToUs) {
         int[] costs = new int[4];
         int minCost = 999;
 
@@ -121,12 +128,12 @@ public class WaterBlock extends Block {
             int nx = wx + DIRS[i][0];
             int nz = wz + DIRS[i][1];
 
-            if (isSolid(world, nx, wy, nz, waterId, airId)) {
+            if (isSolid(world, nx, wy, nz)) {
                 costs[i] = 999;
-            } else if (!isSolid(world, nx, wy - 1, nz, waterId, airId)) {
+            } else if (!isSolid(world, nx, wy - 1, nz)) {
                 costs[i] = 0;
             } else {
-                costs[i] = calculateDropCost(world, nx, wy, nz, 1, opposite(i), waterId, airId);
+                costs[i] = calculateDropCost(world, nx, wy, nz, 1, opposite(i));
             }
 
             if (costs[i] < minCost) {
@@ -135,32 +142,32 @@ public class WaterBlock extends Block {
         }
 
         if (minCost > 4) {
-            return !isSolid(world, wx + DIRS[dirToUs][0], wy, wz + DIRS[dirToUs][1], waterId, airId);
+            return !isSolid(world, wx + DIRS[dirToUs][0], wy, wz + DIRS[dirToUs][1]);
         }
 
         return costs[dirToUs] == minCost;
     }
 
-    private int calculateDropCost(World world, int x, int y, int z, int distance, int incomingDir, byte waterId, byte airId) {
-        if (distance > 4 || isSolid(world, x, y, z, waterId, airId)) return 999;
-        if (!isSolid(world, x, y - 1, z, waterId, airId)) return distance;
+    private int calculateDropCost(World world, int x, int y, int z, int distance, int incomingDir) {
+        if (distance > 4 || isSolid(world, x, y, z)) return 999;
+        if (!isSolid(world, x, y - 1, z)) return distance;
 
         int minCost = 999;
         for (int i = 0; i < 4; i++) {
             if (i == incomingDir) continue;
             int nx = x + DIRS[i][0];
             int nz = z + DIRS[i][1];
-            int cost = calculateDropCost(world, nx, y, nz, distance + 1, opposite(i), waterId, airId);
+            int cost = calculateDropCost(world, nx, y, nz, distance + 1, opposite(i));
             if (cost < minCost) minCost = cost;
         }
 
         return minCost;
     }
 
-    private boolean isSolid(World world, int x, int y, int z, byte waterId, byte airId) {
+    private boolean isSolid(World world, int x, int y, int z) {
         if (y < 0 || y >= Chunk.HEIGHT) return true;
-        byte b = world.getBlockAt(x, y, z);
-        return b != airId && b != waterId;
+        Block b = world.getBlockState(x, y, z).getBlock();
+        return b != BlockRegistry.AIR && b != this;
     }
 
     private int opposite(int dir) {
@@ -172,25 +179,24 @@ public class WaterBlock extends Block {
         };
     }
 
-    private byte getWaterState(World world, int x, int y, int z) {
-        if (world.getBlockAt(x, y, z) != getId()) return 0;
-        Chunk c = world.getChunkManager().getChunkAtBlock(x, y, z);
-        if (c == null) return 0;
-        return c.getState(Math.floorMod(x, Chunk.SIZE), y, Math.floorMod(z, Chunk.SIZE));
-    }
+    // --- RENDER LOGIK ---
 
     private float getWaterHeight(int x, int y, int z, Chunk chunk, ChunkManager cm) {
         if (y < 0 || y >= Chunk.HEIGHT) return 1.0f;
-        if (chunk.getBlockAt(x, y, z, cm) != this.getId()) return 1.0f;
-        if (chunk.getBlockAt(x, y + 1, z, cm) == this.getId()) return 1.0f;
 
-        byte state = chunk.getStateAt(x, y, z, cm);
-        return Math.max(0.1f, state / 9.0f);
+        BlockState state = chunk.getBlockState(x, y, z);
+        if (state.getBlock() != this) return 1.0f;
+
+        BlockState topState = chunk.getBlockState(x, y + 1, z);
+        if (topState.getBlock() == this) return 1.0f;
+
+        int level = state.getValue(LEVEL);
+        return Math.max(0.1f, level / 9.0f);
     }
 
     @Override
     public boolean shouldRenderFaceAgainst(Block neighborBlock, float myHeight, float neighborHeight) {
-        if (neighborBlock.getId() == this.getId()) {
+        if (neighborBlock == this) {
             return myHeight > neighborHeight + 0.01f;
         }
         return neighborBlock.isTransparent;

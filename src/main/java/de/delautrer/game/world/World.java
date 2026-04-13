@@ -6,6 +6,7 @@ import de.delautrer.engine.input.InputManager;
 import de.delautrer.engine.player.Player;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
+import de.delautrer.game.blocks.state.BlockState;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 
@@ -225,6 +226,19 @@ public class World {
             }
         }
         return visibleMeshes;
+    }
+
+    public void setBlockState(int x, int y, int z, BlockState state) {
+        setBlockWithState(x, y, z, state.getBlock().getId(), state.getStateId());
+    }
+
+    public BlockState getBlockState(int x, int y, int z) {
+        Chunk chunk = chunkManager.getChunkAtBlock(x, y, z);
+        if (chunk == null) return BlockRegistry.AIR.getDefaultState();
+
+        int localX = Math.floorMod(x, Chunk.SIZE);
+        int localZ = Math.floorMod(z, Chunk.SIZE);
+        return chunk.getBlockState(localX, y, localZ);
     }
 
     public TickScheduler getTickScheduler() {

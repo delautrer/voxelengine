@@ -3,6 +3,7 @@ package de.delautrer.game.world;
 import de.delautrer.engine.graphics.MeshData;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
+import de.delautrer.game.blocks.state.BlockState;
 
 public class Chunk {
     public static final int SIZE = 16;
@@ -290,6 +291,14 @@ public class Chunk {
                 recalculateSunlightColumn(x, z, null);
             }
         }
+    }
+
+    public BlockState getBlockState(int x, int y, int z) {
+        byte blockId = getBlock(x, y, z);
+        if (blockId == 0) return BlockRegistry.AIR.getDefaultState();
+
+        byte stateId = getState(x, y, z);
+        return BlockRegistry.get(blockId).getStateForId(stateId);
     }
 
     public static float[] getHighlightVertices() { return highlightVertices; }
