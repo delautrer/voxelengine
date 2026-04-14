@@ -46,7 +46,7 @@ public class WorldGenerator {
         int worldZ = chunk.getWorldZ();
 
         int[][] heightMap = new int[Chunk.SIZE][Chunk.SIZE];
-        biomeMap = new Biome[Chunk.SIZE][Chunk.SIZE];
+        //biomeMap = new Biome[Chunk.SIZE][Chunk.SIZE];
 
         // --- 1. KONTINUIERLICHES TERRAIN ---
         for (int x = 0; x < Chunk.SIZE; x++) {
@@ -63,10 +63,16 @@ public class WorldGenerator {
                 float flattenFactor = Math.max(0.0f, Math.min(1.0f, (baseHeight - 50.0f) / 15.0f));
                 localRoughness *= flattenFactor;
 
-                if (elevation < -0.15f) biomeMap[x][z] = Biome.OCEAN;
+                if (elevation < -0.15f) chunk.setBiome(x, z, Biome.OCEAN);
+                else if (elevation < 0.05f) chunk.setBiome(x, z, Biome.PLAINS);
+                else if (roughness > 0.1f) chunk.setBiome(x, z, Biome.MOUNTAINS);
+                else chunk.setBiome(x, z, Biome.HILLS);
+
+                /*if (elevation < -0.15f) biomeMap[x][z] = Biome.OCEAN;
                 else if (elevation < 0.05f) biomeMap[x][z] = Biome.PLAINS;
                 else if (roughness > 0.1f) biomeMap[x][z] = Biome.MOUNTAINS;
                 else biomeMap[x][z] = Biome.HILLS;
+                */
 
                 float detail = detailNoise.getFractalNoise2D(realX * 0.01f, realZ * 0.01f, 4, 0.5f, 2.0f);
 
@@ -88,7 +94,7 @@ public class WorldGenerator {
             }
         }
 
-        // --- 2. DIE ALPHA HÖHLEN ---
+        // --- 2. HÖHLEN ---
         carveCaves(chunk, heightMap);
 
         // --- 3. SMARTER SURFACE BUILDER ---
@@ -109,7 +115,8 @@ public class WorldGenerator {
                         boolean isBeach = (y >= WATER_LEVEL - 2 && y <= WATER_LEVEL + 1);
 
                         if (soilDepth == 0) {
-                            Biome b = biomeMap[x][z];
+                            //Biome b = biomeMap[x][z];
+                            Biome b = chunk.getBiome(x, z);
                             if (b == Biome.OCEAN && y < WATER_LEVEL) {
                                 topMaterial = gravel; subMaterial = gravel;
                             } else if (isBeach) {
@@ -140,7 +147,8 @@ public class WorldGenerator {
 
         // Bestimme, wie viele Bäume in diesem Chunk wachsen sollen
         int numTrees = 0;
-        Biome centerBiome = biomeMap[Chunk.SIZE / 2][Chunk.SIZE / 2];
+        //Biome centerBiome = biomeMap[Chunk.SIZE / 2][Chunk.SIZE / 2];
+        Biome centerBiome = chunk.getBiome(Chunk.SIZE / 2, Chunk.SIZE / 2);
 
         // Hills haben mehr Bäume, Plains wenige, Ocean gar keine
         if (centerBiome == Biome.HILLS) numTrees = treeRandom.nextInt(5);

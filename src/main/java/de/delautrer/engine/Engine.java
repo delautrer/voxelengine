@@ -82,7 +82,51 @@ public class Engine {
         debugOverlay.addLine("Chunk Pos", () -> String.format("%d / %d",
                 (int)Math.floor(player.position.x / Chunk.SIZE),
                 (int)Math.floor(player.position.z / Chunk.SIZE)));
-        debugOverlay.addLine("Daytime", () -> String.format("%.2f", environment.getTimeOfDay()));
+
+        debugOverlay.addLine("Biome", () -> {
+            int px = (int) Math.floor(player.position.x);
+            int pz = (int) Math.floor(player.position.z);
+            // Y-Koordinate nutzen, damit wir prüfen können, ob der Chunk dort existiert
+            Chunk c = world.getChunkManager().getChunkAtBlock(px, (int) Math.max(0, player.position.y), pz);
+            if (c != null) {
+                Biome b = c.getBiome(Math.floorMod(px, Chunk.SIZE), Math.floorMod(pz, Chunk.SIZE));
+                return b != null ? b.name() : "None";
+            }
+            return "Unloaded";
+        });
+
+        debugOverlay.addLine("Target Block", () -> {
+            org.joml.Vector3i target = interaction.getSelectedBlockPos();
+            if (target != null) {
+                byte blockId = world.getBlockAt(target);
+                de.delautrer.game.blocks.state.BlockState state = world.getBlockState(target.x, target.y, target.z);
+                return String.format("[%d %d %d] ID: %d, State: %d",
+                        target.x, target.y, target.z, blockId, state.getStateId());
+            }
+            return "-";
+        });
+
+        debugOverlay.addLine("Target Light", () -> {
+            org.joml.Vector3i target = interaction.getSelectedBlockPos();
+            if (target != null) {
+                Chunk c = world.getChunkManager().getChunkAtBlock(target.x, target.y, target.z);
+                if (c != null) {
+                    int lx = Math.floorMod(target.x, Chunk.SIZE);
+                    int lz = Math.floorMod(target.z, Chunk.SIZE);
+                    int sky = c.getSkyLight(lx, target.y, lz);
+                    int block = c.getBlockLight(lx, target.y, lz);
+                    return String.format("Sky: %d, Block: %d", sky, block);
+                }
+            }
+            return "-";
+        });
+
+        debugOverlay.addLine("Time", () -> {
+            float time = environment.getTimeOfDay();
+            int hours = ((int) Math.abs(time)) % 24;
+            int minutes = (int) ((Math.abs(time) - (int) Math.abs(time)) * 60);
+            return String.format("%02d:%02d", hours, minutes);
+        });
 
         interaction = new PlayerInteraction(world, camera, player, vulkanContext, eventBus);
 

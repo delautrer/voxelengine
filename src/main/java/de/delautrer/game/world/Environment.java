@@ -6,7 +6,7 @@ public class Environment {
     private float skyR, skyG, skyB;
 
     public void update(float deltaTime) {
-        timeOfDay += deltaTime * 0.0052f; // 0.0052f -> MC.
+        timeOfDay += deltaTime * 0.3f; // 0.0052f -> MC.
 
         float sunHeight = (float) Math.sin(timeOfDay);
         globalLight = Math.max(0.1f, (sunHeight + 1.0f) / 2.0f);

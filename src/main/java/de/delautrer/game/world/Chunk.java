@@ -9,6 +9,7 @@ public class Chunk {
     public static final int SIZE = 16;
     public static final int HEIGHT = 256;
 
+    private final Biome[][] biomeMap = new Biome[SIZE][SIZE];
     private final byte[][][] blocks = new byte[SIZE][HEIGHT][SIZE];
     private final byte[][][] states = new byte[SIZE][HEIGHT][SIZE];
     private final byte[][][] lightMap = new byte[SIZE][HEIGHT][SIZE];
@@ -299,6 +300,14 @@ public class Chunk {
 
         byte stateId = getState(x, y, z);
         return BlockRegistry.get(blockId).getStateForId(stateId);
+    }
+
+    public void setBiome(int x, int z, Biome biome) {
+        this.biomeMap[x][z] = biome;
+    }
+
+    public Biome getBiome(int x, int z) {
+        return this.biomeMap[x][z];
     }
 
     public static float[] getHighlightVertices() { return highlightVertices; }
