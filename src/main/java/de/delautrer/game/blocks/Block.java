@@ -51,6 +51,7 @@ public abstract class Block {
 
     public boolean shouldRenderFaceAgainst(Block neighborBlock, float myHeight, float neighborHeight) {
         if (neighborBlock.getId() == 0) return true;
+        if (this.getId() == BlockRegistry.LEAVES.getId()) return true;
         if (this.isTransparent && this.getId() == neighborBlock.getId()) return false;
         return neighborBlock.isTransparent;
     }

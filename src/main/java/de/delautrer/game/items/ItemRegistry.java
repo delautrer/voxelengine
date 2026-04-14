@@ -22,6 +22,7 @@ public class ItemRegistry {
     public static final Item BEDROCK = register("bedrock", new BlockItem("Bedrock", 7, BlockRegistry.BEDROCK));
     public static final Item GRAVEL = register("gravel", new BlockItem("Gravel", 8, BlockRegistry.GRAVEL));
     public static final Item SAND = register("sand", new BlockItem("Sand", 9, BlockRegistry.SAND));
+    public static final Item LOG = register("log", new BlockItem("Log", 10, BlockRegistry.LOG));
 
     public static void init() {
         System.out.println("ItemRegistry initialized. " + ITEMS.size() + " Items loaded.");

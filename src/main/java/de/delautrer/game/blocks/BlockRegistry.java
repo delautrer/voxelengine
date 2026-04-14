@@ -26,6 +26,7 @@ public class BlockRegistry {
     public static final Block BEDROCK = register("bedrock", new CubeBlock(true, false, 8,8,8));
     public static final Block GRAVEL = register("gravel", new CubeBlock(true, false, 9,9,9));
     public static final Block SAND = register("sand", new CubeBlock(true, false, 10,10,10));
+    public static final Block LOG = register("log", new CubeBlock(true, false, 12, 11, 12));
 
     public static void init() {
         System.out.println("BlockRegistry initialized. " + BLOCKS.size() + " Blocks loaded.");
