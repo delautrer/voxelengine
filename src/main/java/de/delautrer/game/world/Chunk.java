@@ -7,7 +7,7 @@ import de.delautrer.game.blocks.state.BlockState;
 
 public class Chunk {
     public static final int SIZE = 16;
-    public static final int HEIGHT = 64;
+    public static final int HEIGHT = 256;
 
     private final byte[][][] blocks = new byte[SIZE][HEIGHT][SIZE];
     private final byte[][][] states = new byte[SIZE][HEIGHT][SIZE];

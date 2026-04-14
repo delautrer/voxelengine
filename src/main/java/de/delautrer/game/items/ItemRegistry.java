@@ -1,7 +1,10 @@
 package de.delautrer.game.items;
 
 import de.delautrer.engine.Constants;
+import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
+import de.delautrer.game.blocks.CubeBlock;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,6 +19,9 @@ public class ItemRegistry {
     public static final Item GLASS_BLOCK  = register("glass", new BlockItem("Glass", 4, BlockRegistry.GLASS));
     public static final Item LEAVES_BLOCK = register("leaves", new BlockItem("Leaves", 5, BlockRegistry.LEAVES));
     public static final Item TORCH = register("torch", new BlockItem("Torch", 6, BlockRegistry.TORCH));
+    public static final Item BEDROCK = register("bedrock", new BlockItem("Bedrock", 7, BlockRegistry.BEDROCK));
+    public static final Item GRAVEL = register("gravel", new BlockItem("Gravel", 8, BlockRegistry.GRAVEL));
+    public static final Item SAND = register("sand", new BlockItem("Sand", 9, BlockRegistry.SAND));
 
     public static void init() {
         System.out.println("ItemRegistry initialized. " + ITEMS.size() + " Items loaded.");
