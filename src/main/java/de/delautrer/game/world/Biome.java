@@ -5,8 +5,8 @@ import de.delautrer.game.blocks.state.BlockState;
 
 public enum Biome {
     OCEAN(BlockRegistry.SAND.getDefaultState(), BlockRegistry.SAND.getDefaultState()),
-    PLAINS(BlockRegistry.GRASS.getDefaultState(), BlockRegistry.DIRT.getDefaultState()),
-    HILLS(BlockRegistry.GRASS.getDefaultState(), BlockRegistry.DIRT.getDefaultState()),
+    PLAINS(BlockRegistry.GRASS_BLOCK.getDefaultState(), BlockRegistry.DIRT.getDefaultState()),
+    HILLS(BlockRegistry.GRASS_BLOCK.getDefaultState(), BlockRegistry.DIRT.getDefaultState()),
     MOUNTAINS(BlockRegistry.STONE.getDefaultState(), BlockRegistry.STONE.getDefaultState());
 
     public final BlockState surfaceBlock;

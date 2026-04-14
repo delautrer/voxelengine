@@ -16,7 +16,7 @@ public class BlockRegistry {
     // Spezialfall: AIR ist immer ID 0
     public static final Block AIR = registerAir();
 
-    public static final Block GRASS = register("grass", new CubeBlock(true, false, 0, 1, 2));
+    public static final Block GRASS_BLOCK = register("grass_block", new CubeBlock(true, false, 0, 1, 2));
     public static final Block DIRT = register("dirt", new CubeBlock(true, false, 2, 2, 2));
     public static final Block STONE = register("stone", new CubeBlock(true, false, 3, 3, 3));
     public static final Block WATER = register("water", new WaterBlock());
@@ -27,6 +27,10 @@ public class BlockRegistry {
     public static final Block GRAVEL = register("gravel", new CubeBlock(true, false, 9,9,9));
     public static final Block SAND = register("sand", new CubeBlock(true, false, 10,10,10));
     public static final Block LOG = register("log", new CubeBlock(true, false, 12, 11, 12));
+    public static final Block GRASS = register("grass", new PlantBlock(13));
+    public static final Block SANDY_GRASS = register("sandy_grass", new PlantBlock(14));
+    public static final Block POPPY = register("poppy", new PlantBlock(15));
+    public static final Block DANDELION = register("dandelion", new PlantBlock(16));
 
     public static void init() {
         System.out.println("BlockRegistry initialized. " + BLOCKS.size() + " Blocks loaded.");

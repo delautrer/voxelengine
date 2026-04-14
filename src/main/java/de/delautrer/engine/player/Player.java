@@ -19,8 +19,8 @@ public class Player {
     private boolean isSneaking = false;
     private boolean onGround = false;
     private final float gravity = -28.0f;
-    private final float jumpForce = 9.0f;
-    private final float speed = 5.0f; // Standard 5.0f
+    private final float jumpForce = 29.0f; // Standard 9.0f
+    private final float speed = 25.0f; // Standard 5.0f
 
     public void update(InputManager input, ChunkManager chunkManager, Vector3f cameraFront, boolean isInventoryOpen, float deltaTime) {
         if (position.y <= -100.0f) respawn();

@@ -10,20 +10,27 @@ public class WorldGenerator {
     private final NoiseGenerator elevationNoise;
     private final NoiseGenerator roughnessNoise;
     private final NoiseGenerator detailNoise;
+    private final NoiseGenerator grassNoise;
     private final long seed;
 
     private final BlockState air = BlockRegistry.AIR.getDefaultState();
     private final BlockState stone = BlockRegistry.STONE.getDefaultState();
     private final BlockState bedrock = BlockRegistry.BEDROCK.getDefaultState();
-    private final BlockState grass = BlockRegistry.GRASS.getDefaultState();
+    private final BlockState grass_block = BlockRegistry.GRASS_BLOCK.getDefaultState();
     private final BlockState dirt = BlockRegistry.DIRT.getDefaultState();
     private final BlockState sand = BlockRegistry.SAND.getDefaultState();
     private final BlockState gravel = BlockRegistry.GRAVEL.getDefaultState();
     private final BlockState water = BlockRegistry.WATER.getDefaultState().with(WaterBlock.LEVEL, 8);
+    private final BlockState grass = BlockRegistry.GRASS.getDefaultState();
+    private final BlockState sandyGrass = BlockRegistry.SANDY_GRASS.getDefaultState();
+    private final BlockState poppy = BlockRegistry.POPPY.getDefaultState();
+    private final BlockState dandelion = BlockRegistry.DANDELION.getDefaultState();
 
     // NEU: Holz und Blätter für unsere Bäume
     private final BlockState log = BlockRegistry.LOG.getDefaultState();
     private final BlockState leaves = BlockRegistry.LEAVES.getDefaultState();
+
+    private Biome[][] biomeMap;
 
     private static final int WATER_LEVEL = 60;
 
@@ -32,6 +39,7 @@ public class WorldGenerator {
         this.elevationNoise = new NoiseGenerator(seed);
         this.roughnessNoise = new NoiseGenerator(seed * 2);
         this.detailNoise = new NoiseGenerator(seed * 3);
+        this.grassNoise = new NoiseGenerator(seed * 5);
     }
 
     public void generate(Chunk chunk) {
@@ -39,7 +47,7 @@ public class WorldGenerator {
         int worldZ = chunk.getWorldZ();
 
         int[][] heightMap = new int[Chunk.SIZE][Chunk.SIZE];
-        Biome[][] biomeMap = new Biome[Chunk.SIZE][Chunk.SIZE];
+        biomeMap = new Biome[Chunk.SIZE][Chunk.SIZE];
 
         // --- 1. KONTINUIERLICHES TERRAIN ---
         for (int x = 0; x < Chunk.SIZE; x++) {
@@ -148,7 +156,7 @@ public class WorldGenerator {
             // Finde den höchsten Punkt
             int ty = -1;
             for (int y = Chunk.HEIGHT - 1; y >= WATER_LEVEL; y--) {
-                if (chunk.getBlock(tx, y, tz) == grass.getBlock().getId()) {
+                if (chunk.getBlock(tx, y, tz) == grass_block.getBlock().getId()) {
                     ty = y + 1; // Baum spawnt AUF dem Gras
                     break;
                 }
@@ -157,6 +165,73 @@ public class WorldGenerator {
             // Wenn wir einen validen Grasblock gefunden haben, bauen wir den Baum!
             if (ty != -1) {
                 generateTree(chunk, treeRandom, tx, ty, tz);
+            }
+        }
+
+        // --- 5. DEKORATION: FLORA (Gras, Sandgras & Blumen) ---
+        for (int x = 0; x < Chunk.SIZE; x++) {
+            for (int z = 0; z < Chunk.SIZE; z++) {
+                float realX = (worldX * Chunk.SIZE + x);
+                float realZ = (worldZ * Chunk.SIZE + z);
+
+                // Wir suchen von oben nach unten nach dem Boden
+                for (int y = Chunk.HEIGHT - 2; y >= WATER_LEVEL; y--) {
+                    byte blockAtPos = chunk.getBlock(x, y, z);
+
+                    // Wir ignorieren Luft, Blätter und Holz, während wir nach unten scannen
+                    if (blockAtPos == air.getBlock().getId() ||
+                            blockAtPos == leaves.getBlock().getId() ||
+                            blockAtPos == log.getBlock().getId()) {
+                        continue;
+                    }
+
+                    // Wir brauchen zwingend Luft direkt über dem Boden, sonst können wir nichts pflanzen!
+                    if (chunk.getBlock(x, y + 1, z) != air.getBlock().getId()) {
+                        break;
+                    }
+
+                    // --- FALL 1: WIR SIND AUF DER WIESE ---
+                    if (blockAtPos == grass_block.getBlock().getId()) {
+                        float patchNoise = grassNoise.getNoise(realX * 0.15f, realZ * 0.15f);
+                        float spawnChance = (patchNoise > 0.0f) ? 0.85f : 0.02f;
+
+                        if (treeRandom.nextFloat() < spawnChance) {
+                            // Pflanze wird gesetzt! Welche wird es?
+                            float plantType = treeRandom.nextFloat();
+                            BlockState plantToPlace;
+
+                            if (plantType < 0.02f) {
+                                plantToPlace = poppy;      // 2% Chance für Rose
+                            } else if (plantType < 0.04f) {
+                                plantToPlace = dandelion;  // 2% Chance für Löwenzahn
+                            } else {
+                                plantToPlace = grass;      // 96% Chance für normales Gras
+                            }
+
+                            chunk.setBlock(x, y + 1, z, plantToPlace.getBlock().getId(), plantToPlace.getStateId());
+                        }
+                        break; // Boden abgehandelt, weiter zur nächsten X/Z Koordinate
+                    }
+
+                    // --- FALL 2: WIR SIND AM STRAND ---
+                    else if (blockAtPos == sand.getBlock().getId()) {
+                        // Ein höherer Schwellenwert (0.2f) macht die Sand-Büschel viel kleiner als Gras-Büschel
+                        float sandPatchNoise = grassNoise.getNoise(realX * 0.25f, realZ * 0.25f);
+
+                        // Nur 25% Spawn-Chance in den kleinen Büscheln und winzige 0.5% außerhalb
+                        float spawnChance = (sandPatchNoise > 0.2f) ? 0.25f : 0.005f;
+
+                        if (treeRandom.nextFloat() < spawnChance) {
+                            chunk.setBlock(x, y + 1, z, sandyGrass.getBlock().getId(), sandyGrass.getStateId());
+                        }
+                        break; // Boden abgehandelt
+                    }
+
+                    // --- FALL 3: STEIN, KIES ODER DRECK (Hier wächst nichts) ---
+                    else {
+                        break;
+                    }
+                }
             }
         }
     }

@@ -12,7 +12,7 @@ public class ItemRegistry {
 
     private static final Map<String, Item> ITEMS = new HashMap<>();
 
-    public static final Item GRASS_BLOCK  = register("grass", new BlockItem("Grass", 0, BlockRegistry.GRASS));
+    public static final Item GRASS_BLOCK  = register("grass", new BlockItem("Grass", 0, BlockRegistry.GRASS_BLOCK));
     public static final Item DIRT_BLOCK   = register("dirt", new BlockItem("Dirt", 1, BlockRegistry.DIRT));
     public static final Item STONE_BLOCK  = register("stone", new BlockItem("Stone", 2, BlockRegistry.STONE));
     public static final Item WATER_BUCKET = register("water_bucket", new BlockItem("Water bucket", 3, BlockRegistry.WATER));
