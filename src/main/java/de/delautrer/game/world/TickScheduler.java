@@ -52,6 +52,7 @@ public class TickScheduler {
 
             byte currentBlockId = world.getBlockAt(tick.pos.x, tick.pos.y, tick.pos.z);
             if (currentBlockId == tick.block.getId()) {
+                System.out.println("TickScheduler führt Tick aus bei: " + tick.pos.x + ", " + tick.pos.y + ", " + tick.pos.z);
                 tick.block.scheduledTick(world, tick.pos.x, tick.pos.y, tick.pos.z);
             }
         }

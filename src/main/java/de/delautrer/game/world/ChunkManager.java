@@ -35,8 +35,10 @@ public class ChunkManager {
     }
 
     public void update(float playerX, float playerZ) {
-        int pX = (int) Math.floor(playerX / Chunk.SIZE);
-        int pZ = (int) Math.floor(playerZ / Chunk.SIZE);
+        //int pX = (int) Math.floor(playerX / Chunk.SIZE);
+        //int pZ = (int) Math.floor(playerZ / Chunk.SIZE);
+        int pX = Math.floorDiv((int) Math.floor(playerX), Chunk.SIZE);
+        int pZ = Math.floorDiv((int) Math.floor(playerZ), Chunk.SIZE);
 
         // 1. CHUNKS INITIALISIEREN (Daten anlegen oder aus Speicher laden)
         int dataDistance = renderDistance + 1;
@@ -136,8 +138,10 @@ public class ChunkManager {
     public LightEngine getLightEngine() { return lightEngine; }
 
     public Chunk getChunkAtBlock(int worldX, int worldY, int worldZ) {
-        int cx = (int) Math.floor((float)worldX / Chunk.SIZE);
-        int cz = (int) Math.floor((float)worldZ / Chunk.SIZE);
+        //int cx = (int) Math.floor((float)worldX / Chunk.SIZE);
+        //int cz = (int) Math.floor((float)worldZ / Chunk.SIZE);
+        int cx = Math.floorDiv(worldX, Chunk.SIZE);
+        int cz = Math.floorDiv(worldZ, Chunk.SIZE);
         return chunks.get(new Vector2i(cx, cz));
     }
 

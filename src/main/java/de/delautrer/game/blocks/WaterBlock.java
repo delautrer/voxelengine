@@ -27,7 +27,7 @@ public class WaterBlock extends Block {
 
     @Override
     public void onNeighborChanged(World world, int x, int y, int z, Vector3i neighborPos, byte newNeighborId) {
-        world.getTickScheduler().scheduleTick(new Vector3i(x, y, z), this, 5);
+        world.getTickScheduler().scheduleTick(new Vector3i(x, y, z), this, 2);
     }
 
     @Override
@@ -37,6 +37,8 @@ public class WaterBlock extends Block {
 
         int currentLevel = currentStateObj.getValue(LEVEL);
         int expectedLevel = calculateExpectedState(world, x, y, z, currentLevel);
+
+        System.out.println("Wasser bei " + x + "," + y + "," + z + " | Current: " + currentLevel + " | Expected: " + expectedLevel);
 
         if (expectedLevel == 0) {
             world.setBlockState(x, y, z, BlockRegistry.AIR.getDefaultState());
@@ -57,18 +59,27 @@ public class WaterBlock extends Block {
 
         // 1. Fallen hat höchste Priorität
         if (blockBelow.getBlock() == BlockRegistry.AIR || (blockBelow.getBlock() == this && blockBelow.getValue(LEVEL) < 8)) {
+            System.out.println(">>> Wasser ("+x+","+y+","+z+") FÄLLT nach unten!");
             world.setBlockState(x, y - 1, z, getDefaultState().with(LEVEL, 7));
             return;
         }
 
         // 2. Loch-Such-Logik
+        System.out.println(">>> Wasser ("+x+","+y+","+z+") sucht horizontal...");
         if (currentLevel > 1) {
             for (int i = 0; i < 4; i++) {
                 int nx = x + DIRS[i][0];
                 int nz = z + DIRS[i][1];
 
-                if (world.getBlockState(nx, y, nz).getBlock() == BlockRegistry.AIR) {
-                    if (canFlowInto(world, x, y, z, i)) {
+                de.delautrer.game.blocks.Block nBlock = world.getBlockState(nx, y, nz).getBlock();
+                System.out.println("  -> Prüfe Richtung " + i + " [" + nx + "," + nz + "]. Block dort: " + nBlock.getClass().getSimpleName());
+
+                if (nBlock == BlockRegistry.AIR) {
+                    boolean canFlow = canFlowInto(world, x, y, z, i);
+                    System.out.println("     Block ist AIR! canFlowInto sagt: " + canFlow);
+
+                    if (canFlow) {
+                        System.out.println("     *** WASSER FLIESST nach: " + nx + ", " + y + ", " + nz + " ***");
                         world.setBlockState(nx, y, nz, getDefaultState().with(LEVEL, currentLevel - 1));
                     }
                 }
@@ -130,7 +141,7 @@ public class WaterBlock extends Block {
 
             if (isSolid(world, nx, wy, nz)) {
                 costs[i] = 999;
-            } else if (!isSolid(world, nx, wy - 1, nz)) {
+            } else if (canFallInto(world, nx, wy - 1, nz)) {
                 costs[i] = 0;
             } else {
                 costs[i] = calculateDropCost(world, nx, wy, nz, 1, opposite(i));
@@ -150,7 +161,7 @@ public class WaterBlock extends Block {
 
     private int calculateDropCost(World world, int x, int y, int z, int distance, int incomingDir) {
         if (distance > 4 || isSolid(world, x, y, z)) return 999;
-        if (!isSolid(world, x, y - 1, z)) return distance;
+        if (canFallInto(world, x, y - 1, z)) return distance;
 
         int minCost = 999;
         for (int i = 0; i < 4; i++) {
@@ -170,6 +181,17 @@ public class WaterBlock extends Block {
         return b != BlockRegistry.AIR && b != this;
     }
 
+    private boolean canFallInto(World world, int x, int y, int z) {
+        if (y < 0 || y >= Chunk.HEIGHT) return false;
+        de.delautrer.game.blocks.state.BlockState state = world.getBlockState(x, y, z);
+        Block b = state.getBlock();
+
+        if (b == BlockRegistry.AIR) return true;
+        if (b == this && state.getValue(LEVEL) < 8) return true;
+
+        return false;
+    }
+
     private int opposite(int dir) {
         return switch (dir) {
             case 0 -> 1;
@@ -180,15 +202,25 @@ public class WaterBlock extends Block {
     }
 
     // --- RENDER LOGIK ---
-
     private float getWaterHeight(int x, int y, int z, Chunk chunk, ChunkManager cm) {
         if (y < 0 || y >= Chunk.HEIGHT) return 1.0f;
 
-        BlockState state = chunk.getBlockState(x, y, z);
+        int globalX = chunk.getWorldX() * Chunk.SIZE + x;
+        int globalZ = chunk.getWorldZ() * Chunk.SIZE + z;
+
+        Chunk targetChunk = cm.getChunkAtBlock(globalX, y, globalZ);
+        if (targetChunk == null) return 1.0f;
+
+        int localX = Math.floorMod(globalX, Chunk.SIZE);
+        int localZ = Math.floorMod(globalZ, Chunk.SIZE);
+
+        BlockState state = targetChunk.getBlockState(localX, y, localZ);
         if (state.getBlock() != this) return 1.0f;
 
-        BlockState topState = chunk.getBlockState(x, y + 1, z);
-        if (topState.getBlock() == this) return 1.0f;
+        if (y + 1 < Chunk.HEIGHT) {
+            BlockState topState = targetChunk.getBlockState(localX, y + 1, localZ);
+            if (topState.getBlock() == this) return 1.0f;
+        }
 
         int level = state.getValue(LEVEL);
         return Math.max(0.1f, level / 9.0f);
