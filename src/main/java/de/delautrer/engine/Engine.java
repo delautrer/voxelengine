@@ -123,8 +123,10 @@ public class Engine {
 
         debugOverlay.addLine("Time", () -> {
             float time = environment.getTimeOfDay();
-            int hours = ((int) Math.abs(time)) % 24;
-            int minutes = (int) ((Math.abs(time) - (int) Math.abs(time)) * 60);
+            float displayTime = (time + 12.0f) % 24.0f;
+            if (displayTime < 0) displayTime += 24.0f;
+            int hours = (int) displayTime;
+            int minutes = (int) ((displayTime - hours) * 60);
             return String.format("%02d:%02d", hours, minutes);
         });
 

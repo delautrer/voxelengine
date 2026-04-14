@@ -13,6 +13,7 @@ import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.Environment;
 import de.delautrer.game.world.World;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.joml.Vector3i;
 
 public class MasterRenderer {
@@ -101,11 +102,12 @@ public class MasterRenderer {
         } else {
             packet.highlightMesh = highlightMesh;
         }
-
-        packet.globalLight = environment.getGlobalLight();
-        packet.skyR = environment.getSkyR();
-        packet.skyG = environment.getSkyG();
-        packet.skyB = environment.getSkyB();
+        Vector3f skyColor = environment.getCurrentSkyColor();
+        packet.sunDirection = environment.getSunDirection();
+        packet.globalLight = environment.getGlobalLightIntensity();
+        packet.skyR = skyColor.x;
+        packet.skyG = skyColor.y;
+        packet.skyB = skyColor.z;
 
         return renderer.render(packet);
     }

@@ -12,8 +12,12 @@ public class RenderPacket {
     public VulkanMesh uiMesh;
     public VulkanMesh textMesh;
 
-    public VulkanMesh cloudMesh; // NEU
-    public Vector3f cloudOffset; // NEU
+    public Matrix4f cameraProj;
+    public Matrix4f cameraView;
+
+    public VulkanMesh cloudMesh;
+    public Vector3f cloudOffset;
+    public Vector3f sunDirection;
 
     public VulkanTexture fontTexture;
     public VulkanTextureArray worldTexture;

@@ -24,6 +24,7 @@ public class VulkanRenderer {
 
     // Das neue Herzstück: Unsere Sub-Renderer Liste
     private final List<IRenderSystem> renderSystems = new ArrayList<>();
+    private SkyRenderSystem skyRenderSystem;
     private TerrainRenderSystem terrainSystem;
     private CloudRenderSystem cloudSystem;
     private HighlightRenderSystem highlightSystem;
@@ -42,12 +43,13 @@ public class VulkanRenderer {
         this.sync = new VulkanSync(context, swapchain);
 
         // Render Systeme registrieren! Die Reihenfolge (Terrain -> Highlight -> UI) bestimmt den Depth-Test/Overlap
+        skyRenderSystem = new SkyRenderSystem(context, swapchain, renderPass);
         terrainSystem = new TerrainRenderSystem(context, swapchain, renderPass);
         cloudSystem = new CloudRenderSystem(context, swapchain, renderPass);
         highlightSystem = new HighlightRenderSystem(context, swapchain, renderPass);
         uiSystem = new UIRenderSystem(context, swapchain, renderPass);
 
-
+        renderSystems.add(skyRenderSystem);
         renderSystems.add(terrainSystem);
         renderSystems.add(cloudSystem);
         renderSystems.add(highlightSystem);
@@ -72,7 +74,28 @@ public class VulkanRenderer {
             int imageIndex = pImageIndex.get(0);
             VK10.vkResetFences(context.getDevice(), inFlightFence);
 
+            /*VkCommandBuffer cmd = commandBuffers.beginRecording(imageIndex, swapchain, renderPass, framebuffers, packet.skyR, packet.skyG, packet.skyB);
+            for (IRenderSystem system : renderSystems) {
+                system.render(cmd, packet);
+            }
+            commandBuffers.endRecording(cmd);*/
+
             VkCommandBuffer cmd = commandBuffers.beginRecording(imageIndex, swapchain, renderPass, framebuffers, packet.skyR, packet.skyG, packet.skyB);
+
+            org.lwjgl.vulkan.VkViewport.Buffer viewport = org.lwjgl.vulkan.VkViewport.calloc(1, stack)
+                    .x(0.0f)
+                    .y(0.0f)
+                    .width((float) swapchain.getExtent().width())
+                    .height((float) swapchain.getExtent().height())
+                    .minDepth(0.0f)
+                    .maxDepth(1.0f);
+            VK10.vkCmdSetViewport(cmd, 0, viewport);
+
+            org.lwjgl.vulkan.VkRect2D.Buffer scissor = org.lwjgl.vulkan.VkRect2D.calloc(1, stack);
+            scissor.offset().set(0, 0);
+            scissor.extent(swapchain.getExtent());
+            VK10.vkCmdSetScissor(cmd, 0, scissor);
+
             for (IRenderSystem system : renderSystems) {
                 system.render(cmd, packet);
             }
@@ -126,11 +149,14 @@ public class VulkanRenderer {
         this.commandBuffers = new VulkanCommandBuffers(context, framebuffers);
         this.sync = new VulkanSync(context, swapchain);
         renderSystems.clear();
+
+        skyRenderSystem = new SkyRenderSystem(context, swapchain, renderPass);
         terrainSystem = new TerrainRenderSystem(context, swapchain, renderPass);
         cloudSystem = new CloudRenderSystem(context, swapchain, renderPass);
         highlightSystem = new HighlightRenderSystem(context, swapchain, renderPass);
         uiSystem = new UIRenderSystem(context, swapchain, renderPass);
 
+        renderSystems.add(skyRenderSystem);
         renderSystems.add(terrainSystem);
         renderSystems.add(cloudSystem);
         renderSystems.add(highlightSystem);

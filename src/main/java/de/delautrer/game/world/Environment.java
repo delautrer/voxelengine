@@ -1,24 +1,65 @@
 package de.delautrer.game.world;
 
+import org.joml.Vector3f;
+
 public class Environment {
-    private float timeOfDay = 0.0f;
-    private float globalLight;
-    private float skyR, skyG, skyB;
+    private float timeOfDay = 0.0f; // 0.0 = Mittag
+    private float timeSpeed = 0.1f; // Langsamere Zeit für besseres Feeling
+
+    private final Vector3f colorDay = new Vector3f(0.4f, 0.7f, 1.0f);
+    private final Vector3f colorSunrise = new Vector3f(1.0f, 0.4f, 0.1f); // Satteres Orange
+    private final Vector3f colorNight = new Vector3f(0.002f, 0.002f, 0.008f); // Fast Schwarz
+
+    private final Vector3f currentSkyColor = new Vector3f();
+    private final Vector3f sunDirection = new Vector3f();
+    private float globalLightIntensity = 1.0f;
 
     public void update(float deltaTime) {
-        timeOfDay += deltaTime * 0.3f; // 0.0052f -> MC.
+        timeOfDay = (timeOfDay + deltaTime * timeSpeed) % 24.0f;
 
-        float sunHeight = (float) Math.sin(timeOfDay);
-        globalLight = Math.max(0.1f, (sunHeight + 1.0f) / 2.0f);
+        // Sonnenposition (fester Pfad)
+        float nTime = (timeOfDay + 12.0f) % 24.0f;
+        float angle = ((nTime - 6.0f) / 24.0f) * (float) (Math.PI * 2.0);
 
-        skyR = 0.02f + 0.51f * globalLight;
-        skyG = 0.02f + 0.79f * globalLight;
-        skyB = 0.08f + 0.84f * globalLight;
+        sunDirection.x = (float) Math.cos(angle);
+        sunDirection.y = (float) Math.sin(angle);
+        sunDirection.z = 0.0f; // Z auf 0 fixiert, damit sie immer exakt Ost->West wandert
+        sunDirection.normalize();
+
+        updateSkyAndLight();
     }
 
+    private void updateSkyAndLight() {
+        float h = sunDirection.y;
+
+        // Die Schwellenwerte sind jetzt viel enger beieinander (0.1 statt 0.2)
+        if (h > 0.1f) {
+            // Tag
+            currentSkyColor.set(colorDay);
+            globalLightIntensity = 1.0f;
+        }
+        else if (h > 0.0f) {
+            // Sonnenauf/untergang (Sonne sichtbar)
+            float blend = h / 0.1f;
+            // pow(blend, 0.5) lässt das Blau schneller erscheinen
+            colorSunrise.lerp(colorDay, (float)Math.pow(blend, 0.5), currentSkyColor);
+            globalLightIntensity = 0.01f + (float)Math.pow(blend, 2.0) * 0.99f;
+        }
+        else if (h > -0.1f) {
+            // Dämmerung (Sonne weg, Himmel glüht nach)
+            float blend = (h + 0.1f) / 0.1f;
+            colorNight.lerp(colorSunrise, blend, currentSkyColor);
+            globalLightIntensity = 0.01f; // In der Dämmerung schon fast Nacht-Dunkelheit
+        }
+        else {
+            // Nacht
+            currentSkyColor.set(colorNight);
+            globalLightIntensity = 0.005f; // Extrem dunkel
+        }
+    }
+
+    public Vector3f getSunDirection() { return sunDirection; }
+    public Vector3f getCurrentSkyColor() { return currentSkyColor; }
+    public float getGlobalLightIntensity() { return globalLightIntensity; }
     public float getTimeOfDay() { return timeOfDay; }
-    public float getGlobalLight() { return globalLight; }
-    public float getSkyR() { return skyR; }
-    public float getSkyG() { return skyG; }
-    public float getSkyB() { return skyB; }
 }
