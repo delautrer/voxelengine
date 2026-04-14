@@ -1,6 +1,7 @@
 package de.delautrer.engine;
 
 import de.delautrer.engine.events.EventBus;
+import de.delautrer.engine.graphics.MeshData;
 import de.delautrer.engine.graphics.VulkanContext;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.engine.player.Camera;
@@ -11,10 +12,7 @@ import de.delautrer.game.events.HotbarSlotChangeEvent;
 import de.delautrer.game.events.InventoryToggleEvent;
 import de.delautrer.game.interaction.PlayerInteraction;
 import de.delautrer.game.ui.DebugOverlay;
-import de.delautrer.game.world.Chunk;
-import de.delautrer.game.world.Environment;
-import de.delautrer.game.world.World;
-import de.delautrer.game.world.WorldEventHandler;
+import de.delautrer.game.world.*;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.vulkan.VK10;
 
@@ -53,18 +51,20 @@ public class Engine {
         window.disableCursor();
         vulkanContext = new VulkanContext(window);
 
+        masterRenderer = new MasterRenderer(vulkanContext, window);
+        debugOverlay = new DebugOverlay();
+
         eventBus = new EventBus();
         inputManager = new InputManager(window.getHandle());
         environment = new Environment();
 
         player = new Player();
-        world = new World(vulkanContext, player, eventBus);
+        world = new World(vulkanContext, player, eventBus, 1337L);
         worldEventHandler = new WorldEventHandler(world, vulkanContext, eventBus);
+        MeshData cloudData = world.getCloudSystem().generateCloudMesh(world.getSeed());
+        masterRenderer.initClouds(cloudData);
         camera = new Camera();
 
-        // Der MasterRenderer übernimmt die gesamte Vulkan-Last
-        masterRenderer = new MasterRenderer(vulkanContext, window);
-        debugOverlay = new DebugOverlay();
 
         // Debug-Overlay konfigurieren
         debugOverlay.addLine("Version", () -> "0.1-Alpha");

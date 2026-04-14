@@ -1,0 +1,48 @@
+package de.delautrer.engine.graphics.systems;
+
+import de.delautrer.engine.graphics.*;
+import org.joml.Matrix4f;
+import org.lwjgl.system.MemoryStack;
+import org.lwjgl.vulkan.VK10;
+import org.lwjgl.vulkan.VkCommandBuffer;
+
+import java.nio.FloatBuffer;
+
+public class CloudRenderSystem implements IRenderSystem {
+    private final VulkanGraphicsPipeline pipeline;
+
+    public CloudRenderSystem(VulkanContext context, VulkanSwapchain swapchain, VulkanRenderPass renderPass) {
+        this.pipeline = new VulkanGraphicsPipeline(context, swapchain, renderPass);
+    }
+
+    @Override
+    public void render(VkCommandBuffer cmd, RenderPacket packet) {
+        if (packet.cloudMesh == null || packet.cloudMesh.getIndexCount() == 0) return;
+
+        VK10.vkCmdBindPipeline(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getTransparentHandle());
+
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            // Wir binden einfach die WorldTexture, auch wenn die Wolken vielleicht nur Vertex-Colors nutzen
+            VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayout(), 0, stack.longs(packet.worldTexture.getDescriptorSet()), null);
+
+            // Den Endlos-Offset auf die MVP-Matrix anwenden!
+            Matrix4f modelMatrix = new Matrix4f().translate(packet.cloudOffset);
+            Matrix4f finalMvp = new Matrix4f(packet.mvp).mul(modelMatrix);
+
+            FloatBuffer mvpBuffer = stack.mallocFloat(17);
+            finalMvp.get(mvpBuffer);
+            mvpBuffer.put(16, packet.globalLight);
+            VK10.vkCmdPushConstants(cmd, pipeline.getPipelineLayout(), VK10.VK_SHADER_STAGE_VERTEX_BIT, 0, mvpBuffer);
+
+            // Wolken-Mesh zeichnen
+            VK10.vkCmdBindVertexBuffers(cmd, 0, stack.longs(packet.cloudMesh.getVertexBuffer()), stack.longs(0));
+            VK10.vkCmdBindIndexBuffer(cmd, packet.cloudMesh.getIndexBuffer(), 0, VK10.VK_INDEX_TYPE_UINT32);
+            VK10.vkCmdDrawIndexed(cmd, packet.cloudMesh.getIndexCount(), 1, 0, 0, 0);
+        }
+    }
+
+    @Override
+    public void cleanup() {
+        pipeline.cleanup();
+    }
+}

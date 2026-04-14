@@ -12,7 +12,7 @@ import java.util.concurrent.*;
 
 public class ChunkManager {
 
-    private final WorldGenerator worldGenerator = new WorldGenerator(1337L);
+    private final WorldGenerator worldGenerator;
     private final Map<Vector2i, Chunk> chunks = new ConcurrentHashMap<>();
     private final Map<Vector2i, VulkanMesh> meshes = new ConcurrentHashMap<>();
 
@@ -25,7 +25,8 @@ public class ChunkManager {
     private final VulkanContext context;
     private final int renderDistance = 6;
 
-    public ChunkManager(VulkanContext context) {
+    public ChunkManager(VulkanContext context, long seed) {
+        this.worldGenerator = new WorldGenerator(seed);
         this.context = context;
         int threads = Math.max(1, Runtime.getRuntime().availableProcessors() - 2);
         this.chunkExecutor = Executors.newFixedThreadPool(threads);

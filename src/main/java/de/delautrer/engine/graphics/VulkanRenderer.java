@@ -25,6 +25,8 @@ public class VulkanRenderer {
     // Das neue Herzstück: Unsere Sub-Renderer Liste
     private final List<IRenderSystem> renderSystems = new ArrayList<>();
     private TerrainRenderSystem terrainSystem;
+    private CloudRenderSystem cloudSystem;
+    private HighlightRenderSystem highlightSystem;
     private UIRenderSystem uiSystem;
 
     private int currentFrame = 0;
@@ -41,10 +43,14 @@ public class VulkanRenderer {
 
         // Render Systeme registrieren! Die Reihenfolge (Terrain -> Highlight -> UI) bestimmt den Depth-Test/Overlap
         terrainSystem = new TerrainRenderSystem(context, swapchain, renderPass);
+        cloudSystem = new CloudRenderSystem(context, swapchain, renderPass);
+        highlightSystem = new HighlightRenderSystem(context, swapchain, renderPass);
         uiSystem = new UIRenderSystem(context, swapchain, renderPass);
 
+
         renderSystems.add(terrainSystem);
-        renderSystems.add(new HighlightRenderSystem(context, swapchain, renderPass));
+        renderSystems.add(cloudSystem);
+        renderSystems.add(highlightSystem);
         renderSystems.add(uiSystem);
     }
 
@@ -119,13 +125,15 @@ public class VulkanRenderer {
         this.framebuffers = new VulkanFramebuffers(context, swapchain, renderPass, depthBuffer);
         this.commandBuffers = new VulkanCommandBuffers(context, framebuffers);
         this.sync = new VulkanSync(context, swapchain);
-
         renderSystems.clear();
         terrainSystem = new TerrainRenderSystem(context, swapchain, renderPass);
+        cloudSystem = new CloudRenderSystem(context, swapchain, renderPass);
+        highlightSystem = new HighlightRenderSystem(context, swapchain, renderPass);
         uiSystem = new UIRenderSystem(context, swapchain, renderPass);
 
         renderSystems.add(terrainSystem);
-        renderSystems.add(new HighlightRenderSystem(context, swapchain, renderPass));
+        renderSystems.add(cloudSystem);
+        renderSystems.add(highlightSystem);
         renderSystems.add(uiSystem);
     }
 

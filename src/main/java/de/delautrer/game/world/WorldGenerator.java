@@ -26,7 +26,6 @@ public class WorldGenerator {
     private final BlockState poppy = BlockRegistry.POPPY.getDefaultState();
     private final BlockState dandelion = BlockRegistry.DANDELION.getDefaultState();
 
-    // NEU: Holz und Blätter für unsere Bäume
     private final BlockState log = BlockRegistry.LOG.getDefaultState();
     private final BlockState leaves = BlockRegistry.LEAVES.getDefaultState();
 

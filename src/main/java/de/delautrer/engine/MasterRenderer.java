@@ -26,6 +26,7 @@ public class MasterRenderer {
     private VulkanTexture guiTexture;
     private VulkanTexture fontTexture;
     private VulkanMesh highlightMesh;
+    private VulkanMesh cloudMesh;
     private VulkanFont font;
 
     private int lastVisibleChunkCount = 0;
@@ -49,6 +50,10 @@ public class MasterRenderer {
         }
 
         highlightMesh = new VulkanMesh(vulkanContext, Chunk.getHighlightVertices(), Chunk.getHighlightIndices());
+    }
+
+    public void initClouds(MeshData data) {
+        this.cloudMesh = new VulkanMesh(vulkanContext, data.vertices, data.indices);
     }
 
     public void rebuildUI(PlayerInteraction interaction, InputManager input, DebugOverlay debugOverlay) {
@@ -75,6 +80,12 @@ public class MasterRenderer {
         java.util.List<VulkanMesh> visible = world.getVisibleMeshes(mvp);
         packet.visibleMeshes = visible;
         lastVisibleChunkCount = visible.size();
+
+        packet.cloudMesh = this.cloudMesh;
+        packet.cloudOffset = world.getCloudSystem().getRenderOffset(
+                world.getPlayer().position.x,
+                world.getPlayer().position.z
+        );
 
         packet.uiMesh = uiRenderer.getGuiMesh();
         packet.guiTexture = guiTexture;
@@ -107,6 +118,7 @@ public class MasterRenderer {
     public int getLastVisibleChunkCount() { return lastVisibleChunkCount; }
 
     public void cleanup() {
+        if (cloudMesh != null) cloudMesh.cleanup();
         if (worldTexture != null) worldTexture.cleanup();
         if (guiTexture != null) guiTexture.cleanup();
         if (fontTexture != null) fontTexture.cleanup();

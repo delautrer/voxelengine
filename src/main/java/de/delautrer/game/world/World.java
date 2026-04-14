@@ -2,27 +2,39 @@ package de.delautrer.game.world;
 
 import de.delautrer.engine.events.EventBus;
 import de.delautrer.engine.graphics.VulkanContext;
+import de.delautrer.engine.graphics.VulkanMesh;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.engine.player.Player;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.blocks.state.BlockState;
-import org.joml.Vector3f;
-import org.joml.Vector3i;
+import de.delautrer.game.events.BlockChangeEvent;
+import de.delautrer.game.events.BlockNeighborUpdateEvent;
+import org.joml.*;
+
+import java.lang.Math;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class World {
     private final EventBus eventBus;
     private final ChunkManager chunkManager;
     private final TickScheduler tickScheduler;
     private final Player player;
+    private final CloudSystem cloudSystem;
+    private final long seed;
 
     private float waterTimer = 0.0f;
 
-    public World(VulkanContext context, Player player, EventBus eventBus) {
+    public World(VulkanContext context, Player player, EventBus eventBus, long seed) {
         this.eventBus = eventBus;
-        this.chunkManager = new ChunkManager(context);
+        this.chunkManager = new ChunkManager(context, seed);
         this.tickScheduler = new TickScheduler(this);
         this.player = player;
+        this.seed = seed;
+
+        this.cloudSystem = new CloudSystem();
 
         chunkManager.update(player.position.x, player.position.z);
 
@@ -54,6 +66,7 @@ public class World {
         player.update(input, chunkManager, cameraFront, isInventoryOpen, deltaTime);
         chunkManager.update(player.position.x, player.position.z);
         tickScheduler.update(deltaTime);
+        cloudSystem.update(deltaTime);
 
         if (player.position.y < -50) {
             player.position.set(findSafeSpawn((int)player.position.x, (int)player.position.z));
@@ -80,16 +93,16 @@ public class World {
 
         // 2. Zentrales Change-Event feuern (Licht & Renderer lauschen hier!)
         Vector3i pos = new Vector3i(x, y, z);
-        eventBus.publish(new de.delautrer.game.events.BlockChangeEvent(pos, oldBlockId, newBlockId, targetChunk));
+        eventBus.publish(new BlockChangeEvent(pos, oldBlockId, newBlockId, targetChunk));
 
         // 3. Neighbor-Updates feuern (Oben, Unten, Nord, Süd, Ost, West)
         int[][] dirs = {{0,1,0}, {0,-1,0}, {1,0,0}, {-1,0,0}, {0,0,1}, {0,0,-1}};
         for (int[] dir : dirs) {
             org.joml.Vector3i nPos = new org.joml.Vector3i(x + dir[0], y + dir[1], z + dir[2]);
-            eventBus.publish(new de.delautrer.game.events.BlockNeighborUpdateEvent(nPos, pos, newBlockId));
+            eventBus.publish(new BlockNeighborUpdateEvent(nPos, pos, newBlockId));
         }
 
-        de.delautrer.game.blocks.Block placedBlock = de.delautrer.game.blocks.BlockRegistry.get(newBlockId);
+        Block placedBlock = BlockRegistry.get(newBlockId);
         if (placedBlock != null) {
             placedBlock.onNeighborChanged(this, x, y, z, new org.joml.Vector3i(x, y - 1, z), oldBlockId);
         }
@@ -102,13 +115,13 @@ public class World {
     }
 
     public void setBlockWithState(int x, int y, int z, byte newBlockId, byte newState) {
-        if (y < 0 || y >= de.delautrer.game.world.Chunk.HEIGHT) return;
+        if (y < 0 || y >= Chunk.HEIGHT) return;
 
-        de.delautrer.game.world.Chunk targetChunk = chunkManager.getChunkAtBlock(x, y, z);
+        Chunk targetChunk = chunkManager.getChunkAtBlock(x, y, z);
         if (targetChunk == null) return;
 
-        int localX = Math.floorMod(x, de.delautrer.game.world.Chunk.SIZE);
-        int localZ = Math.floorMod(z, de.delautrer.game.world.Chunk.SIZE);
+        int localX = Math.floorMod(x, Chunk.SIZE);
+        int localZ = Math.floorMod(z, Chunk.SIZE);
 
         byte oldBlockId = targetChunk.getBlock(localX, y, localZ);
         byte oldState = targetChunk.getState(localX, y, localZ);
@@ -117,18 +130,18 @@ public class World {
 
         targetChunk.setBlock(localX, y, localZ, newBlockId, newState);
 
-        org.joml.Vector3i pos = new org.joml.Vector3i(x, y, z);
-        eventBus.publish(new de.delautrer.game.events.BlockChangeEvent(pos, oldBlockId, newBlockId, targetChunk));
+        Vector3i pos = new Vector3i(x, y, z);
+        eventBus.publish(new BlockChangeEvent(pos, oldBlockId, newBlockId, targetChunk));
 
         int[][] dirs = {{0,1,0}, {0,-1,0}, {1,0,0}, {-1,0,0}, {0,0,1}, {0,0,-1}};
         for (int[] dir : dirs) {
-            org.joml.Vector3i nPos = new org.joml.Vector3i(x + dir[0], y + dir[1], z + dir[2]);
-            eventBus.publish(new de.delautrer.game.events.BlockNeighborUpdateEvent(nPos, pos, newBlockId));
+            Vector3i nPos = new Vector3i(x + dir[0], y + dir[1], z + dir[2]);
+            eventBus.publish(new BlockNeighborUpdateEvent(nPos, pos, newBlockId));
         }
 
-        de.delautrer.game.blocks.Block placedBlock = de.delautrer.game.blocks.BlockRegistry.get(newBlockId);
+        Block placedBlock = BlockRegistry.get(newBlockId);
         if (placedBlock != null) {
-            placedBlock.onNeighborChanged(this, x, y, z, new org.joml.Vector3i(x, y - 1, z), oldBlockId);
+            placedBlock.onNeighborChanged(this, x, y, z, new Vector3i(x, y - 1, z), oldBlockId);
         }
     }
 
@@ -206,11 +219,11 @@ public class World {
         return null;
     }
 
-    public java.util.List<de.delautrer.engine.graphics.VulkanMesh> getVisibleMeshes(org.joml.Matrix4f mvp) {
-        org.joml.FrustumIntersection frustum = new org.joml.FrustumIntersection(mvp);
-        java.util.List<de.delautrer.engine.graphics.VulkanMesh> visibleMeshes = new java.util.ArrayList<>();
+    public List<VulkanMesh> getVisibleMeshes(Matrix4f mvp) {
+        FrustumIntersection frustum = new FrustumIntersection(mvp);
+        List<VulkanMesh> visibleMeshes = new ArrayList<>();
 
-        for (java.util.Map.Entry<org.joml.Vector2i, de.delautrer.engine.graphics.VulkanMesh> entry : chunkManager.getMeshes().entrySet()) {
+        for (Map.Entry<Vector2i, VulkanMesh> entry : chunkManager.getMeshes().entrySet()) {
             int cx = entry.getKey().x;
             int cz = entry.getKey().y;
 
@@ -241,6 +254,10 @@ public class World {
         return chunk.getBlockState(localX, y, localZ);
     }
 
+    public long getSeed() {
+        return seed;
+    }
+    public CloudSystem getCloudSystem() { return cloudSystem; }
     public TickScheduler getTickScheduler() {
         return tickScheduler;
     }

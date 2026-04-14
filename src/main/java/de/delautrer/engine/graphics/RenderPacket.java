@@ -2,6 +2,7 @@ package de.delautrer.engine.graphics;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3i;
+import org.joml.Vector3f;
 import java.util.List;
 
 public class RenderPacket {
@@ -10,6 +11,9 @@ public class RenderPacket {
     public VulkanMesh highlightMesh;
     public VulkanMesh uiMesh;
     public VulkanMesh textMesh;
+
+    public VulkanMesh cloudMesh; // NEU
+    public Vector3f cloudOffset; // NEU
 
     public VulkanTexture fontTexture;
     public VulkanTextureArray worldTexture;

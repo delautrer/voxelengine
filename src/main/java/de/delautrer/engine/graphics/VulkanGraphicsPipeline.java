@@ -75,7 +75,7 @@ public class VulkanGraphicsPipeline {
             graphicsPipeline = pOpaque.get(0);
 
             // --- 2. TRANSPARENT PIPELINE (WASSER) ---
-            VkPipelineDepthStencilStateCreateInfo depthTrans = VkPipelineDepthStencilStateCreateInfo.calloc(stack).sType(VK10.VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO).depthTestEnable(true).depthWriteEnable(false).depthCompareOp(VK10.VK_COMPARE_OP_LESS);
+            VkPipelineDepthStencilStateCreateInfo depthTrans = VkPipelineDepthStencilStateCreateInfo.calloc(stack).sType(VK10.VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO).depthTestEnable(true).depthWriteEnable(true).depthCompareOp(VK10.VK_COMPARE_OP_LESS);
             VkPipelineColorBlendAttachmentState.Buffer blendTrans = VkPipelineColorBlendAttachmentState.calloc(1, stack);
             blendTrans.colorWriteMask(VK10.VK_COLOR_COMPONENT_R_BIT | VK10.VK_COLOR_COMPONENT_G_BIT | VK10.VK_COLOR_COMPONENT_B_BIT | VK10.VK_COLOR_COMPONENT_A_BIT)
                     .blendEnable(true)
