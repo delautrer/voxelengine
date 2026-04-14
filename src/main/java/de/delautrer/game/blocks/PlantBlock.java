@@ -15,12 +15,17 @@ public class PlantBlock extends Block {
     @Override
     public void generateMesh(int x, int y, int z, Chunk chunk, ChunkManager cm) {
         float light = 1.0f;
+
         float sl = chunk.getSmoothSkyLight(x, y, z, 0, 0, 0, 0, 0, 0, cm);
         float bl = chunk.getSmoothBlockLight(x, y, z, 0, 0, 0, 0, 0, 0, cm);
 
-        // --- ERSTES KREUZ (Diagonale von Unten-Links nach Oben-Rechts) ---
+        // --- DER FAKE-AO TRICK ---
+        float slBottom = sl * 0.67f;
+        float blBottom = bl * 0.67f;
 
-        // Vorderseite
+        // --- ERSTES KREUZ ---
+
+        // Vorderseite (y, y, y+1, y+1  => Unten, Unten, Oben, Oben)
         chunk.addFace(
                 x, y, z, 1.0f,
                 x + 1, y, z + 1, 1.0f,
@@ -28,10 +33,11 @@ public class PlantBlock extends Block {
                 x, y + 1, z, 1.0f,
                 0.0f, 0.0f, 1.0f, 1.0f,
                 texIndex, light, this,
-                sl, sl, sl, sl, bl, bl, bl, bl
+                slBottom, slBottom, sl, sl, // <--- Die Magie!
+                blBottom, blBottom, bl, bl  // <--- Die Magie!
         );
 
-        // Rückseite (Reihenfolge der Vertices umgedreht, damit man es von hinten sieht!)
+        // Rückseite
         chunk.addFace(
                 x + 1, y, z + 1, 1.0f,
                 x, y, z, 1.0f,
@@ -39,10 +45,11 @@ public class PlantBlock extends Block {
                 x + 1, y + 1, z + 1, 1.0f,
                 0.0f, 0.0f, 1.0f, 1.0f,
                 texIndex, light, this,
-                sl, sl, sl, sl, bl, bl, bl, bl
+                slBottom, slBottom, sl, sl,
+                blBottom, blBottom, bl, bl
         );
 
-        // --- ZWEITES KREUZ (Diagonale von Unten-Rechts nach Oben-Links) ---
+        // --- ZWEITES KREUZ ---
 
         // Vorderseite
         chunk.addFace(
@@ -52,7 +59,8 @@ public class PlantBlock extends Block {
                 x + 1, y + 1, z, 1.0f,
                 0.0f, 0.0f, 1.0f, 1.0f,
                 texIndex, light, this,
-                sl, sl, sl, sl, bl, bl, bl, bl
+                slBottom, slBottom, sl, sl,
+                blBottom, blBottom, bl, bl
         );
 
         // Rückseite
@@ -63,7 +71,8 @@ public class PlantBlock extends Block {
                 x, y + 1, z + 1, 1.0f,
                 0.0f, 0.0f, 1.0f, 1.0f,
                 texIndex, light, this,
-                sl, sl, sl, sl, bl, bl, bl, bl
+                slBottom, slBottom, sl, sl,
+                blBottom, blBottom, bl, bl
         );
     }
 }

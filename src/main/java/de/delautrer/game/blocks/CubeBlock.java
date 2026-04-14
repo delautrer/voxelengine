@@ -13,9 +13,14 @@ public class CubeBlock extends Block {
         this.texBottom = texBottom;
     }
 
+    protected float getColorTint() {
+        return 1.0f;
+    }
+
     @Override
     public void generateMesh(int x, int y, int z, Chunk chunk, ChunkManager cm) {
-        float lightTop = 1.0f, lightBot = 0.4f, lightFrontBack = 0.8f, lightLeftRight = 0.65f;
+        float tint = getColorTint();
+        float lightTop = 1.0f * tint, lightBot = 0.4f * tint, lightFrontBack = 0.8f * tint, lightLeftRight = 0.65f * tint;
         float height = 1.0f;
 
         // TOP

@@ -61,7 +61,6 @@ public class LightEngine {
         int cx = chunk.getWorldX() * Chunk.SIZE;
         int cz = chunk.getWorldZ() * Chunk.SIZE;
 
-        // Wir suchen alle vertikalen Lichtstrahlen (15) und packen sie in die Warteschlange
         for (int x = 0; x < Chunk.SIZE; x++) {
             for (int z = 0; z < Chunk.SIZE; z++) {
                 for (int y = 0; y < Chunk.HEIGHT; y++) {

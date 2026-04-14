@@ -21,7 +21,7 @@ public class BlockRegistry {
     public static final Block STONE = register("stone", new CubeBlock(true, false, 3, 3, 3));
     public static final Block WATER = register("water", new WaterBlock());
     public static final Block GLASS = register("glass", new CubeBlock(true, true, 5, 5, 5));
-    public static final Block LEAVES = register("leaves", new CubeBlock(true, true, 6, 6, 6));
+    public static final Block LEAVES = register("leaves", new LeavesBlock( 6, 6, 6));
     public static final Block TORCH = register("torch", new TorchBlock(7));
     public static final Block BEDROCK = register("bedrock", new CubeBlock(true, false, 8,8,8));
     public static final Block GRAVEL = register("gravel", new CubeBlock(true, false, 9,9,9));
