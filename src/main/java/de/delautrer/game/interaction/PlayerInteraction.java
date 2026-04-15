@@ -4,13 +4,13 @@ import de.delautrer.engine.events.EventBus;
 import de.delautrer.engine.graphics.VulkanContext;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.engine.graphics.Camera;
+import de.delautrer.engine.physics.Raycaster;
 import de.delautrer.game.entity.player.LocalPlayer;
 import de.delautrer.game.entity.player.Player;
 import de.delautrer.game.player.Inventory;
 import de.delautrer.game.world.World;
 import de.delautrer.game.items.ItemStack;
 import de.delautrer.game.items.BlockItem;
-import de.delautrer.engine.physics.Raycaster;
 import org.joml.Vector3i;
 
 public class PlayerInteraction {
@@ -36,14 +36,10 @@ public class PlayerInteraction {
     }
 
     public void update(InputManager input, float deltaTime) {
-        if (input.isActionJustPressed("INVENTORY")) {
-            player.getInventory().toggle();
-            eventBus.publish(new de.delautrer.game.events.InventoryToggleEvent(player.getInventory().isOpen()));
-        }
-
+        // Wenn das Inventar offen ist, können wir nicht in der Welt interagieren
         if (player.getInventory().isOpen()) return;
 
-        // --- HIER IST DER FIX FÜR DEN RAYCASTER ---
+        // 1. Raycast (Was gucken wir an?)
         Raycaster.RaycastResult result = Raycaster.raycast(world, camera.getPosition(), camera.getFront(), 6.0f);
         if (result != null) {
             selectedBlockPos = result.hitPos;
@@ -55,26 +51,7 @@ public class PlayerInteraction {
 
         if (!camera.isCursorCaptured()) return;
 
-        // Tasten 1-9
-        for (int i = 0; i < 9; i++) {
-            if (input.isActionJustPressed("SLOT_" + (i + 1))) {
-                player.getInventory().setSelectedSlot(i);
-                eventBus.publish(new de.delautrer.game.events.HotbarSlotChangeEvent(i));
-            }
-        }
-
-        // Mausrad
-        double scroll = input.consumeScroll();
-        if (scroll != 0) {
-            int newSlot = player.getInventory().getSelectedSlot() - (int) Math.signum(scroll);
-            if (newSlot < 0) newSlot = 8;
-            else if (newSlot > 8) newSlot = 0;
-
-            player.getInventory().setSelectedSlot(newSlot);
-            eventBus.publish(new de.delautrer.game.events.HotbarSlotChangeEvent(newSlot));
-        }
-
-        // Pick Block
+        // 2. Pick Block (Mittlere Maustaste)
         if (input.isActionJustPressed("PICK_BLOCK") && selectedBlockPos != null) {
             byte targetId = world.getBlockAt(selectedBlockPos);
             for (int i = 0; i < 9; i++) {
@@ -89,7 +66,7 @@ public class PlayerInteraction {
             }
         }
 
-        // Interaktion (Abbauen / Bauen)
+        // 3. Interaktion (Abbauen / Bauen)
         if (interactTimer > 0) interactTimer -= deltaTime;
 
         if (input.isActionActive("INTERACT_BREAK") && interactTimer <= 0) {
