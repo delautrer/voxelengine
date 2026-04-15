@@ -45,6 +45,9 @@ public class UIManager {
         hud.render(builder, width, height, interaction, hoveredSlot, debugOverlay, font);
 
         if (currentScreen != null) {
+            if (currentScreen instanceof MenuScreen) {
+                ((MenuScreen) currentScreen).setFont(font);
+            }
             currentScreen.render(builder, mouseX, mouseY);
         }
     }
