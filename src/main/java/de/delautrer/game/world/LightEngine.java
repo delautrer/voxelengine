@@ -3,20 +3,18 @@ package de.delautrer.game.world;
 import de.delautrer.game.blocks.BlockRegistry;
 
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Queue;
 import java.util.Set;
 
 public class LightEngine {
 
     private final ChunkManager chunkManager;
-    private final Queue<int[]> blockLightQueue = new LinkedList<>();
-    private final Queue<int[]> skyLightQueue = new LinkedList<>();
-
     private final Set<Chunk> dirtiedChunks = new HashSet<>();
 
-    private final Queue<int[]> skyLightRemovalQueue = new LinkedList<>();
-    private final Queue<int[]> blockLightRemovalQueue = new LinkedList<>();
+    // Unsere Zero-Allocation Queues!
+    private final LongQueue blockLightQueue = new LongQueue(1024);
+    private final LongQueue skyLightQueue = new LongQueue(4096);
+    private final LongQueue skyLightRemovalQueue = new LongQueue(1024);
+    private final LongQueue blockLightRemovalQueue = new LongQueue(1024);
 
     private static final int[][] DIRS = {
             {1, 0, 0}, {-1, 0, 0},
@@ -28,19 +26,59 @@ public class LightEngine {
         this.chunkManager = chunkManager;
     }
 
+    // ==========================================
+    // ZERO-ALLOCATION BIT PACKING (64 bit 'long')
+    // ==========================================
+    // Bits 0-3  : Light Level (4 bit)
+    // Bits 4-13 : Y-Coord (10 bit)
+    // Bits 14-38: X-Coord (25 bit, signed)
+    // Bits 39-63: Z-Coord (25 bit, signed)
+    // ==========================================
+
+    private long pack(int x, int y, int z, int light) {
+        return ((long)(light & 0xF)) |
+                (((long)(y & 0x3FF)) << 4) |
+                (((long)(x & 0x1FFFFFF)) << 14) |
+                (((long)(z & 0x1FFFFFF)) << 39);
+    }
+
+    private int unpackLight(long node) {
+        return (int)(node & 0xF);
+    }
+
+    private int unpackY(long node) {
+        return (int)((node >> 4) & 0x3FF);
+    }
+
+    private int unpackX(long node) {
+        int x = (int)((node >> 14) & 0x1FFFFFF);
+        // Vorzeichen-Erweiterung für negative Koordinaten
+        if ((x & 0x1000000) != 0) x |= 0xFE000000;
+        return x;
+    }
+
+    private int unpackZ(long node) {
+        int z = (int)((node >> 39) & 0x1FFFFFF);
+        // Vorzeichen-Erweiterung für negative Koordinaten
+        if ((z & 0x1000000) != 0) z |= 0xFE000000;
+        return z;
+    }
+
     // --- 1. BLOCK LICHT (Fackeln etc.) ---
     public void addBlockLightSource(int x, int y, int z, int lightLevel) {
         setBlockLight(x, y, z, lightLevel);
-        blockLightQueue.add(new int[]{x, y, z});
+        blockLightQueue.add(pack(x, y, z, 0));
         propagateBlockLight();
     }
 
     private void propagateBlockLight() {
         while (!blockLightQueue.isEmpty()) {
-            int[] node = blockLightQueue.poll();
-            int nx = node[0], ny = node[1], nz = node[2];
-            int currentLight = getBlockLight(nx, ny, nz);
+            long node = blockLightQueue.poll();
+            int nx = unpackX(node);
+            int ny = unpackY(node);
+            int nz = unpackZ(node);
 
+            int currentLight = getBlockLight(nx, ny, nz);
             if (currentLight <= 1) continue;
 
             for (int[] dir : DIRS) {
@@ -49,7 +87,7 @@ public class LightEngine {
                     int neighborLight = getBlockLight(adjX, adjY, adjZ);
                     if (neighborLight + 2 <= currentLight) {
                         setBlockLight(adjX, adjY, adjZ, currentLight - 1);
-                        blockLightQueue.add(new int[]{adjX, adjY, adjZ});
+                        blockLightQueue.add(pack(adjX, adjY, adjZ, 0));
                     }
                 }
             }
@@ -65,7 +103,7 @@ public class LightEngine {
             for (int z = 0; z < Chunk.SIZE; z++) {
                 for (int y = 0; y < Chunk.HEIGHT; y++) {
                     if (chunk.getSkyLight(x, y, z) == 15) {
-                        skyLightQueue.add(new int[]{cx + x, y, cz + z});
+                        skyLightQueue.add(pack(cx + x, y, cz + z, 0));
                     }
                 }
             }
@@ -76,7 +114,7 @@ public class LightEngine {
     public void initSkyLightForColumn(int worldX, int worldZ) {
         for (int y = 0; y < Chunk.HEIGHT; y++) {
             if (getSkyLight(worldX, y, worldZ) == 15) {
-                skyLightQueue.add(new int[]{worldX, y, worldZ});
+                skyLightQueue.add(pack(worldX, y, worldZ, 0));
             }
         }
         propagateSkyLight();
@@ -84,10 +122,12 @@ public class LightEngine {
 
     private void propagateSkyLight() {
         while (!skyLightQueue.isEmpty()) {
-            int[] node = skyLightQueue.poll();
-            int nx = node[0], ny = node[1], nz = node[2];
-            int currentLight = getSkyLight(nx, ny, nz);
+            long node = skyLightQueue.poll();
+            int nx = unpackX(node);
+            int ny = unpackY(node);
+            int nz = unpackZ(node);
 
+            int currentLight = getSkyLight(nx, ny, nz);
             if (currentLight <= 1) continue;
 
             for (int[] dir : DIRS) {
@@ -96,14 +136,90 @@ public class LightEngine {
                     int neighborLight = getSkyLight(adjX, adjY, adjZ);
                     if (neighborLight + 2 <= currentLight) {
                         setSkyLight(adjX, adjY, adjZ, currentLight - 1);
-                        skyLightQueue.add(new int[]{adjX, adjY, adjZ});
+                        skyLightQueue.add(pack(adjX, adjY, adjZ, 0));
                     }
                 }
             }
         }
     }
 
-    // --- 3. HILFSMETHODEN ---
+    // --- 3. DYNAMISCHE UPDATES (Blöcke setzen / abbauen) ---
+    public void addSkyLightRemoval(int x, int y, int z, int oldLightLevel) {
+        skyLightRemovalQueue.add(pack(x, y, z, oldLightLevel));
+    }
+
+    public void addSkyLightUpdate(int x, int y, int z) {
+        skyLightQueue.add(pack(x, y, z, 0));
+    }
+
+    public void removeBlockLight(int x, int y, int z, int oldLight) {
+        setBlockLight(x, y, z, 0);
+        blockLightRemovalQueue.add(pack(x, y, z, oldLight));
+    }
+
+    public void processLightUpdates() {
+        propagateSkyLightRemoval();
+        propagateSkyLight();
+        propagateBlockLightRemoval();
+        propagateBlockLight();
+    }
+
+    private void propagateSkyLightRemoval() {
+        while (!skyLightRemovalQueue.isEmpty()) {
+            long node = skyLightRemovalQueue.poll();
+            int nx = unpackX(node), ny = unpackY(node), nz = unpackZ(node);
+            int lightLevel = unpackLight(node);
+
+            for (int[] dir : DIRS) {
+                int adjX = nx + dir[0], adjY = ny + dir[1], adjZ = nz + dir[2];
+                int neighborLight = getSkyLight(adjX, adjY, adjZ);
+
+                if (neighborLight != 0 && neighborLight < lightLevel) {
+                    setSkyLight(adjX, adjY, adjZ, 0);
+                    skyLightRemovalQueue.add(pack(adjX, adjY, adjZ, neighborLight));
+                } else if (neighborLight >= lightLevel) {
+                    skyLightQueue.add(pack(adjX, adjY, adjZ, 0));
+                }
+            }
+        }
+    }
+
+    private void propagateBlockLightRemoval() {
+        while (!blockLightRemovalQueue.isEmpty()) {
+            long node = blockLightRemovalQueue.poll();
+            int nx = unpackX(node), ny = unpackY(node), nz = unpackZ(node);
+            int lightLevel = unpackLight(node);
+
+            for (int[] dir : DIRS) {
+                int adjX = nx + dir[0], adjY = ny + dir[1], adjZ = nz + dir[2];
+                int neighborLight = getBlockLight(adjX, adjY, adjZ);
+
+                if (neighborLight != 0 && neighborLight < lightLevel) {
+                    setBlockLight(adjX, adjY, adjZ, 0);
+                    blockLightRemovalQueue.add(pack(adjX, adjY, adjZ, neighborLight));
+                } else if (neighborLight >= lightLevel) {
+                    blockLightQueue.add(pack(adjX, adjY, adjZ, 0));
+                }
+            }
+        }
+    }
+
+    public void notifyBlockChanged(int x, int y, int z) {
+        for (int[] dir : DIRS) {
+            int nx = x + dir[0];
+            int ny = y + dir[1];
+            int nz = z + dir[2];
+
+            if (getBlockLight(nx, ny, nz) > 0) {
+                blockLightQueue.add(pack(nx, ny, nz, 0));
+            }
+            if (getSkyLight(nx, ny, nz) > 0) {
+                skyLightQueue.add(pack(nx, ny, nz, 0));
+            }
+        }
+    }
+
+    // --- 4. HILFSMETHODEN (Getter / Setter) ---
     public Set<Chunk> getAndClearDirtiedChunks() {
         Set<Chunk> copy = new HashSet<>(dirtiedChunks);
         dirtiedChunks.clear();
@@ -154,78 +270,45 @@ public class LightEngine {
         return BlockRegistry.get(id).isTransparent;
     }
 
-    // Sammelt alle Blöcke, die plötzlich dunkler geworden sind
-    public void addSkyLightRemoval(int x, int y, int z, int oldLightLevel) {
-        skyLightRemovalQueue.add(new int[]{x, y, z, oldLightLevel});
-    }
+    // ==========================================
+    // INTERNE ZERO-ALLOCATION QUEUE (Ring-Buffer)
+    // ==========================================
+    private static class LongQueue {
+        private long[] data;
+        private int head = 0;
+        private int tail = 0;
+        private int size = 0;
 
-    public void addSkyLightUpdate(int x, int y, int z) {
-        skyLightQueue.add(new int[]{x, y, z});
-    }
-
-    public void processLightUpdates() {
-        propagateSkyLightRemoval();
-        propagateSkyLight();
-        propagateBlockLightRemoval();
-        propagateBlockLight();
-    }
-
-    private void propagateSkyLightRemoval() {
-        while (!skyLightRemovalQueue.isEmpty()) {
-            int[] node = skyLightRemovalQueue.poll();
-            int nx = node[0], ny = node[1], nz = node[2], lightLevel = node[3];
-
-            for (int[] dir : DIRS) {
-                int adjX = nx + dir[0], adjY = ny + dir[1], adjZ = nz + dir[2];
-                int neighborLight = getSkyLight(adjX, adjY, adjZ);
-
-                if (neighborLight != 0 && neighborLight < lightLevel) {
-                    setSkyLight(adjX, adjY, adjZ, 0);
-                    skyLightRemovalQueue.add(new int[]{adjX, adjY, adjZ, neighborLight});
-                }
-                else if (neighborLight >= lightLevel) {
-                    skyLightQueue.add(new int[]{adjX, adjY, adjZ});
-                }
-            }
+        public LongQueue(int initialCapacity) {
+            data = new long[initialCapacity];
         }
-    }
 
-    public void removeBlockLight(int x, int y, int z, int oldLight) {
-        setBlockLight(x, y, z, 0);
-        blockLightRemovalQueue.add(new int[]{x, y, z, oldLight});
-    }
-
-    public void notifyBlockChanged(int x, int y, int z) {
-        for (int[] dir : DIRS) {
-            int nx = x + dir[0];
-            int ny = y + dir[1];
-            int nz = z + dir[2];
-
-            if (getBlockLight(nx, ny, nz) > 0) {
-                blockLightQueue.add(new int[]{nx, ny, nz});
-            }
-            if (getSkyLight(nx, ny, nz) > 0) {
-                skyLightQueue.add(new int[]{nx, ny, nz});
-            }
+        public void add(long value) {
+            if (size == data.length) resize();
+            data[tail] = value;
+            tail = (tail + 1) % data.length;
+            size++;
         }
-    }
 
-    private void propagateBlockLightRemoval() {
-        while (!blockLightRemovalQueue.isEmpty()) {
-            int[] node = blockLightRemovalQueue.poll();
-            int nx = node[0], ny = node[1], nz = node[2], lightLevel = node[3];
+        public long poll() {
+            long val = data[head];
+            head = (head + 1) % data.length;
+            size--;
+            return val;
+        }
 
-            for (int[] dir : DIRS) {
-                int adjX = nx + dir[0], adjY = ny + dir[1], adjZ = nz + dir[2];
-                int neighborLight = getBlockLight(adjX, adjY, adjZ);
+        public boolean isEmpty() {
+            return size == 0;
+        }
 
-                if (neighborLight != 0 && neighborLight < lightLevel) {
-                    setBlockLight(adjX, adjY, adjZ, 0);
-                    blockLightRemovalQueue.add(new int[]{adjX, adjY, adjZ, neighborLight});
-                } else if (neighborLight >= lightLevel) {
-                    blockLightQueue.add(new int[]{adjX, adjY, adjZ});
-                }
+        private void resize() {
+            long[] newData = new long[data.length * 2];
+            for (int i = 0; i < size; i++) {
+                newData[i] = data[(head + i) % data.length];
             }
+            data = newData;
+            head = 0;
+            tail = size;
         }
     }
 }
