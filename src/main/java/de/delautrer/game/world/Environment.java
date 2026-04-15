@@ -23,7 +23,7 @@ public class Environment {
 
         sunDirection.x = (float) Math.cos(angle);
         sunDirection.y = (float) Math.sin(angle);
-        sunDirection.z = 0.0f; // Z auf 0 fixiert, damit sie immer exakt Ost->West wandert
+        sunDirection.z = 0.0f;
         sunDirection.normalize();
 
         updateSkyAndLight();
@@ -62,4 +62,7 @@ public class Environment {
     public Vector3f getCurrentSkyColor() { return currentSkyColor; }
     public float getGlobalLightIntensity() { return globalLightIntensity; }
     public float getTimeOfDay() { return timeOfDay; }
+    public void setTimeOfDay(float timeOfDay) {
+        this.timeOfDay = timeOfDay;
+    }
 }

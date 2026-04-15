@@ -5,28 +5,33 @@ import de.delautrer.engine.graphics.VulkanMesh;
 import org.joml.Vector2i;
 import org.lwjgl.vulkan.VK10;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
 
 public class ChunkManager {
 
+    private final World world;
     private final WorldGenerator worldGenerator;
+
     private final Map<Vector2i, Chunk> chunks = new ConcurrentHashMap<>();
     private final Map<Vector2i, VulkanMesh> meshes = new ConcurrentHashMap<>();
 
     private final AsyncChunkBuilder asyncBuilder;
     private final ExecutorService chunkExecutor;
     private final ConcurrentLinkedQueue<Chunk> meshUploadQueue = new ConcurrentLinkedQueue<>();
-    private final java.util.Set<Vector2i> chunksInPreparation = ConcurrentHashMap.newKeySet();
+    private final Set<Vector2i> chunksInPreparation = ConcurrentHashMap.newKeySet();
+    private final Set<Vector2i> chunksLoading = ConcurrentHashMap.newKeySet();
+    private final ConcurrentLinkedQueue<Chunk> newlyLoadedQueue = new ConcurrentLinkedQueue<>();
     private final LightEngine lightEngine;
 
     private final VulkanContext context;
     private final int renderDistance = 6;
 
-    public ChunkManager(VulkanContext context, long seed) {
-        this.worldGenerator = new WorldGenerator(seed);
+    private boolean isCleanedUp = false;
+
+    public ChunkManager(World world, VulkanContext context) {
+        this.world = world;
+        this.worldGenerator = new WorldGenerator(this.world.getSeed());
         this.context = context;
         int threads = Math.max(1, Runtime.getRuntime().availableProcessors() - 2);
         this.chunkExecutor = Executors.newFixedThreadPool(threads);
@@ -34,57 +39,92 @@ public class ChunkManager {
         this.asyncBuilder = new AsyncChunkBuilder();
     }
 
+    // Core Logic
     public void update(float playerX, float playerZ) {
-        //int pX = (int) Math.floor(playerX / Chunk.SIZE);
-        //int pZ = (int) Math.floor(playerZ / Chunk.SIZE);
         int pX = Math.floorDiv((int) Math.floor(playerX), Chunk.SIZE);
         int pZ = Math.floorDiv((int) Math.floor(playerZ), Chunk.SIZE);
 
-        // 1. CHUNKS INITIALISIEREN (Daten anlegen oder aus Speicher laden)
-        int dataDistance = renderDistance + 1;
-
-        java.util.List<Chunk> newlyGeneratedChunks = new java.util.ArrayList<>();
+        // 1. CHUNKS ASYNCHRON LADEN UND GENERIEREN
+        int dataDistance = renderDistance + 2;
 
         for (int x = pX - dataDistance; x <= pX + dataDistance; x++) {
             for (int z = pZ - dataDistance; z <= pZ + dataDistance; z++) {
                 Vector2i pos = new Vector2i(x, z);
-                if (!chunks.containsKey(pos)) {
-                    Chunk newChunk = new Chunk(x, z);
-                    chunks.put(pos, newChunk);
-                    worldGenerator.generate(newChunk);
-                    newChunk.calculateSunlight();
-                    newlyGeneratedChunks.add(newChunk);
-                }
-            }
-        }
 
-        for (Chunk c : newlyGeneratedChunks) {
-            lightEngine.initSkyLightForChunk(c);
-        }
+                // Wenn der Chunk noch nicht existiert UND auch noch nicht geladen wird...
+                if (!chunks.containsKey(pos) && !chunksLoading.contains(pos)) {
+                    chunksLoading.add(pos); // Sofort markieren!
 
-        // 2. MESHES IM HINTERGRUND BERECHNEN (Multi-Threading)
-        for (int x = pX - renderDistance; x <= pX + renderDistance; x++) {
-            for (int z = pZ - renderDistance; z <= pZ + renderDistance; z++) {
-                Vector2i pos = new Vector2i(x, z);
-
-                if (!meshes.containsKey(pos) && !chunksInPreparation.contains(pos)) {
-                    chunksInPreparation.add(pos);
-                    Chunk c = chunks.get(pos);
-
+                    // AB IN DEN HINTERGRUND-THREAD! (Befreit den Main-Thread)
+                    int finalX = x;
+                    int finalZ = z;
                     chunkExecutor.submit(() -> {
                         try {
-                            c.generateMeshData(this);
-                            meshUploadQueue.add(c);
+                            Chunk newChunk = new Chunk(finalX, finalZ);
+
+                            // Festplatte lesen (Dauert lange -> Perfekt für den Hintergrund!)
+                            boolean isLoaded = world.getStorageManager().loadChunkFromDisk(newChunk);
+
+                            if (!isLoaded) {
+                                // Noise berechnen (CPU intensiv -> Perfekt für den Hintergrund!)
+                                worldGenerator.generate(newChunk);
+                                newChunk.calculateSunlight();
+                                newChunk.markDirty(); // Markieren, damit er später auf die SSD kommt
+                            } else {
+                                newChunk.clearDirty(); // Kam von SSD, ist sicher.
+                            }
+
+                            // Fertig! Ab in die Postbox für den Main-Thread
+                            newlyLoadedQueue.add(newChunk);
+
                         } catch (Exception e) {
-                            System.err.println("Fehler beim Chunk-Meshing: " + e.getMessage());
-                            chunksInPreparation.remove(pos);
+                            System.err.println("Fehler beim Chunk-Laden: " + e.getMessage());
+                            chunksLoading.remove(pos);
                         }
                     });
                 }
             }
         }
 
-        // 3. FERTIGE MESHES AN VULKAN SENDEN (Haupt-Thread)
+        // 1.5 FERTIGE CHUNKS AUS DER POSTBOX IN DIE WELT EINFÜGEN
+        // (Das passiert wieder auf dem Main-Thread, dauert aber nur 0.001 Millisekunden!)
+        Chunk loadedChunk;
+        while ((loadedChunk = newlyLoadedQueue.poll()) != null) {
+            Vector2i pos = new Vector2i(loadedChunk.getWorldX(), loadedChunk.getWorldZ());
+
+            chunks.put(pos, loadedChunk);
+            chunksLoading.remove(pos);
+
+            if (loadedChunk.isDirty()) {
+                lightEngine.initSkyLightForChunk(loadedChunk);
+            }
+        }
+
+        // 2. MESHES IM HINTERGRUND BERECHNEN
+        for (int x = pX - renderDistance; x <= pX + renderDistance; x++) {
+            for (int z = pZ - renderDistance; z <= pZ + renderDistance; z++) {
+                Vector2i pos = new Vector2i(x, z);
+
+                if (!meshes.containsKey(pos) && !chunksInPreparation.contains(pos)) {
+                    Chunk c = chunks.get(pos);
+
+                    if (c != null) {
+                        chunksInPreparation.add(pos);
+                        chunkExecutor.submit(() -> {
+                            try {
+                                c.generateMeshData(this);
+                                meshUploadQueue.add(c);
+                            } catch (Exception e) {
+                                System.err.println("Fehler beim Chunk-Meshing: " + e.getMessage());
+                                chunksInPreparation.remove(pos);
+                            }
+                        });
+                    }
+                }
+            }
+        }
+
+        // 3. FERTIGE MESHES AN VULKAN SENDEN
         int uploadsThisFrame = 0;
         while (uploadsThisFrame < 2) {
             Chunk finishedChunk = meshUploadQueue.poll();
@@ -103,12 +143,12 @@ public class ChunkManager {
             }
         }
 
-        // 4. ALTE CHUNKS ENTLADEN (Mesh-Cleanup)
-        int unloadDistance = renderDistance + 1;
+        // 4. ALTE MESHES ENTLADEN (Vulkan-Cleanup)
+        int unloadMeshDistance = renderDistance + 1;
         List<Vector2i> meshesToRemove = new ArrayList<>();
 
         for (Vector2i pos : meshes.keySet()) {
-            if (Math.abs(pos.x - pX) > unloadDistance || Math.abs(pos.y - pZ) > unloadDistance) {
+            if (Math.abs(pos.x - pX) > unloadMeshDistance || Math.abs(pos.y - pZ) > unloadMeshDistance) {
                 meshesToRemove.add(pos);
             }
         }
@@ -117,45 +157,77 @@ public class ChunkManager {
             VK10.vkDeviceWaitIdle(context.getDevice());
             for (Vector2i pos : meshesToRemove) {
                 VulkanMesh oldMesh = meshes.remove(pos);
-                if (oldMesh != null) {
-                    oldMesh.cleanup();
-                }
+                if (oldMesh != null) oldMesh.cleanup();
 
                 Chunk c = chunks.get(pos);
-                if (c != null) {
-                    c.clearMeshCache();
-                }
+                if (c != null) c.clearMeshCache();
             }
+        }
+
+        // 5. ALTE CHUNK-DATEN ENTLADEN (RAM-Cleanup)
+        int unloadDataDistance = renderDistance + 3;
+        List<Vector2i> chunksToRemove = new ArrayList<>();
+
+        for (Map.Entry<Vector2i, Chunk> entry : chunks.entrySet()) {
+            Vector2i pos = entry.getKey();
+            if (Math.abs(pos.x - pX) > unloadDataDistance || Math.abs(pos.y - pZ) > unloadDataDistance) {
+                Chunk c = entry.getValue();
+                world.getStorageManager().queueChunkForSaving(c);
+                chunksToRemove.add(pos);
+            }
+        }
+
+        for (Vector2i pos : chunksToRemove) {
+            chunks.remove(pos);
         }
     }
 
-    public java.util.Collection<Chunk> getLoadedChunks() {
-        return chunks.values();
-    }
-
-    public Map<Vector2i, VulkanMesh> getMeshes() { return meshes; }
-
-    public LightEngine getLightEngine() { return lightEngine; }
-
+    // Getter & Setter
     public Chunk getChunkAtBlock(int worldX, int worldY, int worldZ) {
-        //int cx = (int) Math.floor((float)worldX / Chunk.SIZE);
-        //int cz = (int) Math.floor((float)worldZ / Chunk.SIZE);
         int cx = Math.floorDiv(worldX, Chunk.SIZE);
         int cz = Math.floorDiv(worldZ, Chunk.SIZE);
-        return chunks.get(new Vector2i(cx, cz));
+        Chunk c = chunks.get(new Vector2i(cx, cz));
+        if (c != null) {
+            c.access();
+        }
+        return c;
     }
 
     public AsyncChunkBuilder getAsyncBuilder() { return asyncBuilder; }
     public VulkanContext getContext() {
         return context;
     }
+    public Collection<Chunk> getLoadedChunks() {
+        return chunks.values();
+    }
+    public LightEngine getLightEngine() { return lightEngine; }
+    public Map<Vector2i, VulkanMesh> getMeshes() { return meshes; }
 
+    // Cleanup
     public void cleanup() {
-        chunkExecutor.shutdownNow();
+        if (isCleanedUp) return;
+        isCleanedUp = true;
+
+        System.out.println("Stoppe Chunk-Hintergrund-Threads...");
+        chunkExecutor.shutdown();
+        try {
+            if (!chunkExecutor.awaitTermination(2, java.util.concurrent.TimeUnit.SECONDS)) {
+                chunkExecutor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            chunkExecutor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+
+        System.out.println("Räume Vulkan-Meshes auf...");
         VK10.vkDeviceWaitIdle(context.getDevice());
-        for (VulkanMesh mesh : meshes.values()) mesh.cleanup();
-        meshes.clear();
-        chunks.clear();
-        if (asyncBuilder != null) asyncBuilder.cleanup();
+
+        for (VulkanMesh mesh : meshes.values()) {
+            if (mesh != null) mesh.cleanup();
+        }
+
+        if (asyncBuilder != null) {
+            asyncBuilder.cleanup();
+        }
     }
 }

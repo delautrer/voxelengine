@@ -1,7 +1,9 @@
 package de.delautrer.game.player;
 
+import de.delautrer.game.items.Item;
 import de.delautrer.game.items.ItemRegistry;
 import de.delautrer.game.items.ItemStack;
+import de.delautrer.game.world.persistence.PlayerData;
 
 public class Inventory {
     public static final int HOTBAR_SIZE = 9;
@@ -14,11 +16,11 @@ public class Inventory {
 
     public Inventory() {
         ItemRegistry.init();
-        int i = 0;
+        /*int i = 0;
         for (de.delautrer.game.items.Item item : ItemRegistry.getAll().values()) {
             slots[i++] = new ItemStack(item, 64);
             if (i >= TOTAL_SIZE) break;
-        }
+        }*/
     }
 
     public void toggle() { isOpen = !isOpen; }
@@ -26,6 +28,45 @@ public class Inventory {
 
     public ItemStack getStack(int i) { return slots[i]; }
     public void setStack(int i, ItemStack stack) { slots[i] = stack; }
+
+    // Persistence
+    public PlayerData.SavedSlot[] exportToSavedData() {
+        PlayerData.SavedSlot[] savedSlots =
+                new PlayerData.SavedSlot[TOTAL_SIZE];
+
+        for (int i = 0; i < TOTAL_SIZE; i++) {
+            ItemStack stack = slots[i];
+            if (stack != null && stack.type != null && stack.amount > 0) {
+                String id = ItemRegistry.getId(stack.type);
+                if (id != null) {
+                    savedSlots[i] = new PlayerData.SavedSlot(id, stack.amount);
+                }
+            }
+        }
+        return savedSlots;
+    }
+
+    public void importFromSavedData(PlayerData.SavedSlot[] savedSlots) {
+        if (savedSlots == null) return;
+
+        // Erstmal alles leeren
+        for (int i = 0; i < TOTAL_SIZE; i++) {
+            slots[i] = null;
+        }
+
+        // Dann aus der Datei laden
+        for (int i = 0; i < Math.min(TOTAL_SIZE, savedSlots.length); i++) {
+            PlayerData.SavedSlot saved = savedSlots[i];
+            if (saved != null && saved.id != null) {
+                Item item = ItemRegistry.get(saved.id);
+                if (item != null) {
+                    slots[i] = new ItemStack(item, saved.amount);
+                } else {
+                    System.err.println("Warnung: Unbekanntes Item in Speicherdatei gefunden: " + saved.id);
+                }
+            }
+        }
+    }
 
     public ItemStack getSelectedHotbarStack() { return slots[selectedHotbarSlot]; }
     public void setSelectedSlot(int s) { this.selectedHotbarSlot = s; }

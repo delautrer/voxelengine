@@ -3,11 +3,16 @@ package de.delautrer.engine.player;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.engine.physics.AABB;
 import de.delautrer.game.blocks.BlockRegistry;
+import de.delautrer.game.player.Inventory;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
 import org.joml.Vector3f;
 
 public class Player {
+
+    private final Camera camera;
+    private final Inventory inventory;
+
     private final Vector3f spawnPoint = new Vector3f(8.0f, 20.0f, 8.0f);
     public Vector3f position = new Vector3f(spawnPoint);
     public Vector3f velocity = new Vector3f(0, 0, 0);
@@ -19,8 +24,13 @@ public class Player {
     private boolean isSneaking = false;
     private boolean onGround = false;
     private final float gravity = -28.0f;
-    private final float jumpForce = 29.0f; // Standard 9.0f
-    private final float speed = 25.0f; // Standard 5.0f
+    private final float jumpForce = 9.0f; // Standard 9.0f
+    private final float speed = 5.0f; // Standard 5.0f
+
+    public Player(Camera camera) {
+        this.camera = camera;
+        this.inventory = new Inventory();
+    }
 
     public void update(InputManager input, ChunkManager chunkManager, Vector3f cameraFront, boolean isInventoryOpen, float deltaTime) {
         if (position.y <= -100.0f) respawn();
@@ -134,12 +144,12 @@ public class Player {
             for (int y = (int)Math.floor(testBB.min.y); y <= (int)Math.floor(testBB.max.y); y++) {
                 for (int z = (int)Math.floor(testBB.min.z); z <= (int)Math.floor(testBB.max.z); z++) {
                     Chunk c = chunkManager.getChunkAtBlock(x, y, z);
-                    if (c != null) {
-                        byte block = c.getBlock(Math.floorMod(x, Chunk.SIZE), y, Math.floorMod(z, Chunk.SIZE));
-                        // 0 = Luft, 4 = Wasser (Beides fällt man durch!)
-                        //if (block != 0 && block != 4) return true;
-                        if(block != 0 && !BlockRegistry.get(block).isPassable) return true;
-                    }
+
+                    // Auch beim Sneaken: Ungeladene Welt blockiert Bewegung
+                    if (c == null) return true;
+
+                    byte block = c.getBlock(Math.floorMod(x, Chunk.SIZE), y, Math.floorMod(z, Chunk.SIZE));
+                    if(block != 0 && !BlockRegistry.get(block).isPassable) return true;
                 }
             }
         }
@@ -152,11 +162,11 @@ public class Player {
             for (int y = (int)Math.floor(playerBB.min.y); y <= (int)Math.floor(playerBB.max.y); y++) {
                 for (int z = (int)Math.floor(playerBB.min.z); z <= (int)Math.floor(playerBB.max.z); z++) {
                     Chunk c = chunkManager.getChunkAtBlock(x, y, z);
-                    if (c != null) {
-                        byte block = c.getBlock(Math.floorMod(x, Chunk.SIZE), y, Math.floorMod(z, Chunk.SIZE));
-                        //if (block != 0 && block != 4) return true;
-                        if(block != 0 && !BlockRegistry.get(block).isPassable) return true;
-                    }
+
+                    if (c == null) return true;
+
+                    byte block = c.getBlock(Math.floorMod(x, Chunk.SIZE), y, Math.floorMod(z, Chunk.SIZE));
+                    if(block != 0 && !BlockRegistry.get(block).isPassable) return true;
                 }
             }
         }
@@ -172,5 +182,11 @@ public class Player {
 
     public Vector3f getEyePosition() {
         return new Vector3f(position.x, position.y + eyeHeight, position.z);
+    }
+    public Camera getCamera() {
+        return camera;
+    }
+    public Inventory getInventory() {
+        return inventory;
     }
 }

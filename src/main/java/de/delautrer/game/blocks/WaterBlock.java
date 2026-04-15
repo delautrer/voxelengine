@@ -27,7 +27,7 @@ public class WaterBlock extends Block {
 
     @Override
     public void onNeighborChanged(World world, int x, int y, int z, Vector3i neighborPos, byte newNeighborId) {
-        world.getTickScheduler().scheduleTick(new Vector3i(x, y, z), this, 2);
+        world.getTickScheduler().scheduleTick(new Vector3i(x, y, z), this, 5);
     }
 
     @Override
@@ -37,8 +37,6 @@ public class WaterBlock extends Block {
 
         int currentLevel = currentStateObj.getValue(LEVEL);
         int expectedLevel = calculateExpectedState(world, x, y, z, currentLevel);
-
-        System.out.println("Wasser bei " + x + "," + y + "," + z + " | Current: " + currentLevel + " | Expected: " + expectedLevel);
 
         if (expectedLevel == 0) {
             world.setBlockState(x, y, z, BlockRegistry.AIR.getDefaultState());
@@ -59,27 +57,21 @@ public class WaterBlock extends Block {
 
         // 1. Fallen hat höchste Priorität
         if (blockBelow.getBlock() == BlockRegistry.AIR || (blockBelow.getBlock() == this && blockBelow.getValue(LEVEL) < 8)) {
-            System.out.println(">>> Wasser ("+x+","+y+","+z+") FÄLLT nach unten!");
             world.setBlockState(x, y - 1, z, getDefaultState().with(LEVEL, 7));
             return;
         }
 
         // 2. Loch-Such-Logik
-        System.out.println(">>> Wasser ("+x+","+y+","+z+") sucht horizontal...");
         if (currentLevel > 1) {
             for (int i = 0; i < 4; i++) {
                 int nx = x + DIRS[i][0];
                 int nz = z + DIRS[i][1];
 
                 de.delautrer.game.blocks.Block nBlock = world.getBlockState(nx, y, nz).getBlock();
-                System.out.println("  -> Prüfe Richtung " + i + " [" + nx + "," + nz + "]. Block dort: " + nBlock.getClass().getSimpleName());
 
                 if (nBlock == BlockRegistry.AIR) {
                     boolean canFlow = canFlowInto(world, x, y, z, i);
-                    System.out.println("     Block ist AIR! canFlowInto sagt: " + canFlow);
-
                     if (canFlow) {
-                        System.out.println("     *** WASSER FLIESST nach: " + nx + ", " + y + ", " + nz + " ***");
                         world.setBlockState(nx, y, nz, getDefaultState().with(LEVEL, currentLevel - 1));
                     }
                 }
@@ -183,7 +175,7 @@ public class WaterBlock extends Block {
 
     private boolean canFallInto(World world, int x, int y, int z) {
         if (y < 0 || y >= Chunk.HEIGHT) return false;
-        de.delautrer.game.blocks.state.BlockState state = world.getBlockState(x, y, z);
+        BlockState state = world.getBlockState(x, y, z);
         Block b = state.getBlock();
 
         if (b == BlockRegistry.AIR) return true;

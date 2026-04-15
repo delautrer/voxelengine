@@ -5,6 +5,10 @@ import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.blocks.state.BlockState;
 
+import java.io.*;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
+
 public class Chunk {
     public static final int SIZE = 16;
     public static final int HEIGHT = 256;
@@ -15,6 +19,8 @@ public class Chunk {
     private final byte[][][] lightMap = new byte[SIZE][HEIGHT][SIZE];
 
     private final int worldX, worldZ;
+    private boolean isDirty = false;
+    private long lastAccessedTime;
 
     private float[] vertices = new float[4096];
     private int vertexCount = 0;
@@ -28,8 +34,167 @@ public class Chunk {
     public Chunk(int worldX, int worldZ) {
         this.worldX = worldX;
         this.worldZ = worldZ;
+        this.lastAccessedTime = System.currentTimeMillis();
     }
 
+    // Blocks
+    public void setBlock(int x, int y, int z, byte type, byte state) {
+        if (x < 0 || x >= SIZE || y < 0 || y >= HEIGHT || z < 0 || z >= SIZE) return;
+
+        if (blocks[x][y][z] != type || states[x][y][z] != state) {
+            blocks[x][y][z] = type;
+            states[x][y][z] = state;
+            this.isDirty = true;
+        }
+    }
+    public void setBlock(int x, int y, int z, byte type) {
+        setBlock(x, y, z, type, (byte)0);
+    }
+    public byte getBlockAt(int x, int y, int z, ChunkManager cm) {
+        if (y < 0 || y >= HEIGHT) return 0;
+        if (x >= 0 && x < SIZE && z >= 0 && z < SIZE) return blocks[x][y][z];
+        if (cm == null) return 0;
+        Chunk neighbor = cm.getChunkAtBlock(worldX * SIZE + x, y, worldZ * SIZE + z);
+        if (neighbor == null) return 0;
+        return neighbor.getBlock(Math.floorMod(worldX * SIZE + x, SIZE), y, Math.floorMod(worldZ * SIZE + z, SIZE));
+    }
+    public byte getBlock(int x, int y, int z) { return getBlockAt(x,y,z, null); }
+    public byte getStateAt(int x, int y, int z, ChunkManager cm) {
+        if (y < 0 || y >= HEIGHT) return 0;
+        if (x >= 0 && x < SIZE && z >= 0 && z < SIZE) return states[x][y][z];
+        if (cm == null) return 0;
+        Chunk neighbor = cm.getChunkAtBlock(worldX * SIZE + x, y, worldZ * SIZE + z);
+        if (neighbor == null) return 0;
+        return neighbor.getState(Math.floorMod(worldX * SIZE + x, SIZE), y, Math.floorMod(worldZ * SIZE + z, SIZE));
+    }
+    public byte getState(int x, int y, int z) {
+        if (x < 0 || x >= SIZE || y < 0 || y >= HEIGHT || z < 0 || z >= SIZE) return 0;
+        return states[x][y][z];
+    }
+    public BlockState getBlockState(int x, int y, int z) {
+        byte blockId = getBlock(x, y, z);
+        if (blockId == 0) return BlockRegistry.AIR.getDefaultState();
+
+        byte stateId = getState(x, y, z);
+        return BlockRegistry.get(blockId).getStateForId(stateId);
+    }
+
+    // Block - Light
+    public void setBlockLight(int x, int y, int z, int val) {
+        if (x < 0 || x >= SIZE || y < 0 || y >= HEIGHT || z < 0 || z >= SIZE) return;
+        lightMap[x][y][z] = (byte) ((lightMap[x][y][z] & 0xF0) | (val & 0x0F));
+    }
+    public void setSkyLight(int x, int y, int z, int val) {
+        if (x < 0 || x >= SIZE || y < 0 || y >= HEIGHT || z < 0 || z >= SIZE) return;
+        lightMap[x][y][z] = (byte) ((lightMap[x][y][z] & 0x0F) | ((val & 0x0F) << 4));
+    }
+    public int getBlockLight(int x, int y, int z) {
+        if (x < 0 || x >= SIZE || y < 0 || y >= HEIGHT || z < 0 || z >= SIZE) return 0;
+        return lightMap[x][y][z] & 0x0F;
+    }
+    public int getSkyLight(int x, int y, int z) {
+        if (x < 0 || x >= SIZE || y < 0 || y >= HEIGHT || z < 0 || z >= SIZE) return 15;
+        return (lightMap[x][y][z] >> 4) & 0x0F;
+    }
+    public int getSkyLightAt(int x, int y, int z, ChunkManager cm) {
+        if (y < 0 || y >= HEIGHT) return 15;
+        if (x >= 0 && x < SIZE && z >= 0 && z < SIZE) return getSkyLight(x, y, z);
+        if (cm == null) return 15;
+        Chunk neighbor = cm.getChunkAtBlock(worldX * SIZE + x, y, worldZ * SIZE + z);
+        return neighbor != null ? neighbor.getSkyLight(Math.floorMod(worldX * SIZE + x, SIZE), y, Math.floorMod(worldZ * SIZE + z, SIZE)) : 15;
+    }
+    public int getBlockLightAt(int x, int y, int z, ChunkManager cm) {
+        if (y < 0 || y >= HEIGHT) return 0;
+        if (x >= 0 && x < SIZE && z >= 0 && z < SIZE) return getBlockLight(x, y, z);
+        if (cm == null) return 0;
+        Chunk neighbor = cm.getChunkAtBlock(worldX * SIZE + x, y, worldZ * SIZE + z);
+        return neighbor != null ? neighbor.getBlockLight(Math.floorMod(worldX * SIZE + x, SIZE), y, Math.floorMod(worldZ * SIZE + z, SIZE)) : 0;
+    }
+    public float getSmoothSkyLight(int x, int y, int z, int dx1, int dy1, int dz1, int dx2, int dy2, int dz2, ChunkManager cm) {
+        float center = lightToBrightness(getSkyLightAt(x, y, z, cm));
+        float side1 = lightToBrightness(getSkyLightAt(x + dx1, y + dy1, z + dz1, cm));
+        float side2 = lightToBrightness(getSkyLightAt(x + dx2, y + dy2, z + dz2, cm));
+        float corner = lightToBrightness(getSkyLightAt(x + dx1 + dx2, y + dy1 + dy2, z + dz1 + dz2, cm));
+
+        return (center + side1 + side2 + corner) / 4.0f;
+    }
+    public float getSmoothBlockLight(int x, int y, int z, int dx1, int dy1, int dz1, int dx2, int dy2, int dz2, ChunkManager cm) {
+        float center = lightToBrightness(getBlockLightAt(x, y, z, cm));
+        float side1 = lightToBrightness(getBlockLightAt(x + dx1, y + dy1, z + dz1, cm));
+        float side2 = lightToBrightness(getBlockLightAt(x + dx2, y + dy2, z + dz2, cm));
+        float corner = lightToBrightness(getBlockLightAt(x + dx1 + dx2, y + dy1 + dy2, z + dz1 + dz2, cm));
+
+        return (center + side1 + side2 + corner) / 4.0f;
+    }
+    public float getAO(int x, int y, int z, int dx1, int dy1, int dz1, int dx2, int dy2, int dz2, ChunkManager cm) {
+        boolean side1 = !BlockRegistry.get(getBlockAt(x + dx1, y + dy1, z + dz1, cm)).isTransparent;
+        boolean side2 = !BlockRegistry.get(getBlockAt(x + dx2, y + dy2, z + dz2, cm)).isTransparent;
+        boolean corner = !BlockRegistry.get(getBlockAt(x + dx1 + dx2, y + dy1 + dy2, z + dz1 + dz2, cm)).isTransparent;
+
+        if (side1 && side2) return 0.75f; // Vorher: 0.5f
+
+        int count = (side1 ? 1 : 0) + (side2 ? 1 : 0) + (corner ? 1 : 0);
+        return switch (count) {
+            case 0 -> 1.0f;
+            case 1 -> 0.90f;
+            case 2 -> 0.82f;
+            default -> 0.75f;
+        };
+    }
+    private float lightToBrightness(float lightLevel) {
+        if (lightLevel <= 0) return 0.0f;
+        return (float) Math.pow(0.8f, 15.0f - lightLevel);
+    }
+    public void recalculateSunlightColumn(int x, int z, LightEngine lightEngine) {
+        int currentLight = 15;
+        for (int y = HEIGHT - 1; y >= 0; y--) {
+            byte blockId = blocks[x][y][z];
+            int oldLight = getSkyLight(x, y, z);
+
+            if (blockId != 0) {
+                Block block = BlockRegistry.get(blockId);
+                if (block != null && block.isTransparent) {
+                    if (block.getId() == BlockRegistry.WATER.getId()) {
+                        currentLight = Math.max(0, currentLight - 2);
+                    }
+                } else {
+                    currentLight = 0;
+                }
+            }
+
+            if (currentLight != oldLight) {
+                setSkyLight(x, y, z, currentLight);
+
+                if (lightEngine != null) {
+                    int globalX = this.worldX * SIZE + x;
+                    int globalZ = this.worldZ * SIZE + z;
+
+                    if (currentLight < oldLight) {
+                        lightEngine.addSkyLightRemoval(globalX, y, globalZ, oldLight);
+                    } else {
+                        lightEngine.addSkyLightUpdate(globalX, y, globalZ);
+                    }
+                }
+            }
+        }
+    }
+    public void calculateSunlight() {
+        for (int x = 0; x < SIZE; x++) {
+            for (int z = 0; z < SIZE; z++) {
+                recalculateSunlightColumn(x, z, null);
+            }
+        }
+    }
+
+    // Biome
+    public void setBiome(int x, int z, Biome biome) {
+        this.biomeMap[x][z] = biome;
+    }
+    public Biome getBiome(int x, int z) {
+        return this.biomeMap[x][z];
+    }
+
+    // Rendering
     public synchronized MeshData generateMeshData(ChunkManager cm) {
         vertexCount = 0;
         indexCount = 0;
@@ -46,23 +211,6 @@ public class Chunk {
         }
         return new MeshData(getVertices(), getIndices());
     }
-
-    private void ensureVertexCapacity(int additionalSize) {
-        if (vertexCount + additionalSize > vertices.length) {
-            float[] newArr = new float[Math.max(vertices.length * 2, vertexCount + additionalSize)];
-            System.arraycopy(vertices, 0, newArr, 0, vertexCount);
-            vertices = newArr;
-        }
-    }
-
-    private void ensureIndexCapacity(int additionalSize) {
-        if (indexCount + additionalSize > indices.length) {
-            int[] newArr = new int[Math.max(indices.length * 2, indexCount + additionalSize)];
-            System.arraycopy(indices, 0, newArr, 0, indexCount);
-            indices = newArr;
-        }
-    }
-
     public void addFace(float x0, float y0, float z0, float ao0,
                         float x1, float y1, float z1, float ao1,
                         float x2, float y2, float z2, float ao2,
@@ -125,193 +273,104 @@ public class Chunk {
         }
     }
 
-    public byte getBlockAt(int x, int y, int z, ChunkManager cm) {
-        if (y < 0 || y >= HEIGHT) return 0;
-        if (x >= 0 && x < SIZE && z >= 0 && z < SIZE) return blocks[x][y][z];
-        if (cm == null) return 0;
-        Chunk neighbor = cm.getChunkAtBlock(worldX * SIZE + x, y, worldZ * SIZE + z);
-        if (neighbor == null) return 0;
-        return neighbor.getBlock(Math.floorMod(worldX * SIZE + x, SIZE), y, Math.floorMod(worldZ * SIZE + z, SIZE));
-    }
-
-    public byte getStateAt(int x, int y, int z, ChunkManager cm) {
-        if (y < 0 || y >= HEIGHT) return 0;
-        if (x >= 0 && x < SIZE && z >= 0 && z < SIZE) return states[x][y][z];
-        if (cm == null) return 0;
-        Chunk neighbor = cm.getChunkAtBlock(worldX * SIZE + x, y, worldZ * SIZE + z);
-        if (neighbor == null) return 0;
-        return neighbor.getState(Math.floorMod(worldX * SIZE + x, SIZE), y, Math.floorMod(worldZ * SIZE + z, SIZE));
-    }
-
-    public float getAO(int x, int y, int z, int dx1, int dy1, int dz1, int dx2, int dy2, int dz2, ChunkManager cm) {
-        boolean side1 = !BlockRegistry.get(getBlockAt(x + dx1, y + dy1, z + dz1, cm)).isTransparent;
-        boolean side2 = !BlockRegistry.get(getBlockAt(x + dx2, y + dy2, z + dz2, cm)).isTransparent;
-        boolean corner = !BlockRegistry.get(getBlockAt(x + dx1 + dx2, y + dy1 + dy2, z + dz1 + dz2, cm)).isTransparent;
-
-        if (side1 && side2) return 0.75f; // Vorher: 0.5f
-
-        int count = (side1 ? 1 : 0) + (side2 ? 1 : 0) + (corner ? 1 : 0);
-        return switch (count) {
-            case 0 -> 1.0f;
-            case 1 -> 0.90f;
-            case 2 -> 0.82f;
-            default -> 0.75f;
-        };
-    }
-
-    public byte getBlock(int x, int y, int z) { return getBlockAt(x,y,z, null); }
-    public byte getState(int x, int y, int z) {
-        if (x < 0 || x >= SIZE || y < 0 || y >= HEIGHT || z < 0 || z >= SIZE) return 0;
-        return states[x][y][z];
-    }
-
-    public void setBlock(int x, int y, int z, byte type, byte state) {
-        if (x < 0 || x >= SIZE || y < 0 || y >= HEIGHT || z < 0 || z >= SIZE) return;
-        blocks[x][y][z] = type;
-        states[x][y][z] = state;
-    }
-    public void setBlock(int x, int y, int z, byte type) { setBlock(x, y, z, type, (byte)0); }
-
     public void clearMeshCache() {
         vertexCount = 0;
         indexCount = 0;
-    }
 
+        vertices = new float[4096];
+        indices = new int[1024];
+    }
     public float[] getVertices() {
         float[] arr = new float[vertexCount];
         System.arraycopy(vertices, 0, arr, 0, vertexCount);
         return arr;
     }
-
     public int[] getIndices() {
         int[] arr = new int[indexCount];
         System.arraycopy(indices, 0, arr, 0, indexCount);
         return arr;
     }
-
-    public int getBlockLight(int x, int y, int z) {
-        if (x < 0 || x >= SIZE || y < 0 || y >= HEIGHT || z < 0 || z >= SIZE) return 0;
-        return lightMap[x][y][z] & 0x0F;
-    }
-
-    public int getSkyLight(int x, int y, int z) {
-        if (x < 0 || x >= SIZE || y < 0 || y >= HEIGHT || z < 0 || z >= SIZE) return 15;
-        return (lightMap[x][y][z] >> 4) & 0x0F;
-    }
-
-    public void setBlockLight(int x, int y, int z, int val) {
-        if (x < 0 || x >= SIZE || y < 0 || y >= HEIGHT || z < 0 || z >= SIZE) return;
-        lightMap[x][y][z] = (byte) ((lightMap[x][y][z] & 0xF0) | (val & 0x0F));
-    }
-
-    public void setSkyLight(int x, int y, int z, int val) {
-        if (x < 0 || x >= SIZE || y < 0 || y >= HEIGHT || z < 0 || z >= SIZE) return;
-        lightMap[x][y][z] = (byte) ((lightMap[x][y][z] & 0x0F) | ((val & 0x0F) << 4));
-    }
-
-    public int getSkyLightAt(int x, int y, int z, ChunkManager cm) {
-        if (y < 0 || y >= HEIGHT) return 15;
-        if (x >= 0 && x < SIZE && z >= 0 && z < SIZE) return getSkyLight(x, y, z);
-        if (cm == null) return 15;
-        Chunk neighbor = cm.getChunkAtBlock(worldX * SIZE + x, y, worldZ * SIZE + z);
-        return neighbor != null ? neighbor.getSkyLight(Math.floorMod(worldX * SIZE + x, SIZE), y, Math.floorMod(worldZ * SIZE + z, SIZE)) : 15;
-    }
-
-    public int getBlockLightAt(int x, int y, int z, ChunkManager cm) {
-        if (y < 0 || y >= HEIGHT) return 0;
-        if (x >= 0 && x < SIZE && z >= 0 && z < SIZE) return getBlockLight(x, y, z);
-        if (cm == null) return 0;
-        Chunk neighbor = cm.getChunkAtBlock(worldX * SIZE + x, y, worldZ * SIZE + z);
-        return neighbor != null ? neighbor.getBlockLight(Math.floorMod(worldX * SIZE + x, SIZE), y, Math.floorMod(worldZ * SIZE + z, SIZE)) : 0;
-    }
-
-    public float getSmoothSkyLight(int x, int y, int z, int dx1, int dy1, int dz1, int dx2, int dy2, int dz2, ChunkManager cm) {
-        float center = lightToBrightness(getSkyLightAt(x, y, z, cm));
-        float side1 = lightToBrightness(getSkyLightAt(x + dx1, y + dy1, z + dz1, cm));
-        float side2 = lightToBrightness(getSkyLightAt(x + dx2, y + dy2, z + dz2, cm));
-        float corner = lightToBrightness(getSkyLightAt(x + dx1 + dx2, y + dy1 + dy2, z + dz1 + dz2, cm));
-
-        return (center + side1 + side2 + corner) / 4.0f;
-    }
-
-    public float getSmoothBlockLight(int x, int y, int z, int dx1, int dy1, int dz1, int dx2, int dy2, int dz2, ChunkManager cm) {
-        float center = lightToBrightness(getBlockLightAt(x, y, z, cm));
-        float side1 = lightToBrightness(getBlockLightAt(x + dx1, y + dy1, z + dz1, cm));
-        float side2 = lightToBrightness(getBlockLightAt(x + dx2, y + dy2, z + dz2, cm));
-        float corner = lightToBrightness(getBlockLightAt(x + dx1 + dx2, y + dy1 + dy2, z + dz1 + dz2, cm));
-
-        return (center + side1 + side2 + corner) / 4.0f;
-    }
-
-    private float lightToBrightness(float lightLevel) {
-        if (lightLevel <= 0) return 0.0f;
-        return (float) Math.pow(0.8f, 15.0f - lightLevel);
-    }
-
-    public void recalculateSunlightColumn(int x, int z, LightEngine lightEngine) {
-        int currentLight = 15;
-        for (int y = HEIGHT - 1; y >= 0; y--) {
-            byte blockId = blocks[x][y][z];
-            int oldLight = getSkyLight(x, y, z); // Wir merken uns das alte Licht
-
-            if (blockId != 0) {
-                Block block = BlockRegistry.get(blockId);
-                if (block != null && block.isTransparent) {
-                    if (block.getId() == BlockRegistry.WATER.getId()) {
-                        currentLight = Math.max(0, currentLight - 2);
-                    }
-                } else {
-                    currentLight = 0; // Fester Block blockiert alles
-                }
-            }
-
-            // Wenn sich das Licht verändert hat, alarmieren wir die Engine!
-            if (currentLight != oldLight) {
-                setSkyLight(x, y, z, currentLight);
-
-                if (lightEngine != null) {
-                    int globalX = this.worldX * SIZE + x;
-                    int globalZ = this.worldZ * SIZE + z;
-
-                    if (currentLight < oldLight) {
-                        // Licht wurde blockiert -> Aussaugen!
-                        lightEngine.addSkyLightRemoval(globalX, y, globalZ, oldLight);
-                    } else {
-                        // Block abgebaut, Sonne kommt rein -> Fluten!
-                        lightEngine.addSkyLightUpdate(globalX, y, globalZ);
-                    }
-                }
-            }
-        }
-    }
-
-    // Damit das Generieren weiterhin klappt, müssen wir bei calculateSunlight null übergeben:
-    public void calculateSunlight() {
-        for (int x = 0; x < SIZE; x++) {
-            for (int z = 0; z < SIZE; z++) {
-                recalculateSunlightColumn(x, z, null);
-            }
-        }
-    }
-
-    public BlockState getBlockState(int x, int y, int z) {
-        byte blockId = getBlock(x, y, z);
-        if (blockId == 0) return BlockRegistry.AIR.getDefaultState();
-
-        byte stateId = getState(x, y, z);
-        return BlockRegistry.get(blockId).getStateForId(stateId);
-    }
-
-    public void setBiome(int x, int z, Biome biome) {
-        this.biomeMap[x][z] = biome;
-    }
-
-    public Biome getBiome(int x, int z) {
-        return this.biomeMap[x][z];
-    }
-
     public static float[] getHighlightVertices() { return highlightVertices; }
     public static int[] getHighlightIndices() { return highlightIndices; }
+
+    // Rendering data holder helpers
+    private void ensureVertexCapacity(int additionalSize) {
+        if (vertexCount + additionalSize > vertices.length) {
+            float[] newArr = new float[Math.max(vertices.length * 2, vertexCount + additionalSize)];
+            System.arraycopy(vertices, 0, newArr, 0, vertexCount);
+            vertices = newArr;
+        }
+    }
+    private void ensureIndexCapacity(int additionalSize) {
+        if (indexCount + additionalSize > indices.length) {
+            int[] newArr = new int[Math.max(indices.length * 2, indexCount + additionalSize)];
+            System.arraycopy(indices, 0, newArr, 0, indexCount);
+            indices = newArr;
+        }
+    }
+
+    // Persistence
+    public byte[] serialize() throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try (GZIPOutputStream gzip = new GZIPOutputStream(baos);
+             DataOutputStream dos = new DataOutputStream(gzip)) {
+
+            dos.writeInt(worldX);
+            dos.writeInt(worldZ);
+
+            for (int x = 0; x < SIZE; x++) {
+                for (int y = 0; y < HEIGHT; y++) {
+                    for (int z = 0; z < SIZE; z++) {
+                        dos.writeByte(blocks[x][y][z]);
+                        dos.writeByte(states[x][y][z]);
+                        dos.writeByte(lightMap[x][y][z]);
+                    }
+                }
+            }
+        }
+        return baos.toByteArray();
+    }
+    public void deserialize(byte[] data) throws IOException {
+        ByteArrayInputStream bais = new ByteArrayInputStream(data);
+        try (GZIPInputStream gzip = new GZIPInputStream(bais);
+             DataInputStream dis = new java.io.DataInputStream(gzip)) {
+
+            int savedX = dis.readInt();
+            int savedZ = dis.readInt();
+
+            if (savedX != this.worldX || savedZ != this.worldZ) {
+                throw new IOException("Chunk-Coordinates are not equal!");
+            }
+
+            for (int x = 0; x < SIZE; x++) {
+                for (int y = 0; y < HEIGHT; y++) {
+                    for (int z = 0; z < SIZE; z++) {
+                        blocks[x][y][z] = dis.readByte();
+                        states[x][y][z] = dis.readByte();
+                        lightMap[x][y][z] = dis.readByte();
+                    }
+                }
+            }
+        }
+        this.clearDirty();
+    }
+
+    // Getter & Setter
     public int getWorldX() { return worldX; }
     public int getWorldZ() { return worldZ; }
+    public void markDirty() {
+        this.isDirty = true;
+    }
+    public boolean isDirty() {
+        return isDirty;
+    }
+    public void clearDirty() {
+        this.isDirty = false;
+    }
+    public void access() {
+        this.lastAccessedTime = System.currentTimeMillis();
+    }
+    public long getLastAccessedTime() {
+        return lastAccessedTime;
+    }
 }

@@ -43,6 +43,16 @@ public class ItemRegistry {
         return ITEMS.get(fullId);
     }
 
+    public static String getId(Item targetItem) {
+        if (targetItem == null) return null;
+        for (Map.Entry<String, Item> entry : ITEMS.entrySet()) {
+            if (entry.getValue() == targetItem) {
+                return entry.getKey();
+            }
+        }
+        return null;
+    }
+
     public static Map<String, Item> getAll() {
         return ITEMS;
     }

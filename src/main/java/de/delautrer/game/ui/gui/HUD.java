@@ -13,7 +13,7 @@ public class HUD {
         if (height >= 1440) pixelScale = 4.0f;
 
         Inventory inventory = interaction.getInventory();
-        boolean isScreenOpen = inventory.isOpen(); // Später fragen wir hier den UIManager
+        boolean isScreenOpen = inventory.isOpen();
 
         // --- 1. DEBUG OVERLAY ---
         if (debugOverlay != null && debugOverlay.isVisible()) {

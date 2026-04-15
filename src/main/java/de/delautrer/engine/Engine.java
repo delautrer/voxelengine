@@ -31,7 +31,6 @@ public class Engine {
 
     private EventBus eventBus;
     private InputManager inputManager;
-    private Environment environment;
     private DebugOverlay debugOverlay;
 
     private float deltaTime = 0.0f;
@@ -56,14 +55,13 @@ public class Engine {
 
         eventBus = new EventBus();
         inputManager = new InputManager(window.getHandle());
-        environment = new Environment();
 
-        player = new Player();
+        camera = new Camera();
+        player = new Player(camera);
         world = new World(vulkanContext, player, eventBus, 1337L);
         worldEventHandler = new WorldEventHandler(world, vulkanContext, eventBus);
         MeshData cloudData = world.getCloudSystem().generateCloudMesh(world.getSeed());
         masterRenderer.initClouds(cloudData);
-        camera = new Camera();
 
 
         // Debug-Overlay konfigurieren
@@ -122,7 +120,7 @@ public class Engine {
         });
 
         debugOverlay.addLine("Time", () -> {
-            float time = environment.getTimeOfDay();
+            float time = world.getEnvironment().getTimeOfDay();
             float displayTime = (time + 12.0f) % 24.0f;
             if (displayTime < 0) displayTime += 24.0f;
             int hours = (int) displayTime;
@@ -149,6 +147,7 @@ public class Engine {
         eventBus.subscribe(DebugToggleEvent.class, event -> {
             uiNeedsRebuild = true;
         });
+
     }
 
     private void loop() {
@@ -164,10 +163,10 @@ public class Engine {
                 eventBus.publish(new DebugToggleEvent(debugOverlay.isVisible()));
             }
 
-            environment.update(deltaTime);
-            world.update(inputManager, camera.getFront(), interaction.getInventory().isOpen(), deltaTime);
+            world.getEnvironment().update(deltaTime);
+            world.update(inputManager, camera.getFront(), player.getInventory().isOpen(), deltaTime);
 
-            if (!interaction.getInventory().isOpen()) {
+            if (!player.getInventory().isOpen()) {
                 camera.update(window.getHandle(), deltaTime, player.getEyePosition());
             } else {
                 camera.setPosition(player.getEyePosition());
@@ -193,7 +192,7 @@ public class Engine {
                 }
 
                 // An MasterRenderer delegieren
-                if (!masterRenderer.drawFrame(camera, world, environment, interaction)) {
+                if (!masterRenderer.drawFrame(camera, world, world.getEnvironment(), interaction)) {
                     masterRenderer.recreate(interaction, inputManager, debugOverlay);
                     uiNeedsRebuild = true;
                 }
@@ -205,11 +204,22 @@ public class Engine {
     }
 
     private void cleanup() {
+        System.out.println("--- ENGINE SHUTDOWN START ---");
         VK10.vkDeviceWaitIdle(vulkanContext.getDevice());
 
+        if (world != null) {
+            world.cleanup();
+        }
+
+        System.out.println("Stoppe MasterRenderer...");
         if (masterRenderer != null) masterRenderer.cleanup();
-        if (world != null && world.getChunkManager() != null) world.getChunkManager().cleanup();
+
+        System.out.println("Zerstöre Vulkan-Context...");
         if (vulkanContext != null) vulkanContext.cleanup();
+
+        System.out.println("Schließe Fenster...");
         if (window != null) window.cleanup();
+
+        System.out.println("--- ENGINE SHUTDOWN BEENDET ---");
     }
 }

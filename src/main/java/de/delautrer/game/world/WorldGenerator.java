@@ -336,7 +336,6 @@ public class WorldGenerator {
             }
         }
     }
-
     private void generateCaveNode(Chunk chunk, Random random, double x, double y, double z, float radius, float yaw, float pitch, int startStep, int length, int[][] heightMap) {
         int currentChunkX = chunk.getWorldX();
         int currentChunkZ = chunk.getWorldZ();

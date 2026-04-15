@@ -94,4 +94,6 @@ dependencies {
     implementation "org.joml:joml:1.10.5"
     implementation "org.lwjgl:lwjgl-stb:3.3.3"
     runtimeOnly "org.lwjgl:lwjgl-stb:3.3.3:natives-windows"
+
+    implementation 'com.google.code.gson:gson:2.13.2'
 }

@@ -10,6 +10,11 @@ import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.events.BlockChangeEvent;
 import de.delautrer.game.events.BlockNeighborUpdateEvent;
+import de.delautrer.game.items.ItemRegistry;
+import de.delautrer.game.items.ItemStack;
+import de.delautrer.game.player.Inventory;
+import de.delautrer.game.world.persistence.PlayerData;
+import de.delautrer.game.world.persistence.WorldData;
 import org.joml.*;
 
 import java.lang.Math;
@@ -23,45 +28,78 @@ public class World {
     private final TickScheduler tickScheduler;
     private final Player player;
     private final CloudSystem cloudSystem;
+    private final WorldStorageManager storageManager;
+    private final Environment environment;
+
+    private final Vector3f worldSpawnpoint;
+
     private final long seed;
 
-    private float waterTimer = 0.0f;
+    private float autosaveTimer = 0;
+    private final float AUTOSAVE_INTERVAL = 300.0f;
+    private boolean isCleanedUp = false;
 
-    public World(VulkanContext context, Player player, EventBus eventBus, long seed) {
+    public World(VulkanContext context, Player player, EventBus eventBus, long defaultSeed) {
         this.eventBus = eventBus;
-        this.chunkManager = new ChunkManager(context, seed);
-        this.tickScheduler = new TickScheduler(this);
         this.player = player;
-        this.seed = seed;
+        this.environment = new Environment();
 
+        // 1. Storage Manager initialisieren
+        this.storageManager = new WorldStorageManager("MeineErsteWelt");
+
+        // 2. WELTDATEN LADEN (Seed & Zeit)
+        WorldData wData = storageManager.loadLevelMetadata();
+        if (wData != null) {
+            this.seed = wData.seed;
+            this.environment.setTimeOfDay(wData.timeOfDay);
+            this.worldSpawnpoint = wData.worldSpawnpoint;
+            System.out.println("Welt geladen! Seed: " + this.seed);
+        } else {
+            this.seed = defaultSeed;
+            this.worldSpawnpoint = findSafeSpawn(0, 0);
+            System.out.println("Neue Welt erstellt! Seed: " + this.seed);
+        }
+
+        this.chunkManager = new ChunkManager(this, context);
+        this.tickScheduler = new TickScheduler(this);
         this.cloudSystem = new CloudSystem();
 
-        chunkManager.update(player.position.x, player.position.z);
+        // 3. SPIELERDATEN LADEN (Position, Rotation & Inventar)
+        PlayerData pData = storageManager.loadPlayerData("lokaler-spieler");
 
-        Vector3f safeSpawn = findSafeSpawn(8, 8);
-        player.position.set(safeSpawn);
-    }
+        if (pData != null) {
+            // Spieler existiert bereits -> Werte überschreiben
+            player.position.set(pData.x, pData.y, pData.z);
 
-    public Vector3f findSafeSpawn(int x, int z) {
-        for (int y = Chunk.HEIGHT - 3; y > 0; y--) {
-            if (getBlockAt(x, y, z) != 0) {
-                if (getBlockAt(x, y + 1, z) == 0 && getBlockAt(x, y + 2, z) == 0) {
-                    return new Vector3f(x + 0.5f, y + 1.0f, z + 0.5f);
-                }
+            // Rotation
+            player.getCamera().setPitch(pData.pitch);
+            player.getCamera().setYaw(pData.yaw);
+
+            // Inventar wiederherstellen
+            if (player.getInventory() != null) {
+                player.getInventory().importFromSavedData(pData.inventory);
+                player.getInventory().setSelectedSlot(pData.selectedHotbarSlot);
+            }
+            System.out.println("Spielerdaten erfolgreich geladen!");
+
+        } else {
+            // Neuer Spieler -> Sicheren Spawn suchen
+            System.out.println("Neuer Spieler - Suche sicheren Spawn...");
+            player.position.set(worldSpawnpoint);
+
+            // Hier könntest du dem Spieler auch Starter-Items geben
+            int i = 0;
+            for (de.delautrer.game.items.Item item : ItemRegistry.getAll().values()) {
+                player.getInventory().setStack(i++, new ItemStack(item, 64));
+                if (i >= Inventory.TOTAL_SIZE) break;
             }
         }
-        return new Vector3f(x, 30, z);
+
+        // 4. Update anstoßen, damit die Chunks um den (geladenen) Spieler herum generiert werden
+        chunkManager.update(player.position.x, player.position.z);
     }
 
-    public byte getBlockAt(int x, int y, int z) {
-        Chunk c = chunkManager.getChunkAtBlock(x, y, z);
-        if (c == null) return 0;
-        return c.getBlock(Math.floorMod(x, Chunk.SIZE), y, Math.floorMod(z, Chunk.SIZE));
-    }
-
-    public byte getBlockAt(Vector3i pos) {
-        return getBlockAt(pos.x, pos.y, pos.z);
-    }
+    // Core logic
     public void update(InputManager input, Vector3f cameraFront, boolean isInventoryOpen, float deltaTime) {
         player.update(input, chunkManager, cameraFront, isInventoryOpen, deltaTime);
         chunkManager.update(player.position.x, player.position.z);
@@ -74,77 +112,38 @@ public class World {
         }
 
         chunkManager.getAsyncBuilder().uploadReadyMeshes(chunkManager);
-    }
 
-    public void setBlock(int x, int y, int z, byte newBlockId) {
-        if (y < 0 || y >= Chunk.HEIGHT) return;
-
-        Chunk targetChunk = chunkManager.getChunkAtBlock(x, y, z);
-        if (targetChunk == null) return;
-
-        int localX = Math.floorMod(x, Chunk.SIZE);
-        int localZ = Math.floorMod(z, Chunk.SIZE);
-
-        byte oldBlockId = targetChunk.getBlock(localX, y, localZ);
-        if (oldBlockId == newBlockId) return;
-
-        // 1. Blockdaten ändern
-        targetChunk.setBlock(localX, y, localZ, newBlockId);
-
-        // 2. Zentrales Change-Event feuern (Licht & Renderer lauschen hier!)
-        Vector3i pos = new Vector3i(x, y, z);
-        eventBus.publish(new BlockChangeEvent(pos, oldBlockId, newBlockId, targetChunk));
-
-        // 3. Neighbor-Updates feuern (Oben, Unten, Nord, Süd, Ost, West)
-        int[][] dirs = {{0,1,0}, {0,-1,0}, {1,0,0}, {-1,0,0}, {0,0,1}, {0,0,-1}};
-        for (int[] dir : dirs) {
-            org.joml.Vector3i nPos = new org.joml.Vector3i(x + dir[0], y + dir[1], z + dir[2]);
-            eventBus.publish(new BlockNeighborUpdateEvent(nPos, pos, newBlockId));
-        }
-
-        Block placedBlock = BlockRegistry.get(newBlockId);
-        if (placedBlock != null) {
-            placedBlock.onNeighborChanged(this, x, y, z, new org.joml.Vector3i(x, y - 1, z), oldBlockId);
+        autosaveTimer += deltaTime;
+        if (autosaveTimer >= AUTOSAVE_INTERVAL) {
+            saveWorld();
+            autosaveTimer = 0;
         }
     }
 
-    public void setBlock(Vector3i pos, byte newBlockId) {
-        if (pos != null) {
-            setBlock(pos.x, pos.y, pos.z, newBlockId);
+    // Render Logic
+    public List<VulkanMesh> getVisibleMeshes(Matrix4f mvp) {
+        FrustumIntersection frustum = new FrustumIntersection(mvp);
+        List<VulkanMesh> visibleMeshes = new ArrayList<>();
+
+        for (Map.Entry<Vector2i, VulkanMesh> entry : chunkManager.getMeshes().entrySet()) {
+            int cx = entry.getKey().x;
+            int cz = entry.getKey().y;
+
+            float minX = cx * Chunk.SIZE;
+            float minY = 0.0f;
+            float minZ = cz * Chunk.SIZE;
+            float maxX = minX + Chunk.SIZE;
+            float maxY = Chunk.HEIGHT;
+            float maxZ = minZ + Chunk.SIZE;
+
+            if (frustum.testAab(minX, minY, minZ, maxX, maxY, maxZ)) {
+                visibleMeshes.add(entry.getValue());
+            }
         }
+        return visibleMeshes;
     }
 
-    public void setBlockWithState(int x, int y, int z, byte newBlockId, byte newState) {
-        if (y < 0 || y >= Chunk.HEIGHT) return;
-
-        Chunk targetChunk = chunkManager.getChunkAtBlock(x, y, z);
-        if (targetChunk == null) return;
-
-        int localX = Math.floorMod(x, Chunk.SIZE);
-        int localZ = Math.floorMod(z, Chunk.SIZE);
-
-        byte oldBlockId = targetChunk.getBlock(localX, y, localZ);
-        byte oldState = targetChunk.getState(localX, y, localZ);
-
-        if (oldBlockId == newBlockId && oldState == newState) return;
-
-        targetChunk.setBlock(localX, y, localZ, newBlockId, newState);
-
-        Vector3i pos = new Vector3i(x, y, z);
-        eventBus.publish(new BlockChangeEvent(pos, oldBlockId, newBlockId, targetChunk));
-
-        int[][] dirs = {{0,1,0}, {0,-1,0}, {1,0,0}, {-1,0,0}, {0,0,1}, {0,0,-1}};
-        for (int[] dir : dirs) {
-            Vector3i nPos = new Vector3i(x + dir[0], y + dir[1], z + dir[2]);
-            eventBus.publish(new BlockNeighborUpdateEvent(nPos, pos, newBlockId));
-        }
-
-        Block placedBlock = BlockRegistry.get(newBlockId);
-        if (placedBlock != null) {
-            placedBlock.onNeighborChanged(this, x, y, z, new Vector3i(x, y - 1, z), oldBlockId);
-        }
-    }
-
+    // Raycat Logic
     public static class RaycastResult {
         public final Vector3i hitPos;
         public final Vector3i adjacentPos;
@@ -154,7 +153,6 @@ public class World {
             this.adjacentPos = adjacentPos;
         }
     }
-
     public RaycastResult raycast(Vector3f start, Vector3f dir, float maxDistance) {
         int x = (int) Math.floor(start.x);
         int y = (int) Math.floor(start.y);
@@ -219,32 +217,76 @@ public class World {
         return null;
     }
 
-    public List<VulkanMesh> getVisibleMeshes(Matrix4f mvp) {
-        FrustumIntersection frustum = new FrustumIntersection(mvp);
-        List<VulkanMesh> visibleMeshes = new ArrayList<>();
+    // Blocks
+    public void setBlock(int x, int y, int z, byte newBlockId) {
+        if (y < 0 || y >= Chunk.HEIGHT) return;
 
-        for (Map.Entry<Vector2i, VulkanMesh> entry : chunkManager.getMeshes().entrySet()) {
-            int cx = entry.getKey().x;
-            int cz = entry.getKey().y;
+        Chunk targetChunk = chunkManager.getChunkAtBlock(x, y, z);
+        if (targetChunk == null) return;
 
-            float minX = cx * Chunk.SIZE;
-            float minY = 0.0f;
-            float minZ = cz * Chunk.SIZE;
-            float maxX = minX + Chunk.SIZE;
-            float maxY = Chunk.HEIGHT;
-            float maxZ = minZ + Chunk.SIZE;
+        int localX = Math.floorMod(x, Chunk.SIZE);
+        int localZ = Math.floorMod(z, Chunk.SIZE);
 
-            if (frustum.testAab(minX, minY, minZ, maxX, maxY, maxZ)) {
-                visibleMeshes.add(entry.getValue());
-            }
+        byte oldBlockId = targetChunk.getBlock(localX, y, localZ);
+        if (oldBlockId == newBlockId) return;
+
+        // 1. Blockdaten ändern
+        targetChunk.setBlock(localX, y, localZ, newBlockId);
+
+        // 2. Zentrales Change-Event feuern (Licht & Renderer lauschen hier!)
+        Vector3i pos = new Vector3i(x, y, z);
+        eventBus.publish(new BlockChangeEvent(pos, oldBlockId, newBlockId, targetChunk));
+
+        // 3. Neighbor-Updates feuern (Oben, Unten, Nord, Süd, Ost, West)
+        int[][] dirs = {{0,1,0}, {0,-1,0}, {1,0,0}, {-1,0,0}, {0,0,1}, {0,0,-1}};
+        for (int[] dir : dirs) {
+            org.joml.Vector3i nPos = new org.joml.Vector3i(x + dir[0], y + dir[1], z + dir[2]);
+            eventBus.publish(new BlockNeighborUpdateEvent(nPos, pos, newBlockId));
         }
-        return visibleMeshes;
-    }
 
+        Block placedBlock = BlockRegistry.get(newBlockId);
+        if (placedBlock != null) {
+            placedBlock.onNeighborChanged(this, x, y, z, new org.joml.Vector3i(x, y - 1, z), oldBlockId);
+        }
+    }
+    public void setBlock(Vector3i pos, byte newBlockId) {
+        if (pos != null) {
+            setBlock(pos.x, pos.y, pos.z, newBlockId);
+        }
+    }
+    public void setBlockWithState(int x, int y, int z, byte newBlockId, byte newState) {
+        if (y < 0 || y >= Chunk.HEIGHT) return;
+
+        Chunk targetChunk = chunkManager.getChunkAtBlock(x, y, z);
+        if (targetChunk == null) return;
+
+        int localX = Math.floorMod(x, Chunk.SIZE);
+        int localZ = Math.floorMod(z, Chunk.SIZE);
+
+        byte oldBlockId = targetChunk.getBlock(localX, y, localZ);
+        byte oldState = targetChunk.getState(localX, y, localZ);
+
+        if (oldBlockId == newBlockId && oldState == newState) return;
+
+        targetChunk.setBlock(localX, y, localZ, newBlockId, newState);
+
+        Vector3i pos = new Vector3i(x, y, z);
+        eventBus.publish(new BlockChangeEvent(pos, oldBlockId, newBlockId, targetChunk));
+
+        int[][] dirs = {{0,1,0}, {0,-1,0}, {1,0,0}, {-1,0,0}, {0,0,1}, {0,0,-1}};
+        for (int[] dir : dirs) {
+            Vector3i nPos = new Vector3i(x + dir[0], y + dir[1], z + dir[2]);
+            eventBus.publish(new BlockNeighborUpdateEvent(nPos, pos, newBlockId));
+        }
+
+        Block placedBlock = BlockRegistry.get(newBlockId);
+        if (placedBlock != null) {
+            placedBlock.onNeighborChanged(this, x, y, z, new Vector3i(x, y - 1, z), oldBlockId);
+        }
+    }
     public void setBlockState(int x, int y, int z, BlockState state) {
         setBlockWithState(x, y, z, state.getBlock().getId(), state.getStateId());
     }
-
     public BlockState getBlockState(int x, int y, int z) {
         Chunk chunk = chunkManager.getChunkAtBlock(x, y, z);
         if (chunk == null) return BlockRegistry.AIR.getDefaultState();
@@ -253,7 +295,58 @@ public class World {
         int localZ = Math.floorMod(z, Chunk.SIZE);
         return chunk.getBlockState(localX, y, localZ);
     }
+    public byte getBlockAt(int x, int y, int z) {
+        Chunk c = chunkManager.getChunkAtBlock(x, y, z);
+        if (c == null) return 0;
+        return c.getBlock(Math.floorMod(x, Chunk.SIZE), y, Math.floorMod(z, Chunk.SIZE));
+    }
+    public byte getBlockAt(Vector3i pos) {
+        return getBlockAt(pos.x, pos.y, pos.z);
+    }
 
+    // Persistence
+    public void saveWorld() {
+        System.out.println("Autosave wird ausgeführt...");
+
+        WorldData wData = new WorldData();
+        wData.worldName = "MeineErsteWelt";
+        wData.seed = this.seed;
+        wData.timeOfDay = environment.getTimeOfDay();
+        storageManager.saveLevelMetadata(wData);
+
+        PlayerData pData = new PlayerData();
+        pData.x = player.position.x;
+        pData.y = player.position.y;
+        pData.z = player.position.z;
+        pData.yaw = player.getCamera().getYaw();
+        pData.pitch = player.getCamera().getPitch();
+
+        pData.selectedHotbarSlot = player.getInventory().getSelectedSlot();
+        pData.inventory = player.getInventory().exportToSavedData();
+
+        storageManager.savePlayerData("lokaler-spieler", pData);
+
+        // 3. Alle "Dirty" Chunks in die Speicher-Queue werfen
+        for (Chunk c : chunkManager.getLoadedChunks()) {
+            if (c.isDirty()) {
+                storageManager.queueChunkForSaving(c);
+            }
+        }
+    }
+
+    // Helper
+    public Vector3f findSafeSpawn(int x, int z) {
+        for (int y = Chunk.HEIGHT - 3; y > 0; y--) {
+            if (getBlockAt(x, y, z) != 0) {
+                if (getBlockAt(x, y + 1, z) == 0 && getBlockAt(x, y + 2, z) == 0) {
+                    return new Vector3f(x + 0.5f, y + 1.0f, z + 0.5f);
+                }
+            }
+        }
+        return new Vector3f(x, 30, z);
+    }
+
+    // Getter & Setter
     public long getSeed() {
         return seed;
     }
@@ -263,4 +356,26 @@ public class World {
     }
     public ChunkManager getChunkManager() { return chunkManager; }
     public Player getPlayer() { return player; }
+    public WorldStorageManager getStorageManager() {
+        return storageManager;
+    }
+    public Environment getEnvironment() {
+        return environment;
+    }
+
+    // Cleanup
+    public void cleanup() {
+        if (isCleanedUp) return;
+        isCleanedUp = true;
+
+        saveWorld();
+
+        if (storageManager != null) {
+            storageManager.shutdown();
+        }
+
+        if (chunkManager != null) {
+            chunkManager.cleanup();
+        }
+    }
 }

@@ -18,7 +18,6 @@ public class PlayerInteraction {
     private final Player player;
     private final VulkanContext vulkanContext;
     private final EventBus eventBus;
-    private final Inventory inventory;
 
     private Vector3i selectedBlockPos = null;
     private Vector3i adjacentBlockPos = null;
@@ -32,16 +31,15 @@ public class PlayerInteraction {
         this.player = player;
         this.vulkanContext = vulkanContext;
         this.eventBus = eventBus;
-        this.inventory = new Inventory();
     }
 
     public void update(InputManager input, float deltaTime) {
         if (input.isActionJustPressed("INVENTORY")) {
-            inventory.toggle();
-            eventBus.publish(new de.delautrer.game.events.InventoryToggleEvent(inventory.isOpen()));
+            player.getInventory().toggle();
+            eventBus.publish(new de.delautrer.game.events.InventoryToggleEvent(player.getInventory().isOpen()));
         }
 
-        if (inventory.isOpen()) return;
+        if (player.getInventory().isOpen()) return;
 
         // Raycast
         World.RaycastResult result = world.raycast(camera.getPosition(), camera.getFront(), 6.0f);
@@ -58,7 +56,7 @@ public class PlayerInteraction {
         // Tasten 1-9
         for (int i = 0; i < 9; i++) {
             if (input.isActionJustPressed("SLOT_" + (i + 1))) {
-                inventory.setSelectedSlot(i);
+                player.getInventory().setSelectedSlot(i);
                 eventBus.publish(new de.delautrer.game.events.HotbarSlotChangeEvent(i));
             }
         }
@@ -66,11 +64,11 @@ public class PlayerInteraction {
         // Mausrad
         double scroll = input.consumeScroll();
         if (scroll != 0) {
-            int newSlot = inventory.getSelectedSlot() - (int) Math.signum(scroll);
+            int newSlot = player.getInventory().getSelectedSlot() - (int) Math.signum(scroll);
             if (newSlot < 0) newSlot = 8;
             else if (newSlot > 8) newSlot = 0;
 
-            inventory.setSelectedSlot(newSlot);
+            player.getInventory().setSelectedSlot(newSlot);
             eventBus.publish(new de.delautrer.game.events.HotbarSlotChangeEvent(newSlot));
         }
 
@@ -78,10 +76,10 @@ public class PlayerInteraction {
         if (input.isActionJustPressed("PICK_BLOCK") && selectedBlockPos != null) {
             byte targetId = world.getBlockAt(selectedBlockPos);
             for (int i = 0; i < 9; i++) {
-                ItemStack stack = inventory.getStack(i);
+                ItemStack stack = player.getInventory().getStack(i);
                 if (stack != null && stack.type instanceof BlockItem) {
                     if (((BlockItem)stack.type).block.getId() == targetId) {
-                        inventory.setSelectedSlot(i);
+                        player.getInventory().setSelectedSlot(i);
                         eventBus.publish(new de.delautrer.game.events.HotbarSlotChangeEvent(i));
                         break;
                     }
@@ -110,7 +108,7 @@ public class PlayerInteraction {
             world.setBlock(selectedBlockPos, (byte) 0);
         } else {
             if (adjacentBlockPos == null) return;
-            ItemStack heldStack = inventory.getSelectedHotbarStack();
+            ItemStack heldStack = player.getInventory().getSelectedHotbarStack();
             if (heldStack == null) return;
 
             // Delegiert das Platzieren an das Item.
@@ -120,5 +118,5 @@ public class PlayerInteraction {
     }
 
     public Vector3i getSelectedBlockPos() { return selectedBlockPos; }
-    public Inventory getInventory() { return inventory; }
+    public Inventory getInventory() { return player.getInventory(); }
 }
