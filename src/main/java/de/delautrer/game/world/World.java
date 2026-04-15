@@ -3,11 +3,10 @@ package de.delautrer.game.world;
 import de.delautrer.engine.events.EventBus;
 import de.delautrer.engine.graphics.VulkanContext;
 import de.delautrer.engine.graphics.VulkanMesh;
-import de.delautrer.engine.input.InputManager;
-import de.delautrer.engine.player.Player;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.blocks.state.BlockState;
+import de.delautrer.game.entity.player.LocalPlayer;
 import de.delautrer.game.events.BlockChangeEvent;
 import de.delautrer.game.events.BlockNeighborUpdateEvent;
 import de.delautrer.game.items.ItemRegistry;
@@ -26,28 +25,25 @@ public class World {
     private final EventBus eventBus;
     private final ChunkManager chunkManager;
     private final TickScheduler tickScheduler;
-    private final Player player;
+    private final LocalPlayer localPlayer; // Nutzt jetzt den LocalPlayer!
     private final CloudSystem cloudSystem;
     private final WorldStorageManager storageManager;
     private final Environment environment;
 
     private final Vector3f worldSpawnpoint;
-
     private final long seed;
 
     private float autosaveTimer = 0;
     private final float AUTOSAVE_INTERVAL = 300.0f;
     private boolean isCleanedUp = false;
 
-    public World(VulkanContext context, Player player, EventBus eventBus, long defaultSeed) {
+    public World(VulkanContext context, LocalPlayer localPlayer, EventBus eventBus, long defaultSeed) {
         this.eventBus = eventBus;
-        this.player = player;
+        this.localPlayer = localPlayer;
         this.environment = new Environment();
 
-        // 1. Storage Manager initialisieren
         this.storageManager = new WorldStorageManager("MeineErsteWelt");
 
-        // 2. WELTDATEN LADEN (Seed & Zeit)
         WorldData wData = storageManager.loadLevelMetadata();
         if (wData != null) {
             this.seed = wData.seed;
@@ -64,51 +60,42 @@ public class World {
         this.tickScheduler = new TickScheduler(this);
         this.cloudSystem = new CloudSystem();
 
-        // 3. SPIELERDATEN LADEN (Position, Rotation & Inventar)
         PlayerData pData = storageManager.loadPlayerData("lokaler-spieler");
 
         if (pData != null) {
-            // Spieler existiert bereits -> Werte überschreiben
-            player.position.set(pData.x, pData.y, pData.z);
+            localPlayer.position.set(pData.x, pData.y, pData.z);
+            localPlayer.getCamera().setPitch(pData.pitch);
+            localPlayer.getCamera().setYaw(pData.yaw);
 
-            // Rotation
-            player.getCamera().setPitch(pData.pitch);
-            player.getCamera().setYaw(pData.yaw);
-
-            // Inventar wiederherstellen
-            if (player.getInventory() != null) {
-                player.getInventory().importFromSavedData(pData.inventory);
-                player.getInventory().setSelectedSlot(pData.selectedHotbarSlot);
+            if (localPlayer.getInventory() != null) {
+                localPlayer.getInventory().importFromSavedData(pData.inventory);
+                localPlayer.getInventory().setSelectedSlot(pData.selectedHotbarSlot);
             }
             System.out.println("Spielerdaten erfolgreich geladen!");
-
         } else {
-            // Neuer Spieler -> Sicheren Spawn suchen
             System.out.println("Neuer Spieler - Suche sicheren Spawn...");
-            player.position.set(worldSpawnpoint);
+            localPlayer.position.set(worldSpawnpoint);
 
-            // Hier könntest du dem Spieler auch Starter-Items geben
             int i = 0;
             for (de.delautrer.game.items.Item item : ItemRegistry.getAll().values()) {
-                player.getInventory().setStack(i++, new ItemStack(item, 64));
+                localPlayer.getInventory().setStack(i++, new ItemStack(item, 64));
                 if (i >= Inventory.TOTAL_SIZE) break;
             }
         }
 
-        // 4. Update anstoßen, damit die Chunks um den (geladenen) Spieler herum generiert werden
-        chunkManager.update(player.position.x, player.position.z);
+        chunkManager.update(localPlayer.position.x, localPlayer.position.z);
     }
 
-    // Core logic
-    public void update(InputManager input, Vector3f cameraFront, boolean isInventoryOpen, float deltaTime) {
-        player.update(input, chunkManager, cameraFront, isInventoryOpen, deltaTime);
-        chunkManager.update(player.position.x, player.position.z);
+    // ACHTUNG: Die Update-Signatur ist jetzt winzig! Die Welt kümmert sich nur um die Welt.
+    public void update(float deltaTime) {
+        chunkManager.update(localPlayer.position.x, localPlayer.position.z);
         tickScheduler.update(deltaTime);
         cloudSystem.update(deltaTime);
 
-        if (player.position.y < -50) {
-            player.position.set(findSafeSpawn((int)player.position.x, (int)player.position.z));
-            player.velocity.set(0);
+        // Fail-Safe, falls Spieler ins Nichts fällt
+        if (localPlayer.position.y < -50) {
+            localPlayer.position.set(findSafeSpawn((int)localPlayer.position.x, (int)localPlayer.position.z));
+            localPlayer.velocity.set(0);
         }
 
         chunkManager.getAsyncBuilder().uploadReadyMeshes(chunkManager);
@@ -120,7 +107,6 @@ public class World {
         }
     }
 
-    // Render Logic
     public List<VulkanMesh> getVisibleMeshes(Matrix4f mvp) {
         FrustumIntersection frustum = new FrustumIntersection(mvp);
         List<VulkanMesh> visibleMeshes = new ArrayList<>();
@@ -143,7 +129,6 @@ public class World {
         return visibleMeshes;
     }
 
-    // Raycat Logic
     public static class RaycastResult {
         public final Vector3i hitPos;
         public final Vector3i adjacentPos;
@@ -217,7 +202,6 @@ public class World {
         return null;
     }
 
-    // Blocks
     public void setBlock(int x, int y, int z, byte newBlockId) {
         if (y < 0 || y >= Chunk.HEIGHT) return;
 
@@ -230,14 +214,11 @@ public class World {
         byte oldBlockId = targetChunk.getBlock(localX, y, localZ);
         if (oldBlockId == newBlockId) return;
 
-        // 1. Blockdaten ändern
         targetChunk.setBlock(localX, y, localZ, newBlockId);
 
-        // 2. Zentrales Change-Event feuern (Licht & Renderer lauschen hier!)
         Vector3i pos = new Vector3i(x, y, z);
         eventBus.publish(new BlockChangeEvent(pos, oldBlockId, newBlockId, targetChunk));
 
-        // 3. Neighbor-Updates feuern (Oben, Unten, Nord, Süd, Ost, West)
         int[][] dirs = {{0,1,0}, {0,-1,0}, {1,0,0}, {-1,0,0}, {0,0,1}, {0,0,-1}};
         for (int[] dir : dirs) {
             org.joml.Vector3i nPos = new org.joml.Vector3i(x + dir[0], y + dir[1], z + dir[2]);
@@ -304,7 +285,6 @@ public class World {
         return getBlockAt(pos.x, pos.y, pos.z);
     }
 
-    // Persistence
     public void saveWorld() {
         System.out.println("Autosave wird ausgeführt...");
 
@@ -315,18 +295,17 @@ public class World {
         storageManager.saveLevelMetadata(wData);
 
         PlayerData pData = new PlayerData();
-        pData.x = player.position.x;
-        pData.y = player.position.y;
-        pData.z = player.position.z;
-        pData.yaw = player.getCamera().getYaw();
-        pData.pitch = player.getCamera().getPitch();
+        pData.x = localPlayer.position.x;
+        pData.y = localPlayer.position.y;
+        pData.z = localPlayer.position.z;
+        pData.yaw = localPlayer.getCamera().getYaw();
+        pData.pitch = localPlayer.getCamera().getPitch();
 
-        pData.selectedHotbarSlot = player.getInventory().getSelectedSlot();
-        pData.inventory = player.getInventory().exportToSavedData();
+        pData.selectedHotbarSlot = localPlayer.getInventory().getSelectedSlot();
+        pData.inventory = localPlayer.getInventory().exportToSavedData();
 
         storageManager.savePlayerData("lokaler-spieler", pData);
 
-        // 3. Alle "Dirty" Chunks in die Speicher-Queue werfen
         for (Chunk c : chunkManager.getLoadedChunks()) {
             if (c.isDirty()) {
                 storageManager.queueChunkForSaving(c);
@@ -334,7 +313,6 @@ public class World {
         }
     }
 
-    // Helper
     public Vector3f findSafeSpawn(int x, int z) {
         for (int y = Chunk.HEIGHT - 3; y > 0; y--) {
             if (getBlockAt(x, y, z) != 0) {
@@ -346,24 +324,14 @@ public class World {
         return new Vector3f(x, 30, z);
     }
 
-    // Getter & Setter
-    public long getSeed() {
-        return seed;
-    }
+    public long getSeed() { return seed; }
     public CloudSystem getCloudSystem() { return cloudSystem; }
-    public TickScheduler getTickScheduler() {
-        return tickScheduler;
-    }
+    public TickScheduler getTickScheduler() { return tickScheduler; }
     public ChunkManager getChunkManager() { return chunkManager; }
-    public Player getPlayer() { return player; }
-    public WorldStorageManager getStorageManager() {
-        return storageManager;
-    }
-    public Environment getEnvironment() {
-        return environment;
-    }
+    public LocalPlayer getPlayer() { return localPlayer; }
+    public WorldStorageManager getStorageManager() { return storageManager; }
+    public Environment getEnvironment() { return environment; }
 
-    // Cleanup
     public void cleanup() {
         if (isCleanedUp) return;
         isCleanedUp = true;

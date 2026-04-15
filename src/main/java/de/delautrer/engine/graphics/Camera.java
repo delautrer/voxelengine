@@ -1,4 +1,4 @@
-package de.delautrer.engine.player;
+package de.delautrer.engine.graphics;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;

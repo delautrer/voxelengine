@@ -2,7 +2,7 @@ package de.delautrer.engine;
 
 import de.delautrer.engine.graphics.*;
 import de.delautrer.engine.input.InputManager;
-import de.delautrer.engine.player.Camera;
+import de.delautrer.engine.graphics.Camera;
 import de.delautrer.engine.window.Window;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;

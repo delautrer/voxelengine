@@ -1,5 +1,6 @@
 package de.delautrer.game.items;
 
+import de.delautrer.game.entity.player.LocalPlayer;
 import de.delautrer.game.world.World;
 import de.delautrer.engine.player.Player;
 import de.delautrer.game.interaction.PlayerInteraction;
@@ -16,5 +17,5 @@ public abstract class Item {
 
     // targetBlock: Der Block, auf den man schaut
     // adjacentBlock: Die leere Position direkt vor dem anvisierten Block (wichtig fürs Platzieren)
-    public abstract void onUseRightClick(World world, Player player, Vector3i targetBlock, Vector3i adjacentBlock, PlayerInteraction interaction);
+    public abstract void onUseRightClick(World world, LocalPlayer localPlayer, Vector3i targetBlock, Vector3i adjacentBlock, PlayerInteraction interaction);
 }

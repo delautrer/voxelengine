@@ -2,8 +2,9 @@ package de.delautrer.game.interaction;
 
 import de.delautrer.engine.graphics.VulkanContext;
 import de.delautrer.engine.input.InputManager;
-import de.delautrer.engine.player.Camera;
+import de.delautrer.engine.graphics.Camera;
 import de.delautrer.engine.player.Player;
+import de.delautrer.game.entity.player.LocalPlayer;
 import de.delautrer.game.player.Inventory;
 import de.delautrer.game.world.World;
 import de.delautrer.game.items.ItemStack;
@@ -15,7 +16,7 @@ public class PlayerInteraction {
 
     private final World world;
     private final Camera camera;
-    private final Player player;
+    private final LocalPlayer player;
     private final VulkanContext vulkanContext;
     private final EventBus eventBus;
 
@@ -25,7 +26,7 @@ public class PlayerInteraction {
     private float interactTimer = 0.0f;
     private final float INTERACT_COOLDOWN = 0.2f; // Cooldown etwas flüssiger gemacht
 
-    public PlayerInteraction(World world, Camera camera, Player player, VulkanContext vulkanContext, EventBus eventBus) {
+    public PlayerInteraction(World world, Camera camera, LocalPlayer player, VulkanContext vulkanContext, EventBus eventBus) {
         this.world = world;
         this.camera = camera;
         this.player = player;

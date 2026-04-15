@@ -1,5 +1,6 @@
 package de.delautrer.engine.player;
 
+import de.delautrer.engine.graphics.Camera;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.engine.physics.AABB;
 import de.delautrer.game.blocks.BlockRegistry;
