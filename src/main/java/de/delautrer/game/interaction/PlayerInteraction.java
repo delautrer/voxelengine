@@ -1,16 +1,17 @@
 package de.delautrer.game.interaction;
 
+import de.delautrer.engine.events.EventBus;
 import de.delautrer.engine.graphics.VulkanContext;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.engine.graphics.Camera;
-import de.delautrer.engine.player.Player;
 import de.delautrer.game.entity.player.LocalPlayer;
+import de.delautrer.game.entity.player.Player;
 import de.delautrer.game.player.Inventory;
 import de.delautrer.game.world.World;
 import de.delautrer.game.items.ItemStack;
 import de.delautrer.game.items.BlockItem;
+import de.delautrer.engine.physics.Raycaster;
 import org.joml.Vector3i;
-import de.delautrer.engine.events.EventBus;
 
 public class PlayerInteraction {
 
@@ -24,7 +25,7 @@ public class PlayerInteraction {
     private Vector3i adjacentBlockPos = null;
 
     private float interactTimer = 0.0f;
-    private final float INTERACT_COOLDOWN = 0.2f; // Cooldown etwas flüssiger gemacht
+    private final float INTERACT_COOLDOWN = 0.2f;
 
     public PlayerInteraction(World world, Camera camera, LocalPlayer player, VulkanContext vulkanContext, EventBus eventBus) {
         this.world = world;
@@ -42,8 +43,8 @@ public class PlayerInteraction {
 
         if (player.getInventory().isOpen()) return;
 
-        // Raycast
-        World.RaycastResult result = world.raycast(camera.getPosition(), camera.getFront(), 6.0f);
+        // --- HIER IST DER FIX FÜR DEN RAYCASTER ---
+        Raycaster.RaycastResult result = Raycaster.raycast(world, camera.getPosition(), camera.getFront(), 6.0f);
         if (result != null) {
             selectedBlockPos = result.hitPos;
             adjacentBlockPos = result.adjacentPos;
@@ -112,8 +113,6 @@ public class PlayerInteraction {
             ItemStack heldStack = player.getInventory().getSelectedHotbarStack();
             if (heldStack == null) return;
 
-            // Delegiert das Platzieren an das Item.
-            // WICHTIG: Das BlockItem muss in 'onUseRightClick' jetzt ebenfalls 'world.setBlock()' aufrufen!
             heldStack.type.onUseRightClick(world, player, selectedBlockPos, adjacentBlockPos, this);
         }
     }

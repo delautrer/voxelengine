@@ -26,6 +26,9 @@ public class PlayScene extends Scene {
 
     private boolean uiNeedsRebuild = true;
 
+    private float autosaveTimer = 0;
+    private final float AUTOSAVE_INTERVAL = 300.0f;
+
     public PlayScene(Engine engine) {
         super(engine);
     }
@@ -104,7 +107,14 @@ public class PlayScene extends Scene {
         }
 
         world.getEnvironment().update(deltaTime);
-        world.update(deltaTime);
+        world.update(deltaTime, localPlayer);
+
+        autosaveTimer += deltaTime;
+        if (autosaveTimer >= AUTOSAVE_INTERVAL) {
+            System.out.println("Autosave wird ausgeführt...");
+            world.saveWorld(localPlayer);
+            autosaveTimer = 0;
+        }
 
         localPlayer.updateLocal(engine.getInputManager(), world.getChunkManager(), deltaTime);
         localPlayer.updateCamera(engine.getWindow().getHandle(), deltaTime);
@@ -135,7 +145,7 @@ public class PlayScene extends Scene {
 
     @Override
     public void cleanup() {
-        if (world != null) world.cleanup();
+        if (world != null) world.cleanup(localPlayer);
         if (masterRenderer != null) masterRenderer.cleanup();
     }
 }

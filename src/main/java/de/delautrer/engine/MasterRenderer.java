@@ -78,15 +78,17 @@ public class MasterRenderer {
         packet.view = view;
         packet.ortho = new Matrix4f().ortho(0.0f, renderer.getWidth(), renderer.getHeight(), 0.0f, -1.0f, 1.0f);
 
-        java.util.List<VulkanMesh> visible = world.getVisibleMeshes(mvp);
+        // --- HIER SIND DIE FIXES ---
+        java.util.List<VulkanMesh> visible = CullingUtils.getVisibleMeshes(world.getChunkManager(), mvp);
         packet.visibleMeshes = visible;
         lastVisibleChunkCount = visible.size();
 
         packet.cloudMesh = this.cloudMesh;
         packet.cloudOffset = world.getCloudSystem().getRenderOffset(
-                world.getPlayer().position.x,
-                world.getPlayer().position.z
+                camera.getPosition().x,
+                camera.getPosition().z
         );
+        // ---------------------------
 
         packet.uiMesh = uiRenderer.getGuiMesh();
         packet.guiTexture = guiTexture;
