@@ -1,19 +1,21 @@
 package de.delautrer.game.blocks;
 
 import de.delautrer.engine.Constants;
+import de.delautrer.game.blocks.state.BlockState;
+import de.delautrer.game.items.BlockItem;
+import org.joml.Vector3f;
+import org.joml.Vector3i;
+
 import java.util.HashMap;
 import java.util.Map;
 
 public class BlockRegistry {
-    // Lookup für Savegames (String)
     private static final Map<String, Block> BLOCKS = new HashMap<>();
 
-    // Extrem schneller Lookup für Chunks (byte)
     private static final Block[] BLOCKS_BY_ID = new Block[256];
 
     private static byte nextInternalId = 1; // 0 ist reserviert für AIR
 
-    // Spezialfall: AIR ist immer ID 0
     public static final Block AIR = registerAir();
 
     public static final Block GRASS_BLOCK = register("grass_block", new CubeBlock(true, false, 0, 1, 2));
@@ -26,7 +28,8 @@ public class BlockRegistry {
     public static final Block BEDROCK = register("bedrock", new CubeBlock(true, false, 8,8,8));
     public static final Block GRAVEL = register("gravel", new CubeBlock(true, false, 9,9,9));
     public static final Block SAND = register("sand", new CubeBlock(true, false, 10,10,10));
-    public static final Block LOG = register("log", new CubeBlock(true, false, 12, 11, 12));
+    public static final Block LOG = register("log", new LogBlock(12, 11));
+
     public static final Block GRASS = register("grass", new PlantBlock(13));
     public static final Block SANDY_GRASS = register("sandy_grass", new PlantBlock(14));
     public static final Block POPPY = register("poppy", new PlantBlock(15));
@@ -36,6 +39,12 @@ public class BlockRegistry {
     public static final Block RED_TULIP = register("red_tulip", new PlantBlock(19));
     public static final Block PURPLE_TULIP = register("purple_tulip", new PlantBlock(20));
 
+    public static final Block PLANKS = register("planks", new CubeBlock(true, false, 21, 21 ,21));
+    public static final Block STAIRS = register("stairs", new StairBlock(21,21,21));
+    public static final Block SLABS = register("slabs", new SlabBlock(21,21,21));
+
+    public static final Block MAVVINILIA = register("mavvinilia", new PlantBlock(22));
+
     public static void init() {
         System.out.println("BlockRegistry initialized. " + BLOCKS.size() + " Blocks loaded.");
     }
@@ -43,6 +52,9 @@ public class BlockRegistry {
     private static Block registerAir() {
         Block air = new Block(false, true, true, false) {
             @Override public void generateMesh(int x, int y, int z, de.delautrer.game.world.Chunk chunk, de.delautrer.game.world.ChunkManager cm) {}
+            @Override public boolean canBeReplaced(BlockState state, BlockItem item, Vector3i hitFace, Vector3f exactHit) {
+                return true;
+            }
         };
         air.setId((byte) 0);
         BLOCKS_BY_ID[0] = air;
@@ -60,7 +72,6 @@ public class BlockRegistry {
             throw new RuntimeException("Zu viele Blöcke registriert! (Maximal 255)");
         }
 
-        // Wir weisen dem Block seine interne Zahl zu!
         byte id = nextInternalId++;
         block.setId(id);
 

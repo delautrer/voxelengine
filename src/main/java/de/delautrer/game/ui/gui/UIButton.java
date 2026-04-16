@@ -31,9 +31,9 @@ public class UIButton extends UIElement {
         builder.addAtlasQuad(x, y, 0.0f, width, height, gridX, gridY, GRID_BUTTON_WIDTH, GRID_BUTTON_HEIGHT, MENU_GRID_SIZE, false);
 
         if (font != null) {
-            float textWidth = text.length() * 12.0f;
+            float textWidth = text.length() * (12.0f - 2f);
             float textX = x + (width - textWidth) / 2.0f;
-            float textY = y + (height - 24.0f) / 2.0f;
+            float textY = y + (height - 24.0f + 10f) / 2.0f;
 
             builder.drawText(text, textX, textY, 0.0f, font);
         }

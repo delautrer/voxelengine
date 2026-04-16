@@ -1,10 +1,14 @@
 package de.delautrer.game.blocks;
 
+import de.delautrer.engine.physics.AABB;
 import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.blocks.state.Property;
+import de.delautrer.game.entity.player.Player;
+import de.delautrer.game.items.BlockItem;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
 import de.delautrer.game.world.World;
+import org.joml.Vector3f;
 import org.joml.Vector3i;
 
 import java.util.*;
@@ -53,13 +57,6 @@ public abstract class Block {
         if (neighborBlock.getId() == 0) return true;
         if (this.isTransparent && this.getId() == neighborBlock.getId()) return false;
         return neighborBlock.isTransparent;
-    }
-
-    public float[] getHighlightVertices() {
-        return new float[]{ 0,0,0, 1,0,0, 1,1,0, 0,1,0, 0,0,1, 1,0,1, 1,1,1, 0,1,1 };
-    }
-    public int[] getHighlightIndices() {
-        return new int[]{ 0,1, 1,2, 2,3, 3,0, 4,5, 5,6, 6,7, 7,4, 0,4, 1,5, 2,6, 3,7 };
     }
 
     public abstract void generateMesh(int x, int y, int z, Chunk chunk, ChunkManager cm);
@@ -131,5 +128,54 @@ public abstract class Block {
     public BlockState getStateForId(byte id) {
         if (id >= 0 && id < stateArray.length) return stateArray[id];
         return defaultState;
+    }
+
+    public BlockState getStateForPlacement(World world, Player player, Vector3i hitPos, Vector3i hitFace, Vector3f exactHit){
+        return getDefaultState();
+    }
+
+    public boolean canBeReplaced(BlockState state, BlockItem item, Vector3i hitFace, Vector3f exactHit) {
+        return false;
+    }
+
+    public java.util.List<AABB> getBoundingBoxes(BlockState state) {
+        return java.util.List.of(new AABB(new org.joml.Vector3f(0,0,0), new org.joml.Vector3f(1,1,1)));
+    }
+
+    // Highlighter generiert sich jetzt AUTOMATISCH aus den BoundingBoxes!
+    public float[] getHighlightVertices(BlockState state) {
+        java.util.List<AABB> boxes = getBoundingBoxes(state);
+        float[] verts = new float[boxes.size() * 24];
+        int idx = 0;
+        for (AABB b : boxes) {
+            float[] boxVerts = {
+                    b.min.x, b.min.y, b.min.z,  b.max.x, b.min.y, b.min.z,  b.max.x, b.max.y, b.min.z,  b.min.x, b.max.y, b.min.z,
+                    b.min.x, b.min.y, b.max.z,  b.max.x, b.min.y, b.max.z,  b.max.x, b.max.y, b.max.z,  b.min.x, b.max.y, b.max.z
+            };
+            System.arraycopy(boxVerts, 0, verts, idx, 24);
+            idx += 24;
+        }
+        return verts;
+    }
+
+    public int[] getHighlightIndices(BlockState state) {
+        java.util.List<AABB> boxes = getBoundingBoxes(state);
+        int[] inds = new int[boxes.size() * 24];
+        int idx = 0;
+        for (int i = 0; i < boxes.size(); i++) {
+            int offset = i * 8;
+            int[] boxInds = {
+                    offset, offset+1, offset+1, offset+2, offset+2, offset+3, offset+3, offset,
+                    offset+4, offset+5, offset+5, offset+6, offset+6, offset+7, offset+7, offset+4,
+                    offset, offset+4, offset+1, offset+5, offset+2, offset+6, offset+3, offset+7
+            };
+            System.arraycopy(boxInds, 0, inds, idx, 24);
+            idx += 24;
+        }
+        return inds;
+    }
+
+    public boolean canWaterFlowInto() {
+        return false;
     }
 }

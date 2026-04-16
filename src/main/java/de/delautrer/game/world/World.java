@@ -150,6 +150,9 @@ public class World {
         if (chunk == null) return BlockRegistry.AIR.getDefaultState();
         return chunk.getBlockState(Math.floorMod(x, Chunk.SIZE), y, Math.floorMod(z, Chunk.SIZE));
     }
+    public BlockState getBlockState(Vector3i pos) {
+        return getBlockState(pos.x, pos.y, pos.z);
+    }
 
     public byte getBlockAt(int x, int y, int z) {
         Chunk c = chunkManager.getChunkAtBlock(x, y, z);

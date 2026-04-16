@@ -17,6 +17,8 @@ public class LocalPlayer extends Player {
     private PlayerInteraction interaction;
     private EventBus eventBus; // Neu: Brauchen wir für die Inventory-Events
 
+    private float cameraVisualYOffset = 0.0f;
+
     private final float jumpForce = 9.0f;
     private final float speed = 5.0f;
 
@@ -92,7 +94,16 @@ public class LocalPlayer extends Player {
         velocity.z = moveDir.z;
 
         // --- 3. PHYSIK & INTERAKTION ---
+        float prevY = position.y;
+
         super.update(deltaTime, chunkManager);
+
+        float deltaY = position.y - prevY;
+        if (deltaY > 0.0f && deltaY <= stepHeight && onGround) {
+            cameraVisualYOffset -= deltaY;
+        }
+
+        cameraVisualYOffset += (0.0f - cameraVisualYOffset) * 15.0f * deltaTime;
 
         if (interaction != null) {
             interaction.update(input, deltaTime);
@@ -100,10 +111,13 @@ public class LocalPlayer extends Player {
     }
 
     public void updateCamera(long windowHandle, float deltaTime) {
+        Vector3f smoothEyePos = new Vector3f(getEyePosition());
+        smoothEyePos.y += cameraVisualYOffset;
+
         if (!inventory.isOpen()) {
-            camera.update(windowHandle, deltaTime, getEyePosition());
+            camera.update(windowHandle, deltaTime, smoothEyePos);
         } else {
-            camera.setPosition(getEyePosition());
+            camera.setPosition(smoothEyePos);
         }
     }
 

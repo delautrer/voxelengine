@@ -19,17 +19,17 @@ public class PauseScreen extends MenuScreen {
         float centerY = height / 2.0f;
 
         // Button 1: Zurück zum Spiel
-        elements.add(new UIButton(centerX, centerY + 60, btnWidth, btnHeight, "Zurück zum Spiel", () -> {
+        elements.add(new UIButton(centerX, centerY + 60, btnWidth, btnHeight, "Back to the game", () -> {
             playScene.resumeGame();
         }));
 
         // Button 2: Optionen (Platzhalter)
-        elements.add(new UIButton(centerX, centerY, btnWidth, btnHeight, "Optionen", () -> {
+        elements.add(new UIButton(centerX, centerY, btnWidth, btnHeight, "Options", () -> {
             System.out.println("Optionen Menü kommt später!");
         }));
 
         // Button 3: Speichern & Beenden
-        elements.add(new UIButton(centerX, centerY - 60, btnWidth, btnHeight, "Speichern & zum Hauptmenü", () -> {
+        elements.add(new UIButton(centerX, centerY - 60, btnWidth, btnHeight, "Save & back to main menu", () -> {
             isSaving = true;
             elements.clear(); // Buttons ausblenden
             playScene.saveAndQuit();

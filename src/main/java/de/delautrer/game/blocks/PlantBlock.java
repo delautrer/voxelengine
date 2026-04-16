@@ -1,7 +1,12 @@
 package de.delautrer.game.blocks;
 
+import de.delautrer.engine.physics.AABB;
+import de.delautrer.game.blocks.state.BlockState;
+import de.delautrer.game.items.BlockItem;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
+import org.joml.Vector3f;
+import org.joml.Vector3i;
 
 public class PlantBlock extends Block {
 
@@ -74,5 +79,20 @@ public class PlantBlock extends Block {
                 slBottom, slBottom, sl, sl,
                 blBottom, blBottom, bl, bl
         );
+    }
+
+    @Override
+    public boolean canBeReplaced(BlockState state, BlockItem item, Vector3i hitFace, Vector3f exactHit) {
+        return true;
+    }
+
+    @Override
+    public java.util.List<AABB> getBoundingBoxes(BlockState state) {
+        return java.util.List.of(new AABB(new org.joml.Vector3f(4f/16f,0,4f/16f), new org.joml.Vector3f(12f/16f,8f/16f,12f/16f)));
+    }
+
+    @Override
+    public boolean canWaterFlowInto() {
+        return true;
     }
 }

@@ -6,6 +6,7 @@ import de.delautrer.engine.graphics.Camera;
 import de.delautrer.engine.window.Window;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
+import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.interaction.PlayerInteraction;
 import de.delautrer.game.ui.DebugOverlay;
 import de.delautrer.game.ui.UIRenderer;
@@ -104,7 +105,8 @@ public class MasterRenderer {
         if(selectedBlockPos != null) {
             byte selectedBlockId = world.getBlockAt(selectedBlockPos);
             Block block = BlockRegistry.get(selectedBlockId);
-            packet.highlightMesh = new VulkanMesh(vulkanContext, block.getHighlightVertices(), block.getHighlightIndices());
+            BlockState state = world.getBlockState(selectedBlockPos);
+            packet.highlightMesh = new VulkanMesh(vulkanContext, block.getHighlightVertices(state), block.getHighlightIndices(state));
         } else {
             packet.highlightMesh = highlightMesh;
         }

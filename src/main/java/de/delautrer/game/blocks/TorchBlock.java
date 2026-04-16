@@ -1,6 +1,7 @@
 package de.delautrer.game.blocks;
 
 import de.delautrer.engine.physics.AABB;
+import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
 import org.joml.Vector3f;
@@ -78,18 +79,13 @@ public class TorchBlock extends Block {
     }
 
     @Override
-    public float[] getHighlightVertices() {
-        return new float[]{
-                //   z, y, x
-                7f/16f, 0, 7f/16f,  // A
-                9f/16f, 0, 7f/16f,  // C
-                9f/16f, 10f/16f, 7f/16f,  // G
-                7f/16f, 10f/16f, 7f/16f,  // E
-                7f/16f, 0, 9f/16f,  // B
-                9f/16f, 0, 9f/16f,  // D
-                9f/16f, 10f/16f, 9f/16f,  // H
-                7f/16f, 10f/16f, 9f/16f,  // F
-        };
+    public java.util.List<AABB> getBoundingBoxes(BlockState state) {
+        return java.util.List.of(new AABB(new org.joml.Vector3f(7f/16f,0,7f/16f), new org.joml.Vector3f(9f/16f,10f/16f,9f/16f)));
+    }
+
+    @Override
+    public boolean canWaterFlowInto() {
+        return true;
     }
 
 }

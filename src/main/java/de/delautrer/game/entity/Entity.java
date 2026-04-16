@@ -2,9 +2,12 @@ package de.delautrer.game.entity;
 
 import de.delautrer.engine.physics.AABB;
 import de.delautrer.game.blocks.BlockRegistry;
+import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
 import org.joml.Vector3f;
+
+import java.util.List;
 
 public abstract class Entity {
     public Vector3f position;
@@ -16,24 +19,45 @@ public abstract class Entity {
     protected boolean onGround = false;
     protected float gravity = -28.0f;
 
+    // Wie hoch der Spieler automatisch steigen kann (0.6 reicht locker für 0.5f Slabs)
+    protected float stepHeight = 0.6f;
+
     public Entity(Vector3f spawnPosition) {
         this.position = new Vector3f(spawnPosition);
         this.velocity = new Vector3f(0, 0, 0);
     }
 
-    // Jede Entity muss definieren, wie sie sich updatet
     public abstract void update(float deltaTime, ChunkManager chunkManager);
 
-    // Ausgelagerte, allgemeine Physik- & Kollisionslogik
     protected void moveAndCollide(ChunkManager chunkManager, float deltaTime, boolean avoidFall) {
         // --- X-ACHSE BEWEGUNG ---
         float originalX = position.x;
         position.x += velocity.x * deltaTime;
 
         if (isColliding(chunkManager)) {
-            position.x = originalX;
-            velocity.x = 0;
-        } else if (avoidFall && onGround) { // Z.B. beim Sneaken
+            if (onGround) {
+                float originalY = position.y;
+                position.y += stepHeight; // Springe virtuell ganz nach oben
+
+                if (isColliding(chunkManager)) {
+                    // Hat nicht geklappt, Decke ist im Weg
+                    position.y = originalY;
+                    position.x = originalX;
+                    velocity.x = 0;
+                } else {
+                    // FIX: Wir sind über der Stufe. Jetzt "snappen" wir exakt auf die Kante runter!
+                    float step = stepHeight;
+                    for (int i = 0; i < 10; i++) {
+                        step /= 2;
+                        position.y -= step;
+                        if (isColliding(chunkManager)) position.y += step; // Zu weit runter? Wieder hoch!
+                    }
+                }
+            } else {
+                position.x = originalX;
+                velocity.x = 0;
+            }
+        } else if (avoidFall && onGround) {
             if (!wouldCollideIfMoved(chunkManager, 0, -0.05f, 0)) {
                 position.x = originalX;
                 velocity.x = 0;
@@ -45,8 +69,27 @@ public abstract class Entity {
         position.z += velocity.z * deltaTime;
 
         if (isColliding(chunkManager)) {
-            position.z = originalZ;
-            velocity.z = 0;
+            if (onGround) {
+                float originalY = position.y;
+                position.y += stepHeight;
+
+                if (isColliding(chunkManager)) {
+                    position.y = originalY;
+                    position.z = originalZ;
+                    velocity.z = 0;
+                } else {
+                    // FIX: Auch hier auf die Kante snappen!
+                    float step = stepHeight;
+                    for (int i = 0; i < 10; i++) {
+                        step /= 2;
+                        position.y -= step;
+                        if (isColliding(chunkManager)) position.y += step;
+                    }
+                }
+            } else {
+                position.z = originalZ;
+                velocity.z = 0;
+            }
         } else if (avoidFall && onGround) {
             if (!wouldCollideIfMoved(chunkManager, 0, -0.05f, 0)) {
                 position.z = originalZ;
@@ -54,7 +97,7 @@ public abstract class Entity {
             }
         }
 
-        // --- Y-ACHSE BEWEGUNG ---
+        // --- Y-ACHSE BEWEGUNG (Gravitation) ---
         onGround = false;
         float originalY = position.y;
         position.y += velocity.y * deltaTime;
@@ -63,7 +106,15 @@ public abstract class Entity {
             if (velocity.y < 0) {
                 onGround = true; // Wir sind gelandet
             }
+            // Die wichtigste Änderung für Slabs: Wir snappen exakt auf die Kante, nicht auf volle Blöcke!
+            // Ein einfacher Hack, der extrem gut funktioniert: Langsam herantasten (binary search artig)
             position.y = originalY;
+            float step = velocity.y * deltaTime;
+            for (int i = 0; i < 10; i++) {
+                step /= 2;
+                position.y += step;
+                if (isColliding(chunkManager)) position.y -= step;
+            }
             velocity.y = 0;
         }
     }
@@ -81,15 +132,31 @@ public abstract class Entity {
     }
 
     private boolean checkCollisionWithWorld(ChunkManager chunkManager, AABB bb) {
-        for (int x = (int)Math.floor(bb.min.x); x <= (int)Math.floor(bb.max.x); x++) {
-            for (int y = (int)Math.floor(bb.min.y); y <= (int)Math.floor(bb.max.y); y++) {
-                for (int z = (int)Math.floor(bb.min.z); z <= (int)Math.floor(bb.max.z); z++) {
+        int minX = (int)Math.floor(bb.min.x); int maxX = (int)Math.floor(bb.max.x);
+        int minY = (int)Math.floor(bb.min.y); int maxY = (int)Math.floor(bb.max.y);
+        int minZ = (int)Math.floor(bb.min.z); int maxZ = (int)Math.floor(bb.max.z);
+
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int z = minZ; z <= maxZ; z++) {
                     Chunk c = chunkManager.getChunkAtBlock(x, y, z);
+                    if (c == null) return true;
 
-                    if (c == null) return true; // Ungeladene Welt verhält sich wie eine Wand
+                    byte blockId = c.getBlock(Math.floorMod(x, Chunk.SIZE), y, Math.floorMod(z, Chunk.SIZE));
+                    if (blockId != 0 && !BlockRegistry.get(blockId).isPassable) {
 
-                    byte block = c.getBlock(Math.floorMod(x, Chunk.SIZE), y, Math.floorMod(z, Chunk.SIZE));
-                    if(block != 0 && !BlockRegistry.get(block).isPassable) return true;
+                        // HIER IST DIE MAGIE: Wir prüfen exakt gegen die Treppen/Slab-Hitboxen!
+                        BlockState state = c.getBlockState(Math.floorMod(x, Chunk.SIZE), y, Math.floorMod(z, Chunk.SIZE));
+                        List<AABB> boxes = BlockRegistry.get(blockId).getBoundingBoxes(state);
+
+                        for (AABB box : boxes) {
+                            AABB worldBox = new AABB(
+                                    new Vector3f(box.min).add(x, y, z),
+                                    new Vector3f(box.max).add(x, y, z)
+                            );
+                            if (AABB.isColliding(bb, worldBox)) return true;
+                        }
+                    }
                 }
             }
         }

@@ -1,11 +1,13 @@
 package de.delautrer.game.blocks;
 
 import de.delautrer.game.blocks.state.Property;
+import de.delautrer.game.items.BlockItem;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
 import de.delautrer.game.world.World;
 import de.delautrer.game.blocks.state.IntProperty;
 import de.delautrer.game.blocks.state.BlockState;
+import org.joml.Vector3f;
 import org.joml.Vector3i;
 
 import java.util.List;
@@ -23,6 +25,10 @@ public class WaterBlock extends Block {
     @Override
     protected void appendProperties(List<Property<?>> properties) {
         properties.add(LEVEL);
+    }
+
+    private boolean isWaterReplaceable(Block b) {
+        return b == BlockRegistry.AIR || b.canWaterFlowInto();
     }
 
     @Override
@@ -55,8 +61,8 @@ public class WaterBlock extends Block {
     private void tryFlow(World world, int x, int y, int z, int currentLevel) {
         BlockState blockBelow = world.getBlockState(x, y - 1, z);
 
-        // 1. Fallen hat höchste Priorität
-        if (blockBelow.getBlock() == BlockRegistry.AIR || (blockBelow.getBlock() == this && blockBelow.getValue(LEVEL) < 8)) {
+        // 1. Fallen hat höchste Priorität (Nutzt jetzt isWaterReplaceable)
+        if (isWaterReplaceable(blockBelow.getBlock()) || (blockBelow.getBlock() == this && blockBelow.getValue(LEVEL) < 8)) {
             world.setBlockState(x, y - 1, z, getDefaultState().with(LEVEL, 7));
             return;
         }
@@ -67,9 +73,10 @@ public class WaterBlock extends Block {
                 int nx = x + DIRS[i][0];
                 int nz = z + DIRS[i][1];
 
-                de.delautrer.game.blocks.Block nBlock = world.getBlockState(nx, y, nz).getBlock();
+                Block nBlock = world.getBlockState(nx, y, nz).getBlock();
 
-                if (nBlock == BlockRegistry.AIR) {
+                // Nutzt jetzt isWaterReplaceable
+                if (isWaterReplaceable(nBlock)) {
                     boolean canFlow = canFlowInto(world, x, y, z, i);
                     if (canFlow) {
                         world.setBlockState(nx, y, nz, getDefaultState().with(LEVEL, currentLevel - 1));
@@ -92,7 +99,7 @@ public class WaterBlock extends Block {
 
         if (sources >= 2) {
             BlockState blockBelow = world.getBlockState(x, y - 1, z);
-            if (blockBelow.getBlock() != BlockRegistry.AIR && blockBelow.getBlock() != this) {
+            if (!isWaterReplaceable(blockBelow.getBlock()) && blockBelow.getBlock() != this) {
                 return 8;
             }
         }
@@ -107,7 +114,8 @@ public class WaterBlock extends Block {
                 int ns = neighbor.getValue(LEVEL);
                 BlockState neighborBelow = world.getBlockState(nx, y - 1, nz);
 
-                boolean neighborIsFalling = (neighborBelow.getBlock() == BlockRegistry.AIR) ||
+                // Nutzt isWaterReplaceable
+                boolean neighborIsFalling = isWaterReplaceable(neighborBelow.getBlock()) ||
                         (neighborBelow.getBlock() == this && neighborBelow.getValue(LEVEL) < 8);
 
                 if (!neighborIsFalling) {
@@ -170,7 +178,7 @@ public class WaterBlock extends Block {
     private boolean isSolid(World world, int x, int y, int z) {
         if (y < 0 || y >= Chunk.HEIGHT) return true;
         Block b = world.getBlockState(x, y, z).getBlock();
-        return b != BlockRegistry.AIR && b != this;
+        return !isWaterReplaceable(b) && b != this;
     }
 
     private boolean canFallInto(World world, int x, int y, int z) {
@@ -178,7 +186,7 @@ public class WaterBlock extends Block {
         BlockState state = world.getBlockState(x, y, z);
         Block b = state.getBlock();
 
-        if (b == BlockRegistry.AIR) return true;
+        if (isWaterReplaceable(b)) return true;
         if (b == this && state.getValue(LEVEL) < 8) return true;
 
         return false;
@@ -233,7 +241,6 @@ public class WaterBlock extends Block {
         float lightTop = 1.0f, lightBot = 0.4f, lightFrontBack = 0.8f, lightLeftRight = 0.65f;
         int texLayer = 4;
 
-        // TOP
         Block topNeighbor = BlockRegistry.get(chunk.getBlockAt(x, y + 1, z, cm));
         boolean drawTop = shouldRenderFaceAgainst(topNeighbor, h, 1.0f);
         if (h < 0.99f) drawTop = true;
@@ -252,7 +259,6 @@ public class WaterBlock extends Block {
             chunk.addFace(x,yTop,z,1, x,yTop,z+1,1, x+1,yTop,z+1,1, x+1,yTop,z,1,0.0f, 0.0f, 1.0f, 1.0f, texLayer, lightTop, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
         }
 
-        // BOTTOM
         Block bottomNeighbor = BlockRegistry.get(chunk.getBlockAt(x, y - 1, z, cm));
         if (shouldRenderFaceAgainst(bottomNeighbor, h, 1.0f) && y > 0) {
             float sl0 = chunk.getSmoothSkyLight(x, y-1, z, -1, 0, 0, 0, 0, 1, cm);
@@ -268,7 +274,6 @@ public class WaterBlock extends Block {
             chunk.addFace(x,y,z+1,1, x,y,z,1, x+1,y,z,1, x+1,y,z+1,1,0.0f, 0.0f, 1.0f, 1.0f, texLayer, lightBot, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
         }
 
-        // Z PLUS (Front)
         Block zPlusNeighbor = BlockRegistry.get(chunk.getBlockAt(x, y, z + 1, cm));
         if (shouldRenderFaceAgainst(zPlusNeighbor, h, getWaterHeight(x, y, z + 1, chunk, cm))) {
             float sl0 = chunk.getSmoothSkyLight(x, y, z+1, -1, 0, 0, 0, -1, 0, cm);
@@ -284,7 +289,6 @@ public class WaterBlock extends Block {
             chunk.addFace(x,y,z+1,1, x+1,y,z+1,1, x+1,yTop,z+1,1, x,yTop,z+1,1,0.0f, 0.0f, 1.0f, 1.0f, texLayer, lightFrontBack, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
         }
 
-        // Z MINUS (Back)
         Block zMinusNeighbor = BlockRegistry.get(chunk.getBlockAt(x, y, z - 1, cm));
         if (shouldRenderFaceAgainst(zMinusNeighbor, h, getWaterHeight(x, y, z - 1, chunk, cm))) {
             float sl0 = chunk.getSmoothSkyLight(x, y, z-1, 1, 0, 0, 0, -1, 0, cm);
@@ -300,7 +304,6 @@ public class WaterBlock extends Block {
             chunk.addFace(x+1,y,z,1, x,y,z,1, x,yTop,z,1, x+1,yTop,z,1,0.0f, 0.0f, 1.0f, 1.0f, texLayer, lightFrontBack, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
         }
 
-        // X MINUS (Left)
         Block xMinusNeighbor = BlockRegistry.get(chunk.getBlockAt(x - 1, y, z, cm));
         if (shouldRenderFaceAgainst(xMinusNeighbor, h, getWaterHeight(x - 1, y, z, chunk, cm))) {
             float sl0 = chunk.getSmoothSkyLight(x-1, y, z, 0, -1, 0, 0, 0, -1, cm);
@@ -316,7 +319,6 @@ public class WaterBlock extends Block {
             chunk.addFace(x,y,z,1, x,y,z+1,1, x,yTop,z+1,1, x,yTop,z,1,0.0f, 0.0f, 1.0f, 1.0f, texLayer, lightLeftRight, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
         }
 
-        // X PLUS (Right)
         Block xPlusNeighbor = BlockRegistry.get(chunk.getBlockAt(x + 1, y, z, cm));
         if (shouldRenderFaceAgainst(xPlusNeighbor, h, getWaterHeight(x + 1, y, z, chunk, cm))) {
             float sl0 = chunk.getSmoothSkyLight(x+1, y, z, 0, -1, 0, 0, 0, 1, cm);
@@ -331,5 +333,9 @@ public class WaterBlock extends Block {
 
             chunk.addFace(x+1,y,z+1,1, x+1,y,z,1, x+1,yTop,z,1, x+1,yTop,z+1,1,0.0f, 0.0f, 1.0f, 1.0f, texLayer, lightLeftRight, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
         }
+    }
+
+    public boolean canBeReplaced(BlockState state, BlockItem item, Vector3i hitFace, Vector3f exactHit) {
+        return true;
     }
 }

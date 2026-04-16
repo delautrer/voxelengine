@@ -1,0 +1,88 @@
+package de.delautrer.game.blocks;
+
+import de.delautrer.engine.physics.AABB;
+import de.delautrer.game.blocks.state.BlockProperties.*;
+import de.delautrer.game.blocks.state.BlockState;
+import de.delautrer.game.blocks.state.EnumProperty;
+import de.delautrer.game.blocks.state.Property;
+import de.delautrer.game.entity.player.Player;
+import de.delautrer.game.world.Chunk;
+import de.delautrer.game.world.ChunkManager;
+import de.delautrer.game.world.World;
+import org.joml.Vector3f;
+import org.joml.Vector3i;
+import java.util.List;
+
+public class SlabBlock extends CubeBlock {
+    public static final EnumProperty<SlabType> TYPE = EnumProperty.create("type", SlabType.class);
+
+    public SlabBlock(int texTop, int texSide, int texBottom) {
+        super(true, true, texTop, texSide, texBottom);
+    }
+
+    @Override
+    protected void appendProperties(List<Property<?>> properties) { properties.add(TYPE); }
+
+    @Override
+    public boolean canBeReplaced(BlockState state, de.delautrer.game.items.BlockItem item, Vector3i hitFace, Vector3f exactHit) {
+        if (item.block != this) return false;
+        SlabType type = state.getValue(TYPE);
+        if (type == SlabType.DOUBLE) return false;
+        if (type == SlabType.BOTTOM && hitFace.y == 1) return true;
+        if (type == SlabType.TOP && hitFace.y == -1) return true;
+        float yFrac = exactHit.y - (float)Math.floor(exactHit.y);
+        if (type == SlabType.BOTTOM && yFrac >= 0.5f) return true;
+        if (type == SlabType.TOP && yFrac <= 0.5f) return true;
+        return false;
+    }
+
+    @Override
+    public BlockState getStateForPlacement(World world, Player player, Vector3i hitPos, Vector3i hitFace, Vector3f exactHit) {
+        BlockState currentState = world.getBlockState(hitPos.x, hitPos.y, hitPos.z);
+        if (currentState.getBlock() == this) return currentState.with(TYPE, SlabType.DOUBLE);
+        if (hitFace.y == 1) return getDefaultState().with(TYPE, SlabType.BOTTOM);
+        if (hitFace.y == -1) return getDefaultState().with(TYPE, SlabType.TOP);
+        float yFrac = exactHit.y - (float)Math.floor(exactHit.y);
+        return getDefaultState().with(TYPE, yFrac > 0.5f ? SlabType.TOP : SlabType.BOTTOM);
+    }
+
+    @Override
+    public void generateMesh(int x, int y, int z, Chunk chunk, ChunkManager cm) {
+        BlockState state = chunk.getBlockState(x, y, z);
+        SlabType type = state.getValue(TYPE);
+
+        if (type == SlabType.DOUBLE) renderBox(state, x, y, z, 0, 0, 0, 1, 1, 1, true, true, true, true, true, true, chunk, cm);
+        else if (type == SlabType.TOP) renderBox(state, x, y, z, 0, 0.5f, 0, 1, 1, 1, true, true, true, true, true, true, chunk, cm);
+        else renderBox(state, x, y, z, 0, 0, 0, 1, 0.5f, 1, true, true, true, true, true, true, chunk, cm);
+    }
+
+    /*
+    @Override
+    public float[] getHighlightVertices(BlockState state) {
+        SlabType type = state.getValue(TYPE);
+
+        float minY = (type == SlabType.TOP) ? 0.5f : 0.0f;
+        float maxY = (type == SlabType.BOTTOM) ? 0.5f : 1.0f;
+
+        return new float[]{
+                0,minY,0, 1,minY,0, 1,maxY,0, 0,maxY,0,
+                0,minY,1, 1,minY,1, 1,maxY,1, 0,maxY,1
+        };
+    }
+
+    @Override
+    public int[] getHighlightIndices(BlockState state) {
+        return new int[]{ 0,1, 1,2, 2,3, 3,0, 4,5, 5,6, 6,7, 7,4, 0,4, 1,5, 2,6, 3,7 };
+    }
+    */
+
+    @Override
+    public List<AABB> getBoundingBoxes(BlockState state) {
+        SlabType type = state.getValue(TYPE);
+        if (type == SlabType.DOUBLE) return List.of(new AABB(new Vector3f(0, 0, 0), new Vector3f(1, 1, 1)));
+
+        float minY = (type == SlabType.TOP) ? 0.5f : 0.0f;
+        float maxY = (type == SlabType.BOTTOM) ? 0.5f : 1.0f;
+        return List.of(new AABB(new Vector3f(0, minY, 0), new Vector3f(1, maxY, 1)));
+    }
+}
