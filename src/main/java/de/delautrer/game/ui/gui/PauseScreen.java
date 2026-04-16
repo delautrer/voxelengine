@@ -1,0 +1,51 @@
+package de.delautrer.game.ui.gui;
+
+import de.delautrer.game.states.PlayScene;
+
+public class PauseScreen extends MenuScreen {
+    private final PlayScene playScene;
+    public boolean isSaving = false;
+
+    public PauseScreen(PlayScene playScene) {
+        this.playScene = playScene;
+    }
+
+    @Override
+    protected void onInit() {
+        elements.clear();
+        float btnWidth = 320;
+        float btnHeight = 40;
+        float centerX = (width - btnWidth) / 2.0f;
+        float centerY = height / 2.0f;
+
+        // Button 1: Zurück zum Spiel
+        elements.add(new UIButton(centerX, centerY + 60, btnWidth, btnHeight, "Zurück zum Spiel", () -> {
+            playScene.resumeGame();
+        }));
+
+        // Button 2: Optionen (Platzhalter)
+        elements.add(new UIButton(centerX, centerY, btnWidth, btnHeight, "Optionen", () -> {
+            System.out.println("Optionen Menü kommt später!");
+        }));
+
+        // Button 3: Speichern & Beenden
+        elements.add(new UIButton(centerX, centerY - 60, btnWidth, btnHeight, "Speichern & zum Hauptmenü", () -> {
+            isSaving = true;
+            elements.clear(); // Buttons ausblenden
+            playScene.saveAndQuit();
+        }));
+    }
+
+    @Override
+    public void render(UIMeshBuilder builder, float mouseX, float mouseY) {
+        builder.addAtlasQuad(0, 0, 0, width, height, 15, 15, 1, 1, UIElement.MENU_GRID_SIZE, false);
+
+        if (isSaving) {
+            builder.drawText("Welt wird gespeichert...", width / 2.0f - 140, height / 2.0f, 0, font);
+        } else {
+            for (UIElement element : elements) {
+                element.render(builder, font, mouseX, mouseY);
+            }
+        }
+    }
+}

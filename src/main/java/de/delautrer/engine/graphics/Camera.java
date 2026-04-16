@@ -23,7 +23,8 @@ public class Camera {
     public void update(long windowHandle, float deltaTime, Vector3f playerPos) {
         this.position.set(playerPos);
 
-        boolean escPressed = GLFW.glfwGetKey(windowHandle, GLFW.GLFW_KEY_ESCAPE) == GLFW.GLFW_PRESS;
+        /*boolean escPressed = GLFW.glfwGetKey(windowHandle, GLFW.GLFW_KEY_ESCAPE) == GLFW.GLFW_PRESS;
+
 
         if (escPressed && !escPressedLastFrame) {
             cursorCaptured = !cursorCaptured;
@@ -34,7 +35,7 @@ public class Camera {
                 GLFW.glfwSetInputMode(windowHandle, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL);
             }
         }
-        escPressedLastFrame = escPressed;
+        escPressedLastFrame = escPressed;*/
 
         if (!cursorCaptured) {
             return;
@@ -79,15 +80,12 @@ public class Camera {
     public void resetMouseTracking() {
         this.firstMouse = true;
     }
-
     public Matrix4f getViewMatrix() {
         return new Matrix4f().lookAt(position, new Vector3f(position).add(front), up);
     }
-
     public void setPosition(Vector3f position) {
         this.position.set(position);
     }
-
     public Vector3f getPosition() {
         return position;
     }
@@ -109,4 +107,5 @@ public class Camera {
     public boolean isCursorCaptured() {
         return cursorCaptured;
     }
+
 }

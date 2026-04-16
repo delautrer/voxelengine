@@ -17,8 +17,8 @@ public class LocalPlayer extends Player {
     private PlayerInteraction interaction;
     private EventBus eventBus; // Neu: Brauchen wir für die Inventory-Events
 
-    private final float jumpForce = 9.0f;
-    private final float speed = 5.0f;
+    private final float jumpForce = 29.0f;
+    private final float speed = 25.0f;
 
     public LocalPlayer(Vector3f spawnPosition) {
         super(spawnPosition);

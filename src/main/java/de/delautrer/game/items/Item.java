@@ -2,7 +2,6 @@ package de.delautrer.game.items;
 
 import de.delautrer.game.entity.player.LocalPlayer;
 import de.delautrer.game.world.World;
-import de.delautrer.engine.player.Player;
 import de.delautrer.game.interaction.PlayerInteraction;
 import org.joml.Vector3i;
 

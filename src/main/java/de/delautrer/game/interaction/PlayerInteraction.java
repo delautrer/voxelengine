@@ -36,10 +36,9 @@ public class PlayerInteraction {
     }
 
     public void update(InputManager input, float deltaTime) {
-        // Wenn das Inventar offen ist, können wir nicht in der Welt interagieren
         if (player.getInventory().isOpen()) return;
 
-        // 1. Raycast (Was gucken wir an?)
+        // 1. Raycast
         Raycaster.RaycastResult result = Raycaster.raycast(world, camera.getPosition(), camera.getFront(), 6.0f);
         if (result != null) {
             selectedBlockPos = result.hitPos;

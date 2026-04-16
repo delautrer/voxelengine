@@ -38,6 +38,7 @@ public class InputManager {
         keyBindings.put("INVENTORY", GLFW.GLFW_KEY_E);
 
         keyBindings.put("DEBUG_MENU", GLFW.GLFW_KEY_F3);
+        keyBindings.put("PAUSE", GLFW.GLFW_KEY_ESCAPE);
 
         for (int i = 0; i < 9; i++) {
             keyBindings.put("SLOT_" + (i + 1), GLFW.GLFW_KEY_1 + i);

@@ -7,6 +7,8 @@ public abstract class UIElement {
     protected float width, height;
     protected boolean isVisible = true;
 
+    public static final float MENU_GRID_SIZE = 16.0f;
+
     public UIElement(float x, float y, float width, float height) {
         this.x = x;
         this.y = y;

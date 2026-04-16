@@ -1,16 +1,25 @@
 package de.delautrer.engine.states;
 
+import de.delautrer.engine.Engine;
+import org.lwjgl.vulkan.VK10;
+
 public class SceneManager {
     private Scene currentScene;
     private Scene nextScene;
+    private final Engine engine; // Wir brauchen die Engine hier
+
+    public SceneManager(Engine engine) {
+        this.engine = engine;
+    }
 
     public void changeScene(Scene newScene) {
         this.nextScene = newScene;
     }
 
     public void update(float deltaTime) {
-        // Szenenwechsel sicher durchführen
         if (nextScene != null) {
+            VK10.vkDeviceWaitIdle(engine.getVulkanContext().getDevice());
+
             if (currentScene != null) {
                 currentScene.cleanup();
             }

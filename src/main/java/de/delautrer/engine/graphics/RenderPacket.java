@@ -11,6 +11,7 @@ public class RenderPacket {
     public VulkanMesh highlightMesh;
     public VulkanMesh uiMesh;
     public VulkanMesh textMesh;
+    public VulkanMesh menuMesh;
 
     public Matrix4f cameraProj;
     public Matrix4f cameraView;
@@ -22,6 +23,7 @@ public class RenderPacket {
     public VulkanTexture fontTexture;
     public VulkanTextureArray worldTexture;
     public VulkanTexture guiTexture;
+    public VulkanTexture menuTexture;
 
     public Vector3i selectedBlockPos;
     public float globalLight, skyR, skyG, skyB;

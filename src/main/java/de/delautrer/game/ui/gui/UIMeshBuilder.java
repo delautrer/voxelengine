@@ -13,7 +13,7 @@ public class UIMeshBuilder {
     public final List<Float> textVerts = new ArrayList<>();
     public final List<Integer> textInds = new ArrayList<>();
 
-    private static final float GRID_SIZE = 9.0f;
+    private static final float DEFAULT_GRID = 9.0f;
 
     public void clear() {
         guiVerts.clear(); guiInds.clear();
@@ -25,17 +25,17 @@ public class UIMeshBuilder {
         int idx = stack.type.iconIndex;
         int gridX = idx % 9;
         int gridY = 3 + (idx / 9);
-        addAtlasQuad(x, y, z, size, size, gridX, gridY, 1, 1, true);
+        addAtlasQuad(x, y, z, size, size, gridX, gridY, 1, 1, DEFAULT_GRID, true);
     }
 
-    public void addAtlasQuad(float x, float y, float z, float w, float h, int gridX, int gridY, int gridW, int gridH, boolean flipV) {
+    public void addAtlasQuad(float x, float y, float z, float w, float h, int gridX, int gridY, int gridW, int gridH, float gridSize, boolean flipV) {
         int offset = guiVerts.size() / 8;
         float epsilon = 0.0005f;
 
-        float u0 = (float) gridX / GRID_SIZE + epsilon;
-        float v0 = (float) gridY / GRID_SIZE + epsilon;
-        float u1 = (float) (gridX + gridW) / GRID_SIZE - epsilon;
-        float v1 = (float) (gridY + gridH) / GRID_SIZE - epsilon;
+        float u0 = (float) gridX / gridSize + epsilon;
+        float v0 = (float) gridY / gridSize + epsilon;
+        float u1 = (float) (gridX + gridW) / gridSize - epsilon;
+        float v1 = (float) (gridY + gridH) / gridSize - epsilon;
 
         float finalV0 = flipV ? v1 : v0;
         float finalV1 = flipV ? v0 : v1;
@@ -47,6 +47,10 @@ public class UIMeshBuilder {
                 x, y + h, z, 1.0f, 1.0f, 1.0f, u0, finalV1
         ));
         guiInds.addAll(List.of(offset, offset + 1, offset + 2, offset + 2, offset + 3, offset));
+    }
+
+    public void addAtlasQuad(float x, float y, float z, float w, float h, int gridX, int gridY, int gridW, int gridH, boolean flipV) {
+        addAtlasQuad(x, y, z, w, h, gridX, gridY, gridW, gridH, DEFAULT_GRID, flipV);
     }
 
     public void drawText(String text, float startX, float startY, float z, VulkanFont font) {

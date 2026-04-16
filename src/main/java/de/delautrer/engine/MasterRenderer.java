@@ -25,6 +25,7 @@ public class MasterRenderer {
 
     private VulkanTextureArray worldTexture;
     private VulkanTexture guiTexture;
+    private VulkanTexture menuTexture;
     private VulkanTexture fontTexture;
     private VulkanMesh highlightMesh;
     private VulkanMesh cloudMesh;
@@ -44,6 +45,7 @@ public class MasterRenderer {
     private void initResources() {
         worldTexture = new VulkanTextureArray(vulkanContext, renderer.getCommandBuffers(), renderer.getGraphicsLayout(), "texture.png");
         guiTexture = new VulkanTexture(vulkanContext, renderer.getCommandBuffers(), renderer.getUiLayout(), "gui.png");
+        menuTexture = new VulkanTexture(vulkanContext, renderer.getCommandBuffers(), renderer.getUiLayout(), "menu_gui.png");
 
         font = new VulkanFont("MinecraftRegular-Bmg3.otf", 24.0f);
         if (font.getRgbaPixels() != null) {
@@ -57,11 +59,11 @@ public class MasterRenderer {
         this.cloudMesh = new VulkanMesh(vulkanContext, data.vertices, data.indices);
     }
 
-    public void rebuildUI(PlayerInteraction interaction, InputManager input, DebugOverlay debugOverlay) {
+    public void rebuildUI(PlayerInteraction interaction, InputManager input, DebugOverlay debugOverlay, de.delautrer.game.ui.gui.MenuScreen pauseScreen) {
         uiRenderer.rebuildMesh(
                 renderer.getWidth(), renderer.getHeight(),
                 input, interaction, input.getMouseX(), input.getMouseY(),
-                debugOverlay, font
+                debugOverlay, font, pauseScreen
         );
     }
 
@@ -90,8 +92,10 @@ public class MasterRenderer {
         );
         // ---------------------------
 
-        packet.uiMesh = uiRenderer.getGuiMesh();
         packet.guiTexture = guiTexture;
+        packet.menuTexture = menuTexture;
+        packet.uiMesh = uiRenderer.getGuiMesh();
+        packet.menuMesh = uiRenderer.getMenuMesh();
         packet.textMesh = uiRenderer.getTextMesh();
         packet.fontTexture = fontTexture;
         packet.worldTexture = worldTexture;
@@ -114,9 +118,9 @@ public class MasterRenderer {
         return renderer.render(packet);
     }
 
-    public void recreate(PlayerInteraction interaction, InputManager input, DebugOverlay debugOverlay) {
+    public void recreate(PlayerInteraction interaction, InputManager input, DebugOverlay debugOverlay, de.delautrer.game.ui.gui.MenuScreen pauseScreen) {
         renderer.recreate(window);
-        rebuildUI(interaction, input, debugOverlay);
+        rebuildUI(interaction, input, debugOverlay, pauseScreen);
     }
 
     public int getLastVisibleChunkCount() { return lastVisibleChunkCount; }
@@ -130,5 +134,9 @@ public class MasterRenderer {
         if (highlightMesh != null) highlightMesh.cleanup();
         if (font != null) font.cleanup();
         if (renderer != null) renderer.cleanup();
+    }
+
+    public VulkanFont getFont() {
+        return font;
     }
 }

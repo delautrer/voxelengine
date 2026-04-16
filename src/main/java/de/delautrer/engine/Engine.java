@@ -5,6 +5,7 @@ import de.delautrer.engine.graphics.VulkanContext;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.engine.states.SceneManager;
 import de.delautrer.engine.window.Window;
+import de.delautrer.game.states.MainMenuScene;
 import de.delautrer.game.states.PlayScene;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.vulkan.VK10;
@@ -19,7 +20,7 @@ public class Engine {
     private SceneManager sceneManager;
 
     private float lastFrame = 0.0f;
-    private int currentFps = 0; // Für die Debug-Anzeige
+    private int currentFps = 0;
 
     public void run() {
         init();
@@ -35,8 +36,9 @@ public class Engine {
         eventBus = new EventBus();
         inputManager = new InputManager(window.getHandle());
 
-        sceneManager = new SceneManager();
-        sceneManager.changeScene(new PlayScene(this));
+        sceneManager = new SceneManager(this);
+        //sceneManager.changeScene(new PlayScene(this));
+        sceneManager.changeScene(new MainMenuScene(this));
     }
 
     private void loop() {
@@ -74,6 +76,9 @@ public class Engine {
     }
 
     // --- GETTER FÜR DIE SZENEN ---
+    public SceneManager getSceneManager() {
+        return sceneManager;
+    }
     public Window getWindow() { return window; }
     public VulkanContext getVulkanContext() { return vulkanContext; }
     public EventBus getEventBus() { return eventBus; }
