@@ -22,11 +22,12 @@ public class TerrainPass implements IGenerationPass {
 
     @Override
     public void process(Chunk chunk, long seed, int[][] heightMap) {
-        if (elevationNoise == null) {
+        if (elevationNoise == null)
             elevationNoise = new NoiseGenerator(seed);
+        if (roughnessNoise == null)
             roughnessNoise = new NoiseGenerator(seed * 2);
+        if (detailNoise == null)
             detailNoise = new NoiseGenerator(seed * 3);
-        }
 
         int worldX = chunk.getWorldX();
         int worldZ = chunk.getWorldZ();

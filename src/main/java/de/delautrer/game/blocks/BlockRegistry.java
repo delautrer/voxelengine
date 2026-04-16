@@ -31,6 +31,10 @@ public class BlockRegistry {
     public static final Block SANDY_GRASS = register("sandy_grass", new PlantBlock(14));
     public static final Block POPPY = register("poppy", new PlantBlock(15));
     public static final Block DANDELION = register("dandelion", new PlantBlock(16));
+    public static final Block DOTTY = register("dotty", new PlantBlock(17));
+    public static final Block FAIRY_BELL = register("fairy_bell", new PlantBlock(18));
+    public static final Block RED_TULIP = register("red_tulip", new PlantBlock(19));
+    public static final Block PURPLE_TULIP = register("purple_tulip", new PlantBlock(20));
 
     public static void init() {
         System.out.println("BlockRegistry initialized. " + BLOCKS.size() + " Blocks loaded.");

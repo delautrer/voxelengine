@@ -24,14 +24,14 @@ public class World {
     private final WorldStorageManager storageManager;
     private final Environment environment;
 
-    private final Vector3f worldSpawnpoint;
+    private Vector3f worldSpawnpoint;
     private final long seed;
     private boolean isCleanedUp = false;
 
     public World(VulkanContext context, LocalPlayer localPlayer, EventBus eventBus, long defaultSeed) {
         this.eventBus = eventBus;
-        this.environment = new Environment();
         this.storageManager = new WorldStorageManager("MeineErsteWelt");
+        this.environment = new Environment();
 
         WorldData wData = storageManager.loadLevelMetadata();
         if (wData != null) {
@@ -40,10 +40,11 @@ public class World {
             this.worldSpawnpoint = wData.worldSpawnpoint;
         } else {
             this.seed = defaultSeed;
-            this.worldSpawnpoint = findSafeSpawn(0, 0);
         }
-
         this.chunkManager = new ChunkManager(this, context);
+        if(worldSpawnpoint == null)
+            this.worldSpawnpoint = findSafeSpawn(0, 0);
+
         this.tickScheduler = new TickScheduler(this);
         this.cloudSystem = new CloudSystem();
 

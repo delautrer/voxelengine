@@ -4,7 +4,7 @@ import org.joml.Vector3f;
 
 public class Environment {
     private float timeOfDay = 0.0f; // 0.0 = Mittag
-    private float timeSpeed = 0.1f; // Langsamere Zeit für besseres Feeling
+    private float timeSpeed = 0.0f; // Langsamere Zeit für besseres Feeling
 
     private final Vector3f colorDay = new Vector3f(0.4f, 0.7f, 1.0f);
     private final Vector3f colorSunrise = new Vector3f(1.0f, 0.4f, 0.1f); // Satteres Orange
@@ -32,7 +32,6 @@ public class Environment {
     private void updateSkyAndLight() {
         float h = sunDirection.y;
 
-        // Die Schwellenwerte sind jetzt viel enger beieinander (0.1 statt 0.2)
         if (h > 0.1f) {
             // Tag
             currentSkyColor.set(colorDay);
@@ -49,7 +48,7 @@ public class Environment {
             // Dämmerung (Sonne weg, Himmel glüht nach)
             float blend = (h + 0.1f) / 0.1f;
             colorNight.lerp(colorSunrise, blend, currentSkyColor);
-            globalLightIntensity = 0.01f; // In der Dämmerung schon fast Nacht-Dunkelheit
+            globalLightIntensity = 0.05f; // In der Dämmerung schon fast Nacht-Dunkelheit
         }
         else {
             // Nacht

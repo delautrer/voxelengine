@@ -79,6 +79,7 @@ public class ChunkManager {
 
                         } catch (Exception e) {
                             System.err.println("Fehler beim Chunk-Laden: " + e.getMessage());
+                            e.printStackTrace();
                             chunksLoading.remove(pos);
                         }
                     });

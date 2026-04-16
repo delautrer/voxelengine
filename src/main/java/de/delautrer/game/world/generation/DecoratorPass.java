@@ -1,5 +1,6 @@
 package de.delautrer.game.world.generation;
 
+import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.world.Biome;
@@ -19,6 +20,11 @@ public class DecoratorPass implements IGenerationPass {
     private final BlockState sandyGrass = BlockRegistry.SANDY_GRASS.getDefaultState();
     private final BlockState poppy = BlockRegistry.POPPY.getDefaultState();
     private final BlockState dandelion = BlockRegistry.DANDELION.getDefaultState();
+    private final BlockState dotty = BlockRegistry.DOTTY.getDefaultState();
+    private final BlockState fairy_bell = BlockRegistry.FAIRY_BELL.getDefaultState();
+    private final BlockState red_tulip = BlockRegistry.RED_TULIP.getDefaultState();
+    private final BlockState purple_tulip = BlockRegistry.PURPLE_TULIP.getDefaultState();
+
     private final BlockState log = BlockRegistry.LOG.getDefaultState();
     private final BlockState leaves = BlockRegistry.LEAVES.getDefaultState();
 
@@ -80,8 +86,12 @@ public class DecoratorPass implements IGenerationPass {
                             float plantType = treeRandom.nextFloat();
                             BlockState plantToPlace;
 
-                            if (plantType < 0.02f) plantToPlace = poppy;
-                            else if (plantType < 0.04f) plantToPlace = dandelion;
+                            if (plantType < 0.0075f)     plantToPlace = dotty;
+                            else if (plantType < 0.015f) plantToPlace = fairy_bell;
+                            else if (plantType < 0.02f) plantToPlace = poppy;
+                            else if (plantType < 0.04f) plantToPlace = red_tulip;
+                            else if (plantType < 0.055f) plantToPlace = purple_tulip;
+                            else if (plantType < 0.07f) plantToPlace = dandelion;
                             else plantToPlace = grass;
 
                             chunk.setBlock(x, y + 1, z, plantToPlace.getBlock().getId(), plantToPlace.getStateId());
