@@ -24,9 +24,16 @@ public abstract class MenuScreen extends Screen {
     }
 
     public void handleMenuInput(InputManager input, float uiMouseX, float uiMouseY) {
+        List<UIElement> elementsCopy = new ArrayList<>(elements);
+
+        for (UIElement element : elementsCopy) {
+            if (element instanceof UIScrollableList) {
+                ((UIScrollableList) element).handleInput(input, uiMouseX, uiMouseY);
+            }
+        }
+
         // --- 1. MAUS-KLICKS (Fokus setzen & Buttons klicken) ---
         if (input.isActionJustPressed("INTERACT_BREAK")) {
-            List<UIElement> elementsCopy = new ArrayList<>(elements);
             boolean clickHandled = false;
 
             for (UIElement element : elementsCopy) {

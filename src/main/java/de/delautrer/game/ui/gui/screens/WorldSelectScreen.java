@@ -112,8 +112,8 @@ public class WorldSelectScreen extends MenuScreen {
         UIButton createBtn = new UIButton(centerX + 10, centerY - 110.0f, 190, 40, "Create", () -> {
             String worldName = nameInput.getText().isEmpty() ? "New World" : nameInput.getText();
             String safeFolderName = WorldStorageManager.getUniqueValidFolderName(worldName);
-            String seedStr = seedInput.getText();
-            long seed = seedStr.isEmpty() ? (long)(Math.random() * Long.MAX_VALUE) : seedStr.hashCode();
+            String seedStr = seedInput.getText().replaceAll("[^0-9]", "");;
+            long seed = seedStr.isEmpty() ? (long)(Math.random() * Long.MAX_VALUE) : Long.valueOf(seedStr);
 
             engine.getSceneManager().changeScene(new PlayScene(engine, worldName, seed));
         });

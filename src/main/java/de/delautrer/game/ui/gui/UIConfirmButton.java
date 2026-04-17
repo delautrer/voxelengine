@@ -43,7 +43,6 @@ public class UIConfirmButton extends UIElement {
         if (!isVisible) return;
         updateHoverState(mouseX, mouseY);
 
-        // Hintergrund (Wenn er auf Bestätigung wartet, malen wir ein rotes Rechteck, sonst normale Textur)
         if (isWaitingForConfirm) {
             builder.addRect(x, y, 0.1f, width, height, 0.8f, 0.2f, 0.2f, 1.0f); // Rot
         } else {
@@ -52,7 +51,6 @@ public class UIConfirmButton extends UIElement {
             int gridX = hovered ? GRID_X_HOVER : GRID_X_NORMAL;
             int gridY = hovered ? GRID_Y_HOVER : GRID_Y_NORMAL;
 
-            //builder.addAtlasQuad(x, y, 0.0f, width, height, gridX, gridY, GRID_BUTTON_WIDTH, GRID_BUTTON_HEIGHT, MENU_GRID_SIZE, false);
             builder.add9Slice(x, y, 0.1f, width, height, gridX, gridY, CORNER_SIZE);
         }
 

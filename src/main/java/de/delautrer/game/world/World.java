@@ -44,6 +44,12 @@ public class World {
             this.worldSpawnpoint = wData.worldSpawnpoint;
         } else {
             this.seed = defaultSeed;
+
+            WorldData saveWData = new WorldData();
+            saveWData.worldName = worldName;
+            saveWData.seed = this.seed;
+            saveWData.timeOfDay = environment.getTimeOfDay();
+            storageManager.saveLevelMetadata(saveWData);
         }
         this.chunkManager = new ChunkManager(this, context);
 
