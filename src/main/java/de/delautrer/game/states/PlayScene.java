@@ -10,6 +10,7 @@ import de.delautrer.game.events.DebugToggleEvent;
 import de.delautrer.game.events.HotbarSlotChangeEvent;
 import de.delautrer.game.events.InventoryToggleEvent;
 import de.delautrer.game.ui.DebugOverlay;
+import de.delautrer.game.ui.gui.LoadingScreen;
 import de.delautrer.game.ui.gui.MenuScreen;
 import de.delautrer.game.ui.gui.PauseScreen;
 import de.delautrer.game.world.Biome;
@@ -27,11 +28,14 @@ public class PlayScene extends Scene {
     private DebugOverlay debugOverlay;
 
     private PauseScreen pauseScreen;
+    private LoadingScreen loadingScreen;
+
     private boolean isPaused = false;
     private boolean isSavingAndQuitting = false;
     private int saveWaitFrames = 18;
 
     private boolean uiNeedsRebuild = true;
+    private boolean wasLoading = true;
 
     private float autosaveTimer = 0;
     private final float AUTOSAVE_INTERVAL = 300.0f;
@@ -48,6 +52,10 @@ public class PlayScene extends Scene {
         pauseScreen = new PauseScreen(this);
         pauseScreen.init(engine.getWindow().getWidth(), engine.getWindow().getHeight());
         pauseScreen.setFont(masterRenderer.getFont());
+
+        loadingScreen = new LoadingScreen();
+        loadingScreen.init(engine.getWindow().getWidth(), engine.getWindow().getHeight());
+        loadingScreen.setFont(masterRenderer.getFont());
 
         localPlayer = new LocalPlayer(new Vector3f(8.0f, 20.0f, 8.0f));
         engine.getWindow().disableCursor();
@@ -133,6 +141,7 @@ public class PlayScene extends Scene {
             else {
                 engine.getWindow().disableCursor();
                 localPlayer.getCamera().resetMouseTracking();
+                localPlayer.getInteraction().resetCooldown();
             }
         });
         eventBus.subscribe(HotbarSlotChangeEvent.class, event -> uiNeedsRebuild = true);
@@ -141,33 +150,43 @@ public class PlayScene extends Scene {
 
     @Override
     public void update(float deltaTime) {
-        // 1. Speichern & Beenden Sequenz
+        // --- 0. LADEBILDSCHIRM LOGIK ---
+        if (!world.getChunkManager().isInitialLoadComplete()) {
+            world.getChunkManager().update(localPlayer.position.x, localPlayer.position.z);
+            float progress = world.getChunkManager().getLoadingProgress(localPlayer.position.x, localPlayer.position.z);
+
+            loadingScreen.setProgress(progress);
+            uiNeedsRebuild = true;
+            return;
+        } else if (wasLoading) {
+            wasLoading = false;
+            uiNeedsRebuild = true;
+        }
+
+        // --- 1. SPEICHERN & BEENDEN ---
         if (isSavingAndQuitting) {
             saveWaitFrames--;
             if (saveWaitFrames <= 0) {
-                // Wirft uns ins Hauptmenü. Der SceneManager ruft automatisch
-                // PlayScene.cleanup() auf, was die Welt sicher auf der Festplatte speichert!
                 engine.getSceneManager().changeScene(new MainMenuScene(engine));
             }
             uiNeedsRebuild = true;
-            return; // Nichts anderes mehr updaten
+            return;
         }
 
-        // 2. Escape-Taste prüft Pause (Vorausgesetzt du hast "PAUSE" in deinem InputManager registriert!)
+        // --- 2. PAUSE LOGIK ---
         if (engine.getInputManager().isActionJustPressed("PAUSE")) {
             if (isPaused) resumeGame();
             else pauseGame();
         }
 
-        // 3. Pausen-Status
         if (isPaused) {
             float uiMouseY = engine.getWindow().getHeight() - engine.getInputManager().getMouseY();
             pauseScreen.handleMenuInput(engine.getInputManager(), engine.getInputManager().getMouseX(), uiMouseY);
-            uiNeedsRebuild = true; // Permanent neu bauen für Hover-Effekte
-            return; // WICHTIG: Überspringt das World-Update! Das Spiel friert ein.
+            uiNeedsRebuild = true;
+            return;
         }
 
-        // --- NORMALES SPIEL ---
+        // --- 3. NORMALES SPIEL ---
         if (engine.getInputManager().isActionJustPressed("DEBUG_MENU")) {
             debugOverlay.toggle();
             engine.getEventBus().publish(new DebugToggleEvent(debugOverlay.isVisible()));
@@ -193,7 +212,14 @@ public class PlayScene extends Scene {
     @Override
     public void render() {
         if (uiNeedsRebuild) {
-            MenuScreen activeScreen = (isPaused || isSavingAndQuitting) ? pauseScreen : null;
+            MenuScreen activeScreen = null;
+
+            if (!world.getChunkManager().isInitialLoadComplete()) {
+                activeScreen = loadingScreen;
+            } else if (isPaused || isSavingAndQuitting) {
+                activeScreen = pauseScreen;
+            }
+
             masterRenderer.rebuildUI(localPlayer.getInteraction(), engine.getInputManager(), debugOverlay, activeScreen);
             uiNeedsRebuild = false;
         }
@@ -205,9 +231,16 @@ public class PlayScene extends Scene {
 
     @Override
     public void onResize() {
-        MenuScreen activeScreen = (isPaused || isSavingAndQuitting) ? pauseScreen : null;
+        MenuScreen activeScreen = null;
+        if (!world.getChunkManager().isInitialLoadComplete()) {
+            activeScreen = loadingScreen;
+        } else if (isPaused || isSavingAndQuitting) {
+            activeScreen = pauseScreen;
+        }
+
         masterRenderer.recreate(localPlayer.getInteraction(), engine.getInputManager(), debugOverlay, activeScreen);
         pauseScreen.init(engine.getWindow().getWidth(), engine.getWindow().getHeight());
+        loadingScreen.init(engine.getWindow().getWidth(), engine.getWindow().getHeight());
         uiNeedsRebuild = true;
     }
 
@@ -230,6 +263,8 @@ public class PlayScene extends Scene {
             engine.getWindow().disableCursor();
         }
         uiNeedsRebuild = true;
+
+        localPlayer.getInteraction().resetCooldown();
     }
 
     public void saveAndQuit() {

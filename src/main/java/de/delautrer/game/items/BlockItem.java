@@ -4,13 +4,15 @@ import de.delautrer.engine.physics.Raycaster;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.blocks.state.BlockState;
+import de.delautrer.game.entity.player.LocalPlayer;
 import de.delautrer.game.world.World;
 import de.delautrer.engine.physics.AABB;
 import de.delautrer.game.interaction.PlayerInteraction;
-import de.delautrer.game.entity.player.LocalPlayer;
 import de.delautrer.game.entity.player.Player;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
+
+import java.util.List;
 
 public class BlockItem extends Item {
     public final Block block;
@@ -36,16 +38,41 @@ public class BlockItem extends Item {
             placePos = adjacentBlock;
         }
 
-        AABB blockBB = new AABB(
-                new Vector3f(placePos.x, placePos.y, placePos.z),
-                new Vector3f(placePos.x + 1, placePos.y + 1, placePos.z + 1)
+        BlockState newState = null;
+        if (this.block == BlockRegistry.WATER) {
+            newState = block.getDefaultState();
+        } else {
+            newState = block.getStateForPlacement(world, player, placePos, rayHit.hitFace, rayHit.exactHit);
+        }
+
+        if (newState == null) return;
+
+        AABB pBox = player.getAABB();
+        float epsilon = 0.02f;
+        AABB safePlayerBox = new AABB(
+                new Vector3f(pBox.min.x + epsilon, pBox.min.y + epsilon, pBox.min.z + epsilon),
+                new Vector3f(pBox.max.x - epsilon, pBox.max.y - epsilon, pBox.max.z - epsilon)
         );
 
-        if (!AABB.isColliding(player.getAABB(), blockBB)) {
+        boolean canPlace = true;
+        if (this.block.isSolid) {
+            List<AABB> blockBoxes = block.getBoundingBoxes(newState);
+            for (AABB box : blockBoxes) {
+                AABB worldBox = new AABB(
+                        new Vector3f(box.min).add(placePos.x, placePos.y, placePos.z),
+                        new Vector3f(box.max).add(placePos.x, placePos.y, placePos.z)
+                );
+                if (AABB.isColliding(safePlayerBox, worldBox)) {
+                    canPlace = false;
+                    break;
+                }
+            }
+        }
+
+        if (canPlace) {
             if (this.block == BlockRegistry.WATER) {
                 world.setBlockWithState(placePos.x, placePos.y, placePos.z, block.getId(), (byte)8);
             } else {
-                BlockState newState = block.getStateForPlacement(world, player, placePos, rayHit.hitFace, rayHit.exactHit);
                 world.setBlockState(placePos.x, placePos.y, placePos.z, newState);
             }
         }

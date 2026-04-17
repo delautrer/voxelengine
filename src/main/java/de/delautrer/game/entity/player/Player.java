@@ -8,7 +8,7 @@ import org.joml.Vector3f;
 public class Player extends Entity {
 
     protected final Inventory inventory;
-    protected float eyeHeight = 1.5f;
+    protected float eyeHeight = 1.62f;
     protected boolean isSneaking = false;
 
     public Player(Vector3f spawnPosition) {

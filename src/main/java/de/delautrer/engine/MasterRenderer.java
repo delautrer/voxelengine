@@ -71,7 +71,7 @@ public class MasterRenderer {
     public boolean drawFrame(Camera camera, World world, Environment environment, PlayerInteraction interaction) {
         float aspect = (float) renderer.getWidth() / (float) renderer.getHeight();
         Matrix4f view = camera.getViewMatrix();
-        Matrix4f proj = new Matrix4f().perspective((float) Math.toRadians(45.0f), aspect, 0.1f, 1000.0f);
+        Matrix4f proj = new Matrix4f().perspective((float) Math.toRadians(45.0f), aspect, 0.01f, 1000.0f);
         proj.m11(proj.m11() * -1); // Vulkan Y-Flip
         Matrix4f mvp = new Matrix4f(proj).mul(view);
 

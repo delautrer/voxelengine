@@ -41,7 +41,11 @@ public class PauseScreen extends MenuScreen {
         builder.addAtlasQuad(0, 0, 0, width, height, 15, 15, 1, 1, UIElement.MENU_GRID_SIZE, false);
 
         if (isSaving) {
-            builder.drawText("Welt wird gespeichert...", width / 2.0f - 140, height / 2.0f, 0, font);
+
+            String saveText = "Saving world...";
+            float textWidth = builder.getTextWidth(saveText, font);
+            float textX = (width / 2.0f) - (textWidth / 2.0f);
+            builder.drawText(saveText, textX, height / 2.0f, 0, font);
         } else {
             for (UIElement element : elements) {
                 element.render(builder, font, mouseX, mouseY);

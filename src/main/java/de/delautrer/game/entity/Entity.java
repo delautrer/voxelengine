@@ -14,7 +14,7 @@ public abstract class Entity {
     public Vector3f velocity;
 
     protected float width = 0.3f;
-    protected float height = 1.9f;
+    protected float height = 1.8f;
 
     protected boolean onGround = false;
     protected float gravity = -28.0f;

@@ -16,11 +16,6 @@ public class Inventory {
 
     public Inventory() {
         ItemRegistry.init();
-        /*int i = 0;
-        for (de.delautrer.game.items.Item item : ItemRegistry.getAll().values()) {
-            slots[i++] = new ItemStack(item, 64);
-            if (i >= TOTAL_SIZE) break;
-        }*/
     }
 
     public void toggle() { isOpen = !isOpen; }

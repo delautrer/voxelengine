@@ -1,86 +1,67 @@
 package de.delautrer.game.blocks;
 
-import de.delautrer.engine.physics.AABB;
 import de.delautrer.game.blocks.state.BlockState;
+import de.delautrer.game.blocks.state.EnumProperty;
+import de.delautrer.game.blocks.state.Property;
+import de.delautrer.game.entity.player.Player;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
+import de.delautrer.game.world.World;
+import de.delautrer.engine.physics.AABB;
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.joml.Vector3i;
 
-public class TorchBlock extends Block {
+import java.util.List;
 
-    private final int texLayer;
+public class TorchBlock extends CubeBlock {
 
-    public TorchBlock(int texLayer) {
-        super(false, true, true);
-        this.texLayer = texLayer;
-        this.setLightEmission(14);
+    public enum TorchAttach { FLOOR, NORTH, SOUTH, EAST, WEST }
+    public static final EnumProperty<TorchAttach> ATTACH = EnumProperty.create("attach", TorchAttach.class);
+
+    // Speicher für die vorberechneten rotierten Eckpunkte (Maximale Performance!)
+    private static final Vector3f[][] VERTS = new Vector3f[5][8];
+
+    static {
+        float w = 1f / 16f;  // Fackel ist 2 Pixel breit
+        float h = 10f / 16f; // Fackel ist 10 Pixel hoch
+
+        // Die 8 Eckpunkte einer unrotierten Fackel im Ursprung (0,0,0)
+        Vector3f[] base = new Vector3f[]{
+                new Vector3f(-w, 0, -w), new Vector3f(w, 0, -w), new Vector3f(w, 0, w), new Vector3f(-w, 0, w), // Unten
+                new Vector3f(-w, h, -w), new Vector3f(w, h, -w), new Vector3f(w, h, w), new Vector3f(-w, h, w)  // Oben
+        };
+
+        // Wir berechnen die Schrägen für alle 5 Zustände
+        for (TorchAttach attach : TorchAttach.values()) {
+            Matrix4f mat = new Matrix4f();
+
+            if (attach == TorchAttach.FLOOR) {
+                mat.translate(0.5f, 0.0f, 0.5f);
+            } else if (attach == TorchAttach.NORTH) { // Hängt an Z=0 Wand (Lehnt nach Süd)
+                mat.translate(0.5f, 0.2f, 0.0f).rotateX((float) Math.toRadians(25));
+            } else if (attach == TorchAttach.SOUTH) { // Hängt an Z=1 Wand (Lehnt nach Nord)
+                mat.translate(0.5f, 0.2f, 1.0f).rotateX((float) Math.toRadians(-25));
+            } else if (attach == TorchAttach.WEST) {  // Hängt an X=0 Wand (Lehnt nach Ost)
+                mat.translate(0.0f, 0.2f, 0.5f).rotateZ((float) Math.toRadians(-25));
+            } else if (attach == TorchAttach.EAST) {  // Hängt an X=1 Wand (Lehnt nach West)
+                mat.translate(1.0f, 0.2f, 0.5f).rotateZ((float) Math.toRadians(25));
+            }
+
+            VERTS[attach.ordinal()] = new Vector3f[8];
+            for (int i = 0; i < 8; i++) {
+                VERTS[attach.ordinal()][i] = mat.transformPosition(new Vector3f(base[i]));
+            }
+        }
+    }
+
+    public TorchBlock(int tex) {
+        super(false, true, tex, tex, tex);
     }
 
     @Override
-    public boolean shouldRenderFaceAgainst(Block neighborBlock, float myHeight, float neighborHeight) {
-        return true;
-    }
-
-    @Override
-    public void generateMesh(int x, int y, int z, Chunk chunk, ChunkManager cm) {
-        // --- 1. Die Sub-Voxel Geometrie (2x10x2 in der Mitte des Blocks) ---
-        float minX = x + 7.0f / 16.0f;
-        float maxX = x + 9.0f / 16.0f;
-        float minY = y;
-        float maxY = y + 10.0f / 16.0f;
-        float minZ = z + 7.0f / 16.0f;
-        float maxZ = z + 9.0f / 16.0f;
-
-        // --- 2. Custom UV-Mapping (Wir schneiden die Fackel aus der Textur aus!) ---
-        // Seiten der Fackel: X=7 bis 9, Y=10 bis 16 (Unten ausgerichtet)
-        float u0 = 7.0f / 16.0f;
-        float u1 = 9.0f / 16.0f;
-        float v0 = 6.0f / 16.0f; // V0 ist Oben in Vulkan
-        float v1 = 1.0f;          // V1 ist Unten
-
-        // Oben der Fackel (2x2 Pixel aus dem oberen Bereich der Fackel-Textur)
-        float topV0 = 6.0f / 16.0f;
-        float topV1 = 8.0f / 16.0f;
-        // Oben der Fackel (2x2 Pixel aus dem oberen Bereich der Fackel-Textur)
-        float botV0 = 12.0f / 16.0f;
-        float botV1 = 14.0f / 16.0f;
-
-        // --- 3. Licht und AO ---
-        float ao = 1.0f; // Fackeln werfen keine künstlichen Schatten auf sich selbst
-        float dlSide = 0.8f, dlTop = 1.0f, dlBot = 0.4f;
-
-        // Fackeln leuchten von sich aus, daher hat ihre eigene Textur IMMER 100% Blocklicht!
-        float sl = chunk.getSkyLightAt(x, y, z, cm) / 15.0f; // Sonnenlicht aus dem Raum nehmen
-        float bl = 1.0f; // 100% Blocklicht!
-
-        // Z PLUS (Front)
-        chunk.addFace(minX, minY, maxZ, ao,  maxX, minY, maxZ, ao,  maxX, maxY, maxZ, ao,  minX, maxY, maxZ, ao,
-                u0, v0, u1, v1, texLayer, dlSide, this, sl, sl, sl, sl, bl, bl, bl, bl);
-
-        // Z MINUS (Back)
-        chunk.addFace(maxX, minY, minZ, ao,  minX, minY, minZ, ao,  minX, maxY, minZ, ao,  maxX, maxY, minZ, ao,
-                u0, v0, u1, v1, texLayer, dlSide, this, sl, sl, sl, sl, bl, bl, bl, bl);
-
-        // X MINUS (Left)
-        chunk.addFace(minX, minY, minZ, ao,  minX, minY, maxZ, ao,  minX, maxY, maxZ, ao,  minX, maxY, minZ, ao,
-                u0, v0, u1, v1, texLayer, dlSide, this, sl, sl, sl, sl, bl, bl, bl, bl);
-
-        // X PLUS (Right)
-        chunk.addFace(maxX, minY, maxZ, ao,  maxX, minY, minZ, ao,  maxX, maxY, minZ, ao,  maxX, maxY, maxZ, ao,
-                u0, v0, u1, v1, texLayer, dlSide, this, sl, sl, sl, sl, bl, bl, bl, bl);
-
-        // TOP
-        chunk.addFace(minX, maxY, minZ, ao,  minX, maxY, maxZ, ao,  maxX, maxY, maxZ, ao,  maxX, maxY, minZ, ao,
-                u0, topV0, u1, topV1, texLayer, dlTop, this, sl, sl, sl, sl, bl, bl, bl, bl);
-
-        // BOTTOM
-        chunk.addFace(minX, minY, maxZ, ao,  minX, minY, minZ, ao,  maxX, minY, minZ, ao,  maxX, minY, maxZ, ao,
-                u0, botV0, u1, botV1, texLayer, dlBot, this, sl, sl, sl, sl, bl, bl, bl, bl);
-    }
-
-    @Override
-    public java.util.List<AABB> getBoundingBoxes(BlockState state) {
-        return java.util.List.of(new AABB(new org.joml.Vector3f(7f/16f,0,7f/16f), new org.joml.Vector3f(9f/16f,10f/16f,9f/16f)));
+    protected void appendProperties(List<Property<?>> properties) {
+        properties.add(ATTACH);
     }
 
     @Override
@@ -88,4 +69,120 @@ public class TorchBlock extends Block {
         return true;
     }
 
+    // ==========================================
+    // 1. PLATZIERUNG UND WAND-LOGIK
+    // ==========================================
+    @Override
+    public BlockState getStateForPlacement(World world, Player player, Vector3i hitPos, Vector3i hitFace, Vector3f exactHit) {
+        if (hitFace.y == -1) return null;
+
+        Vector3i wallPos = new Vector3i(hitPos).sub(hitFace);
+        Block wallBlock = world.getBlockState(wallPos.x, wallPos.y, wallPos.z).getBlock();
+
+        if (!wallBlock.isSolid) return null;
+
+        if (hitFace.y == 1) return getDefaultState().with(ATTACH, TorchAttach.FLOOR);
+        if (hitFace.z == 1) return getDefaultState().with(ATTACH, TorchAttach.NORTH);
+        if (hitFace.z == -1) return getDefaultState().with(ATTACH, TorchAttach.SOUTH);
+        if (hitFace.x == 1) return getDefaultState().with(ATTACH, TorchAttach.WEST);
+        if (hitFace.x == -1) return getDefaultState().with(ATTACH, TorchAttach.EAST);
+
+        return null;
+    }
+
+    @Override
+    public void onNeighborChanged(World world, int x, int y, int z, Vector3i neighborPos, byte newNeighborId) {
+        BlockState state = world.getBlockState(x, y, z);
+        TorchAttach attach = state.getValue(ATTACH);
+
+        Vector3i wallPos = new Vector3i(x, y, z);
+        if (attach == TorchAttach.FLOOR) wallPos.y--;
+        else if (attach == TorchAttach.NORTH) wallPos.z--;
+        else if (attach == TorchAttach.SOUTH) wallPos.z++;
+        else if (attach == TorchAttach.WEST) wallPos.x--;
+        else if (attach == TorchAttach.EAST) wallPos.x++;
+
+        Block wallBlock = world.getBlockState(wallPos.x, wallPos.y, wallPos.z).getBlock();
+        if (!wallBlock.isSolid) {
+            world.setBlockState(x, y, z, BlockRegistry.AIR.getDefaultState());
+        }
+    }
+
+    // ==========================================
+    // 2. HIGHLIGHTER UND KOLLISION (Perfekte kleine Hitboxen!)
+    // ==========================================
+
+    @Override
+    public List<AABB> getBoundingBoxes(BlockState state) {
+        TorchAttach attach = state.getValue(ATTACH);
+        if (attach == TorchAttach.FLOOR) return List.of(new AABB(new Vector3f(0.4f, 0.0f, 0.4f), new Vector3f(0.6f, 0.6f, 0.6f)));
+        if (attach == TorchAttach.NORTH) return List.of(new AABB(new Vector3f(0.4f, 0.2f, 0.0f), new Vector3f(0.6f, 0.8f, 0.3f)));
+        if (attach == TorchAttach.SOUTH) return List.of(new AABB(new Vector3f(0.4f, 0.2f, 0.7f), new Vector3f(0.6f, 0.8f, 1.0f)));
+        if (attach == TorchAttach.WEST)  return List.of(new AABB(new Vector3f(0.0f, 0.2f, 0.4f), new Vector3f(0.3f, 0.8f, 0.6f)));
+        if (attach == TorchAttach.EAST)  return List.of(new AABB(new Vector3f(0.7f, 0.2f, 0.4f), new Vector3f(1.0f, 0.8f, 0.6f)));
+        return super.getBoundingBoxes(state);
+    }
+
+    // ==========================================
+    // 3. EIGENER 3D-MESHER FÜR DIE SCHRÄGE
+    // ==========================================
+
+    @Override
+    public void generateMesh(int x, int y, int z, Chunk chunk, ChunkManager cm) {
+        BlockState state = chunk.getBlockState(x, y, z);
+        TorchAttach attach = state.getValue(ATTACH);
+
+        // Wir holen uns die 8 vorausberechneten Eckpunkte der schrägen Fackel
+        Vector3f[] v = VERTS[attach.ordinal()];
+
+        // Fackeln leuchten von selbst, haben also keine weichen Schatten
+        float light = 1.0f;
+
+        // U-Koordinaten (Die Breite der Fackel: Pixel 7 bis 9)
+        float u0 = 7f / 16f;
+        float u1 = 9f / 16f;
+
+        // V-Koordinaten für die SEITEN (Die volle Höhe: Pixel 6 bis 16)
+        float vSideTop = 6f / 16f;
+        float vSideBot = 1.0f;
+
+        // V-Koordinaten für OBEN (Die 2x2 gelben Flammen-Pixel: Pixel 6 bis 8)
+        float vTop0 = 6f / 16f;
+        float vTop1 = 8f / 16f;
+
+        // V-Koordinaten für UNTEN (Die 2x2 Holz-Pixel: Pixel 14 bis 16)
+        float vBot0 = 14f / 16f;
+        float vBot1 = 1.0f;
+
+        // Oben (v4, v7, v6, v5) -> Nutzt die gelben Pixel (vTop)
+        addQuad(chunk, x, y, z, v[4], v[7], v[6], v[5], u0, vTop0, u1, vTop1, texTop, light);
+
+        // Unten (v3, v0, v1, v2) -> Nutzt die Holz-Pixel (vBot)
+        addQuad(chunk, x, y, z, v[3], v[0], v[1], v[2], u0, vBot0, u1, vBot1, texBottom, light);
+
+        // Süd / Z+ (v3, v2, v6, v7) -> Nutzt die volle Seite
+        addQuad(chunk, x, y, z, v[3], v[2], v[6], v[7], u0, vSideTop, u1, vSideBot, texSide, light);
+
+        // Nord / Z- (v1, v0, v4, v5) -> Nutzt die volle Seite
+        addQuad(chunk, x, y, z, v[1], v[0], v[4], v[5], u0, vSideTop, u1, vSideBot, texSide, light);
+
+        // West / X- (v0, v3, v7, v4) -> Nutzt die volle Seite
+        addQuad(chunk, x, y, z, v[0], v[3], v[7], v[4], u0, vSideTop, u1, vSideBot, texSide, light);
+
+        // Ost / X+ (v2, v1, v5, v6) -> Nutzt die volle Seite
+        addQuad(chunk, x, y, z, v[2], v[1], v[5], v[6], u0, vSideTop, u1, vSideBot, texSide, light);
+    }
+
+    private void addQuad(Chunk chunk, int x, int y, int z, Vector3f vec0, Vector3f vec1, Vector3f vec2, Vector3f vec3, float u0, float v0, float u1, float v1, int tex, float light) {
+        chunk.addFace(
+                x + vec0.x, y + vec0.y, z + vec0.z, 1.0f,
+                x + vec1.x, y + vec1.y, z + vec1.z, 1.0f,
+                x + vec2.x, y + vec2.y, z + vec2.z, 1.0f,
+                x + vec3.x, y + vec3.y, z + vec3.z, 1.0f,
+                u0, v0, u1, v1,
+                tex, light, this,
+                1.0f, 1.0f, 1.0f, 1.0f, // Sky Light
+                1.0f, 1.0f, 1.0f, 1.0f  // Block Light
+        );
+    }
 }

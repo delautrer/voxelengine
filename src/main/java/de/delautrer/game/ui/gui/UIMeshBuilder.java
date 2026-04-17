@@ -91,4 +91,58 @@ public class UIMeshBuilder {
             }
         }
     }
+
+    public void addRect(float x, float y, float z, float w, float h, float r, float g, float b, float a) {
+        int offset = guiVerts.size() / 8;
+
+        float u = 0.0f;
+        float v = 0.0f;
+
+        guiVerts.addAll(List.of(
+                x,     y,     z, r, g, b, u, v,
+                x + w, y,     z, r, g, b, u, v,
+                x + w, y + h, z, r, g, b, u, v,
+                x,     y + h, z, r, g, b, u, v
+        ));
+
+        guiInds.addAll(List.of(offset, offset + 1, offset + 2, offset + 2, offset + 3, offset));
+    }
+
+    public void addCroppedAtlasQuad(float x, float y, float z, float w, float h, int gridX, int gridY, float cropRatio, float gridSize) {
+        int offset = guiVerts.size() / 8;
+        float epsilon = 0.0005f;
+
+        float u0 = (float) gridX / gridSize + epsilon;
+        float v0 = (float) gridY / gridSize + epsilon;
+
+        float uCellWidth = (1.0f / gridSize) - (2 * epsilon);
+        float u1 = u0 + (uCellWidth * cropRatio);
+
+        float v1 = (float) (gridY + 1) / gridSize - epsilon;
+
+        guiVerts.addAll(List.of(
+                x,     y,     z, 1.0f, 1.0f, 1.0f, u0, v0,
+                x + w, y,     z, 1.0f, 1.0f, 1.0f, u1, v0,
+                x + w, y + h, z, 1.0f, 1.0f, 1.0f, u1, v1,
+                x,     y + h, z, 1.0f, 1.0f, 1.0f, u0, v1
+        ));
+        guiInds.addAll(List.of(offset, offset + 1, offset + 2, offset + 2, offset + 3, offset));
+    }
+
+    public float getTextWidth(String text, VulkanFont font) {
+        if (font == null || font.getCharData() == null || text == null || text.isEmpty()) {
+            return 0.0f;
+        }
+
+        float textWidth = 0.0f;
+        STBTTBakedChar.Buffer charData = font.getCharData();
+
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c >= 32 && c < 128) {
+                textWidth += charData.get(c - 32).xadvance();
+            }
+        }
+        return textWidth;
+    }
 }

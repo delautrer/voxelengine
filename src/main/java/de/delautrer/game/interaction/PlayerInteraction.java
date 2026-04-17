@@ -26,6 +26,8 @@ public class PlayerInteraction {
 
     private float interactTimer = 0.0f;
     private final float INTERACT_COOLDOWN = 0.2f;
+    private float clickCooldown = 0.0f;
+
 
     public PlayerInteraction(World world, Camera camera, LocalPlayer player, VulkanContext vulkanContext, EventBus eventBus) {
         this.world = world;
@@ -37,6 +39,10 @@ public class PlayerInteraction {
 
     public void update(InputManager input, float deltaTime) {
         if (player.getInventory().isOpen()) return;
+        if (clickCooldown > 0) {
+            clickCooldown -= deltaTime;
+            return; // WICHTIG: Bricht das Update ab, keine Klicks für diese Zeit!
+        }
 
         // 1. Raycast
         Raycaster.RaycastResult result = Raycaster.raycast(world, camera.getPosition(), camera.getFront(), 6.0f);
@@ -95,4 +101,7 @@ public class PlayerInteraction {
 
     public Vector3i getSelectedBlockPos() { return selectedBlockPos; }
     public Inventory getInventory() { return player.getInventory(); }
+    public void resetCooldown() {
+        this.clickCooldown = 0.2f;
+    }
 }

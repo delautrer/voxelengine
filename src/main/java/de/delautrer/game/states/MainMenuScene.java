@@ -6,7 +6,6 @@ import de.delautrer.engine.input.InputManager;
 import de.delautrer.engine.states.Scene;
 import de.delautrer.game.ui.gui.MenuScreen;
 import de.delautrer.game.ui.gui.UIButton;
-import de.delautrer.game.ui.gui.UIElement;
 import org.lwjgl.glfw.GLFW;
 
 public class MainMenuScene extends Scene {
@@ -33,12 +32,10 @@ public class MainMenuScene extends Scene {
                 float centerX = width / 2.0f - btnWidth / 2.0f;
                 float centerY = height / 2.0f;
 
-                // OBEN: Größeres Y (+30) -> Welt betreten
                 elements.add(new UIButton(centerX, centerY + 30, btnWidth, btnHeight, "Enter world", () -> {
                     engine.getSceneManager().changeScene(new PlayScene(engine));
                 }));
 
-                // UNTEN: Kleineres Y (-30) -> Spiel beenden
                 elements.add(new UIButton(centerX, centerY - 30, btnWidth, btnHeight, "Quit Game", () -> {
                     GLFW.glfwSetWindowShouldClose(engine.getWindow().getHandle(), true);
                 }));

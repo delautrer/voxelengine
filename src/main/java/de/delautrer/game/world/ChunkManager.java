@@ -27,6 +27,8 @@ public class ChunkManager {
     private final VulkanContext context;
     private final int renderDistance = 6;
 
+    private boolean initialLoadComplete = false;
+    private final int requiredInitialRadius = 4;
     private boolean isCleanedUp = false;
 
     public ChunkManager(World world, VulkanContext context) {
@@ -126,8 +128,10 @@ public class ChunkManager {
         }
 
         // 3. FERTIGE MESHES AN VULKAN SENDEN
+        int maxUploads = initialLoadComplete ? 2 : 20;
         int uploadsThisFrame = 0;
-        while (uploadsThisFrame < 2) {
+
+        while (uploadsThisFrame < maxUploads) {
             Chunk finishedChunk = meshUploadQueue.poll();
             if (finishedChunk == null) break;
 
@@ -203,6 +207,43 @@ public class ChunkManager {
     }
     public LightEngine getLightEngine() { return lightEngine; }
     public Map<Vector2i, VulkanMesh> getMeshes() { return meshes; }
+
+    // Gibt einen Wert zwischen 0.0f (0%) und 1.0f (100%) zurück
+    public float getLoadingProgress(float playerX, float playerZ) {
+        if (initialLoadComplete) return 1.0f;
+
+        int pX = Math.floorDiv((int) Math.floor(playerX), Chunk.SIZE);
+        int pZ = Math.floorDiv((int) Math.floor(playerZ), Chunk.SIZE);
+
+        int requiredChunks = (requiredInitialRadius * 2 + 1) * (requiredInitialRadius * 2 + 1);
+
+        // JEDER Chunk hat 2 Phasen: 1. Daten generieren, 2. 3D-Mesh bauen
+        int totalTasks = requiredChunks * 2;
+        int completedTasks = 0;
+
+        for (int x = pX - requiredInitialRadius; x <= pX + requiredInitialRadius; x++) {
+            for (int z = pZ - requiredInitialRadius; z <= pZ + requiredInitialRadius; z++) {
+                Vector2i pos = new Vector2i(x, z);
+
+                // 1 Punkt für fertige Blockdaten (aus Noise oder von SSD)
+                if (chunks.containsKey(pos)) completedTasks++;
+
+                // 1 Punkt für das fertige 3D-Mesh auf der Grafikkarte
+                if (meshes.containsKey(pos)) completedTasks++;
+            }
+        }
+
+        float progress = (float) completedTasks / totalTasks;
+
+        if (progress >= 1.0f) {
+            initialLoadComplete = true; // Fertig!
+        }
+        return progress;
+    }
+
+    public boolean isInitialLoadComplete() {
+        return initialLoadComplete;
+    }
 
     // Cleanup
     public void cleanup() {
