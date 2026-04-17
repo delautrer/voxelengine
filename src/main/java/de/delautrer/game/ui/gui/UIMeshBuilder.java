@@ -145,4 +145,54 @@ public class UIMeshBuilder {
         }
         return textWidth;
     }
+
+    // Die neue magische 9-Slice Methode!
+    public void add9Slice(float x, float y, float z, float w, float h, int gridX, int gridY, float cornerRenderSize) {
+        float epsilon = 0.0005f;
+        float uvStep = 1.0f / UIElement.MENU_GRID_SIZE;
+
+        // Die exakten UV-Grenzen deiner Textur-Zelle
+        float u0 = (float) gridX * uvStep + epsilon;
+        float v0 = (float) gridY * uvStep + epsilon;
+        float u3 = u0 + uvStep - 2 * epsilon;
+        float v3 = v0 + uvStep - 2 * epsilon;
+
+        // Wir nehmen an, dass die Ecken in deiner Textur 4 Pixel dick sind (bei 16x16 Grid = 25% = 0.25f)
+        float cornerUV = (uvStep - 2 * epsilon) * 0.25f;
+
+        // Die 4 Schnittkanten auf der Textur (UVs)
+        float[] u = {u0, u0 + cornerUV, u3 - cornerUV, u3};
+        float[] v = {v0, v0 + cornerUV, v3 - cornerUV, v3};
+
+        // Die 4 Schnittkanten auf dem Bildschirm (Pixel)
+        float[] posX = {x, x + cornerRenderSize, x + w - cornerRenderSize, x + w};
+        float[] posY = {y, y + cornerRenderSize, y + h - cornerRenderSize, y + h};
+
+        // Zeichne alle 9 Kacheln
+        for (int row = 0; row < 3; row++) {
+            for (int col = 0; col < 3; col++) {
+                float px0 = posX[col];
+                float px1 = posX[col+1];
+                float py0 = posY[row];
+                float py1 = posY[row+1];
+
+                // Verhindert Fehler, wenn das UI-Element kleiner als die Ecken ist
+                if (px1 < px0) px1 = px0;
+                if (py1 < py0) py1 = py0;
+
+                addRawQuad(px0, py0, px1, py1, z, u[col], v[row], u[col+1], v[row+1]);
+            }
+        }
+    }
+
+    private void addRawQuad(float x0, float y0, float x1, float y1, float z, float u0, float v0, float u1, float v1) {
+        int offset = guiVerts.size() / 8;
+        guiVerts.addAll(List.of(
+                x0, y0, z, 1.0f, 1.0f, 1.0f, u0, v0,
+                x1, y0, z, 1.0f, 1.0f, 1.0f, u1, v0,
+                x1, y1, z, 1.0f, 1.0f, 1.0f, u1, v1,
+                x0, y1, z, 1.0f, 1.0f, 1.0f, u0, v1
+        ));
+        guiInds.addAll(List.of(offset, offset + 1, offset + 2, offset + 2, offset + 3, offset));
+    }
 }

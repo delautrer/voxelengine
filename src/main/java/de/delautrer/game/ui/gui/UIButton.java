@@ -8,10 +8,9 @@ public class UIButton extends UIElement {
 
     private static final int GRID_X_NORMAL = 0;
     private static final int GRID_Y_NORMAL = 0;
-    private static final int GRID_X_HOVER = 8;
+    private static final int GRID_X_HOVER = 1;
     private static final int GRID_Y_HOVER = 0;
-    public static final int GRID_BUTTON_WIDTH = 8;
-    public static final int GRID_BUTTON_HEIGHT = 1;
+    private static final float CORNER_SIZE = 8.0f;
 
     public UIButton(float x, float y, float width, float height, String text, Runnable onClick) {
         super(x, y, width, height);
@@ -28,7 +27,8 @@ public class UIButton extends UIElement {
         int gridX = hovered ? GRID_X_HOVER : GRID_X_NORMAL;
         int gridY = hovered ? GRID_Y_HOVER : GRID_Y_NORMAL;
 
-        builder.addAtlasQuad(x, y, 0.0f, width, height, gridX, gridY, GRID_BUTTON_WIDTH, GRID_BUTTON_HEIGHT, MENU_GRID_SIZE, false);
+        //builder.addAtlasQuad(x, y, 0.0f, width, height, gridX, gridY, GRID_BUTTON_WIDTH, GRID_BUTTON_HEIGHT, MENU_GRID_SIZE, false);
+        builder.add9Slice(x, y, 0.1f, width, height, gridX, gridY, CORNER_SIZE);
 
         if (font != null) {
             float textWidth = builder.getTextWidth(text, font);

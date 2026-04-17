@@ -34,6 +34,10 @@ public abstract class MenuScreen extends Screen {
                     ((UIInputField) element).setFocused(element.isHovered(uiMouseX, uiMouseY));
                 }
 
+                if (element instanceof UIScrollableList) {
+                    ((UIScrollableList) element).handleInput(input, uiMouseX, uiMouseY);
+                }
+
                 if (!clickHandled && element.isHovered(uiMouseX, uiMouseY)) {
                     if (element instanceof UIButton) {
                         ((UIButton) element).click();
