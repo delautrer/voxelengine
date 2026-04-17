@@ -4,6 +4,8 @@ import de.delautrer.engine.graphics.VulkanFont;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.game.interaction.PlayerInteraction;
 import de.delautrer.game.ui.DebugOverlay;
+import de.delautrer.game.ui.gui.screens.InventoryScreen;
+import de.delautrer.game.ui.gui.screens.MenuScreen;
 
 public class UIManager {
     private final HUD hud;

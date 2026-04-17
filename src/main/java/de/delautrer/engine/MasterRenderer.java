@@ -10,6 +10,7 @@ import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.interaction.PlayerInteraction;
 import de.delautrer.game.ui.DebugOverlay;
 import de.delautrer.game.ui.UIRenderer;
+import de.delautrer.game.ui.gui.screens.MenuScreen;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.Environment;
 import de.delautrer.game.world.World;
@@ -60,7 +61,7 @@ public class MasterRenderer {
         this.cloudMesh = new VulkanMesh(vulkanContext, data.vertices, data.indices);
     }
 
-    public void rebuildUI(PlayerInteraction interaction, InputManager input, DebugOverlay debugOverlay, de.delautrer.game.ui.gui.MenuScreen pauseScreen) {
+    public void rebuildUI(PlayerInteraction interaction, InputManager input, DebugOverlay debugOverlay, MenuScreen pauseScreen) {
         uiRenderer.rebuildMesh(
                 renderer.getWidth(), renderer.getHeight(),
                 input, interaction, input.getMouseX(), input.getMouseY(),
@@ -120,7 +121,7 @@ public class MasterRenderer {
         return renderer.render(packet);
     }
 
-    public void recreate(PlayerInteraction interaction, InputManager input, DebugOverlay debugOverlay, de.delautrer.game.ui.gui.MenuScreen pauseScreen) {
+    public void recreate(PlayerInteraction interaction, InputManager input, DebugOverlay debugOverlay, MenuScreen pauseScreen) {
         renderer.recreate(window);
         rebuildUI(interaction, input, debugOverlay, pauseScreen);
     }

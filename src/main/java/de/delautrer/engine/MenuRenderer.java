@@ -1,9 +1,8 @@
 package de.delautrer.engine;
 
 import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.input.InputManager;
 import de.delautrer.engine.window.Window;
-import de.delautrer.game.ui.gui.MenuScreen;
+import de.delautrer.game.ui.gui.screens.MenuScreen;
 import de.delautrer.game.ui.gui.UIMeshBuilder;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;

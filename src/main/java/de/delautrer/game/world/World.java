@@ -27,10 +27,14 @@ public class World {
     private Vector3f worldSpawnpoint;
     private final long seed;
     private boolean isCleanedUp = false;
+    private final String worldName;
+    private final String worldSave;
 
-    public World(VulkanContext context, LocalPlayer localPlayer, EventBus eventBus, long defaultSeed) {
+    public World(VulkanContext context, LocalPlayer localPlayer, EventBus eventBus, long defaultSeed, String worldName, String worldSave) {
         this.eventBus = eventBus;
-        this.storageManager = new WorldStorageManager("MeineErsteWelt");
+        this.worldName = worldName;
+        this.worldSave = worldSave;
+        this.storageManager = new WorldStorageManager(worldSave);
         this.environment = new Environment();
 
         WorldData wData = storageManager.loadLevelMetadata();
@@ -42,8 +46,9 @@ public class World {
             this.seed = defaultSeed;
         }
         this.chunkManager = new ChunkManager(this, context);
-        if(worldSpawnpoint == null)
-            this.worldSpawnpoint = findSafeSpawn(0, 0);
+
+        /*if(worldSpawnpoint == null)
+            this.worldSpawnpoint = findSafeSpawn(0, 0);*/
 
         this.tickScheduler = new TickScheduler(this);
         this.cloudSystem = new CloudSystem();
@@ -58,7 +63,7 @@ public class World {
                 localPlayer.getInventory().setSelectedSlot(pData.selectedHotbarSlot);
             }
         } else {
-            localPlayer.position.set(worldSpawnpoint);
+            //localPlayer.position.set(worldSpawnpoint);
             int i = 0;
             for (de.delautrer.game.items.Item item : ItemRegistry.getAll().values()) {
                 localPlayer.getInventory().setStack(i++, new ItemStack(item, 64));
@@ -164,7 +169,7 @@ public class World {
 
     public void saveWorld(LocalPlayer localPlayer) {
         WorldData wData = new WorldData();
-        wData.worldName = "MeineErsteWelt";
+        wData.worldName = worldName;
         wData.seed = this.seed;
         wData.timeOfDay = environment.getTimeOfDay();
         storageManager.saveLevelMetadata(wData);
@@ -194,6 +199,13 @@ public class World {
             }
         }
         return new Vector3f(x, 30, z);
+    }
+
+    public void calcWorldspawnAndTeleportPlayer(LocalPlayer player) {
+        if (worldSpawnpoint == null) {
+            worldSpawnpoint = findSafeSpawn(0, 0);
+            player.position.set(worldSpawnpoint);
+        }
     }
 
     public long getSeed() { return seed; }

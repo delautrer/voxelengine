@@ -1,4 +1,8 @@
-package de.delautrer.game.ui.gui;
+package de.delautrer.game.ui.gui.screens;
+
+import de.delautrer.game.ui.gui.UIElement;
+import de.delautrer.game.ui.gui.UIMeshBuilder;
+import de.delautrer.game.ui.gui.UIProgressBar;
 
 public class LoadingScreen extends MenuScreen {
     private UIProgressBar progressBar;
@@ -32,7 +36,7 @@ public class LoadingScreen extends MenuScreen {
             float textWidth = builder.getTextWidth(loadText, font);
             float textX = (width / 2.0f) - (textWidth / 2.0f);
 
-            builder.drawText(loadText, textX, progressBar.y - 30.0f, 0.4f, font);
+            builder.drawText(loadText, textX, progressBar.getY() - 30.0f, 0.4f, font);
         }
     }
 }

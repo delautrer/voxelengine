@@ -10,13 +10,10 @@ import de.delautrer.game.events.DebugToggleEvent;
 import de.delautrer.game.events.HotbarSlotChangeEvent;
 import de.delautrer.game.events.InventoryToggleEvent;
 import de.delautrer.game.ui.DebugOverlay;
-import de.delautrer.game.ui.gui.LoadingScreen;
-import de.delautrer.game.ui.gui.MenuScreen;
-import de.delautrer.game.ui.gui.PauseScreen;
-import de.delautrer.game.world.Biome;
-import de.delautrer.game.world.Chunk;
-import de.delautrer.game.world.World;
-import de.delautrer.game.world.WorldEventHandler;
+import de.delautrer.game.ui.gui.screens.LoadingScreen;
+import de.delautrer.game.ui.gui.screens.MenuScreen;
+import de.delautrer.game.ui.gui.screens.PauseScreen;
+import de.delautrer.game.world.*;
 import org.joml.Vector3f;
 
 public class PlayScene extends Scene {
@@ -32,7 +29,12 @@ public class PlayScene extends Scene {
 
     private boolean isPaused = false;
     private boolean isSavingAndQuitting = false;
-    private int saveWaitFrames = 18;
+    private int saveWaitFrames = 2;
+
+    private final String worldName;
+    private final String worldSave;
+    private long seed;
+    private final boolean isNewWorld;
 
     private boolean uiNeedsRebuild = true;
     private boolean wasLoading = true;
@@ -40,8 +42,20 @@ public class PlayScene extends Scene {
     private float autosaveTimer = 0;
     private final float AUTOSAVE_INTERVAL = 300.0f;
 
-    public PlayScene(Engine engine) {
+    public PlayScene(Engine engine, String worldName, long seed) {
         super(engine);
+        this.worldName = worldName;
+        this.worldSave = WorldStorageManager.getUniqueValidFolderName(worldName);
+        this.seed = seed;
+        this.isNewWorld = true;
+    }
+
+    public PlayScene(Engine engine, String worldName, String worldSave) {
+        super(engine);
+        this.worldName = worldName;
+        this.worldSave = worldSave;
+        this.isNewWorld = false;
+        this.seed = 0;
     }
 
     @Override
@@ -61,7 +75,8 @@ public class PlayScene extends Scene {
         engine.getWindow().disableCursor();
         localPlayer.getCamera().resetMouseTracking();
 
-        world = new World(engine.getVulkanContext(), localPlayer, engine.getEventBus(), 1337L);
+        // Mein schönie seedie : 1337l
+        world = new World(engine.getVulkanContext(), localPlayer, engine.getEventBus(), seed, worldName, worldSave);
         worldEventHandler = new WorldEventHandler(world, engine.getVulkanContext(), engine.getEventBus());
         localPlayer.initInteraction(world, engine.getVulkanContext(), engine.getEventBus());
 
@@ -161,6 +176,7 @@ public class PlayScene extends Scene {
         } else if (wasLoading) {
             wasLoading = false;
             uiNeedsRebuild = true;
+            world.calcWorldspawnAndTeleportPlayer(localPlayer);
         }
 
         // --- 1. SPEICHERN & BEENDEN ---

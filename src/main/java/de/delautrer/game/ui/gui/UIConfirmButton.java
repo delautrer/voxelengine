@@ -1,0 +1,63 @@
+package de.delautrer.game.ui.gui;
+
+import de.delautrer.engine.graphics.VulkanFont;
+
+public class UIConfirmButton extends UIElement {
+    private String normalText;
+    private String confirmText;
+    private boolean isWaitingForConfirm = false;
+    private Runnable onConfirm;
+
+    private static final int GRID_X_NORMAL = 0;
+    private static final int GRID_Y_NORMAL = 0;
+    private static final int GRID_X_HOVER = 8;
+    private static final int GRID_Y_HOVER = 0;
+    public static final int GRID_BUTTON_WIDTH = 8;
+    public static final int GRID_BUTTON_HEIGHT = 1;
+
+    public UIConfirmButton(float x, float y, float width, float height, String normalText, String confirmText, Runnable onConfirm) {
+        super(x, y, width, height);
+        this.normalText = normalText;
+        this.confirmText = confirmText;
+        this.onConfirm = onConfirm;
+    }
+
+    public void click() {
+        if (!isWaitingForConfirm) {
+            isWaitingForConfirm = true; // Erster Klick: In den Bestätigungs-Modus wechseln
+        } else {
+            if (onConfirm != null) onConfirm.run(); // Zweiter Klick: Aktion ausführen!
+            isWaitingForConfirm = false;
+        }
+    }
+
+    // Wenn die Maus den Button verlässt, brechen wir den "Wirklich?" Modus ab
+    public void updateHoverState(float mouseX, float mouseY) {
+        if (isWaitingForConfirm && !isHovered(mouseX, mouseY)) {
+            isWaitingForConfirm = false;
+        }
+    }
+
+    @Override
+    public void render(UIMeshBuilder builder, VulkanFont font, float mouseX, float mouseY) {
+        if (!isVisible) return;
+        updateHoverState(mouseX, mouseY);
+
+        // Hintergrund (Wenn er auf Bestätigung wartet, malen wir ein rotes Rechteck, sonst normale Textur)
+        if (isWaitingForConfirm) {
+            builder.addRect(x, y, 0.1f, width, height, 0.8f, 0.2f, 0.2f, 1.0f); // Rot
+        } else {
+            boolean hovered = isHovered(mouseX, mouseY);
+            int gridX = hovered ? GRID_X_HOVER : GRID_X_NORMAL;
+            int gridY = hovered ? GRID_Y_HOVER : GRID_Y_NORMAL;
+            builder.addAtlasQuad(x, y, 0.0f, width, height, gridX, gridY, GRID_BUTTON_WIDTH, GRID_BUTTON_HEIGHT, MENU_GRID_SIZE, false);
+        }
+
+        // Text zentriert
+        String text = isWaitingForConfirm ? confirmText : normalText;
+        float textWidth = builder.getTextWidth(text, font);
+        float textX = x + (width / 2.0f) - (textWidth / 2.0f);
+
+        builder.drawText(text, textX, y + (height / 2.0f) - 10.0f, 0.2f, font);
+    }
+}

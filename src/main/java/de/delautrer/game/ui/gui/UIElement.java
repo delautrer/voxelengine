@@ -30,4 +30,20 @@ public abstract class UIElement {
     public void setVisible(boolean visible) {
         this.isVisible = visible;
     }
+
+    public float getX() {
+        return x;
+    }
+
+    public float getY() {
+        return y;
+    }
+
+    public float getHeight() {
+        return height;
+    }
+
+    public float getWidth() {
+        return width;
+    }
 }

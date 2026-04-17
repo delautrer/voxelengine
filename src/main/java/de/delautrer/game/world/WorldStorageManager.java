@@ -12,28 +12,29 @@ import java.nio.file.*;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.regex.Pattern;
 
 public class WorldStorageManager {
+
+    private static final Pattern ILLEGAL_FILENAME_CHARS = Pattern.compile("[\\\\/:*?\"<>|]");
+
     private final Path worldDir;
     private final Path regionDir;
     private final Path playerDataDir;
 
-    // Thread-sicherer Cache für geöffnete Region-Dateien
     private final Map<Vector2i, RegionFile> regionCache = new ConcurrentHashMap<>();
-
-    // Warteschlange für den Hintergrund-Thread
     private final ConcurrentLinkedQueue<Chunk> saveQueue = new ConcurrentLinkedQueue<>();
 
     private Thread writerThread;
     private volatile boolean running = true;
     private final Gson gson;
 
-    public WorldStorageManager(String worldName) {
-        this.worldDir = Paths.get("saves", worldName);
+    // Der Parameter "folderName" ist hier jetzt der sichere Ordnername (z.B. "Neue_Welt-1")
+    public WorldStorageManager(String folderName) {
+        this.worldDir = Paths.get("saves", folderName);
         this.regionDir = worldDir.resolve("regions");
         this.playerDataDir = worldDir.resolve("playerdata");
 
-        // Gson für schöne, lesbare JSON-Dateien initialisieren
         this.gson = new GsonBuilder().setPrettyPrinting().create();
 
         try {
@@ -47,10 +48,58 @@ public class WorldStorageManager {
         startWriterThread();
     }
 
+    // ==========================================
+    // STATISCHE HELPER FÜR DAS MENÜ (NEU!)
+    // ==========================================
+
     /**
-     * Startet den I/O-Hintergrund-Thread.
-     * Alles was mit der Festplatte zu tun hat, passiert HIER, nicht im Main-Thread!
+     * Erstellt einen garantierten, fehlerfreien und einmaligen Ordnernamen für eine neue Welt.
      */
+    public static String getUniqueValidFolderName(String rawName) {
+        // 1. Verbotene Zeichen durch Unterstriche ersetzen
+        String safeName = ILLEGAL_FILENAME_CHARS.matcher(rawName).replaceAll("_").trim();
+        if (safeName.isEmpty() || safeName.equals("_")) {
+            safeName = "World";
+        }
+
+        Path savesDir = Paths.get("saves");
+        if (!Files.exists(savesDir)) {
+            try { Files.createDirectories(savesDir); } catch (IOException ignored) {}
+        }
+
+        // 2. Prüfen ob der Ordner existiert. Wenn ja: Nummern anhängen (-1, -2, etc.)
+        Path target = savesDir.resolve(safeName);
+        int counter = 1;
+        while (Files.exists(target)) {
+            target = savesDir.resolve(safeName + "-" + counter);
+            counter++;
+        }
+
+        return target.getFileName().toString();
+    }
+
+    /**
+     * Liest die WorldData extrem schnell aus, OHNE den ganzen Manager zu starten.
+     * Perfekt für die Welt-Auswahl im Hauptmenü!
+     */
+    public static WorldData readMetadataForUI(File saveFolder) {
+        Path levelFile = saveFolder.toPath().resolve("level.json");
+        if (!Files.exists(levelFile)) return null;
+
+        try {
+            Gson tempGson = new Gson();
+            String json = Files.readString(levelFile);
+            return tempGson.fromJson(json, WorldData.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+
+    // ==========================================
+    // THREADING & CHUNK IO
+    // ==========================================
+
     private void startWriterThread() {
         writerThread = new Thread(() -> {
             while (running || !saveQueue.isEmpty()) {
@@ -60,7 +109,7 @@ public class WorldStorageManager {
                     saveChunkToDisk(chunk);
                 } else {
                     try {
-                        Thread.sleep(50); // CPU schonen, wenn die Queue leer ist
+                        Thread.sleep(50);
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     }
@@ -68,16 +117,11 @@ public class WorldStorageManager {
             }
         });
         writerThread.setName("World-IO-Thread");
-        writerThread.setDaemon(true); // Erlaubt das Beenden der JVM, falls der Thread hängt
+        writerThread.setDaemon(true);
         writerThread.start();
     }
 
-    /**
-     * Rechnet die Chunk-Koordinaten in Region-Koordinaten um (32x32 Chunks pro Region)
-     * und holt die offene Datei aus dem Cache (oder öffnet sie neu).
-     */
     private synchronized RegionFile getRegionFile(int cx, int cz) {
-        // Bitshift um 5 ist exakt das Gleiche wie Division durch 32, nur schneller
         int rx = cx >> 5;
         int rz = cz >> 5;
         Vector2i rPos = new Vector2i(rx, rz);
@@ -88,51 +132,33 @@ public class WorldStorageManager {
         });
     }
 
-    /**
-     * Wirft einen Chunk in die Warteschlange.
-     * Der Aufruf kostet praktisch 0 Performance im Main-Thread.
-     */
     public void queueChunkForSaving(Chunk chunk) {
         saveQueue.add(chunk);
     }
 
-    /**
-     * Die eigentliche Speicher-Logik (läuft im Hintergrund-Thread).
-     */
     private void saveChunkToDisk(Chunk chunk) {
         try {
-            // 1. Chunk in GZIP Byte-Array komprimieren
             byte[] data = chunk.serialize();
-
-            // 2. Region File holen und Daten schreiben
             RegionFile region = getRegionFile(chunk.getWorldX(), chunk.getWorldZ());
             region.writeChunk(chunk.getWorldX(), chunk.getWorldZ(), data);
-
         } catch (IOException e) {
             System.err.println("Fehler beim Speichern von Chunk " + chunk.getWorldX() + "," + chunk.getWorldZ());
             e.printStackTrace();
         }
     }
 
-    /**
-     * Synchrones Laden. Muss sofort passieren, wenn der Chunk-Generator neue Chunks anfordert.
-     * @return true wenn der Chunk existiert und geladen wurde, false wenn er neu generiert werden muss.
-     */
     public boolean loadChunkFromDisk(Chunk chunk) {
         RegionFile region = getRegionFile(chunk.getWorldX(), chunk.getWorldZ());
         byte[] data = region.readChunk(chunk.getWorldX(), chunk.getWorldZ());
 
-        if (data == null) {
-            return false; // Chunk existiert in dieser Region nicht (noch nie generiert)
-        }
+        if (data == null) return false;
 
         try {
             chunk.deserialize(data);
             return true;
         } catch (IOException e) {
             System.err.println("Beschädigter Chunk gefunden bei " + chunk.getWorldX() + "," + chunk.getWorldZ());
-            e.printStackTrace();
-            return false; // Bei Fehler neu generieren lassen
+            return false;
         }
     }
 
@@ -158,7 +184,6 @@ public class WorldStorageManager {
             String json = Files.readString(levelFile);
             return gson.fromJson(json, WorldData.class);
         } catch (IOException e) {
-            System.err.println("Fehler beim Laden der level.json!");
             return null;
         }
     }
@@ -181,7 +206,6 @@ public class WorldStorageManager {
             String json = Files.readString(playerFile);
             return gson.fromJson(json, PlayerData.class);
         } catch (IOException e) {
-            System.err.println("Fehler beim Laden der Spielerdaten für " + playerUUID);
             return null;
         }
     }
@@ -190,19 +214,13 @@ public class WorldStorageManager {
     // CLEANUP / SHUTDOWN
     // ==========================================
 
-    /**
-     * Wird beim Schließen des Spiels aufgerufen.
-     * Stellt sicher, dass die Warteschlange komplett abgearbeitet wird,
-     * bevor sich das Programm beendet!
-     */
     public void shutdown() {
         System.out.println("Speichere Welt auf Festplatte... Bitte warten.");
         running = false;
         try {
-            writerThread.join(); // Wartet geduldig, bis der Thread fertig ist
+            writerThread.join();
             System.out.println("Alle Chunks gespeichert.");
 
-            // Schließe alle geöffneten Dateien (verhindert Memory-Leaks im Dateisystem)
             for (RegionFile region : regionCache.values()) {
                 region.close();
             }

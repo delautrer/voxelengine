@@ -1,11 +1,16 @@
 package de.delautrer.engine.input;
 
 import org.lwjgl.glfw.GLFW;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class InputManager {
     private final long windowHandle;
+
+    private final List<Character> typedChars = new ArrayList<>();
 
     private final Map<String, Integer> keyBindings = new HashMap<>();
     private final Map<String, Integer> mouseBindings = new HashMap<>();
@@ -28,6 +33,8 @@ public class InputManager {
     }
 
     private void setupDefaultBindings() {
+        keyBindings.put("UI_BACKSPACE", GLFW.GLFW_KEY_BACKSPACE);
+
         keyBindings.put("MOVE_FORWARD", GLFW.GLFW_KEY_W);
         keyBindings.put("MOVE_BACKWARD", GLFW.GLFW_KEY_S);
         keyBindings.put("MOVE_LEFT", GLFW.GLFW_KEY_A);
@@ -48,8 +55,12 @@ public class InputManager {
         mouseBindings.put("INTERACT_PLACE", GLFW.GLFW_MOUSE_BUTTON_RIGHT);
         mouseBindings.put("PICK_BLOCK", GLFW.GLFW_MOUSE_BUTTON_MIDDLE);
 
-        org.lwjgl.glfw.GLFW.glfwSetScrollCallback(windowHandle, (window, xoffset, yoffset) -> {
+        GLFW.glfwSetScrollCallback(windowHandle, (window, xoffset, yoffset) -> {
             scrollY = yoffset;
+        });
+
+        GLFW.glfwSetCharCallback(windowHandle, (window, codepoint) -> {
+            typedChars.add((char) codepoint);
         });
     }
 
@@ -74,6 +85,12 @@ public class InputManager {
         double temp = scrollY;
         scrollY = 0;
         return temp;
+    }
+
+    public List<Character> consumeTypedChars() {
+        List<Character> copy = new ArrayList<>(typedChars);
+        typedChars.clear();
+        return copy;
     }
 
     public void setCursorHover(boolean isHovering) {

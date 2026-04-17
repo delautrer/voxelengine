@@ -7,7 +7,7 @@ import de.delautrer.engine.input.InputManager;
 import de.delautrer.game.interaction.PlayerInteraction;
 import de.delautrer.game.ui.gui.UIManager;
 import de.delautrer.game.ui.gui.UIMeshBuilder;
-import de.delautrer.game.ui.gui.MenuScreen; // NEU
+import de.delautrer.game.ui.gui.screens.MenuScreen; // NEU
 import org.lwjgl.vulkan.VK10;
 
 public class UIRenderer {
