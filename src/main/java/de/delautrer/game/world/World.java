@@ -85,8 +85,15 @@ public class World {
         cloudSystem.update(deltaTime);
 
         if (localPlayer.position.y < -50) {
-            localPlayer.position.set(findSafeSpawn((int)localPlayer.position.x, (int)localPlayer.position.z));
-            localPlayer.velocity.set(0);
+            Vector3f safeSpawn = findSafeSpawn((int)localPlayer.position.x, (int)localPlayer.position.z);
+
+            if (safeSpawn != null) {
+                localPlayer.position.set(safeSpawn);
+                localPlayer.velocity.set(0);
+            } else {
+                localPlayer.position.y = -49.0f;
+                localPlayer.velocity.y = 0.0f;
+            }
         }
 
         chunkManager.getAsyncBuilder().uploadReadyMeshes(chunkManager);
@@ -197,6 +204,10 @@ public class World {
     }
 
     public Vector3f findSafeSpawn(int x, int z) {
+        if (chunkManager.getChunkAtBlock(x, 0, z) == null) {
+            return null;
+        }
+
         for (int y = Chunk.HEIGHT - 3; y > 0; y--) {
             if (getBlockAt(x, y, z) != 0) {
                 if (getBlockAt(x, y + 1, z) == 0 && getBlockAt(x, y + 2, z) == 0) {
@@ -204,13 +215,16 @@ public class World {
                 }
             }
         }
-        return new Vector3f(x, 30, z);
+        return new Vector3f(x + 0.5f, 30, z + 0.5f);
     }
 
     public void calcWorldspawnAndTeleportPlayer(LocalPlayer player) {
         if (worldSpawnpoint == null) {
-            worldSpawnpoint = findSafeSpawn(0, 0);
-            player.position.set(worldSpawnpoint);
+            Vector3f spawn = findSafeSpawn(0, 0);
+            if (spawn != null) {
+                worldSpawnpoint = spawn;
+                player.position.set(worldSpawnpoint);
+            }
         }
     }
 

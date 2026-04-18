@@ -8,6 +8,12 @@ public class UIInputField extends UIElement {
     private boolean isFocused = false;
     private int maxLength;
 
+    private static final int GRID_X_NORMAL = 0;
+    private static final int GRID_Y_NORMAL = 0;
+    private static final int GRID_X_HOVER = 1;
+    private static final int GRID_Y_HOVER = 0;
+    private static final float CORNER_SIZE = 8.0f;
+
     public UIInputField(float x, float y, float width, float height, String placeholder, int maxLength) {
         super(x, y, width, height);
         this.placeholder = placeholder;
@@ -45,15 +51,10 @@ public class UIInputField extends UIElement {
         if (!isVisible) return;
 
         // Hintergrund (dunkler, wenn fokussiert)
-        float bg = isFocused ? 0.1f : 0.2f;
-        builder.addRect(x, y, 0.1f, width, height, bg, bg, bg, 1.0f);
+        int gridX = isFocused ? GRID_X_HOVER : GRID_X_NORMAL;
+        int gridY = isFocused ? GRID_Y_HOVER : GRID_Y_NORMAL;
 
-        // Rahmen (Weiß wenn fokussiert, sonst Grau)
-        float border = isFocused ? 0.9f : 0.4f;
-        builder.addRect(x, y, 0.15f, width, 2, border, border, border, 1.0f); // Top
-        builder.addRect(x, y + height - 2, 0.15f, width, 2, border, border, border, 1.0f); // Bottom
-        builder.addRect(x, y, 0.15f, 2, height, border, border, border, 1.0f); // Left
-        builder.addRect(x + width - 2, y, 0.15f, 2, height, border, border, border, 1.0f); // Right
+        builder.add9Slice(x, y, 0.1f, width, height, gridX, gridY, CORNER_SIZE);
 
         // Text rendern
         String displayText = text.isEmpty() && !isFocused ? placeholder : text;

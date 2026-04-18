@@ -10,10 +10,12 @@ public class WorldEventHandler {
 
     private final World world;
     private final VulkanContext vulkanContext;
+    private final EventBus eventBus;
 
     public WorldEventHandler(World world, VulkanContext context, EventBus eventBus) {
         this.world = world;
         this.vulkanContext = context;
+        this.eventBus = eventBus;
 
         // EventListener registrieren
         eventBus.subscribe(BlockChangeEvent.class, this::onBlockChange);
@@ -68,6 +70,14 @@ public class WorldEventHandler {
         if (receiverId != 0) {
             de.delautrer.game.blocks.Block receiverBlock = de.delautrer.game.blocks.BlockRegistry.get(receiverId);
             receiverBlock.onNeighborChanged(world, event.pos.x, event.pos.y, event.pos.z, event.neighborPos, event.changedNeighborId);
+        }
+    }
+
+
+    public void cleanup() {
+        if(eventBus != null) {
+            eventBus.unsubscribe(BlockChangeEvent.class, this::onBlockChange);
+            eventBus.unsubscribe(de.delautrer.game.events.BlockNeighborUpdateEvent.class, this::onNeighborUpdate);
         }
     }
 }

@@ -2,6 +2,7 @@ package de.delautrer.game.states;
 
 import de.delautrer.engine.MasterRenderer;
 import de.delautrer.engine.events.EventBus;
+import de.delautrer.engine.events.EventListener;
 import de.delautrer.engine.graphics.MeshData;
 import de.delautrer.engine.states.Scene;
 import de.delautrer.engine.Engine;
@@ -23,6 +24,7 @@ public class PlayScene extends Scene {
     private LocalPlayer localPlayer;
     private WorldEventHandler worldEventHandler;
     private DebugOverlay debugOverlay;
+    private EventBus eventBus;
 
     private PauseScreen pauseScreen;
     private LoadingScreen loadingScreen;
@@ -42,6 +44,11 @@ public class PlayScene extends Scene {
     private float autosaveTimer = 0;
     private final float AUTOSAVE_INTERVAL = 300.0f;
 
+    // Gespeicherte Listener-Variablen fürs Cleanup
+    private EventListener<InventoryToggleEvent> inventoryToggleListener;
+    private EventListener<HotbarSlotChangeEvent> hotbarSlotChangeListener;
+    private EventListener<DebugToggleEvent> debugToggleListener;
+
     public PlayScene(Engine engine, String worldName, long seed) {
         super(engine);
         this.worldName = worldName;
@@ -60,6 +67,7 @@ public class PlayScene extends Scene {
 
     @Override
     public void init() {
+        eventBus = new EventBus();
         masterRenderer = new MasterRenderer(engine.getVulkanContext(), engine.getWindow());
         debugOverlay = new DebugOverlay();
 
@@ -76,9 +84,9 @@ public class PlayScene extends Scene {
         localPlayer.getCamera().resetMouseTracking();
 
         // Mein schönie seedie : 1337l
-        world = new World(engine.getVulkanContext(), localPlayer, engine.getEventBus(), seed, worldName, worldSave);
-        worldEventHandler = new WorldEventHandler(world, engine.getVulkanContext(), engine.getEventBus());
-        localPlayer.initInteraction(world, engine.getVulkanContext(), engine.getEventBus());
+        world = new World(engine.getVulkanContext(), localPlayer, eventBus, seed, worldName, worldSave);
+        worldEventHandler = new WorldEventHandler(world, engine.getVulkanContext(), eventBus);
+        localPlayer.initInteraction(world, engine.getVulkanContext(), eventBus);
 
         MeshData cloudData = world.getCloudSystem().generateCloudMesh(world.getSeed());
         masterRenderer.initClouds(cloudData);
@@ -149,8 +157,7 @@ public class PlayScene extends Scene {
     }
 
     private void setupEvents() {
-        EventBus eventBus = engine.getEventBus();
-        eventBus.subscribe(InventoryToggleEvent.class, event -> {
+        inventoryToggleListener = event -> {
             uiNeedsRebuild = true;
             if (event.isOpen) engine.getWindow().enableCursor();
             else {
@@ -158,9 +165,13 @@ public class PlayScene extends Scene {
                 localPlayer.getCamera().resetMouseTracking();
                 localPlayer.getInteraction().resetCooldown();
             }
-        });
-        eventBus.subscribe(HotbarSlotChangeEvent.class, event -> uiNeedsRebuild = true);
-        eventBus.subscribe(DebugToggleEvent.class, event -> uiNeedsRebuild = true);
+        };
+        hotbarSlotChangeListener = event -> uiNeedsRebuild = true;
+        debugToggleListener = event -> uiNeedsRebuild = true;
+
+        eventBus.subscribe(InventoryToggleEvent.class, inventoryToggleListener);
+        eventBus.subscribe(HotbarSlotChangeEvent.class, hotbarSlotChangeListener);
+        eventBus.subscribe(DebugToggleEvent.class, debugToggleListener);
     }
 
     @Override
@@ -176,7 +187,9 @@ public class PlayScene extends Scene {
         } else if (wasLoading) {
             wasLoading = false;
             uiNeedsRebuild = true;
-            world.calcWorldspawnAndTeleportPlayer(localPlayer);
+            if (isNewWorld) {
+                world.calcWorldspawnAndTeleportPlayer(localPlayer);
+            }
         }
 
         // --- 1. SPEICHERN & BEENDEN ---
@@ -205,7 +218,7 @@ public class PlayScene extends Scene {
         // --- 3. NORMALES SPIEL ---
         if (engine.getInputManager().isActionJustPressed("DEBUG_MENU")) {
             debugOverlay.toggle();
-            engine.getEventBus().publish(new DebugToggleEvent(debugOverlay.isVisible()));
+            eventBus.publish(new DebugToggleEvent(debugOverlay.isVisible()));
         }
 
         world.getEnvironment().update(deltaTime);
@@ -262,6 +275,18 @@ public class PlayScene extends Scene {
 
     @Override
     public void cleanup() {
+        if (eventBus != null) {
+            eventBus.unsubscribe(InventoryToggleEvent.class, inventoryToggleListener);
+            eventBus.unsubscribe(HotbarSlotChangeEvent.class, hotbarSlotChangeListener);
+            eventBus.unsubscribe(DebugToggleEvent.class, debugToggleListener);
+
+            //eventBus.cleanup();
+        }
+
+        if (worldEventHandler != null) {
+            worldEventHandler.cleanup();
+        }
+
         if (world != null) world.cleanup(localPlayer);
         if (masterRenderer != null) masterRenderer.cleanup();
     }

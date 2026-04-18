@@ -1,9 +1,21 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.guardsquare:proguard-gradle:7.9.0'
+    }
+}
+
 plugins {
     id 'java'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'edu.sc.seis.launch4j' version '3.0.5'
 }
 
 project.ext.lwjglVersion = "3.4.1"
 project.ext.lwjglNatives = "natives-windows"
+def mainClassName = "de.delautrer.Main"
 
 repositories {
     mavenCentral()
@@ -96,4 +108,42 @@ dependencies {
     runtimeOnly "org.lwjgl:lwjgl-stb:3.3.3:natives-windows"
 
     implementation 'com.google.code.gson:gson:2.13.2'
+}
+
+shadowJar {
+    archiveBaseName.set('VoxelEngine-Raw')
+    archiveClassifier.set('')
+    archiveVersion.set('')
+    manifest {
+        attributes 'Main-Class': mainClassName
+    }
+}
+
+task proguard(type: proguard.gradle.ProGuardTask, dependsOn: shadowJar) {
+    injars shadowJar.archiveFile
+    outjars "build/libs/VoxelEngine-Obfuscated.jar"
+
+    libraryjars "${System.getProperty('java.home')}/jmods"
+
+    configuration 'proguard-rules.pro'
+}
+
+launch4j {
+    mainClassName = mainClassName
+    copyConfigurable = project.tasks.proguard.outputs.files.singleFile
+    jarTask = project.tasks.proguard
+
+    outfile = "VoxelEngine.exe"
+    headerType = "gui"
+    errTitle = "Voxel Engine Error"
+    downloadUrl = "https://java.com/download"
+
+    bundledJrePath = 'jre'
+
+    jreMinVersion = '21'
+}
+
+task buildExe(dependsOn: ['createExe']) {
+    group = 'build'
+    description = 'Baut das Fat-JAR, verschleiert es und generiert die .exe'
 }

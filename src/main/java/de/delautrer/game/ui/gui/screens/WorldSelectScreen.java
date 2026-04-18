@@ -147,7 +147,7 @@ public class WorldSelectScreen extends MenuScreen {
         // 2. Wenn das Popup aktiv ist, dimmen wir den Hintergrund und zeichnen ein Panel
         if (isCreatingWorld) {
             // Dunkler Schleier über dem ganzen Bildschirm (Z = 0.02f)
-            builder.addRect(0, 0, 0.02f, width, height, 0.0f, 0.0f, 0.0f, 0.7f);
+            // builder.addRect(0, 0, 0.02f, width, height, 0.0f, 0.0f, 0.0f, 0.7f);
 
             // Modernes Panel-Rechteck in der Mitte (Z = 0.03f)
             float popupWidth = 460.0f;

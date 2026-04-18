@@ -13,13 +13,29 @@ public class EventBus {
         listeners.computeIfAbsent(eventType, k -> new ArrayList<>()).add(listener);
     }
 
+    public void cleanup() {
+        listeners.clear();
+    }
+
+    public <T extends Event> void unsubscribe(Class<T> eventType, EventListener<T> listener) {
+        List<EventListener> eventListeners = listeners.get(eventType);
+        if (eventListeners != null) {
+            eventListeners.remove(listener);
+
+            if (eventListeners.isEmpty()) {
+                listeners.remove(eventType);
+            }
+        }
+    }
+
     @SuppressWarnings("unchecked")
     public void publish(Event event) {
         List<EventListener> eventListeners = listeners.get(event.getClass());
         if (eventListeners != null) {
-            for (EventListener listener : eventListeners) {
-                listener.onEvent(event);
+            for (int i = 0; i < eventListeners.size(); i++) {
+                eventListeners.get(i).onEvent(event);
             }
         }
     }
+
 }

@@ -6,7 +6,7 @@ import org.lwjgl.vulkan.VK10;
 public class SceneManager {
     private Scene currentScene;
     private Scene nextScene;
-    private final Engine engine; // Wir brauchen die Engine hier
+    private final Engine engine;
 
     public SceneManager(Engine engine) {
         this.engine = engine;

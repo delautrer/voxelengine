@@ -38,13 +38,12 @@ public class MenuRenderer {
         }
     }
 
-    // ZWINGEND: Nimmt jetzt die invertierte MausY von außen!
     public void draw(MenuScreen screen, float uiMouseX, float uiMouseY) {
         if (uiMesh != null) { VK10.vkDeviceWaitIdle(context.getDevice()); uiMesh.cleanup(); uiMesh = null; }
         if (textMesh != null) { VK10.vkDeviceWaitIdle(context.getDevice()); textMesh.cleanup(); textMesh = null; }
 
         meshBuilder.clear();
-        screen.render(meshBuilder, uiMouseX, uiMouseY); // Für Hover
+        screen.render(meshBuilder, uiMouseX, uiMouseY);
 
         if (!meshBuilder.guiVerts.isEmpty()) {
             float[] vArr = new float[meshBuilder.guiVerts.size()];

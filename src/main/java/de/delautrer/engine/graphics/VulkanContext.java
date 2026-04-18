@@ -6,13 +6,16 @@ import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
 import org.lwjgl.glfw.GLFWVulkan;
 
+import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
+import java.util.HashSet;
+import java.util.Set;
 
 public class VulkanContext {
 
     private VkInstance instance;
-    private long surface; // Non-dispatchable handles stay long
+    private long surface;
     private VkPhysicalDevice physicalDevice;
     private VkDevice device;
     private VkQueue graphicsQueue;
@@ -37,7 +40,7 @@ public class VulkanContext {
             appInfo.sType(VK10.VK_STRUCTURE_TYPE_APPLICATION_INFO);
             appInfo.pApplicationName(stack.UTF8("Voxel Engine"));
             appInfo.applicationVersion(VK10.VK_MAKE_VERSION(1, 0, 0));
-            appInfo.pEngineName(stack.UTF8("No Engine"));
+            appInfo.pEngineName(stack.UTF8("DelautrerEngine"));
             appInfo.engineVersion(VK10.VK_MAKE_VERSION(1, 0, 0));
             appInfo.apiVersion(VK10.VK_API_VERSION_1_0);
 
@@ -47,12 +50,13 @@ public class VulkanContext {
 
             PointerBuffer requiredExtensions = GLFWVulkan.glfwGetRequiredInstanceExtensions();
             createInfo.ppEnabledExtensionNames(requiredExtensions);
+            createInfo.ppEnabledLayerNames(null);
 
             PointerBuffer pInstance = stack.mallocPointer(1);
-            if (VK10.vkCreateInstance(createInfo, null, pInstance) != VK10.VK_SUCCESS) {
-                throw new RuntimeException("Failed to create Vulkan instance");
+            int err = VK10.vkCreateInstance(createInfo, null, pInstance);
+            if (err != VK10.VK_SUCCESS) {
+                throw new RuntimeException("Vulkan-Instanz konnte nicht erstellt werden: " + err);
             }
-            // Mache aus dem primitiven Pointer ein richtiges LWJGL Objekt
             instance = new VkInstance(pInstance.get(0), createInfo);
         }
     }
@@ -61,7 +65,7 @@ public class VulkanContext {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             LongBuffer pSurface = stack.mallocLong(1);
             if (GLFWVulkan.glfwCreateWindowSurface(instance, window.getHandle(), null, pSurface) != VK10.VK_SUCCESS) {
-                throw new RuntimeException("Failed to create window surface");
+                throw new RuntimeException("Window Surface konnte nicht erstellt werden");
             }
             surface = pSurface.get(0);
         }
@@ -73,23 +77,33 @@ public class VulkanContext {
             VK10.vkEnumeratePhysicalDevices(instance, deviceCount, null);
 
             if (deviceCount.get(0) == 0) {
-                throw new RuntimeException("Failed to find GPUs with Vulkan support");
+                throw new RuntimeException("Keine GPU mit Vulkan-Support gefunden");
             }
 
             PointerBuffer pPhysicalDevices = stack.mallocPointer(deviceCount.get(0));
             VK10.vkEnumeratePhysicalDevices(instance, deviceCount, pPhysicalDevices);
 
+            VkPhysicalDevice selected = null;
+            int bestScore = -1;
+
             for (int i = 0; i < pPhysicalDevices.capacity(); i++) {
-                VkPhysicalDevice device = new VkPhysicalDevice(pPhysicalDevices.get(i), instance);
-                if (isDeviceSuitable(device, stack)) {
-                    physicalDevice = device;
-                    break;
+                VkPhysicalDevice dev = new VkPhysicalDevice(pPhysicalDevices.get(i), instance);
+                VkPhysicalDeviceProperties props = VkPhysicalDeviceProperties.calloc(stack);
+                VK10.vkGetPhysicalDeviceProperties(dev, props);
+
+                if (isDeviceSuitable(dev, stack)) {
+                    int score = 0;
+                    if (props.deviceType() == VK10.VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) score += 1000;
+
+                    if (score > bestScore) {
+                        bestScore = score;
+                        selected = dev;
+                    }
                 }
             }
 
-            if (physicalDevice == null) {
-                throw new RuntimeException("Failed to find a suitable GPU");
-            }
+            if (selected == null) throw new RuntimeException("Keine passende GPU gefunden!");
+            physicalDevice = selected;
         }
     }
 
@@ -123,19 +137,14 @@ public class VulkanContext {
 
         if (transfer == -1) transfer = graphics;
 
-        if (graphics != -1 && present != -1 && transfer != -1) {
+        if (graphics != -1 && present != -1) {
             graphicsQueueFamily = graphics;
             presentQueueFamily = present;
             transferQueueFamily = transfer;
 
             VkPhysicalDeviceFeatures supportedFeatures = VkPhysicalDeviceFeatures.calloc(stack);
             VK10.vkGetPhysicalDeviceFeatures(device, supportedFeatures);
-            // Require non-solid fill mode (line drawing)
-            if (!supportedFeatures.fillModeNonSolid()) {
-                return false;
-            }
-
-            return true;
+            return supportedFeatures.fillModeNonSolid();
         }
 
         return false;
@@ -143,20 +152,26 @@ public class VulkanContext {
 
     private void createLogicalDevice() {
         try (MemoryStack stack = MemoryStack.stackPush()) {
-            int[] uniqueFamilies = transferQueueFamily != graphicsQueueFamily && transferQueueFamily != presentQueueFamily
-                    ? new int[] {graphicsQueueFamily, presentQueueFamily, transferQueueFamily}
-                    : (graphicsQueueFamily != presentQueueFamily
-                    ? new int[] {graphicsQueueFamily, presentQueueFamily}
-                    : new int[] {graphicsQueueFamily});
+            // DER FIX: Wir nutzen ein Set, um doppelte Queue-Indizes zu verhindern
+            Set<Integer> uniqueIndices = new HashSet<>();
+            uniqueIndices.add(graphicsQueueFamily);
+            uniqueIndices.add(presentQueueFamily);
+            uniqueIndices.add(transferQueueFamily);
 
-            VkDeviceQueueCreateInfo.Buffer queueCreateInfos = VkDeviceQueueCreateInfo.calloc(uniqueFamilies.length, stack);
-            for (int i = 0; i < uniqueFamilies.length; i++) {
-                queueCreateInfos.get(i).sType(VK10.VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO);
-                queueCreateInfos.get(i).queueFamilyIndex(uniqueFamilies[i]);
-                queueCreateInfos.get(i).pQueuePriorities(stack.floats(1.0f));
+            VkDeviceQueueCreateInfo.Buffer queueCreateInfos = VkDeviceQueueCreateInfo.calloc(uniqueIndices.size(), stack);
+            FloatBuffer priorities = stack.floats(1.0f);
+
+            int i = 0;
+            for (int familyIndex : uniqueIndices) {
+                queueCreateInfos.get(i++)
+                        .sType(VK10.VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO)
+                        .queueFamilyIndex(familyIndex)
+                        .pQueuePriorities(priorities);
+                // queueCount wird hier durch pQueuePriorities automatisch auf 1 gesetzt!
             }
 
             VkPhysicalDeviceFeatures deviceFeatures = VkPhysicalDeviceFeatures.calloc(stack);
+            VK10.vkGetPhysicalDeviceFeatures(physicalDevice, deviceFeatures);
             deviceFeatures.fillModeNonSolid(true);
             deviceFeatures.logicOp(true);
 
@@ -167,10 +182,12 @@ public class VulkanContext {
 
             PointerBuffer extensions = stack.pointers(stack.UTF8(KHRSwapchain.VK_KHR_SWAPCHAIN_EXTENSION_NAME));
             createInfo.ppEnabledExtensionNames(extensions);
+            createInfo.ppEnabledLayerNames(null);
 
             PointerBuffer pDevice = stack.mallocPointer(1);
-            if (VK10.vkCreateDevice(physicalDevice, createInfo, null, pDevice) != VK10.VK_SUCCESS) {
-                throw new RuntimeException("Failed to create logical device");
+            int result = VK10.vkCreateDevice(physicalDevice, createInfo, null, pDevice);
+            if (result != VK10.VK_SUCCESS) {
+                throw new RuntimeException("Logical Device konnte nicht erstellt werden: Fehler " + result);
             }
             device = new VkDevice(pDevice.get(0), physicalDevice, createInfo);
 
@@ -207,7 +224,7 @@ public class VulkanContext {
                 }
             }
         }
-        throw new RuntimeException("Failed to find suitable memory type");
+        throw new RuntimeException("Passender Speichertyp wurde nicht gefunden");
     }
 
     public void cleanup() {

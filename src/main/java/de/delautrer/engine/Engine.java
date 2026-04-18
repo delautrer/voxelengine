@@ -14,7 +14,6 @@ public class Engine {
 
     private Window window;
     private VulkanContext vulkanContext;
-    private EventBus eventBus;
     private InputManager inputManager;
 
     private SceneManager sceneManager;
@@ -29,11 +28,9 @@ public class Engine {
     }
 
     private void init() {
-        // Kern-Systeme initialisieren
         window = new Window(1280, 720, "Voxel Engine");
         window.disableCursor();
         vulkanContext = new VulkanContext(window);
-        eventBus = new EventBus();
         inputManager = new InputManager(window.getHandle());
 
         sceneManager = new SceneManager(this);
@@ -81,7 +78,6 @@ public class Engine {
     }
     public Window getWindow() { return window; }
     public VulkanContext getVulkanContext() { return vulkanContext; }
-    public EventBus getEventBus() { return eventBus; }
     public InputManager getInputManager() { return inputManager; }
     public int getCurrentFps() { return currentFps; }
 }

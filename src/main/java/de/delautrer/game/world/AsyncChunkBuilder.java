@@ -14,11 +14,13 @@ public class AsyncChunkBuilder {
     private final ExecutorService executor = Executors.newFixedThreadPool(Math.max(1, Runtime.getRuntime().availableProcessors() - 1));
     private final ConcurrentLinkedQueue<ChunkBuildResult> readyMeshes = new ConcurrentLinkedQueue<>();
 
-    // NEU: Ein Set, das sich merkt, ob ein Chunk bereits in der Warteschlange ist
     private final Set<Chunk> currentlyBuilding = ConcurrentHashMap.newKeySet();
 
     public void queueRebuild(Chunk chunk, ChunkManager cm) {
-        // Wenn er schon in der Schlange ist, ignorieren wir den doppelten Auftrag! (Spart massiv CPU)
+        if (executor.isShutdown() || executor.isTerminated()) {
+            return;
+        }
+
         if (!currentlyBuilding.add(chunk)) {
             return;
         }

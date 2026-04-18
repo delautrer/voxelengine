@@ -5,6 +5,7 @@ import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.items.BlockItem;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
+import de.delautrer.game.world.World;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 
@@ -94,5 +95,15 @@ public class PlantBlock extends Block {
     @Override
     public boolean canWaterFlowInto() {
         return true;
+    }
+
+    @Override
+    public void onNeighborChanged(World world, int x, int y, int z, Vector3i neighborPos, byte newNeighborId) {
+        if (neighborPos.x == x && neighborPos.y == y - 1 && neighborPos.z == z) {
+            Block blockBelow = BlockRegistry.get(newNeighborId);
+            if (!blockBelow.isSolid) {
+                world.setBlock(x, y, z, BlockRegistry.AIR.getId());
+            }
+        }
     }
 }
