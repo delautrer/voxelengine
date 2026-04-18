@@ -13,6 +13,9 @@ public class Container {
 
     public Inventory getInventory() { return inventory; }
     public ItemStack getMouseStack() { return mouseStack; }
+    public void setMouseStack(de.delautrer.game.items.ItemStack stack) {
+        this.mouseStack = stack;
+    }
 
     public void handleSlotClick(int slotIndex) {
         if (slotIndex < 0 || slotIndex >= Inventory.TOTAL_SIZE) return;

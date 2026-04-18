@@ -1,5 +1,6 @@
 package de.delautrer.game.states;
 
+import de.delautrer.engine.Constants;
 import de.delautrer.engine.MasterRenderer;
 import de.delautrer.engine.events.EventBus;
 import de.delautrer.engine.events.EventListener;
@@ -108,9 +109,9 @@ public class PlayScene extends Scene {
     }
 
     private void setupDebugOverlay() {
-        debugOverlay.addLine("Version", () -> "0.1-Alpha");
+        debugOverlay.addLine("Version", () -> Constants.VERSION);
         debugOverlay.addLine("FPS", () -> String.format("%d", engine.getCurrentFps()));
-        debugOverlay.addLine("Chunks (Geladen/Sichtbar)", () ->
+        debugOverlay.addLine("Chunks (Loaded/Visible)", () ->
                 world.getChunkManager().getMeshes().size() + " / " + masterRenderer.getLastVisibleChunkCount()
         );
         debugOverlay.addLine("Player XYZ", () -> String.format("%.2f / %.2f / %.2f",

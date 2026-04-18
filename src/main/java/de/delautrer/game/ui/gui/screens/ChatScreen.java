@@ -145,7 +145,7 @@ public class ChatScreen extends MenuScreen {
 
                     eventBus.publish(new CommandExecutedEvent(command, args, player, world));
                 } else {
-                    eventBus.publish(new ChatMessageEvent("[Spieler] " + inputText));
+                    eventBus.publish(new ChatMessageEvent("[Player] " + inputText));
                 }
             }
             closeCallback.run();

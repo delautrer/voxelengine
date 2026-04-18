@@ -2,9 +2,11 @@ package de.delautrer.game.ui.gui;
 
 import de.delautrer.engine.graphics.VulkanFont;
 import de.delautrer.engine.input.InputManager;
+import de.delautrer.game.entity.player.GameMode;
 import de.delautrer.game.entity.player.PlayerInteraction;
 import de.delautrer.game.ui.ChatOverlay;
 import de.delautrer.game.ui.DebugOverlay;
+import de.delautrer.game.ui.gui.screens.CreativeInventoryScreen;
 import de.delautrer.game.ui.gui.screens.InventoryScreen;
 import de.delautrer.game.ui.gui.screens.MenuScreen;
 
@@ -19,8 +21,15 @@ public class UIManager {
 
     public void update(InputManager input, PlayerInteraction interaction) {
         if (interaction.getInventory().isOpen()) {
-            if (currentScreen == null) { // Öffnen
-                currentScreen = new InventoryScreen(new Container(interaction.getInventory()));
+            if (currentScreen == null) {
+
+                // --- NEU: Gamemode-Check ---
+                if (interaction.getPlayer().getGameMode() == GameMode.CREATIVE) {
+                    currentScreen = new CreativeInventoryScreen(new Container(interaction.getInventory()));
+                } else {
+                    currentScreen = new InventoryScreen(new Container(interaction.getInventory()));
+                }
+
                 if (lastWidth > 0) currentScreen.init(lastWidth, lastHeight);
             }
             currentScreen.handleInput(input);

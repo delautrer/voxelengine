@@ -28,7 +28,7 @@ public class Engine {
     }
 
     private void init() {
-        window = new Window(1280, 720, "Voxel Engine");
+        window = new Window(1280, 720, "Voxel Engine - " + Constants.VERSION);
         window.disableCursor();
         vulkanContext = new VulkanContext(window);
         inputManager = new InputManager(window.getHandle());
