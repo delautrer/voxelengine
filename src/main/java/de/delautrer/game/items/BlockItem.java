@@ -7,8 +7,7 @@ import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.entity.player.LocalPlayer;
 import de.delautrer.game.world.World;
 import de.delautrer.engine.physics.AABB;
-import de.delautrer.game.interaction.PlayerInteraction;
-import de.delautrer.game.entity.player.Player;
+import de.delautrer.game.entity.player.PlayerInteraction;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 

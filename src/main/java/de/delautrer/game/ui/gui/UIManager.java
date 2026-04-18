@@ -2,7 +2,8 @@ package de.delautrer.game.ui.gui;
 
 import de.delautrer.engine.graphics.VulkanFont;
 import de.delautrer.engine.input.InputManager;
-import de.delautrer.game.interaction.PlayerInteraction;
+import de.delautrer.game.entity.player.PlayerInteraction;
+import de.delautrer.game.ui.ChatOverlay;
 import de.delautrer.game.ui.DebugOverlay;
 import de.delautrer.game.ui.gui.screens.InventoryScreen;
 import de.delautrer.game.ui.gui.screens.MenuScreen;
@@ -28,7 +29,7 @@ public class UIManager {
         }
     }
 
-    public void buildMeshes(UIMeshBuilder builder, int width, int height, InputManager input, PlayerInteraction interaction, float mouseX, float mouseY, DebugOverlay debugOverlay, VulkanFont font) {
+    public void buildMeshes(UIMeshBuilder builder, int width, int height, InputManager input, PlayerInteraction interaction, float mouseX, float mouseY, DebugOverlay debugOverlay, ChatOverlay chatOverlay, VulkanFont font) {
         builder.clear();
 
         if (width != lastWidth || height != lastHeight) {
@@ -44,7 +45,7 @@ public class UIManager {
             input.setCursorHover(false);
         }
 
-        hud.render(builder, width, height, interaction, hoveredSlot, debugOverlay, font);
+        hud.render(builder, width, height, interaction, hoveredSlot, debugOverlay, chatOverlay, font);
 
         if (currentScreen != null) {
             if (currentScreen instanceof MenuScreen) {

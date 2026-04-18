@@ -4,7 +4,7 @@ import de.delautrer.engine.graphics.VulkanContext;
 import de.delautrer.engine.graphics.VulkanFont;
 import de.delautrer.engine.graphics.VulkanMesh;
 import de.delautrer.engine.input.InputManager;
-import de.delautrer.game.interaction.PlayerInteraction;
+import de.delautrer.game.entity.player.PlayerInteraction;
 import de.delautrer.game.ui.gui.UIManager;
 import de.delautrer.game.ui.gui.UIMeshBuilder;
 import de.delautrer.game.ui.gui.screens.MenuScreen; // NEU
@@ -26,7 +26,7 @@ public class UIRenderer {
         this.meshBuilder = new UIMeshBuilder();
     }
 
-    public void rebuildMesh(int width, int height, InputManager input, PlayerInteraction interaction, float mouseX, float mouseY, DebugOverlay debugOverlay, VulkanFont font, MenuScreen pauseScreen) {
+    public void rebuildMesh(int width, int height, InputManager input, PlayerInteraction interaction, float mouseX, float mouseY, DebugOverlay debugOverlay, ChatOverlay chatOverlay, VulkanFont font, MenuScreen pauseScreen) {
         // Aufräumen der alten Meshes
         VK10.vkDeviceWaitIdle(context.getDevice());
         if (guiMesh != null) guiMesh.cleanup();
@@ -40,7 +40,7 @@ public class UIRenderer {
         // --- SCHRITT 1: HUD BAUEN (gui.png) ---
         meshBuilder.clear();
         uiManager.update(input, interaction);
-        uiManager.buildMeshes(meshBuilder, width, height, input, interaction, mouseX, mouseY, debugOverlay, font);
+        uiManager.buildMeshes(meshBuilder, width, height, input, interaction, mouseX, mouseY, debugOverlay, chatOverlay, font);
 
         if (!meshBuilder.guiVerts.isEmpty()) {
             guiMesh = new VulkanMesh(context, toArray(meshBuilder.guiVerts), toIntArray(meshBuilder.guiInds));

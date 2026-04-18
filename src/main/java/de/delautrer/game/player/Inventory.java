@@ -66,4 +66,8 @@ public class Inventory {
     public ItemStack getSelectedHotbarStack() { return slots[selectedHotbarSlot]; }
     public void setSelectedSlot(int s) { this.selectedHotbarSlot = s; }
     public int getSelectedSlot() { return selectedHotbarSlot; }
+
+    public void setOpen(boolean open) {
+        isOpen = open;
+    }
 }

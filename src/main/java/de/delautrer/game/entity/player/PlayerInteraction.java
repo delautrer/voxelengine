@@ -1,12 +1,10 @@
-package de.delautrer.game.interaction;
+package de.delautrer.game.entity.player;
 
 import de.delautrer.engine.events.EventBus;
 import de.delautrer.engine.graphics.VulkanContext;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.engine.graphics.Camera;
 import de.delautrer.engine.physics.Raycaster;
-import de.delautrer.game.entity.player.LocalPlayer;
-import de.delautrer.game.entity.player.Player;
 import de.delautrer.game.player.Inventory;
 import de.delautrer.game.world.World;
 import de.delautrer.game.items.ItemStack;
@@ -37,12 +35,18 @@ public class PlayerInteraction {
         this.eventBus = eventBus;
     }
 
+    public LocalPlayer getPlayer() {
+        return player;
+    }
+
     public void update(InputManager input, float deltaTime) {
-        if (player.getInventory().isOpen()) return;
+        if (player.getInventory().isOpen() || player.isChatOpen()) return;
         if (clickCooldown > 0) {
             clickCooldown -= deltaTime;
-            return; // WICHTIG: Bricht das Update ab, keine Klicks für diese Zeit!
+            return;
         }
+
+        if (player.getGameMode() == GameMode.SPECTATOR) return;
 
         // 1. Raycast
         Raycaster.RaycastResult result = Raycaster.raycast(world, camera.getPosition(), camera.getFront(), 6.0f);

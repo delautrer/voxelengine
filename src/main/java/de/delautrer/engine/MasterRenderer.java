@@ -7,7 +7,8 @@ import de.delautrer.engine.window.Window;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.blocks.state.BlockState;
-import de.delautrer.game.interaction.PlayerInteraction;
+import de.delautrer.game.entity.player.PlayerInteraction;
+import de.delautrer.game.ui.ChatOverlay;
 import de.delautrer.game.ui.DebugOverlay;
 import de.delautrer.game.ui.UIRenderer;
 import de.delautrer.game.ui.gui.screens.MenuScreen;
@@ -61,11 +62,11 @@ public class MasterRenderer {
         this.cloudMesh = new VulkanMesh(vulkanContext, data.vertices, data.indices);
     }
 
-    public void rebuildUI(PlayerInteraction interaction, InputManager input, DebugOverlay debugOverlay, MenuScreen pauseScreen) {
+    public void rebuildUI(PlayerInteraction interaction, InputManager input, DebugOverlay debugOverlay, MenuScreen pauseScreen, ChatOverlay chatOverlay) {
         uiRenderer.rebuildMesh(
                 renderer.getWidth(), renderer.getHeight(),
                 input, interaction, input.getMouseX(), input.getMouseY(),
-                debugOverlay, font, pauseScreen
+                debugOverlay, chatOverlay, font, pauseScreen
         );
     }
 
@@ -121,9 +122,9 @@ public class MasterRenderer {
         return renderer.render(packet);
     }
 
-    public void recreate(PlayerInteraction interaction, InputManager input, DebugOverlay debugOverlay, MenuScreen pauseScreen) {
+    public void recreate(PlayerInteraction interaction, InputManager input, DebugOverlay debugOverlay, MenuScreen pauseScreen, ChatOverlay chatOverlay) {
         renderer.recreate(window);
-        rebuildUI(interaction, input, debugOverlay, pauseScreen);
+        rebuildUI(interaction, input, debugOverlay, pauseScreen, chatOverlay);
     }
 
     public int getLastVisibleChunkCount() { return lastVisibleChunkCount; }

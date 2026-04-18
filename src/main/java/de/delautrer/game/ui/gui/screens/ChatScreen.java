@@ -1,0 +1,154 @@
+package de.delautrer.game.ui.gui.screens;
+
+import de.delautrer.engine.events.EventBus;
+import de.delautrer.engine.graphics.VulkanFont;
+import de.delautrer.engine.input.InputManager;
+import de.delautrer.game.commands.CommandManager;
+import de.delautrer.game.entity.player.LocalPlayer;
+import de.delautrer.game.events.CommandExecutedEvent;
+import de.delautrer.game.events.ChatMessageEvent;
+import de.delautrer.game.ui.gui.UIInputField;
+import de.delautrer.game.ui.gui.UIMeshBuilder;
+import de.delautrer.game.world.World;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class ChatScreen extends MenuScreen {
+
+    private UIInputField inputField;
+    private final EventBus eventBus;
+    private final LocalPlayer player;
+    private final World world;
+    private final Runnable closeCallback;
+    private VulkanFont font;
+
+    private final CommandManager commandManager;
+    private final List<String> history = new ArrayList<>();
+    private int historyIndex = -1;
+    private List<String> currentCompletions = new ArrayList<>();
+    private int completionIndex = -1;
+    private boolean isTabCycling = false;
+
+    public ChatScreen(EventBus eventBus, LocalPlayer player, World world, CommandManager commandManager, Runnable closeCallback) {
+        this.eventBus = eventBus;
+        this.player = player;
+        this.world = world;
+        this.commandManager = commandManager;
+        this.closeCallback = closeCallback;
+    }
+
+    public void open(boolean startWithSlash) {
+        inputField.setText(startWithSlash ? "/" : "");
+        inputField.setFocused(true);
+        historyIndex = history.size(); // Reset an ans Ende der History
+    }
+
+    public void setFont(VulkanFont font) {
+        this.font = font;
+    }
+
+    @Override
+    protected void onInit() {
+        float fieldWidth = width - 20.0f;
+        float fieldHeight = 30.0f;
+        // Y = 10.0f zwingt das Feld an den UNTEREN Rand!
+        inputField = new UIInputField(10.0f, 10.0f, fieldWidth, fieldHeight, "Befehl oder Nachricht eingeben...", 100);
+        inputField.setFocused(true);
+    }
+
+    @Override
+    public void render(UIMeshBuilder builder, float mouseX, float mouseY) {
+        if (font != null) {
+            inputField.render(builder, font, mouseX, mouseY);
+        }
+    }
+
+    public void handleMenuInput(InputManager input, float mouseX, float mouseY) {
+        handleInput(input);
+    }
+
+    @Override
+    public int getHoveredSlot(float mouseX, float mouseY) { return -1; }
+    @Override
+    protected void mouseClicked(float mouseX, float mouseY, int button) {}
+
+    @Override
+    protected void onCharTyped(char c) {
+        inputField.typeChar(c);
+        isTabCycling = false;
+    }
+
+    @Override
+    protected void onKeyPressed(InputManager input) {
+        if (input.isActionJustPressed("UI_BACKSPACE")) {
+            inputField.backspace();
+            isTabCycling = false; // Zyklus abbrechen
+        }
+        if (input.isActionJustPressed("PAUSE")) {
+            closeCallback.run();
+        }
+
+        // --- NEUE AUTOCOMPLETE (TAB SWAPPING) ---
+        if (input.isActionJustPressed("UI_TAB")) {
+            String currentText = inputField.getText();
+
+            // Wenn wir neu TAB drücken: Liste vom CommandManager holen
+            if (!isTabCycling) {
+                currentCompletions = commandManager.getTabCompletions(player, currentText);
+                if (!currentCompletions.isEmpty()) {
+                    isTabCycling = true;
+                    completionIndex = 0;
+                    inputField.setText(currentCompletions.get(completionIndex));
+                }
+            } else {
+                // Wenn wir schon cyclen: Einfach zum nächsten Eintrag springen
+                if (!currentCompletions.isEmpty()) {
+                    completionIndex = (completionIndex + 1) % currentCompletions.size();
+                    inputField.setText(currentCompletions.get(completionIndex));
+                }
+            }
+        }
+
+        // --- HISTORY (UP/DOWN) ---
+        // Wenn man hoch/runter drückt, bricht das Swapping ebenfalls ab!
+        if (input.isActionJustPressed("UI_UP")) {
+            isTabCycling = false;
+            if (historyIndex > 0) {
+                historyIndex--;
+                inputField.setText(history.get(historyIndex));
+            }
+        }
+        if (input.isActionJustPressed("UI_DOWN")) {
+            isTabCycling = false;
+            if (historyIndex < history.size() - 1) {
+                historyIndex++;
+                inputField.setText(history.get(historyIndex));
+            } else {
+                historyIndex = history.size();
+                inputField.setText("");
+            }
+        }
+
+        // --- ABSENDEN (ENTER) ---
+        if (input.isActionJustPressed("CHAT_SEND")) {
+            String inputText = inputField.getText();
+
+            if (!inputText.isEmpty()) {
+                history.add(inputText);
+
+                if (inputText.startsWith("/")) {
+                    String[] parts = inputText.substring(1).split(" ");
+                    String command = parts[0];
+                    String[] args = new String[parts.length - 1];
+                    System.arraycopy(parts, 1, args, 0, args.length);
+
+                    eventBus.publish(new CommandExecutedEvent(command, args, player, world));
+                } else {
+                    eventBus.publish(new ChatMessageEvent("[Spieler] " + inputText));
+                }
+            }
+            closeCallback.run();
+        }
+    }
+}

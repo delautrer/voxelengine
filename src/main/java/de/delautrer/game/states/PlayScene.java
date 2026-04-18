@@ -6,11 +6,14 @@ import de.delautrer.engine.events.EventListener;
 import de.delautrer.engine.graphics.MeshData;
 import de.delautrer.engine.states.Scene;
 import de.delautrer.engine.Engine;
+import de.delautrer.game.commands.CommandManager;
 import de.delautrer.game.entity.player.LocalPlayer;
 import de.delautrer.game.events.DebugToggleEvent;
 import de.delautrer.game.events.HotbarSlotChangeEvent;
 import de.delautrer.game.events.InventoryToggleEvent;
+import de.delautrer.game.ui.ChatOverlay;
 import de.delautrer.game.ui.DebugOverlay;
+import de.delautrer.game.ui.gui.screens.ChatScreen;
 import de.delautrer.game.ui.gui.screens.LoadingScreen;
 import de.delautrer.game.ui.gui.screens.MenuScreen;
 import de.delautrer.game.ui.gui.screens.PauseScreen;
@@ -24,11 +27,14 @@ public class PlayScene extends Scene {
     private LocalPlayer localPlayer;
     private WorldEventHandler worldEventHandler;
     private DebugOverlay debugOverlay;
+    private ChatOverlay chatOverlay;
     private EventBus eventBus;
 
     private PauseScreen pauseScreen;
     private LoadingScreen loadingScreen;
+    private ChatScreen chatScreen;
 
+    private boolean isChatOpen = false;
     private boolean isPaused = false;
     private boolean isSavingAndQuitting = false;
     private int saveWaitFrames = 2;
@@ -70,6 +76,7 @@ public class PlayScene extends Scene {
         eventBus = new EventBus();
         masterRenderer = new MasterRenderer(engine.getVulkanContext(), engine.getWindow());
         debugOverlay = new DebugOverlay();
+        chatOverlay = new ChatOverlay(eventBus);
 
         pauseScreen = new PauseScreen(this);
         pauseScreen.init(engine.getWindow().getWidth(), engine.getWindow().getHeight());
@@ -93,6 +100,11 @@ public class PlayScene extends Scene {
 
         setupDebugOverlay();
         setupEvents();
+
+        CommandManager cmdManager = new CommandManager(eventBus);
+        chatScreen = new ChatScreen(eventBus, localPlayer, world, cmdManager, this::closeChat);
+        chatScreen.init(engine.getWindow().getWidth(), engine.getWindow().getHeight());
+        chatScreen.setFont(masterRenderer.getFont());
     }
 
     private void setupDebugOverlay() {
@@ -216,13 +228,26 @@ public class PlayScene extends Scene {
         }
 
         // --- 3. NORMALES SPIEL ---
-        if (engine.getInputManager().isActionJustPressed("DEBUG_MENU")) {
+        if (!isChatOpen && engine.getInputManager().isActionJustPressed("DEBUG_MENU")) {
             debugOverlay.toggle();
             eventBus.publish(new DebugToggleEvent(debugOverlay.isVisible()));
         }
 
         world.getEnvironment().update(deltaTime);
         world.update(deltaTime, localPlayer);
+
+        if (!isChatOpen && !localPlayer.getInventory().isOpen() && !isPaused) {
+            if (engine.getInputManager().isActionJustPressed("CHAT_OPEN_T")) {
+                openChat(false);
+            } else if (engine.getInputManager().isActionJustPressed("CHAT_OPEN_SLASH")) {
+                openChat(true);
+            }
+        }
+
+        if (isChatOpen) {
+            chatScreen.handleMenuInput(engine.getInputManager(), engine.getInputManager().getMouseX(), engine.getInputManager().getMouseY());
+            uiNeedsRebuild = true;
+        }
 
         localPlayer.updateLocal(engine.getInputManager(), world.getChunkManager(), deltaTime);
         localPlayer.updateCamera(engine.getWindow().getHandle(), deltaTime);
@@ -247,9 +272,11 @@ public class PlayScene extends Scene {
                 activeScreen = loadingScreen;
             } else if (isPaused || isSavingAndQuitting) {
                 activeScreen = pauseScreen;
+            } else if (isChatOpen) { // NEU
+                activeScreen = chatScreen;
             }
 
-            masterRenderer.rebuildUI(localPlayer.getInteraction(), engine.getInputManager(), debugOverlay, activeScreen);
+            masterRenderer.rebuildUI(localPlayer.getInteraction(), engine.getInputManager(), debugOverlay, activeScreen, chatOverlay);
             uiNeedsRebuild = false;
         }
 
@@ -267,9 +294,10 @@ public class PlayScene extends Scene {
             activeScreen = pauseScreen;
         }
 
-        masterRenderer.recreate(localPlayer.getInteraction(), engine.getInputManager(), debugOverlay, activeScreen);
+        masterRenderer.recreate(localPlayer.getInteraction(), engine.getInputManager(), debugOverlay, activeScreen, chatOverlay);
         pauseScreen.init(engine.getWindow().getWidth(), engine.getWindow().getHeight());
         loadingScreen.init(engine.getWindow().getWidth(), engine.getWindow().getHeight());
+        chatScreen.init(engine.getWindow().getWidth(), engine.getWindow().getHeight());
         uiNeedsRebuild = true;
     }
 
@@ -310,6 +338,26 @@ public class PlayScene extends Scene {
 
     public void saveAndQuit() {
         isSavingAndQuitting = true;
+        uiNeedsRebuild = true;
+    }
+
+    private void openChat(boolean startWithSlash) {
+        isChatOpen = true;
+        localPlayer.setChatOpen(true);
+        chatScreen.open(startWithSlash);
+
+        engine.getInputManager().consumeTypedChars();
+
+        engine.getWindow().enableCursor();
+        localPlayer.getCamera().resetMouseTracking();
+        uiNeedsRebuild = true;
+    }
+
+    public void closeChat() {
+        isChatOpen = false;
+        localPlayer.setChatOpen(false);
+        engine.getWindow().disableCursor();
+        localPlayer.getCamera().resetMouseTracking();
         uiNeedsRebuild = true;
     }
 }

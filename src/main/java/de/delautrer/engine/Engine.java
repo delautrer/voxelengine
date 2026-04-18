@@ -34,7 +34,6 @@ public class Engine {
         inputManager = new InputManager(window.getHandle());
 
         sceneManager = new SceneManager(this);
-        //sceneManager.changeScene(new PlayScene(this));
         sceneManager.changeScene(new MainMenuScene(this));
     }
 
@@ -72,7 +71,6 @@ public class Engine {
         System.out.println("--- ENGINE SHUTDOWN BEENDET ---");
     }
 
-    // --- GETTER FÜR DIE SZENEN ---
     public SceneManager getSceneManager() {
         return sceneManager;
     }

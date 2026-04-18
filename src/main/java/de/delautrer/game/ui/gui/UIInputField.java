@@ -27,7 +27,9 @@ public class UIInputField extends UIElement {
     public boolean isFocused() {
         return isFocused;
     }
-
+    public void setText(String text) {
+        this.text = text;
+    }
     public String getText() {
         return text;
     }

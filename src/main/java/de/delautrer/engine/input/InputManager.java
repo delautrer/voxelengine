@@ -51,9 +51,17 @@ public class InputManager {
             keyBindings.put("SLOT_" + (i + 1), GLFW.GLFW_KEY_1 + i);
         }
 
+        keyBindings.put("CHAT_SEND", GLFW.GLFW_KEY_ENTER);
+        keyBindings.put("CHAT_OPEN_T", GLFW.GLFW_KEY_T);
+        keyBindings.put("CHAT_OPEN_SLASH", GLFW.GLFW_KEY_SLASH);
+        keyBindings.put("UI_UP", GLFW.GLFW_KEY_UP);
+        keyBindings.put("UI_DOWN", GLFW.GLFW_KEY_DOWN);
+        keyBindings.put("UI_TAB", GLFW.GLFW_KEY_TAB);
+
         mouseBindings.put("INTERACT_BREAK", GLFW.GLFW_MOUSE_BUTTON_LEFT);
         mouseBindings.put("INTERACT_PLACE", GLFW.GLFW_MOUSE_BUTTON_RIGHT);
         mouseBindings.put("PICK_BLOCK", GLFW.GLFW_MOUSE_BUTTON_MIDDLE);
+
 
         GLFW.glfwSetScrollCallback(windowHandle, (window, xoffset, yoffset) -> {
             scrollY = yoffset;

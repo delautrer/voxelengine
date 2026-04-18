@@ -2,6 +2,8 @@ package de.delautrer.game.ui.gui;
 
 import de.delautrer.engine.input.InputManager;
 
+import java.util.List;
+
 public abstract class Screen {
     protected int width, height;
     protected float pixelScale;
@@ -14,14 +16,23 @@ public abstract class Screen {
     }
 
     protected abstract void onInit();
-
     public abstract void render(UIMeshBuilder builder, float mouseX, float mouseY);
     public abstract int getHoveredSlot(float mouseX, float mouseY);
     protected abstract void mouseClicked(float mouseX, float mouseY, int button);
 
+    protected void onKeyPressed(InputManager input) {}
+    protected void onCharTyped(char c) {}
+
     public void handleInput(InputManager input) {
         if (input.isActionJustPressed("INTERACT_BREAK")) {
             mouseClicked(input.getMouseX(), input.getMouseY(), 0);
+        }
+
+        onKeyPressed(input);
+
+        List<Character> typedChars = input.consumeTypedChars();
+        for (char c : typedChars) {
+            onCharTyped(c);
         }
     }
 }
