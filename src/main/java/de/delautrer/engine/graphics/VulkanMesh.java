@@ -1,21 +1,14 @@
 package de.delautrer.engine.graphics;
 
-import de.delautrer.game.world.Chunk;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 import org.lwjgl.vulkan.VK10;
 
 public class VulkanMesh {
-
     private final VulkanContext context;
     private VulkanBuffer vertexBuffer;
     private VulkanBuffer indexBuffer;
     private int indexCount;
-
-    public VulkanMesh(VulkanContext context, Chunk chunk) {
-        this.context = context;
-        createBuffers(chunk.getVertices(), chunk.getIndices());
-    }
 
     public VulkanMesh(VulkanContext context, float[] vertices, int[] indices) {
         this.context = context;
@@ -27,23 +20,13 @@ public class VulkanMesh {
         createBuffers(data.vertices, data.indices);
     }
 
-    // --- DIE NEUE UPDATE METHODE ---
     public void updateMesh(MeshData data) {
-        //VK10.vkQueueWaitIdle(context.getGraphicsQueue());
         cleanup();
         createBuffers(data.vertices, data.indices);
     }
 
-    // Falls du die alte Methode noch irgendwo hast (kann eigentlich weg):
-    public void updateMesh(Chunk chunk) {
-        //VK10.vkQueueWaitIdle(context.getGraphicsQueue());
-        cleanup();
-        createBuffers(chunk.getVertices(), chunk.getIndices());
-    }
-
     private void createBuffers(float[] vertices, int[] indices) {
         indexCount = indices.length;
-
         if (indexCount == 0) return;
 
         long vertexBufferSize = (long) vertices.length * Float.BYTES;
@@ -73,17 +56,9 @@ public class VulkanMesh {
         }
     }
 
-    public long getVertexBuffer() {
-        return vertexBuffer != null ? vertexBuffer.getBuffer() : 0;
-    }
-
-    public long getIndexBuffer() {
-        return indexBuffer != null ? indexBuffer.getBuffer() : 0;
-    }
-
-    public int getIndexCount() {
-        return indexCount;
-    }
+    public long getVertexBuffer() { return vertexBuffer != null ? vertexBuffer.getBuffer() : 0; }
+    public long getIndexBuffer() { return indexBuffer != null ? indexBuffer.getBuffer() : 0; }
+    public int getIndexCount() { return indexCount; }
 
     public void cleanup() {
         if (vertexBuffer != null) vertexBuffer.cleanup();

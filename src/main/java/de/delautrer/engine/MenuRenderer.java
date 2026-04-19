@@ -62,7 +62,6 @@ public class MenuRenderer {
         }
 
         RenderPacket packet = new RenderPacket();
-        // Standard-Vulkan-Matrix: Y=0 ist Unten.
         packet.ortho = new Matrix4f().ortho(0.0f, renderer.getWidth(), renderer.getHeight(), 0.0f, -1.0f, 1.0f);
         packet.uiMesh = uiMesh;
         packet.uiTexture = guiTexture;
@@ -70,7 +69,14 @@ public class MenuRenderer {
         packet.fontTexture = fontTexture;
 
         packet.mvp = new Matrix4f(); packet.proj = new Matrix4f(); packet.view = new Matrix4f();
-        packet.visibleMeshes = new ArrayList<>();
+
+        // --- FIX FÜR NPE ---
+        packet.cameraPos = new Vector3f(0, 0, 0); // Dummy-Position für das Menü
+        packet.renderDistance = 128.0f;           // Dummy-Sichtweite
+        packet.opaqueMeshes = new ArrayList<>();   // Leere Liste statt null
+        packet.waterMeshes = new ArrayList<>();    // Leere Liste statt null
+        // -------------------
+
         packet.skyR = 0.1f; packet.skyG = 0.1f; packet.skyB = 0.15f;
         packet.sunDirection = new Vector3f(0, 1, 0);
 

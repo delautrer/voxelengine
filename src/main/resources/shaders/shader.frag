@@ -25,37 +25,31 @@ layout(push_constant) uniform PushConstants {
 
 void main() {
     vec4 textureColor = texture(texSampler, fragTexCoord);
-    float alpha = textureColor.a;
 
-    // Genereller Check: Wenn die Textur sowieso komplett unsichtbar ist, direkt abbrechen.
+    // ==========================================
+    // HIER IST DER FIX FÜRS WASSER:
+    // Wir mischen Textur-Alpha (1.0) mit Java-Alpha (0.7 bei Wasser)
+    // ==========================================
+    float alpha = textureColor.a * fragColor.a;
+
     if (alpha < 0.05) discard;
 
     vec3 finalColor;
 
     if (pc.isCloud > 0.5) {
-        // ==========================================
-        // 1. WOLKEN-LOGIK (Kugelsicher)
-        // ==========================================
         vec3 cloudColor = textureColor.rgb * fragColor.rgb;
         vec3 dayColor = vec3(1.0, 1.0, 1.0);
         vec3 nightColor = vec3(0.15, 0.20, 0.35);
         vec3 timeColor = mix(nightColor, dayColor, pc.globalLight);
         finalColor = cloudColor * timeColor;
 
-        // DER FIX: Wolken dürfen 4x weiter entfernt sein als Terrain!
         float fadeEnd = pc.renderDistance * 4.0;
         float fadeStart = fadeEnd * 0.5;
 
-        // Distanz-Faktor berechnen
         float fadeFactor = clamp((fragFogDist - fadeStart) / (fadeEnd - fadeStart), 0.0, 1.0);
-
-        // Transparenz am Weltrand sanft verringern
         alpha *= (1.0 - fadeFactor);
 
     } else {
-        // ==========================================
-        // 2. TERRAIN-LOGIK
-        // ==========================================
         float skyCurve = pow(fragLight.x, 1.8) * pc.globalLight;
         float blockCurve = pow(fragLight.y, 1.5);
 
@@ -72,7 +66,6 @@ void main() {
         vec3 contrastColor = smoothstep(0.0, 1.0, finalColor);
         finalColor = mix(finalColor, contrastColor, pc.globalLight * 0.4);
 
-        // Zylindrischer Chunk-Nebel für Terrain
         float fogEnd = pc.renderDistance;
         float fogStart = fogEnd * 0.75;
 

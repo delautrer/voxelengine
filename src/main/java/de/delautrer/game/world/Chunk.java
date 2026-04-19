@@ -22,11 +22,17 @@ public class Chunk {
     private boolean isDirty = false;
     private long lastAccessedTime;
 
-    private float[] vertices = new float[4096];
-    private int vertexCount = 0;
+    private float[] opaqueVertices = new float[4096];
+    private int opaqueVertexCount = 0;
+    private int[] opaqueIndices = new int[1024];
+    private int opaqueIndexCount = 0;
 
-    private int[] indices = new int[1024];
-    private int indexCount = 0;
+    private float[] waterVertices = new float[4096];
+    private int waterVertexCount = 0;
+    private int[] waterIndices = new int[1024];
+    private int waterIndexCount = 0;
+
+    public record ChunkMeshResult(MeshData opaque, MeshData water) {}
 
     private static final float[] highlightVertices = { 0,0,0, 1,0,0, 1,1,0, 0,1,0, 0,0,1, 1,0,1, 1,1,1, 0,1,1 };
     private static final int[] highlightIndices = { 0,1, 1,2, 2,3, 3,0, 4,5, 5,6, 6,7, 7,4, 0,4, 1,5, 2,6, 3,7 };
@@ -195,22 +201,30 @@ public class Chunk {
     }
 
     // Rendering
-    public synchronized MeshData generateMeshData(ChunkManager cm) {
-        vertexCount = 0;
-        indexCount = 0;
+    public synchronized ChunkMeshResult generateMeshData(ChunkManager cm) {
+        opaqueVertexCount = 0;
+        opaqueIndexCount = 0;
+        waterVertexCount = 0;
+        waterIndexCount = 0;
+
         for (int x = 0; x < SIZE; x++) {
             for (int y = 0; y < HEIGHT; y++) {
                 for (int z = 0; z < SIZE; z++) {
                     byte id = blocks[x][y][z];
                     if (id != 0) {
                         Block block = BlockRegistry.get(id);
-                        block.generateMesh(x, y, z, this, cm);
+                        block.generateMesh(x, y, z, this, cm); // Ruft addFace auf
                     }
                 }
             }
         }
-        return new MeshData(getVertices(), getIndices());
+
+        return new ChunkMeshResult(
+                new MeshData(getOpaqueVertices(), getOpaqueIndices()),
+                new MeshData(getWaterVertices(), getWaterIndices())
+        );
     }
+
     public void addFace(float x0, float y0, float z0, float ao0,
                         float x1, float y1, float z1, float ao1,
                         float x2, float y2, float z2, float ao2,
@@ -220,13 +234,23 @@ public class Chunk {
                         float sl0, float sl1, float sl2, float sl3,
                         float bl0, float bl1, float bl2, float bl3) {
 
+        boolean isWater = (block == BlockRegistry.WATER);
         float ox = worldX * SIZE, oz = worldZ * SIZE;
 
-        int offset = vertexCount / 12;
+        // Kapazitäten prüfen
+        if (isWater) {
+            ensureWaterCapacity(48, 6);
+        } else {
+            ensureOpaqueCapacity(48, 6);
+        }
+
+        // Aktuelle Daten auswählen
+        float[] targetVertices = isWater ? waterVertices : opaqueVertices;
+        int vIdx = isWater ? waterVertexCount : opaqueVertexCount;
+        int offset = vIdx / 12;
 
         float r = 1.0f, g = 1.0f, b = 1.0f, alpha = 1.0f;
-
-        if (block == BlockRegistry.WATER) {
+        if (isWater) {
             r = 0.2f; g = 0.5f; b = 1.0f; alpha = 0.7f;
             directionalLight = Math.min(1.0f, directionalLight * 1.2f);
         }
@@ -236,76 +260,120 @@ public class Chunk {
         float c2 = ao2 * directionalLight;
         float c3 = ao3 * directionalLight;
 
-        ensureVertexCapacity(48);
-
         // Vertex 0
-        vertices[vertexCount++] = x0 + ox; vertices[vertexCount++] = y0; vertices[vertexCount++] = z0 + oz;
-        vertices[vertexCount++] = c0 * r;  vertices[vertexCount++] = c0 * g; vertices[vertexCount++] = c0 * b; vertices[vertexCount++] = alpha;
-        vertices[vertexCount++] = u0;      vertices[vertexCount++] = v1; vertices[vertexCount++] = texLayer;
-        vertices[vertexCount++] = sl0;     vertices[vertexCount++] = bl0;
+        targetVertices[vIdx++] = x0 + ox; targetVertices[vIdx++] = y0; targetVertices[vIdx++] = z0 + oz;
+        targetVertices[vIdx++] = c0 * r;  targetVertices[vIdx++] = c0 * g; targetVertices[vIdx++] = c0 * b; targetVertices[vIdx++] = alpha;
+        targetVertices[vIdx++] = u0;      targetVertices[vIdx++] = v1; targetVertices[vIdx++] = texLayer;
+        targetVertices[vIdx++] = sl0;     targetVertices[vIdx++] = bl0;
 
         // Vertex 1
-        vertices[vertexCount++] = x1 + ox; vertices[vertexCount++] = y1; vertices[vertexCount++] = z1 + oz;
-        vertices[vertexCount++] = c1 * r;  vertices[vertexCount++] = c1 * g; vertices[vertexCount++] = c1 * b; vertices[vertexCount++] = alpha;
-        vertices[vertexCount++] = u1;      vertices[vertexCount++] = v1; vertices[vertexCount++] = texLayer;
-        vertices[vertexCount++] = sl1;     vertices[vertexCount++] = bl1;
+        targetVertices[vIdx++] = x1 + ox; targetVertices[vIdx++] = y1; targetVertices[vIdx++] = z1 + oz;
+        targetVertices[vIdx++] = c1 * r;  targetVertices[vIdx++] = c1 * g; targetVertices[vIdx++] = c1 * b; targetVertices[vIdx++] = alpha;
+        targetVertices[vIdx++] = u1;      targetVertices[vIdx++] = v1; targetVertices[vIdx++] = texLayer;
+        targetVertices[vIdx++] = sl1;     targetVertices[vIdx++] = bl1;
 
         // Vertex 2
-        vertices[vertexCount++] = x2 + ox; vertices[vertexCount++] = y2; vertices[vertexCount++] = z2 + oz;
-        vertices[vertexCount++] = c2 * r;  vertices[vertexCount++] = c2 * g; vertices[vertexCount++] = c2 * b; vertices[vertexCount++] = alpha;
-        vertices[vertexCount++] = u1;      vertices[vertexCount++] = v0; vertices[vertexCount++] = texLayer;
-        vertices[vertexCount++] = sl2;     vertices[vertexCount++] = bl2;
+        targetVertices[vIdx++] = x2 + ox; targetVertices[vIdx++] = y2; targetVertices[vIdx++] = z2 + oz;
+        targetVertices[vIdx++] = c2 * r;  targetVertices[vIdx++] = c2 * g; targetVertices[vIdx++] = c2 * b; targetVertices[vIdx++] = alpha;
+        targetVertices[vIdx++] = u1;      targetVertices[vIdx++] = v0; targetVertices[vIdx++] = texLayer;
+        targetVertices[vIdx++] = sl2;     targetVertices[vIdx++] = bl2;
 
         // Vertex 3
-        vertices[vertexCount++] = x3 + ox; vertices[vertexCount++] = y3; vertices[vertexCount++] = z3 + oz;
-        vertices[vertexCount++] = c3 * r;  vertices[vertexCount++] = c3 * g; vertices[vertexCount++] = c3 * b; vertices[vertexCount++] = alpha;
-        vertices[vertexCount++] = u0;      vertices[vertexCount++] = v0; vertices[vertexCount++] = texLayer;
-        vertices[vertexCount++] = sl3;     vertices[vertexCount++] = bl3;
+        targetVertices[vIdx++] = x3 + ox; targetVertices[vIdx++] = y3; targetVertices[vIdx++] = z3 + oz;
+        targetVertices[vIdx++] = c3 * r;  targetVertices[vIdx++] = c3 * g; targetVertices[vIdx++] = c3 * b; targetVertices[vIdx++] = alpha;
+        targetVertices[vIdx++] = u0;      targetVertices[vIdx++] = v0; targetVertices[vIdx++] = texLayer;
+        targetVertices[vIdx++] = sl3;     targetVertices[vIdx++] = bl3;
 
-        ensureIndexCapacity(6);
+        // Zähler zurückschreiben
+        if (isWater) waterVertexCount = vIdx; else opaqueVertexCount = vIdx;
+
+        // Indices befüllen
+        int[] targetIndices = isWater ? waterIndices : opaqueIndices;
+        int iIdx = isWater ? waterIndexCount : opaqueIndexCount;
 
         if (ao0 + ao2 > ao1 + ao3) {
-            indices[indexCount++] = offset + 1; indices[indexCount++] = offset + 2; indices[indexCount++] = offset + 3;
-            indices[indexCount++] = offset + 3; indices[indexCount++] = offset + 0; indices[indexCount++] = offset + 1;
+            targetIndices[iIdx++] = offset + 1; targetIndices[iIdx++] = offset + 2; targetIndices[iIdx++] = offset + 3;
+            targetIndices[iIdx++] = offset + 3; targetIndices[iIdx++] = offset + 0; targetIndices[iIdx++] = offset + 1;
         } else {
-            indices[indexCount++] = offset + 0; indices[indexCount++] = offset + 1; indices[indexCount++] = offset + 2;
-            indices[indexCount++] = offset + 2; indices[indexCount++] = offset + 3; indices[indexCount++] = offset + 0;
+            targetIndices[iIdx++] = offset + 0; targetIndices[iIdx++] = offset + 1; targetIndices[iIdx++] = offset + 2;
+            targetIndices[iIdx++] = offset + 2; targetIndices[iIdx++] = offset + 3; targetIndices[iIdx++] = offset + 0;
         }
+
+        if (isWater) waterIndexCount = iIdx; else opaqueIndexCount = iIdx;
     }
 
     public void clearMeshCache() {
-        vertexCount = 0;
-        indexCount = 0;
+        opaqueVertexCount = 0;
+        opaqueIndexCount = 0;
 
-        vertices = new float[4096];
-        indices = new int[1024];
+        opaqueVertices = new float[4096];
+        opaqueIndices = new int[1024];
+
+        waterVertexCount = 0;
+        waterIndexCount = 0;
+
+        waterVertices = new float[4096];
+        waterIndices = new int[1024];
     }
-    public float[] getVertices() {
-        float[] arr = new float[vertexCount];
-        System.arraycopy(vertices, 0, arr, 0, vertexCount);
+    public float[] getWaterVertices() {
+        float[] arr = new float[waterVertexCount];
+        System.arraycopy(waterVertices, 0, arr, 0, waterVertexCount);
         return arr;
     }
-    public int[] getIndices() {
-        int[] arr = new int[indexCount];
-        System.arraycopy(indices, 0, arr, 0, indexCount);
+    public int[] getWaterIndices() {
+        int[] arr = new int[waterIndexCount];
+        System.arraycopy(waterIndices, 0, arr, 0, waterIndexCount);
+        return arr;
+    }
+    public float[] getOpaqueVertices() {
+        float[] arr = new float[opaqueVertexCount];
+        System.arraycopy(opaqueVertices, 0, arr, 0, opaqueVertexCount);
+        return arr;
+    }
+    public int[] getOpaqueIndices() {
+        int[] arr = new int[opaqueIndexCount];
+        System.arraycopy(opaqueIndices, 0, arr, 0, opaqueIndexCount);
         return arr;
     }
     public static float[] getHighlightVertices() { return highlightVertices; }
     public static int[] getHighlightIndices() { return highlightIndices; }
 
     // Rendering data holder helpers
-    private void ensureVertexCapacity(int additionalSize) {
-        if (vertexCount + additionalSize > vertices.length) {
-            float[] newArr = new float[Math.max(vertices.length * 2, vertexCount + additionalSize)];
-            System.arraycopy(vertices, 0, newArr, 0, vertexCount);
-            vertices = newArr;
+    private void ensureOpaqueCapacity(int v, int i) {
+        ensureOpaqueVertexCapacity(v);
+        ensureOpaqueIndexCapacity(i);
+    }
+
+    private void ensureWaterCapacity(int v, int i) {
+        ensureWaterVertexCapacity(v);
+        ensureWaterIndexCapacity(i);
+    }
+    private void ensureOpaqueVertexCapacity(int additionalSize) {
+        if (opaqueVertexCount + additionalSize > opaqueVertices.length) {
+            float[] newArr = new float[Math.max(opaqueVertices.length * 2, opaqueVertexCount + additionalSize)];
+            System.arraycopy(opaqueVertices, 0, newArr, 0, opaqueVertexCount);
+            opaqueVertices = newArr;
         }
     }
-    private void ensureIndexCapacity(int additionalSize) {
-        if (indexCount + additionalSize > indices.length) {
-            int[] newArr = new int[Math.max(indices.length * 2, indexCount + additionalSize)];
-            System.arraycopy(indices, 0, newArr, 0, indexCount);
-            indices = newArr;
+    private void ensureOpaqueIndexCapacity(int additionalSize) {
+        if (opaqueIndexCount + additionalSize > opaqueIndices.length) {
+            int[] newArr = new int[Math.max(opaqueIndices.length * 2, opaqueIndexCount + additionalSize)];
+            System.arraycopy(opaqueIndices, 0, newArr, 0, opaqueIndexCount);
+            opaqueIndices = newArr;
+        }
+    }
+    private void ensureWaterVertexCapacity(int additionalSize) {
+        if (waterVertexCount + additionalSize > waterVertices.length) {
+            float[] newArr = new float[Math.max(waterVertices.length * 2, waterVertexCount + additionalSize)];
+            System.arraycopy(waterVertices, 0, newArr, 0, waterVertexCount);
+            waterVertices = newArr;
+        }
+    }
+    private void ensureWaterIndexCapacity(int additionalSize) {
+        if (waterIndexCount + additionalSize > waterIndices.length) {
+            int[] newArr = new int[Math.max(waterIndices.length * 2, waterIndexCount + additionalSize)];
+            System.arraycopy(waterIndices, 0, newArr, 0, waterIndexCount);
+            waterIndices = newArr;
         }
     }
 
