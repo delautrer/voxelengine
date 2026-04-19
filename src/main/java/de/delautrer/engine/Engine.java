@@ -1,5 +1,6 @@
 package de.delautrer.engine;
 
+import de.delautrer.Constants;
 import de.delautrer.engine.graphics.VulkanContext;
 import de.delautrer.engine.graphics.utils.TextureStitcher;
 import de.delautrer.engine.input.InputManager;
@@ -9,8 +10,6 @@ import de.delautrer.game.blocks.models.BlockModelManager;
 import de.delautrer.game.states.MainMenuScene;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.vulkan.VK10;
-
-import java.util.Set;
 
 public class Engine {
 
@@ -33,7 +32,7 @@ public class Engine {
     }
 
     private void init() {
-        window = new Window(1280, 720, "Voxel Engine");
+        window = new Window(1280, 720, "Voxel Engine - " + Constants.VERSION);
         window.disableCursor();
         vulkanContext = new VulkanContext(window);
         inputManager = new InputManager(window.getHandle());

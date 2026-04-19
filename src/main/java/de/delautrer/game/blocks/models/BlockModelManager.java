@@ -2,7 +2,7 @@ package de.delautrer.game.blocks.models;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import de.delautrer.engine.Constants;
+import de.delautrer.Constants;
 import de.delautrer.engine.graphics.utils.TextureStitcher;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;

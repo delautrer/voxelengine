@@ -1,6 +1,6 @@
 package de.delautrer.game.states;
 
-import de.delautrer.engine.Constants;
+import de.delautrer.Constants;
 import de.delautrer.engine.MasterRenderer;
 import de.delautrer.engine.events.EventBus;
 import de.delautrer.engine.events.EventListener;

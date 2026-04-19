@@ -1,6 +1,6 @@
 package de.delautrer.game.blocks;
 
-import de.delautrer.engine.Constants;
+import de.delautrer.Constants;
 import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.items.BlockItem;
 import org.joml.Vector3f;

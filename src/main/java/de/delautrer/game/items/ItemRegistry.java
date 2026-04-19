@@ -1,6 +1,6 @@
 package de.delautrer.game.items;
 
-import de.delautrer.engine.Constants;
+import de.delautrer.Constants;
 import de.delautrer.game.blocks.BlockRegistry;
 import java.util.HashMap;
 import java.util.Map;
