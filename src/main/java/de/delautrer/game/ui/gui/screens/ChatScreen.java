@@ -5,8 +5,9 @@ import de.delautrer.engine.graphics.VulkanFont;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.game.commands.CommandManager;
 import de.delautrer.game.entity.player.LocalPlayer;
-import de.delautrer.game.events.CommandExecutedEvent;
 import de.delautrer.game.events.ChatMessageEvent;
+import de.delautrer.game.events.CommandExecutedEvent;
+import de.delautrer.game.ui.ChatOverlay;
 import de.delautrer.game.ui.gui.UIInputField;
 import de.delautrer.game.ui.gui.UIMeshBuilder;
 import de.delautrer.game.world.World;
@@ -20,21 +21,25 @@ public class ChatScreen extends MenuScreen {
     private final EventBus eventBus;
     private final LocalPlayer player;
     private final World world;
+    private final CommandManager commandManager;
+    private final ChatOverlay chatOverlay;
     private final Runnable closeCallback;
     private VulkanFont font;
 
-    private final CommandManager commandManager;
+    // History & Autocomplete Features
     private final List<String> history = new ArrayList<>();
     private int historyIndex = -1;
+
     private List<String> currentCompletions = new ArrayList<>();
     private int completionIndex = -1;
     private boolean isTabCycling = false;
 
-    public ChatScreen(EventBus eventBus, LocalPlayer player, World world, CommandManager commandManager, Runnable closeCallback) {
+    public ChatScreen(EventBus eventBus, LocalPlayer player, World world, CommandManager commandManager, ChatOverlay chatOverlay, Runnable closeCallback) {
         this.eventBus = eventBus;
         this.player = player;
         this.world = world;
         this.commandManager = commandManager;
+        this.chatOverlay = chatOverlay;
         this.closeCallback = closeCallback;
     }
 
@@ -42,6 +47,7 @@ public class ChatScreen extends MenuScreen {
         inputField.setText(startWithSlash ? "/" : "");
         inputField.setFocused(true);
         historyIndex = history.size(); // Reset an ans Ende der History
+        chatOverlay.resetScroll(); // Springt nach unten, wenn der Chat neu geöffnet wird
     }
 
     public void setFont(VulkanFont font) {
@@ -52,7 +58,6 @@ public class ChatScreen extends MenuScreen {
     protected void onInit() {
         float fieldWidth = width - 20.0f;
         float fieldHeight = 30.0f;
-        // Y = 10.0f zwingt das Feld an den UNTEREN Rand!
         inputField = new UIInputField(10.0f, 10.0f, fieldWidth, fieldHeight, "Befehl oder Nachricht eingeben...", 100);
         inputField.setFocused(true);
     }
@@ -64,36 +69,47 @@ public class ChatScreen extends MenuScreen {
         }
     }
 
+    // --- NEU: Input für das Mausrad UND für Tastatur/Tippen ---
+    @Override
+    public void handleInput(InputManager input) {
+        // EXTREM WICHTIG: Das super.handleInput feuert onCharTyped! Ohne das geht Tippen nicht!
+        super.handleInput(input);
+
+        double scroll = input.consumeScroll();
+        if (scroll != 0) {
+            chatOverlay.scroll((int) Math.signum(scroll) * 3); // Scrollt 3 Zeilen auf einmal
+        }
+    }
+
     public void handleMenuInput(InputManager input, float mouseX, float mouseY) {
         handleInput(input);
     }
 
     @Override
     public int getHoveredSlot(float mouseX, float mouseY) { return -1; }
+
     @Override
     protected void mouseClicked(float mouseX, float mouseY, int button) {}
 
     @Override
     protected void onCharTyped(char c) {
         inputField.typeChar(c);
-        isTabCycling = false;
+        isTabCycling = false; // Bricht Autocomplete ab, wenn man selbst weitertippt
     }
 
     @Override
     protected void onKeyPressed(InputManager input) {
         if (input.isActionJustPressed("UI_BACKSPACE")) {
             inputField.backspace();
-            isTabCycling = false; // Zyklus abbrechen
-        }
-        if (input.isActionJustPressed("PAUSE")) {
-            closeCallback.run();
+            isTabCycling = false;
         }
 
-        // --- NEUE AUTOCOMPLETE (TAB SWAPPING) ---
+        // HINWEIS: Die PAUSE (ESC) Abfrage ist hier raus, weil deine PlayScene das jetzt global und viel sauberer managt!
+
+        // --- AUTOCOMPLETE (TAB) ---
         if (input.isActionJustPressed("UI_TAB")) {
             String currentText = inputField.getText();
 
-            // Wenn wir neu TAB drücken: Liste vom CommandManager holen
             if (!isTabCycling) {
                 currentCompletions = commandManager.getTabCompletions(player, currentText);
                 if (!currentCompletions.isEmpty()) {
@@ -102,7 +118,6 @@ public class ChatScreen extends MenuScreen {
                     inputField.setText(currentCompletions.get(completionIndex));
                 }
             } else {
-                // Wenn wir schon cyclen: Einfach zum nächsten Eintrag springen
                 if (!currentCompletions.isEmpty()) {
                     completionIndex = (completionIndex + 1) % currentCompletions.size();
                     inputField.setText(currentCompletions.get(completionIndex));
@@ -111,7 +126,6 @@ public class ChatScreen extends MenuScreen {
         }
 
         // --- HISTORY (UP/DOWN) ---
-        // Wenn man hoch/runter drückt, bricht das Swapping ebenfalls ab!
         if (input.isActionJustPressed("UI_UP")) {
             isTabCycling = false;
             if (historyIndex > 0) {
@@ -135,7 +149,7 @@ public class ChatScreen extends MenuScreen {
             String inputText = inputField.getText();
 
             if (!inputText.isEmpty()) {
-                history.add(inputText);
+                history.add(inputText); // Zur History hinzufügen
 
                 if (inputText.startsWith("/")) {
                     String[] parts = inputText.substring(1).split(" ");
@@ -148,7 +162,8 @@ public class ChatScreen extends MenuScreen {
                     eventBus.publish(new ChatMessageEvent("[Player] " + inputText));
                 }
             }
-            closeCallback.run();
+            closeCallback.run(); // Chat schließen
+            isTabCycling = false;
         }
     }
 }

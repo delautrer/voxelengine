@@ -18,6 +18,7 @@ public class LocalPlayer extends Player {
 
     private GameMode gameMode = GameMode.SURVIVAL;
     private boolean isFlying = false;
+    private boolean isSprinting = false;
     private boolean isChatOpen = false;
     private float lastSpacePressTime = 0.0f;
     private float cameraVisualYOffset = 0.0f;
@@ -87,13 +88,17 @@ public class LocalPlayer extends Player {
 
         if (!isInventoryOpen) {
             isSneaking = input.isActionActive("SNEAK");
+            isSprinting = input.isActionActive("SPRINT") && !isSneaking;
         } else {
             isSneaking = false;
+            isSprinting = false;
         }
 
-        float currentSpeed = isSneaking ? speed * 0.4f : speed;
-        if (isFlying) currentSpeed *= 2.5f; // Fliegen ist schneller
-        eyeHeight = isSneaking ? 1.5f : 1.8f;
+        float currentSpeed = speed;
+        if (isSneaking) currentSpeed *= 0.4f;
+        else if (isSprinting) currentSpeed *= 1.5f;
+
+        if (isFlying) currentSpeed *= 2.5f;
 
         Vector3f moveDir = new Vector3f(0, 0, 0);
         Vector3f cameraFront = camera.getFront();

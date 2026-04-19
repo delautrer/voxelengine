@@ -21,14 +21,13 @@ public class InventoryScreen extends MenuScreen {
 
     @Override
     protected void onInit() {
-        hotbarWidth = 207.0f * pixelScale;
-        hotbarHeight = 23.0f * pixelScale;
-        slotHitboxSize = 22.0f * pixelScale;
+        hotbarWidth = 24f * 9f * pixelScale;
+        hotbarHeight = 24f * pixelScale;
+        slotHitboxSize = 24.0f * pixelScale;
 
         hx = (float) Math.floor((width - hotbarWidth) / 2.0f);
-        hotbarY = (float) Math.floor(10.0f * pixelScale);
+        hotbarY = height / 2.0f - hotbarHeight * 2.0f;
 
-        // --- NEU: Wir schieben das Hauptinventar etwas höher, für eine Lücke zur Hotbar! ---
         invY = hotbarY + hotbarHeight + (10.0f * pixelScale);
     }
 
@@ -36,43 +35,41 @@ public class InventoryScreen extends MenuScreen {
     public void render(UIMeshBuilder builder, float mouseX, float mouseY) {
         int hoveredSlot = getHoveredSlot(mouseX, mouseY);
 
-        // --- 1. SCHÖNES 9-SLICE HINTERGRUND-PANEL ---
         float padding = 10.0f * pixelScale;
         float panelW = hotbarWidth + padding * 2;
-        // Höhe: Hotbar + Abstand + 3 Reihen + Platz für den Titel oben
         float panelH = (invY + 3 * hotbarHeight - hotbarY) + padding * 2 + (15.0f * pixelScale);
         float panelX = hx - padding;
         float panelY = hotbarY - padding;
 
-        // Zeichnet das 9-Slice Panel (Nutzt Grid 0,0 aus deiner Textur)
-        builder.add9Slice(panelX, panelY, 0.3f, panelW, panelH, 0, 0, 8.0f * pixelScale);
+        builder.add9Slice(panelX, panelY, 0.3f, panelW, panelH, 4, 0, 8.0f * pixelScale);
 
         // --- 2. TITEL TEXT ---
         if (font != null) {
-            float titleY = panelY + panelH - (15.0f * pixelScale); // Oben links im Panel
-            builder.drawText("Inventar", panelX + padding, titleY, 0.4f, font);
+            float titleY = panelY + panelH - (18.0f * pixelScale);
+            builder.drawText("Inventory", panelX + padding, titleY, 0.4f, font);
         }
 
         // --- 3. HOTBAR HINTERGRUND ---
-        builder.addAtlasQuad(hx, hotbarY, 0.2f, hotbarWidth, hotbarHeight, 0, 1, 9, 1, false);
+        builder.addAtlasQuad(hx, hotbarY, 0.2f, hotbarWidth, hotbarHeight, 1, 1, 9, 1, false);
 
         // --- 4. INVENTAR HINTERGRUND ---
         for (int visualRow = 0; visualRow < 3; visualRow++) {
             float y = invY + (visualRow * hotbarHeight);
-            builder.addAtlasQuad(hx, y, 0.2f, hotbarWidth, hotbarHeight, 0, 1, 9, 1, false);
+            builder.addAtlasQuad(hx, y, 0.2f, hotbarWidth, hotbarHeight, 1, 1, 9, 1, false);
         }
 
         // --- 5. ITEMS & HOVER-EFFEKTE ---
 
         // Hotbar Items (Slots 0-8)
         for (int col = 0; col < 9; col++) {
-            float slotX = hx + (4.0f + col * 22.0f) * pixelScale;
-            float selectorW = 23.0f * pixelScale;
+
+            float slotX = hx + (col * 24.0f) * pixelScale;
+            float selectorW = 24.0f * pixelScale;
 
             if (hoveredSlot == col) {
-                builder.addAtlasQuad(slotX, hotbarY, 0.1f, selectorW, hotbarHeight, 0, 2, 1, 1, false);
+                builder.addAtlasQuad(slotX, hotbarY, 0.1f, selectorW, hotbarHeight, 10, 1, 1, 1, false);
             }
-            builder.drawItem(container.getInventory().getStack(col), slotX, hotbarY, 0.0f, selectorW);
+            builder.drawItem(container.getInventory().getStack(col), slotX + 2, hotbarY + 2, 0.0f, selectorW - 4);
         }
 
         // Main Inventory Items (Slots 9-35)
@@ -80,21 +77,22 @@ public class InventoryScreen extends MenuScreen {
             float rowY = invY + (logicalRow * hotbarHeight);
             for (int col = 0; col < 9; col++) {
                 int slot = 9 + (logicalRow * 9) + col;
-                float slotX = hx + (4.0f + col * 22.0f) * pixelScale;
-                float selectorW = 23.0f * pixelScale;
+
+                float slotX = hx + (col * 24.0f) * pixelScale;
+                float selectorW = 24.0f * pixelScale;
 
                 if (hoveredSlot == slot) {
-                    builder.addAtlasQuad(slotX, rowY, 0.1f, selectorW, hotbarHeight, 0, 2, 1, 1, false);
+                    builder.addAtlasQuad(slotX, rowY, 0.1f, selectorW, hotbarHeight, 10, 1, 1, 1, false);
                 }
-                builder.drawItem(container.getInventory().getStack(slot), slotX, rowY, 0.0f, selectorW);
+                builder.drawItem(container.getInventory().getStack(slot), slotX + 2, rowY + 2, 0.0f, selectorW - 4);
             }
         }
 
         // --- 6. ITEM AN DER MAUS ---
         if (container.getMouseStack() != null) {
-            float itemSize = 23.0f * pixelScale;
+            float itemSize = 24.0f * pixelScale - 4;
             float invertedMouseY = height - mouseY;
-            builder.drawItem(container.getMouseStack(), mouseX - itemSize / 2.0f, invertedMouseY - itemSize / 2.0f, -0.1f, itemSize);
+            builder.drawItem(container.getMouseStack(), mouseX - itemSize / 2.0f + 2, invertedMouseY - itemSize / 2.0f + 2 , -0.1f, itemSize);
         }
     }
 
@@ -104,7 +102,7 @@ public class InventoryScreen extends MenuScreen {
 
         if (invertedMouseY >= hotbarY && invertedMouseY <= hotbarY + hotbarHeight) {
             for (int col = 0; col < 9; col++) {
-                float slotX = hx + (4.0f + col * 22.0f) * pixelScale;
+                float slotX = hx + (col * 24.0f) * pixelScale;
                 if (mouseX >= slotX && mouseX <= slotX + slotHitboxSize) return col;
             }
         }
@@ -113,7 +111,7 @@ public class InventoryScreen extends MenuScreen {
             float rowY = invY + (logicalRow * hotbarHeight);
             if (invertedMouseY >= rowY && invertedMouseY <= rowY + hotbarHeight) {
                 for (int col = 0; col < 9; col++) {
-                    float slotX = hx + (4.0f + col * 22.0f) * pixelScale;
+                    float slotX = hx + (col * 24.0f) * pixelScale;
                     if (mouseX >= slotX && mouseX <= slotX + slotHitboxSize) {
                         return 9 + (logicalRow * 9) + col;
                     }

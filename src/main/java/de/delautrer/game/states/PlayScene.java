@@ -103,7 +103,7 @@ public class PlayScene extends Scene {
         setupEvents();
 
         CommandManager cmdManager = new CommandManager(eventBus);
-        chatScreen = new ChatScreen(eventBus, localPlayer, world, cmdManager, this::closeChat);
+        chatScreen = new ChatScreen(eventBus, localPlayer, world, cmdManager, chatOverlay, this::closeChat);
         chatScreen.init(engine.getWindow().getWidth(), engine.getWindow().getHeight());
         chatScreen.setFont(masterRenderer.getFont());
     }
@@ -217,8 +217,19 @@ public class PlayScene extends Scene {
 
         // --- 2. PAUSE LOGIK ---
         if (engine.getInputManager().isActionJustPressed("PAUSE")) {
-            if (isPaused) resumeGame();
-            else pauseGame();
+            if (isChatOpen) {
+                closeChat();
+            } else if (localPlayer.getInventory().isOpen()) {
+                localPlayer.getInventory().setOpen(false);
+                eventBus.publish(new InventoryToggleEvent(false));
+                engine.getWindow().disableCursor();
+                localPlayer.getCamera().resetMouseTracking();
+                uiNeedsRebuild = true;
+            } else if (isPaused) {
+                resumeGame();
+            } else {
+                pauseGame();
+            }
         }
 
         if (isPaused) {
@@ -236,6 +247,9 @@ public class PlayScene extends Scene {
 
         world.getEnvironment().update(deltaTime);
         world.update(deltaTime, localPlayer);
+        if (chatOverlay.update(deltaTime)) {
+            uiNeedsRebuild = true;
+        }
 
         if (!isChatOpen && !localPlayer.getInventory().isOpen() && !isPaused) {
             if (engine.getInputManager().isActionJustPressed("CHAT_OPEN_T")) {
@@ -344,6 +358,7 @@ public class PlayScene extends Scene {
 
     private void openChat(boolean startWithSlash) {
         isChatOpen = true;
+        chatOverlay.resetScroll();
         localPlayer.setChatOpen(true);
         chatScreen.open(startWithSlash);
 

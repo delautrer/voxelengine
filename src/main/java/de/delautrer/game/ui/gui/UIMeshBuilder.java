@@ -8,153 +8,92 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UIMeshBuilder {
-    public final List<Float> guiVerts = new ArrayList<>();
-    public final List<Integer> guiInds = new ArrayList<>();
+    // 1. UI Mesh (menu_gui.png - 16x16)
+    public final List<Float> uiVerts = new ArrayList<>();
+    public final List<Integer> uiInds = new ArrayList<>();
+    // 2. Item Mesh (gui.png - 9x9)
+    public final List<Float> itemVerts = new ArrayList<>();
+    public final List<Integer> itemInds = new ArrayList<>();
+    // 3. Text Mesh (Font)
     public final List<Float> textVerts = new ArrayList<>();
     public final List<Integer> textInds = new ArrayList<>();
 
-    private static final float DEFAULT_GRID = 9.0f;
+    public static final float UI_GRID = 16.0f;
+    public static final float ITEM_GRID = 9.0f;
 
-    // --- NEU: SOFTWARE CLIPPING VARIABLEN ---
     private boolean clippingEnabled = false;
     private float clipX, clipY, clipW, clipH;
 
     public void clear() {
-        guiVerts.clear(); guiInds.clear();
+        uiVerts.clear(); uiInds.clear();
+        itemVerts.clear(); itemInds.clear();
         textVerts.clear(); textInds.clear();
-        clippingEnabled = false; // Reset pro Frame
+        clippingEnabled = false;
     }
 
-    // --- NEU: CLIPPING METHODEN ---
     public void setClipRect(float x, float y, float w, float h) {
         this.clippingEnabled = true;
-        this.clipX = x;
-        this.clipY = y;
-        this.clipW = w;
-        this.clipH = h;
+        this.clipX = x; this.clipY = y; this.clipW = w; this.clipH = h;
     }
 
     public void clearClipRect() {
         this.clippingEnabled = false;
     }
 
-    // DAS IST DAS HERZSTÜCK: Schneidet Geometrie & Texturen nahtlos ab!
-    private void addClippedQuad(List<Float> verts, List<Integer> inds,
-                                float x0, float y0, float x1, float y1, float z,
-                                float r, float g, float b,
-                                float u0, float v0, float u1, float v1) {
-
+    private void addClippedQuad(List<Float> verts, List<Integer> inds, float x0, float y0, float x1, float y1, float z, float r, float g, float b, float u0, float v0, float u1, float v1) {
         float minX = Math.min(x0, x1); float maxX = Math.max(x0, x1);
         float minY = Math.min(y0, y1); float maxY = Math.max(y0, y1);
-
         float minU = (x0 < x1) ? u0 : u1; float maxU = (x0 < x1) ? u1 : u0;
         float minV = (y0 < y1) ? v0 : v1; float maxV = (y0 < y1) ? v1 : v0;
 
         if (clippingEnabled) {
-            // Wenn das Quad komplett außerhalb der Schere ist, verwerfen!
             if (maxX <= clipX || minX >= clipX + clipW || maxY <= clipY || minY >= clipY + clipH) return;
-
-            float origW = maxX - minX;
-            float origH = maxY - minY;
-
-            // X-Achse schneiden
-            if (minX < clipX) {
-                float cut = clipX - minX;
-                minU += (cut / origW) * (maxU - minU);
-                minX = clipX;
-            }
-            if (maxX > clipX + clipW) {
-                float cut = maxX - (clipX + clipW);
-                maxU -= (cut / origW) * (maxU - minU);
-                maxX = clipX + clipW;
-            }
-
-            // Y-Achse schneiden
-            if (minY < clipY) {
-                float cut = clipY - minY;
-                minV += (cut / origH) * (maxV - minV);
-                minY = clipY;
-            }
-            if (maxY > clipY + clipH) {
-                float cut = maxY - (clipY + clipH);
-                maxV -= (cut / origH) * (maxV - minV);
-                maxY = clipY + clipH;
-            }
-
-            if (minX >= maxX || minY >= maxY) return; // Nichts mehr übrig
+            float origW = maxX - minX; float origH = maxY - minY;
+            if (minX < clipX) { float cut = clipX - minX; minU += (cut / origW) * (maxU - minU); minX = clipX; }
+            if (maxX > clipX + clipW) { float cut = maxX - (clipX + clipW); maxU -= (cut / origW) * (maxU - minU); maxX = clipX + clipW; }
+            if (minY < clipY) { float cut = clipY - minY; minV += (cut / origH) * (maxV - minV); minY = clipY; }
+            if (maxY > clipY + clipH) { float cut = maxY - (clipY + clipH); maxV -= (cut / origH) * (maxV - minV); maxY = clipY + clipH; }
+            if (minX >= maxX || minY >= maxY) return;
         }
 
         int offset = verts.size() / 8;
         verts.addAll(List.of(
-                minX, minY, z, r, g, b, minU, minV,
-                maxX, minY, z, r, g, b, maxU, minV,
-                maxX, maxY, z, r, g, b, maxU, maxV,
-                minX, maxY, z, r, g, b, minU, maxV
+                minX, minY, z, r, g, b, minU, minV,  maxX, minY, z, r, g, b, maxU, minV,
+                maxX, maxY, z, r, g, b, maxU, maxV,  minX, maxY, z, r, g, b, minU, maxV
         ));
         inds.addAll(List.of(offset, offset + 1, offset + 2, offset + 2, offset + 3, offset));
     }
-
 
     public void drawItem(ItemStack stack, float x, float y, float z, float size) {
         if (stack == null) return;
         int idx = stack.type.iconIndex;
         int gridX = idx % 9;
         int gridY = 3 + (idx / 9);
-        addAtlasQuad(x, y, z, size, size, gridX, gridY, 1, 1, DEFAULT_GRID, true);
+
+        float epsilon = 0.0005f;
+        float u0 = (float) gridX / ITEM_GRID + epsilon;
+        float v0 = (float) gridY / ITEM_GRID + epsilon;
+        float u1 = (float) (gridX + 1) / ITEM_GRID - epsilon;
+        float v1 = (float) (gridY + 1) / ITEM_GRID - epsilon;
+
+        addClippedQuad(itemVerts, itemInds, x, y, x + size, y + size, z, 1f, 1f, 1f, u0, v1, u1, v0);
     }
 
-    public void addAtlasQuad(float x, float y, float z, float w, float h, int gridX, int gridY, int gridW, int gridH, float gridSize, boolean flipV) {
+    public void addAtlasQuad(float x, float y, float z, float w, float h, int gridX, int gridY, int gridW, int gridH, boolean flipV) {
         float epsilon = 0.0005f;
-        float u0 = (float) gridX / gridSize + epsilon;
-        float v0 = (float) gridY / gridSize + epsilon;
-        float u1 = (float) (gridX + gridW) / gridSize - epsilon;
-        float v1 = (float) (gridY + gridH) / gridSize - epsilon;
+        float u0 = (float) gridX / UI_GRID + epsilon;
+        float v0 = (float) gridY / UI_GRID + epsilon;
+        float u1 = (float) (gridX + gridW) / UI_GRID - epsilon;
+        float v1 = (float) (gridY + gridH) / UI_GRID - epsilon;
 
         float finalV0 = flipV ? v1 : v0;
         float finalV1 = flipV ? v0 : v1;
 
-        addClippedQuad(guiVerts, guiInds, x, y, x + w, y + h, z, 1f, 1f, 1f, u0, finalV0, u1, finalV1);
-    }
-
-    public void addAtlasQuad(float x, float y, float z, float w, float h, int gridX, int gridY, int gridW, int gridH, boolean flipV) {
-        addAtlasQuad(x, y, z, w, h, gridX, gridY, gridW, gridH, DEFAULT_GRID, flipV);
-    }
-
-    public void drawText(String text, float startX, float startY, float z, VulkanFont font) {
-        if (font == null || font.getCharData() == null) return;
-        float currentX = startX;
-        float currentY = startY;
-        STBTTBakedChar.Buffer charData = font.getCharData();
-
-        for (int i = 0; i < text.length(); i++) {
-            char c = text.charAt(i);
-            if (c >= 32 && c < 128) {
-                STBTTBakedChar bakedChar = charData.get(c - 32);
-
-                float glyphWidth = bakedChar.x1() - bakedChar.x0();
-                float glyphHeight = bakedChar.y1() - bakedChar.y0();
-
-                float x0 = currentX + bakedChar.xoff();
-                float x1 = x0 + glyphWidth;
-                float yTop = currentY - bakedChar.yoff();
-                float yBottom = yTop - glyphHeight;
-
-                float atlasSize = (float) font.BITMAP_SIZE;
-                float u0 = bakedChar.x0() / atlasSize;
-                float v0 = bakedChar.y0() / atlasSize;
-                float u1 = bakedChar.x1() / atlasSize;
-                float v1 = bakedChar.y1() / atlasSize;
-
-                // Auch Texte werden jetzt butterweich zerschnitten!
-                addClippedQuad(textVerts, textInds, x0, yBottom, x1, yTop, z, 1f, 1f, 1f, u0, v1, u1, v0);
-
-                currentX += bakedChar.xadvance();
-            }
-        }
+        addClippedQuad(uiVerts, uiInds, x, y, x + w, y + h, z, 1f, 1f, 1f, u0, finalV0, u1, finalV1);
     }
 
     public void addRect(float x, float y, float z, float w, float h, float r, float g, float b, float a) {
-        addClippedQuad(guiVerts, guiInds, x, y, x + w, y + h, z, r, g, b, 0.0f, 0.0f, 0.0f, 0.0f);
+        addClippedQuad(uiVerts, uiInds, x, y, x + w, y + h, z, r, g, b, 0.0f, 0.0f, 0.0f, 0.0f);
     }
 
     public void addCroppedAtlasQuad(float x, float y, float z, float w, float h, int gridX, int gridY, float cropRatio, float gridSize) {
@@ -165,7 +104,61 @@ public class UIMeshBuilder {
         float u1 = u0 + (uCellWidth * cropRatio);
         float v1 = (float) (gridY + 1) / gridSize - epsilon;
 
-        addClippedQuad(guiVerts, guiInds, x, y, x + w, y + h, z, 1f, 1f, 1f, u0, v0, u1, v1);
+        addClippedQuad(uiVerts, uiInds, x, y, x + w, y + h, z, 1f, 1f, 1f, u0, v0, u1, v1);
+    }
+
+    public void add9Slice(float x, float y, float z, float w, float h, int gridX, int gridY, float cornerRenderSize) {
+        float epsilon = 0.0005f;
+        float uvStep = 1.0f / UI_GRID; // 16er Grid!
+
+        float u0 = (float) gridX * uvStep + epsilon;
+        float v0 = (float) gridY * uvStep + epsilon;
+        float u3 = u0 + uvStep - 2 * epsilon;
+        float v3 = v0 + uvStep - 2 * epsilon;
+
+        float cornerUV = (uvStep - 2 * epsilon) * 0.25f; // Viertel eines Blocks
+
+        float[] u = {u0, u0 + cornerUV, u3 - cornerUV, u3};
+        float[] v = {v0, v0 + cornerUV, v3 - cornerUV, v3};
+        float[] posX = {x, x + cornerRenderSize, x + w - cornerRenderSize, x + w};
+        float[] posY = {y, y + cornerRenderSize, y + h - cornerRenderSize, y + h};
+
+        for (int row = 0; row < 3; row++) {
+            for (int col = 0; col < 3; col++) {
+                float px0 = posX[col]; float px1 = posX[col+1];
+                float py0 = posY[row]; float py1 = posY[row+1];
+
+                if (px1 < px0) px1 = px0;
+                if (py1 < py0) py1 = py0;
+
+                addClippedQuad(uiVerts, uiInds, px0, py0, px1, py1, z, 1f, 1f, 1f, u[col], v[row], u[col+1], v[row+1]);
+            }
+        }
+    }
+
+    public void drawText(String text, float startX, float startY, float z, VulkanFont font) {
+        if (font == null || font.getCharData() == null) return;
+        float currentX = startX;
+        float currentY = startY;
+        STBTTBakedChar.Buffer charData = font.getCharData();
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c >= 32 && c < 128) {
+                STBTTBakedChar bakedChar = charData.get(c - 32);
+                float glyphWidth = bakedChar.x1() - bakedChar.x0();
+                float glyphHeight = bakedChar.y1() - bakedChar.y0();
+                float x0 = currentX + bakedChar.xoff();
+                float x1 = x0 + glyphWidth;
+                float yTop = currentY - bakedChar.yoff();
+                float yBottom = yTop - glyphHeight;
+                float atlasSize = (float) font.BITMAP_SIZE;
+                float u0 = bakedChar.x0() / atlasSize; float v0 = bakedChar.y0() / atlasSize;
+                float u1 = bakedChar.x1() / atlasSize; float v1 = bakedChar.y1() / atlasSize;
+
+                addClippedQuad(textVerts, textInds, x0, yBottom, x1, yTop, z, 1f, 1f, 1f, u0, v1, u1, v0);
+                currentX += bakedChar.xadvance();
+            }
+        }
     }
 
     public float getTextWidth(String text, VulkanFont font) {
@@ -179,37 +172,5 @@ public class UIMeshBuilder {
             }
         }
         return textWidth;
-    }
-
-    public void add9Slice(float x, float y, float z, float w, float h, int gridX, int gridY, float cornerRenderSize) {
-        float epsilon = 0.0005f;
-        float uvStep = 1.0f / UIElement.MENU_GRID_SIZE;
-
-        float u0 = (float) gridX * uvStep + epsilon;
-        float v0 = (float) gridY * uvStep + epsilon;
-        float u3 = u0 + uvStep - 2 * epsilon;
-        float v3 = v0 + uvStep - 2 * epsilon;
-
-        float cornerUV = (uvStep - 2 * epsilon) * 0.25f;
-
-        float[] u = {u0, u0 + cornerUV, u3 - cornerUV, u3};
-        float[] v = {v0, v0 + cornerUV, v3 - cornerUV, v3};
-
-        float[] posX = {x, x + cornerRenderSize, x + w - cornerRenderSize, x + w};
-        float[] posY = {y, y + cornerRenderSize, y + h - cornerRenderSize, y + h};
-
-        for (int row = 0; row < 3; row++) {
-            for (int col = 0; col < 3; col++) {
-                float px0 = posX[col];
-                float px1 = posX[col+1];
-                float py0 = posY[row];
-                float py1 = posY[row+1];
-
-                if (px1 < px0) px1 = px0;
-                if (py1 < py0) py1 = py0;
-
-                addClippedQuad(guiVerts, guiInds, px0, py0, px1, py1, z, 1f, 1f, 1f, u[col], v[row], u[col+1], v[row+1]);
-            }
-        }
     }
 }

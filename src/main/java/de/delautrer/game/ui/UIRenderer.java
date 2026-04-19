@@ -12,8 +12,8 @@ import org.lwjgl.vulkan.VK10;
 
 public class UIRenderer {
 
-    private VulkanMesh guiMesh;   // Für HUD (gui.png)
-    private VulkanMesh menuMesh;  // Für Pause/Menü (menu_gui.png)
+    private VulkanMesh uiMesh;
+    private VulkanMesh itemMesh;
     private VulkanMesh textMesh;
     private final VulkanContext context;
 
@@ -27,43 +27,52 @@ public class UIRenderer {
     }
 
     public void rebuildMesh(int width, int height, InputManager input, PlayerInteraction interaction, float mouseX, float mouseY, DebugOverlay debugOverlay, ChatOverlay chatOverlay, VulkanFont font, MenuScreen pauseScreen) {
-        // Aufräumen der alten Meshes
         VK10.vkDeviceWaitIdle(context.getDevice());
-        if (guiMesh != null) guiMesh.cleanup();
-        if (menuMesh != null) menuMesh.cleanup();
+        if (uiMesh != null) uiMesh.cleanup();
+        if (itemMesh != null) itemMesh.cleanup();
         if (textMesh != null) textMesh.cleanup();
+        uiMesh = null; itemMesh = null; textMesh = null;
 
-        guiMesh = null;
-        menuMesh = null;
-        textMesh = null;
-
-        // --- SCHRITT 1: HUD BAUEN (gui.png) ---
         meshBuilder.clear();
-        uiManager.update(input, interaction);
-        uiManager.buildMeshes(meshBuilder, width, height, input, interaction, mouseX, mouseY, debugOverlay, chatOverlay, font);
 
-        if (!meshBuilder.guiVerts.isEmpty()) {
-            guiMesh = new VulkanMesh(context, toArray(meshBuilder.guiVerts), toIntArray(meshBuilder.guiInds));
-        }
-
-        // --- SCHRITT 2: MENÜ BAUEN (menu_gui.png) ---
-        meshBuilder.guiVerts.clear();
-        meshBuilder.guiInds.clear();
-
+        // --- FIX: HUD und Inventar nur rendern, wenn wir im normalen Spiel oder im Chat sind! ---
+        boolean renderHUD = true;
         if (pauseScreen != null) {
-            float uiMouseY = height - mouseY;
-            pauseScreen.render(meshBuilder, mouseX, uiMouseY);
-
-            if (!meshBuilder.guiVerts.isEmpty()) {
-                menuMesh = new VulkanMesh(context, toArray(meshBuilder.guiVerts), toIntArray(meshBuilder.guiInds));
+            String screenName = pauseScreen.getClass().getSimpleName();
+            // Pause- oder Ladescreen sollen das HUD komplett verstecken!
+            if (!screenName.equals("ChatScreen")) {
+                renderHUD = false;
             }
         }
 
-        // --- SCHRITT 3: TEXT BAUEN (bleibt wie es ist) ---
+        // 1. Alles für HUD & Inventare sammeln (nur wenn renderHUD true ist)
+        if (renderHUD) {
+            uiManager.update(input, interaction);
+            uiManager.buildMeshes(meshBuilder, width, height, input, interaction, mouseX, mouseY, debugOverlay, chatOverlay, font);
+        }
+
+        // 2. Pause/Menu Screen obendrauf rendern
+        if (pauseScreen != null) {
+            float uiMouseY = height - mouseY;
+            pauseScreen.render(meshBuilder, mouseX, uiMouseY);
+        }
+
+        // 3. Meshes bauen!
+        if (!meshBuilder.uiVerts.isEmpty()) {
+            uiMesh = new VulkanMesh(context, toArray(meshBuilder.uiVerts), toIntArray(meshBuilder.uiInds));
+        }
+        if (!meshBuilder.itemVerts.isEmpty()) {
+            itemMesh = new VulkanMesh(context, toArray(meshBuilder.itemVerts), toIntArray(meshBuilder.itemInds));
+        }
         if (!meshBuilder.textVerts.isEmpty()) {
             textMesh = new VulkanMesh(context, toArray(meshBuilder.textVerts), toIntArray(meshBuilder.textInds));
         }
     }
+
+    // Und passe die Getter an:
+    public VulkanMesh getUiMesh() { return uiMesh; }
+    public VulkanMesh getItemMesh() { return itemMesh; }
+    public VulkanMesh getTextMesh() { return textMesh; }
 
     private float[] toArray(java.util.List<Float> list) {
         float[] arr = new float[list.size()];
@@ -76,13 +85,9 @@ public class UIRenderer {
         return arr;
     }
 
-    public VulkanMesh getGuiMesh() { return guiMesh; }
-    public VulkanMesh getMenuMesh() { return menuMesh; } // NEU
-    public VulkanMesh getTextMesh() { return textMesh; }
-
     public void cleanup() {
-        if (guiMesh != null) guiMesh.cleanup();
-        if (menuMesh != null) menuMesh.cleanup();
+        if (uiMesh != null) uiMesh.cleanup();
         if (textMesh != null) textMesh.cleanup();
+        if (itemMesh != null) itemMesh.cleanup();
     }
 }

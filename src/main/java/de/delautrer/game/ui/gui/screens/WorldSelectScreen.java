@@ -142,7 +142,7 @@ public class WorldSelectScreen extends MenuScreen {
     @Override
     public void render(UIMeshBuilder builder, float mouseX, float mouseY) {
         // 1. Hintergrund (Schmutz-Textur, Z = 0.0f)
-        builder.addAtlasQuad(0, 0, 0.0f, width, height, 15, 15, 1, 1, UIElement.MENU_GRID_SIZE, false);
+        builder.addAtlasQuad(0, 0, 0.0f, width, height, 15, 15, 1, 1, false);
 
         // 2. Wenn das Popup aktiv ist, dimmen wir den Hintergrund und zeichnen ein Panel
         if (isCreatingWorld) {

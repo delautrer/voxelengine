@@ -26,7 +26,7 @@ public class LoadingScreen extends MenuScreen {
 
     @Override
     public void render(UIMeshBuilder builder, float mouseX, float mouseY) {
-        builder.addAtlasQuad(0, 0, 0.0f, width, height, 15, 15, 1, 1, UIElement.MENU_GRID_SIZE, false);
+        builder.addAtlasQuad(0, 0, 0.0f, width, height, 15, 15, 1, 1, false);
 
         super.render(builder, mouseX, mouseY);
 

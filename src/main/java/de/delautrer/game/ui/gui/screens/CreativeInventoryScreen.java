@@ -1,6 +1,7 @@
 package de.delautrer.game.ui.gui.screens;
 
 import de.delautrer.engine.graphics.VulkanFont;
+import de.delautrer.engine.input.InputManager;
 import de.delautrer.game.items.Item;
 import de.delautrer.game.items.ItemRegistry;
 import de.delautrer.game.items.ItemStack;
@@ -20,6 +21,11 @@ public class CreativeInventoryScreen extends MenuScreen {
     private final int cols = 9;
     private int rows;
 
+    // --- NEU: Scroll Variablen ---
+    private int scrollRow = 0;
+    private int maxScrollRow = 0;
+    private int visibleRows;
+
     public CreativeInventoryScreen(Container container) {
         this.container = container;
         this.allItems = new ArrayList<>(ItemRegistry.getAll().values());
@@ -33,77 +39,112 @@ public class CreativeInventoryScreen extends MenuScreen {
 
     @Override
     protected void onInit() {
-        hotbarWidth = 207.0f * pixelScale;
-        hotbarHeight = 23.0f * pixelScale;
-        slotHitboxSize = 22.0f * pixelScale;
+        hotbarWidth = 24f * 9f * pixelScale;
+        hotbarHeight = 24f * pixelScale;
+        slotHitboxSize = 24.0f * pixelScale;
 
         hx = (float) Math.floor((width - hotbarWidth) / 2.0f);
-        hotbarY = (float) Math.floor(10.0f * pixelScale);
+        hotbarY = height / 2.0f - hotbarHeight * 2.0f;
+
         gridY = hotbarY + hotbarHeight + (10.0f * pixelScale);
+
+        // --- NEU: Scroll Logik vorbereiten ---
+        this.visibleRows = Math.min(9, rows); // Maximal 9 Reihen gleichzeitig sichtbar
+        this.maxScrollRow = Math.max(0, rows - visibleRows);
+    }
+
+    // --- NEU: Mausrad fangen ---
+    @Override
+    public void handleInput(InputManager input) {
+        super.handleInput(input);
+        double scroll = input.consumeScroll();
+        if (scroll != 0) {
+            scrollRow -= (int) Math.signum(scroll);
+            if (scrollRow < 0) scrollRow = 0;
+            if (scrollRow > maxScrollRow) scrollRow = maxScrollRow;
+        }
     }
 
     @Override
     public void render(UIMeshBuilder builder, float mouseX, float mouseY) {
         int hoveredSlot = getHoveredSlot(mouseX, mouseY);
 
-        // --- 1. SCHÖNES 9-SLICE HINTERGRUND-PANEL ---
         float padding = 10.0f * pixelScale;
-        float panelW = hotbarWidth + padding * 2;
-        float panelH = (gridY + (rows * hotbarHeight) - hotbarY) + padding * 2 + (15.0f * pixelScale);
+        float panelW = hotbarWidth + padding * 2 + (maxScrollRow > 0 ? 15.0f * pixelScale : 0); // Platz für Scrollbar
+        float panelH = (gridY + (visibleRows * hotbarHeight) - hotbarY) + padding * 2 + (15.0f * pixelScale);
         float panelX = hx - padding;
         float panelY = hotbarY - padding;
 
-        builder.add9Slice(panelX, panelY, 0.3f, panelW, panelH, 0, 0, 8.0f * pixelScale);
+        builder.add9Slice(panelX, panelY, 0.3f, panelW, panelH, 4, 0, 8.0f * pixelScale);
 
         // --- 2. TITEL TEXT ---
         if (font != null) {
-            float titleY = panelY + panelH - (15.0f * pixelScale);
-            builder.drawText("Kreativmodus", panelX + padding, titleY, 0.4f, font);
+            float titleY = panelY + panelH - (18.0f * pixelScale);
+            builder.drawText("Creative-Inventory", panelX + padding, titleY, 0.4f, font);
         }
 
         // --- 3. HOTBAR & GRID HINTERGRUND ---
-        builder.addAtlasQuad(hx, hotbarY, 0.2f, hotbarWidth, hotbarHeight, 0, 1, 9, 1, false);
+        builder.addAtlasQuad(hx, hotbarY, 0.2f, hotbarWidth, hotbarHeight, 1, 1, 9, 1, false);
 
-        for (int row = 0; row < rows; row++) {
-            float rowY = gridY + (row * hotbarHeight);
-            builder.addAtlasQuad(hx, rowY, 0.2f, hotbarWidth, hotbarHeight, 0, 1, 9, 1, false);
+        for (int visualRow = 0; visualRow < visibleRows; visualRow++) {
+            float y = gridY + (visualRow * hotbarHeight);
+            builder.addAtlasQuad(hx, y, 0.2f, hotbarWidth, hotbarHeight, 1, 1, 9, 1, false);
         }
 
-        // --- 4. ITEMS & SELEKTOR ---
+        // --- 4. SCROLLBAR ZEICHNEN ---
+        if (maxScrollRow > 0) {
+            float scrollbarX = hx + hotbarWidth + 5.0f * pixelScale;
+            float scrollbarY = gridY;
+            float scrollbarW = 10.0f * pixelScale;
+            float scrollbarH = visibleRows * hotbarHeight;
+
+            builder.addRect(scrollbarX, scrollbarY, 0.2f, scrollbarW, scrollbarH, 0.1f, 0.1f, 0.1f, 1.0f);
+
+            float handleH = Math.max(15.0f * pixelScale, scrollbarH * ((float)visibleRows / rows));
+            float progress = (float) scrollRow / maxScrollRow;
+            float handleY = scrollbarY + progress * (scrollbarH - handleH);
+
+            builder.addRect(scrollbarX + 2*pixelScale, handleY, 0.1f, scrollbarW - 4*pixelScale, handleH, 0.6f, 0.6f, 0.6f, 1.0f);
+        }
+
+        // --- 5. ITEMS & SELEKTOR ---
         for (int col = 0; col < 9; col++) {
-            float slotX = hx + (4.0f + col * 22.0f) * pixelScale;
-            float selectorW = 23.0f * pixelScale;
+            float slotX = hx + (col * 24.0f) * pixelScale;
+            float selectorW = 24.0f * pixelScale;
 
             if (hoveredSlot == col) {
-                builder.addAtlasQuad(slotX, hotbarY, 0.1f, selectorW, hotbarHeight, 0, 2, 1, 1, false);
+                builder.addAtlasQuad(slotX, hotbarY, 0.1f, selectorW, hotbarHeight, 10, 1, 1, 1, false);
             }
-            builder.drawItem(container.getInventory().getStack(col), slotX, hotbarY, 0.0f, selectorW);
+            builder.drawItem(container.getInventory().getStack(col), slotX + 2, hotbarY + 2, 0.0f, selectorW - 4);
         }
 
-        for (int row = 0; row < rows; row++) {
-            float rowY = gridY + (row * hotbarHeight);
+        for (int visualRow = 0; visualRow < visibleRows; visualRow++) {
+            int actualRow = scrollRow + visualRow;
+            float rowY = gridY + (visualRow * hotbarHeight);
+
             for (int col = 0; col < 9; col++) {
-                int itemIndex = (row * cols) + col;
-                int virtualSlotId = 9 + itemIndex;
-                float slotX = hx + (4.0f + col * 22.0f) * pixelScale;
-                float selectorW = 23.0f * pixelScale;
+                int itemIndex = (actualRow * cols) + col;
+                int virtualSlotId = 9 + (visualRow * cols) + col;
+
+                float slotX = hx + (col * 24.0f) * pixelScale;
+                float selectorW = 24.0f * pixelScale;
 
                 if (hoveredSlot == virtualSlotId && itemIndex < allItems.size()) {
-                    builder.addAtlasQuad(slotX, rowY, 0.1f, selectorW, hotbarHeight, 0, 2, 1, 1, false);
+                    builder.addAtlasQuad(slotX, rowY, 0.1f, selectorW, hotbarHeight, 10, 1, 1, 1, false);
                 }
 
                 if (itemIndex < allItems.size()) {
                     Item item = allItems.get(itemIndex);
-                    builder.drawItem(new ItemStack(item, 1), slotX, rowY, 0.0f, selectorW);
+                    builder.drawItem(new ItemStack(item, 1), slotX + 2, rowY + 2, 0.0f, selectorW - 4);
                 }
             }
         }
 
-        // --- 5. MAUS ITEM ---
+        // --- 6. MAUS ITEM ---
         if (container.getMouseStack() != null) {
-            float itemSize = 23.0f * pixelScale;
+            float itemSize = 24.0f * pixelScale - 4;
             float invertedMouseY = height - mouseY;
-            builder.drawItem(container.getMouseStack(), mouseX - itemSize / 2.0f, invertedMouseY - itemSize / 2.0f, -0.1f, itemSize);
+            builder.drawItem(container.getMouseStack(), mouseX - itemSize / 2.0f + 2, invertedMouseY - itemSize / 2.0f + 2 , -0.1f, itemSize);
         }
     }
 
@@ -113,18 +154,18 @@ public class CreativeInventoryScreen extends MenuScreen {
 
         if (invertedMouseY >= hotbarY && invertedMouseY <= hotbarY + hotbarHeight) {
             for (int col = 0; col < 9; col++) {
-                float slotX = hx + (4.0f + col * 22.0f) * pixelScale;
+                float slotX = hx + (col * 24.0f) * pixelScale;
                 if (mouseX >= slotX && mouseX <= slotX + slotHitboxSize) return col;
             }
         }
 
-        for (int row = 0; row < rows; row++) {
-            float rowY = gridY + (row * hotbarHeight);
+        for (int visualRow = 0; visualRow < visibleRows; visualRow++) {
+            float rowY = gridY + (visualRow * hotbarHeight);
             if (invertedMouseY >= rowY && invertedMouseY <= rowY + hotbarHeight) {
                 for (int col = 0; col < 9; col++) {
-                    float slotX = hx + (4.0f + col * 22.0f) * pixelScale;
+                    float slotX = hx + (col * 24.0f) * pixelScale;
                     if (mouseX >= slotX && mouseX <= slotX + slotHitboxSize) {
-                        return 9 + (row * cols) + col;
+                        return 9 + (visualRow * cols) + col;
                     }
                 }
             }
@@ -140,7 +181,12 @@ public class CreativeInventoryScreen extends MenuScreen {
         if (slot < 9) {
             container.handleSlotClick(slot);
         } else {
-            int itemIndex = slot - 9;
+            int virtualIndex = slot - 9;
+            int visualRow = virtualIndex / cols;
+            int col = virtualIndex % cols;
+            int actualRow = scrollRow + visualRow;
+            int itemIndex = actualRow * cols + col;
+
             if (itemIndex < allItems.size()) {
                 Item clickedItem = allItems.get(itemIndex);
 

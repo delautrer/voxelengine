@@ -41,6 +41,7 @@ public class InputManager {
         keyBindings.put("MOVE_RIGHT", GLFW.GLFW_KEY_D);
         keyBindings.put("JUMP", GLFW.GLFW_KEY_SPACE);
         keyBindings.put("SNEAK", GLFW.GLFW_KEY_LEFT_SHIFT);
+        keyBindings.put("SPRINT", GLFW.GLFW_KEY_LEFT_CONTROL);
 
         keyBindings.put("INVENTORY", GLFW.GLFW_KEY_E);
 

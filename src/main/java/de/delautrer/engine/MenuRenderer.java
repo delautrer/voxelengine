@@ -45,11 +45,11 @@ public class MenuRenderer {
         meshBuilder.clear();
         screen.render(meshBuilder, uiMouseX, uiMouseY);
 
-        if (!meshBuilder.guiVerts.isEmpty()) {
-            float[] vArr = new float[meshBuilder.guiVerts.size()];
-            for (int i = 0; i < vArr.length; i++) vArr[i] = meshBuilder.guiVerts.get(i);
-            int[] iArr = new int[meshBuilder.guiInds.size()];
-            for (int i = 0; i < iArr.length; i++) iArr[i] = meshBuilder.guiInds.get(i);
+        if (!meshBuilder.uiVerts.isEmpty()) {
+            float[] vArr = new float[meshBuilder.uiVerts.size()];
+            for (int i = 0; i < vArr.length; i++) vArr[i] = meshBuilder.uiVerts.get(i);
+            int[] iArr = new int[meshBuilder.uiInds.size()];
+            for (int i = 0; i < iArr.length; i++) iArr[i] = meshBuilder.uiInds.get(i);
             uiMesh = new VulkanMesh(context, vArr, iArr);
         }
 
@@ -65,7 +65,7 @@ public class MenuRenderer {
         // Standard-Vulkan-Matrix: Y=0 ist Unten.
         packet.ortho = new Matrix4f().ortho(0.0f, renderer.getWidth(), renderer.getHeight(), 0.0f, -1.0f, 1.0f);
         packet.uiMesh = uiMesh;
-        packet.guiTexture = guiTexture;
+        packet.uiTexture = guiTexture;
         packet.textMesh = textMesh;
         packet.fontTexture = fontTexture;
 

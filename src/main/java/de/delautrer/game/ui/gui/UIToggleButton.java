@@ -35,7 +35,7 @@ public class UIToggleButton extends UIElement {
         int gridY = 8;
 
         // Hintergrund (Z = 0.1)
-        builder.addAtlasQuad(x, y, 0.1f, width, height, gridX, gridY, 1, 1, MENU_GRID_SIZE, false);
+        builder.addAtlasQuad(x, y, 0.1f, width, height, gridX, gridY, 1, 1, false);
 
         // Text zentriert (Z = 0.2)
         String displayText = prefix + ": " + options[currentIndex];

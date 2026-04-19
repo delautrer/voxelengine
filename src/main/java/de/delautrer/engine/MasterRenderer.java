@@ -27,8 +27,8 @@ public class MasterRenderer {
     private final UIRenderer uiRenderer;
 
     private VulkanTextureArray worldTexture;
-    private VulkanTexture guiTexture;
-    private VulkanTexture menuTexture;
+    private VulkanTexture uiTexture;
+    private VulkanTexture itemTexture;
     private VulkanTexture fontTexture;
     private VulkanMesh highlightMesh;
     private VulkanMesh cloudMesh;
@@ -47,8 +47,8 @@ public class MasterRenderer {
 
     private void initResources() {
         worldTexture = new VulkanTextureArray(vulkanContext, renderer.getCommandBuffers(), renderer.getGraphicsLayout(), "texture.png");
-        guiTexture = new VulkanTexture(vulkanContext, renderer.getCommandBuffers(), renderer.getUiLayout(), "gui.png");
-        menuTexture = new VulkanTexture(vulkanContext, renderer.getCommandBuffers(), renderer.getUiLayout(), "menu_gui.png");
+        uiTexture = new VulkanTexture(vulkanContext, renderer.getCommandBuffers(), renderer.getUiLayout(), "menu_gui.png");
+        itemTexture = new VulkanTexture(vulkanContext, renderer.getCommandBuffers(), renderer.getUiLayout(), "gui.png");
 
         font = new VulkanFont("MinecraftRegular-Bmg3.otf", 24.0f);
         if (font.getRgbaPixels() != null) {
@@ -95,10 +95,10 @@ public class MasterRenderer {
         );
         // ---------------------------
 
-        packet.guiTexture = guiTexture;
-        packet.menuTexture = menuTexture;
-        packet.uiMesh = uiRenderer.getGuiMesh();
-        packet.menuMesh = uiRenderer.getMenuMesh();
+        packet.uiTexture = uiTexture;
+        packet.itemTexture = itemTexture;
+        packet.uiMesh = uiRenderer.getUiMesh();
+        packet.itemMesh = uiRenderer.getItemMesh();
         packet.textMesh = uiRenderer.getTextMesh();
         packet.fontTexture = fontTexture;
         packet.worldTexture = worldTexture;
@@ -132,7 +132,8 @@ public class MasterRenderer {
     public void cleanup() {
         if (cloudMesh != null) cloudMesh.cleanup();
         if (worldTexture != null) worldTexture.cleanup();
-        if (guiTexture != null) guiTexture.cleanup();
+        if (uiTexture != null) uiTexture.cleanup();
+        if (itemTexture != null) itemTexture.cleanup();
         if (fontTexture != null) fontTexture.cleanup();
         if (uiRenderer != null) uiRenderer.cleanup();
         if (highlightMesh != null) highlightMesh.cleanup();
