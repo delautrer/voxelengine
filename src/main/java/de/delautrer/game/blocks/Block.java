@@ -1,6 +1,7 @@
 package de.delautrer.game.blocks;
 
 import de.delautrer.engine.physics.AABB;
+import de.delautrer.game.blocks.models.BlockModelData;
 import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.blocks.state.Property;
 import de.delautrer.game.entity.player.Player;
@@ -15,6 +16,7 @@ import java.util.*;
 
 public abstract class Block {
     private byte internalId;
+    private BlockModelData model;
 
     protected int lightEmission = 0;
 
@@ -177,5 +179,13 @@ public abstract class Block {
 
     public boolean canWaterFlowInto() {
         return false;
+    }
+
+    public void setModel(BlockModelData model) {
+        this.model = model;
+    }
+
+    public BlockModelData getModel() {
+        return model;
     }
 }

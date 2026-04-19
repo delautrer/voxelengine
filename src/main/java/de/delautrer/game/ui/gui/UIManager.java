@@ -22,8 +22,6 @@ public class UIManager {
     public void update(InputManager input, PlayerInteraction interaction) {
         if (interaction.getInventory().isOpen()) {
             if (currentScreen == null) {
-
-                // --- NEU: Gamemode-Check ---
                 if (interaction.getPlayer().getGameMode() == GameMode.CREATIVE) {
                     currentScreen = new CreativeInventoryScreen(new Container(interaction.getInventory()));
                 } else {
@@ -34,7 +32,7 @@ public class UIManager {
             }
             currentScreen.handleInput(input);
         } else {
-            currentScreen = null; // Schließen
+            currentScreen = null;
         }
     }
 

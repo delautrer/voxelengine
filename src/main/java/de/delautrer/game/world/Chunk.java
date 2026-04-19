@@ -216,7 +216,7 @@ public class Chunk {
                         float x2, float y2, float z2, float ao2,
                         float x3, float y3, float z3, float ao3,
                         float u0, float v0, float u1, float v1,
-                        int texLayer, float directionalLight, Block block,
+                        float texLayer, float directionalLight, Block block,
                         float sl0, float sl1, float sl2, float sl3,
                         float bl0, float bl1, float bl2, float bl3) {
 

@@ -55,8 +55,8 @@ public class TorchBlock extends CubeBlock {
         }
     }
 
-    public TorchBlock(int tex) {
-        super(false, true, tex, tex, tex);
+    public TorchBlock() {
+        super(false, true);
     }
 
     @Override
@@ -69,9 +69,6 @@ public class TorchBlock extends CubeBlock {
         return true;
     }
 
-    // ==========================================
-    // 1. PLATZIERUNG UND WAND-LOGIK
-    // ==========================================
     @Override
     public BlockState getStateForPlacement(World world, Player player, Vector3i hitPos, Vector3i hitFace, Vector3f exactHit) {
         if (hitFace.y == -1) return null;
@@ -108,10 +105,6 @@ public class TorchBlock extends CubeBlock {
         }
     }
 
-    // ==========================================
-    // 2. HIGHLIGHTER UND KOLLISION (Perfekte kleine Hitboxen!)
-    // ==========================================
-
     @Override
     public List<AABB> getBoundingBoxes(BlockState state) {
         TorchAttach attach = state.getValue(ATTACH);
@@ -123,66 +116,36 @@ public class TorchBlock extends CubeBlock {
         return super.getBoundingBoxes(state);
     }
 
-    // ==========================================
-    // 3. EIGENER 3D-MESHER FÜR DIE SCHRÄGE
-    // ==========================================
-
     @Override
     public void generateMesh(int x, int y, int z, Chunk chunk, ChunkManager cm) {
         BlockState state = chunk.getBlockState(x, y, z);
         TorchAttach attach = state.getValue(ATTACH);
-
-        // Wir holen uns die 8 vorausberechneten Eckpunkte der schrägen Fackel
         Vector3f[] v = VERTS[attach.ordinal()];
-
-        // Fackeln leuchten von selbst, haben also keine weichen Schatten
         float light = 1.0f;
 
-        // U-Koordinaten (Die Breite der Fackel: Pixel 7 bis 9)
-        float u0 = 7f / 16f;
-        float u1 = 9f / 16f;
+        de.delautrer.engine.graphics.utils.TextureStitcher.AtlasRegion reg = getModel().top;
+        if (reg == null) return;
 
-        // V-Koordinaten für die SEITEN (Die volle Höhe: Pixel 6 bis 16)
-        float vSideTop = 6f / 16f;
-        float vSideBot = 1.0f;
-
-        // V-Koordinaten für OBEN (Die 2x2 gelben Flammen-Pixel: Pixel 6 bis 8)
-        float vTop0 = 6f / 16f;
-        float vTop1 = 8f / 16f;
-
-        // V-Koordinaten für UNTEN (Die 2x2 Holz-Pixel: Pixel 14 bis 16)
-        float vBot0 = 14f / 16f;
-        float vBot1 = 1.0f;
-
-        // Oben (v4, v7, v6, v5) -> Nutzt die gelben Pixel (vTop)
-        addQuad(chunk, x, y, z, v[4], v[7], v[6], v[5], u0, vTop0, u1, vTop1, texTop, light);
-
-        // Unten (v3, v0, v1, v2) -> Nutzt die Holz-Pixel (vBot)
-        addQuad(chunk, x, y, z, v[3], v[0], v[1], v[2], u0, vBot0, u1, vBot1, texBottom, light);
-
-        // Süd / Z+ (v3, v2, v6, v7) -> Nutzt die volle Seite
-        addQuad(chunk, x, y, z, v[3], v[2], v[6], v[7], u0, vSideTop, u1, vSideBot, texSide, light);
-
-        // Nord / Z- (v1, v0, v4, v5) -> Nutzt die volle Seite
-        addQuad(chunk, x, y, z, v[1], v[0], v[4], v[5], u0, vSideTop, u1, vSideBot, texSide, light);
-
-        // West / X- (v0, v3, v7, v4) -> Nutzt die volle Seite
-        addQuad(chunk, x, y, z, v[0], v[3], v[7], v[4], u0, vSideTop, u1, vSideBot, texSide, light);
-
-        // Ost / X+ (v2, v1, v5, v6) -> Nutzt die volle Seite
-        addQuad(chunk, x, y, z, v[2], v[1], v[5], v[6], u0, vSideTop, u1, vSideBot, texSide, light);
+        addQuad(chunk, x, y, z, v[4], v[7], v[6], v[5], 7f/16f, 6f/16f, 9f/16f, 8f/16f, reg, light);
+        addQuad(chunk, x, y, z, v[3], v[0], v[1], v[2], 7f/16f, 14f/16f, 9f/16f, 1.0f, reg, light);
+        addQuad(chunk, x, y, z, v[3], v[2], v[6], v[7], 7f/16f, 6f/16f, 9f/16f, 1.0f, reg, light);
+        addQuad(chunk, x, y, z, v[1], v[0], v[4], v[5], 7f/16f, 6f/16f, 9f/16f, 1.0f, reg, light);
+        addQuad(chunk, x, y, z, v[0], v[3], v[7], v[4], 7f/16f, 6f/16f, 9f/16f, 1.0f, reg, light);
+        addQuad(chunk, x, y, z, v[2], v[1], v[5], v[6], 7f/16f, 6f/16f, 9f/16f, 1.0f, reg, light);
     }
 
-    private void addQuad(Chunk chunk, int x, int y, int z, Vector3f vec0, Vector3f vec1, Vector3f vec2, Vector3f vec3, float u0, float v0, float u1, float v1, int tex, float light) {
+    private void addQuad(Chunk chunk, int x, int y, int z, Vector3f vec0, Vector3f vec1, Vector3f vec2, Vector3f vec3, float lu0, float lv0, float lu1, float lv1, de.delautrer.engine.graphics.utils.TextureStitcher.AtlasRegion reg, float light) {
+        float u0 = reg.u0 + (reg.u1 - reg.u0) * lu0;
+        float v0 = reg.v0 + (reg.v1 - reg.v0) * lv0;
+        float u1 = reg.u0 + (reg.u1 - reg.u0) * lu1;
+        float v1 = reg.v0 + (reg.v1 - reg.v0) * lv1;
         chunk.addFace(
                 x + vec0.x, y + vec0.y, z + vec0.z, 1.0f,
                 x + vec1.x, y + vec1.y, z + vec1.z, 1.0f,
                 x + vec2.x, y + vec2.y, z + vec2.z, 1.0f,
                 x + vec3.x, y + vec3.y, z + vec3.z, 1.0f,
-                u0, v0, u1, v1,
-                tex, light, this,
-                1.0f, 1.0f, 1.0f, 1.0f, // Sky Light
-                1.0f, 1.0f, 1.0f, 1.0f  // Block Light
+                u0, v0, u1, v1, reg.layer, light, this,
+                1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f
         );
     }
 }

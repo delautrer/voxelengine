@@ -61,6 +61,7 @@ public class HUD {
         // --- 3. HOTBAR ---
         if (interaction.getPlayer().getGameMode() == GameMode.SPECTATOR) return;
         if (isScreenOpen) return;
+        if (isChatOpen) return;
 
         float hotbarWidth = 24f * 9f * pixelScale;
         float hotbarHeight = 24f * pixelScale;

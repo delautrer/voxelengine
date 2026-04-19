@@ -75,7 +75,7 @@ public class PlayScene extends Scene {
     @Override
     public void init() {
         eventBus = new EventBus();
-        masterRenderer = new MasterRenderer(engine.getVulkanContext(), engine.getWindow());
+        masterRenderer = new MasterRenderer(engine.getVulkanContext(), engine.getWindow(), engine.getBlockAtlas());
         debugOverlay = new DebugOverlay();
         chatOverlay = new ChatOverlay(eventBus);
 
@@ -96,7 +96,11 @@ public class PlayScene extends Scene {
         worldEventHandler = new WorldEventHandler(world, engine.getVulkanContext(), eventBus);
         localPlayer.initInteraction(world, engine.getVulkanContext(), eventBus);
 
-        MeshData cloudData = world.getCloudSystem().generateCloudMesh(world.getSeed());
+        float cloudLayer = 0.0f;
+        if(engine.getBlockAtlas().regions.containsKey("just_white")) {
+            cloudLayer = engine.getBlockAtlas().regions.get("just_white").layer;
+        }
+        MeshData cloudData = world.getCloudSystem().generateCloudMesh(world.getSeed(), cloudLayer);
         masterRenderer.initClouds(cloudData);
 
         setupDebugOverlay();

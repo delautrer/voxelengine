@@ -1,5 +1,6 @@
 package de.delautrer.game.blocks;
 
+import de.delautrer.engine.graphics.utils.TextureStitcher;
 import de.delautrer.game.blocks.state.Property;
 import de.delautrer.game.items.BlockItem;
 import de.delautrer.game.world.Chunk;
@@ -239,7 +240,7 @@ public class WaterBlock extends Block {
         float h = getWaterHeight(x, y, z, chunk, cm);
         float yTop = y + h;
         float lightTop = 1.0f, lightBot = 0.4f, lightFrontBack = 0.8f, lightLeftRight = 0.65f;
-        int texLayer = 4;
+        TextureStitcher.AtlasRegion reg = getModel().top;
 
         Block topNeighbor = BlockRegistry.get(chunk.getBlockAt(x, y + 1, z, cm));
         boolean drawTop = shouldRenderFaceAgainst(topNeighbor, h, 1.0f);
@@ -256,7 +257,7 @@ public class WaterBlock extends Block {
             float bl2 = chunk.getSmoothBlockLight(x, y+1, z, 1, 0, 0, 0, 0, 1, cm);
             float bl3 = chunk.getSmoothBlockLight(x, y+1, z, 1, 0, 0, 0, 0, -1, cm);
 
-            chunk.addFace(x,yTop,z,1, x,yTop,z+1,1, x+1,yTop,z+1,1, x+1,yTop,z,1,0.0f, 0.0f, 1.0f, 1.0f, texLayer, lightTop, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
+            chunk.addFace(x,yTop,z,1, x,yTop,z+1,1, x+1,yTop,z+1,1, x+1,yTop,z,1,reg.u0, reg.v0, reg.u1, reg.v1, reg.layer, lightTop, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
         }
 
         Block bottomNeighbor = BlockRegistry.get(chunk.getBlockAt(x, y - 1, z, cm));
@@ -271,7 +272,7 @@ public class WaterBlock extends Block {
             float bl2 = chunk.getSmoothBlockLight(x, y-1, z, 1, 0, 0, 0, 0, -1, cm);
             float bl3 = chunk.getSmoothBlockLight(x, y-1, z, 1, 0, 0, 0, 0, 1, cm);
 
-            chunk.addFace(x,y,z+1,1, x,y,z,1, x+1,y,z,1, x+1,y,z+1,1,0.0f, 0.0f, 1.0f, 1.0f, texLayer, lightBot, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
+            chunk.addFace(x,y,z+1,1, x,y,z,1, x+1,y,z,1, x+1,y,z+1,1,reg.u0, reg.v0, reg.u1, reg.v1, reg.layer, lightBot, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
         }
 
         Block zPlusNeighbor = BlockRegistry.get(chunk.getBlockAt(x, y, z + 1, cm));
@@ -286,7 +287,7 @@ public class WaterBlock extends Block {
             float bl2 = chunk.getSmoothBlockLight(x, y, z+1, 1, 0, 0, 0, 1, 0, cm);
             float bl3 = chunk.getSmoothBlockLight(x, y, z+1, -1, 0, 0, 0, 1, 0, cm);
 
-            chunk.addFace(x,y,z+1,1, x+1,y,z+1,1, x+1,yTop,z+1,1, x,yTop,z+1,1,0.0f, 0.0f, 1.0f, 1.0f, texLayer, lightFrontBack, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
+            chunk.addFace(x,y,z+1,1, x+1,y,z+1,1, x+1,yTop,z+1,1, x,yTop,z+1,1,reg.u0, reg.v0, reg.u1, reg.v1, reg.layer, lightFrontBack, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
         }
 
         Block zMinusNeighbor = BlockRegistry.get(chunk.getBlockAt(x, y, z - 1, cm));
@@ -301,7 +302,7 @@ public class WaterBlock extends Block {
             float bl2 = chunk.getSmoothBlockLight(x, y, z-1, -1, 0, 0, 0, 1, 0, cm);
             float bl3 = chunk.getSmoothBlockLight(x, y, z-1, 1, 0, 0, 0, 1, 0, cm);
 
-            chunk.addFace(x+1,y,z,1, x,y,z,1, x,yTop,z,1, x+1,yTop,z,1,0.0f, 0.0f, 1.0f, 1.0f, texLayer, lightFrontBack, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
+            chunk.addFace(x+1,y,z,1, x,y,z,1, x,yTop,z,1, x+1,yTop,z,1,reg.u0, reg.v0, reg.u1, reg.v1, reg.layer, lightFrontBack, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
         }
 
         Block xMinusNeighbor = BlockRegistry.get(chunk.getBlockAt(x - 1, y, z, cm));
@@ -316,7 +317,7 @@ public class WaterBlock extends Block {
             float bl2 = chunk.getSmoothBlockLight(x-1, y, z, 0, 1, 0, 0, 0, 1, cm);
             float bl3 = chunk.getSmoothBlockLight(x-1, y, z, 0, 1, 0, 0, 0, -1, cm);
 
-            chunk.addFace(x,y,z,1, x,y,z+1,1, x,yTop,z+1,1, x,yTop,z,1,0.0f, 0.0f, 1.0f, 1.0f, texLayer, lightLeftRight, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
+            chunk.addFace(x,y,z,1, x,y,z+1,1, x,yTop,z+1,1, x,yTop,z,1,reg.u0, reg.v0, reg.u1, reg.v1, reg.layer, lightLeftRight, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
         }
 
         Block xPlusNeighbor = BlockRegistry.get(chunk.getBlockAt(x + 1, y, z, cm));
@@ -331,7 +332,7 @@ public class WaterBlock extends Block {
             float bl2 = chunk.getSmoothBlockLight(x+1, y, z, 0, 1, 0, 0, 0, -1, cm);
             float bl3 = chunk.getSmoothBlockLight(x+1, y, z, 0, 1, 0, 0, 0, 1, cm);
 
-            chunk.addFace(x+1,y,z+1,1, x+1,y,z,1, x+1,yTop,z,1, x+1,yTop,z+1,1,0.0f, 0.0f, 1.0f, 1.0f, texLayer, lightLeftRight, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
+            chunk.addFace(x+1,y,z+1,1, x+1,y,z,1, x+1,yTop,z,1, x+1,yTop,z+1,1,reg.u0, reg.v0, reg.u1, reg.v1, reg.layer, lightLeftRight, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
         }
     }
 

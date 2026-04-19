@@ -16,8 +16,8 @@ import java.util.List;
 public class SlabBlock extends CubeBlock {
     public static final EnumProperty<SlabType> TYPE = EnumProperty.create("type", SlabType.class);
 
-    public SlabBlock(int texTop, int texSide, int texBottom) {
-        super(true, true, texTop, texSide, texBottom);
+    public SlabBlock() {
+        super(true, true);
     }
 
     @Override
@@ -64,5 +64,25 @@ public class SlabBlock extends CubeBlock {
         float minY = (type == SlabType.TOP) ? 0.5f : 0.0f;
         float maxY = (type == SlabType.BOTTOM) ? 0.5f : 1.0f;
         return List.of(new AABB(new Vector3f(0, minY, 0), new Vector3f(1, maxY, 1)));
+    }
+
+    @Override
+    public boolean shouldRenderFaceAgainstState(BlockState myState, BlockState neighborState, BlockFace face) {
+        Block nBlock = neighborState.getBlock();
+        if (nBlock.getId() == 0) return true;
+
+        if (nBlock == this) {
+            SlabType myType = myState.getValue(TYPE);
+            SlabType nType = neighborState.getValue(TYPE);
+
+            if (myType == SlabType.DOUBLE && nType == SlabType.DOUBLE) return false;
+            if (myType == SlabType.BOTTOM && nType == SlabType.BOTTOM && face != BlockFace.UP && face != BlockFace.DOWN) return false;
+            if (myType == SlabType.TOP && nType == SlabType.TOP && face != BlockFace.UP && face != BlockFace.DOWN) return false;
+            if (myType == SlabType.BOTTOM && face == BlockFace.UP && nType == SlabType.TOP) return false;
+            if (myType == SlabType.TOP && face == BlockFace.DOWN && nType == SlabType.BOTTOM) return false;
+
+            return true;
+        }
+        return nBlock.isTransparent;
     }
 }

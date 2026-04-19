@@ -20,8 +20,8 @@ public class StairBlock extends CubeBlock {
     public static final EnumProperty<Half> HALF = EnumProperty.create("half", Half.class);
     public static final EnumProperty<StairShape> SHAPE = EnumProperty.create("shape", StairShape.class);
 
-    public StairBlock(int texTop, int texSide, int texBottom) {
-        super(true, true, texTop, texSide, texBottom);
+    public StairBlock() {
+        super(true, true);
     }
 
     @Override
@@ -321,5 +321,16 @@ public class StairBlock extends CubeBlock {
 
             renderBox(state, x, y, z, bounds[i][0], bounds[i][1], bounds[i][2], bounds[i][3], bounds[i][4], bounds[i][5], rTop, rBot, rN, rS, rE, rW, chunk, cm);
         }
+    }
+
+    @Override
+    public boolean shouldRenderFaceAgainstState(BlockState myState, BlockState neighborState, BlockFace face) {
+        Block nBlock = neighborState.getBlock();
+        if (nBlock.getId() == 0) return true;
+
+        if (nBlock == this) {
+            return true;
+        }
+        return nBlock.isTransparent;
     }
 }

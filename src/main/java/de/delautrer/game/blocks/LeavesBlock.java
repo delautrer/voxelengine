@@ -1,12 +1,14 @@
 package de.delautrer.game.blocks;
 
+import de.delautrer.game.blocks.state.BlockProperties;
+import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
 
 public class LeavesBlock extends CubeBlock {
 
-    public LeavesBlock(int topTex, int bottomTex, int sideTex) {
-        super(true, true, topTex, bottomTex, sideTex);
+    public LeavesBlock() {
+        super(true, true);
     }
 
     @Override
@@ -23,5 +25,11 @@ public class LeavesBlock extends CubeBlock {
     @Override
     public void generateMesh(int x, int y, int z, Chunk chunk, ChunkManager cm) {
         super.generateMesh(x, y, z, chunk, cm);
+    }
+
+    @Override
+    public boolean shouldRenderFaceAgainstState(BlockState myState, BlockState neighborState, BlockProperties.BlockFace face) {
+        if (this.getId() == neighborState.getBlock().getId()) return true;
+        return super.shouldRenderFaceAgainstState(myState, neighborState, face);
     }
 }

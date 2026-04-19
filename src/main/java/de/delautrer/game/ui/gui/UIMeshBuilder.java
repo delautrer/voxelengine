@@ -8,13 +8,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UIMeshBuilder {
-    // 1. UI Mesh (menu_gui.png - 16x16)
     public final List<Float> uiVerts = new ArrayList<>();
     public final List<Integer> uiInds = new ArrayList<>();
-    // 2. Item Mesh (gui.png - 9x9)
     public final List<Float> itemVerts = new ArrayList<>();
     public final List<Integer> itemInds = new ArrayList<>();
-    // 3. Text Mesh (Font)
     public final List<Float> textVerts = new ArrayList<>();
     public final List<Integer> textInds = new ArrayList<>();
 

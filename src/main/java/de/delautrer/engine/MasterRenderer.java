@@ -1,6 +1,7 @@
 package de.delautrer.engine;
 
 import de.delautrer.engine.graphics.*;
+import de.delautrer.engine.graphics.utils.TextureStitcher;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.engine.graphics.Camera;
 import de.delautrer.engine.window.Window;
@@ -34,11 +35,14 @@ public class MasterRenderer {
     private VulkanMesh cloudMesh;
     private VulkanFont font;
 
+    private final TextureStitcher.AtlasResult blockAtlas;
+
     private int lastVisibleChunkCount = 0;
 
-    public MasterRenderer(VulkanContext vulkanContext, Window window) {
+    public MasterRenderer(VulkanContext vulkanContext, Window window, TextureStitcher.AtlasResult blockAtlas) {
         this.vulkanContext = vulkanContext;
         this.window = window;
+        this.blockAtlas = blockAtlas;
         this.renderer = new VulkanRenderer(vulkanContext, window);
         this.uiRenderer = new UIRenderer(vulkanContext, renderer.getWidth(), renderer.getHeight());
 
@@ -46,7 +50,8 @@ public class MasterRenderer {
     }
 
     private void initResources() {
-        worldTexture = new VulkanTextureArray(vulkanContext, renderer.getCommandBuffers(), renderer.getGraphicsLayout(), "texture.png");
+        worldTexture = new VulkanTextureArray(vulkanContext, renderer.getCommandBuffers(), renderer.getGraphicsLayout(), blockAtlas);
+        //worldTexture = new VulkanTextureArray(vulkanContext, renderer.getCommandBuffers(), renderer.getGraphicsLayout(), "texture.png");
         uiTexture = new VulkanTexture(vulkanContext, renderer.getCommandBuffers(), renderer.getUiLayout(), "menu_gui.png");
         itemTexture = new VulkanTexture(vulkanContext, renderer.getCommandBuffers(), renderer.getUiLayout(), "gui.png");
 

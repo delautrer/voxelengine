@@ -1,34 +1,57 @@
 package de.delautrer.game.blocks;
 
+import de.delautrer.engine.graphics.utils.TextureStitcher.AtlasRegion;
+import de.delautrer.game.blocks.models.BlockModelData;
 import de.delautrer.game.blocks.state.BlockProperties.BlockFace;
 import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
 
 public class CubeBlock extends Block {
-    protected final int texTop, texSide, texBottom;
 
-    public CubeBlock(boolean isSolid, boolean isTransparent, int texTop, int texSide, int texBottom) {
+    public CubeBlock(boolean isSolid, boolean isTransparent) {
         super(isSolid, isTransparent);
-        this.texTop = texTop;
-        this.texSide = texSide;
-        this.texBottom = texBottom;
     }
 
     protected float getColorTint() { return 1.0f; }
 
-    public int getTextureForFace(BlockState state, BlockFace face) {
-        if (face == BlockFace.UP) return texTop;
-        if (face == BlockFace.DOWN) return texBottom;
-        return texSide;
+    public AtlasRegion getTextureForFace(BlockState state, BlockFace face) {
+        BlockModelData model = getModel();
+        if (model == null) return null;
+        if (face == BlockFace.UP) return model.top;
+        if (face == BlockFace.DOWN) return model.bottom;
+        if (face == BlockFace.NORTH) return model.north;
+        if (face == BlockFace.SOUTH) return model.south;
+        if (face == BlockFace.EAST) return model.east;
+        return model.west;
+    }
+
+    // Hilfsmethode, um den exakten BlockState des Nachbarn zu bekommen
+    protected BlockState getNeighborState(Chunk chunk, ChunkManager cm, int nx, int ny, int nz) {
+        byte bId = chunk.getBlockAt(nx, ny, nz, cm);
+        if (bId == 0) return BlockRegistry.AIR.getDefaultState();
+        byte sId = chunk.getStateAt(nx, ny, nz, cm);
+        return BlockRegistry.get(bId).getStateForId(sId);
+    }
+
+    // --- NEU: Die smarte Culling-Methode! ---
+    public boolean shouldRenderFaceAgainstState(BlockState myState, BlockState neighborState, BlockFace face) {
+        Block myBlock = myState.getBlock();
+        Block nBlock = neighborState.getBlock();
+        if (nBlock.getId() == 0) return true;
+
+        // Die Glas-Logik (Cullt identische, transparente Blöcke wie Glas weg)
+        if (myBlock.isTransparent && myBlock == nBlock) {
+            return false;
+        }
+        return nBlock.isTransparent;
     }
 
     @Override
     public boolean shouldRenderFaceAgainst(Block neighborBlock, float myHeight, float neighborHeight) {
         if (neighborBlock.getId() == 0) return true;
         if (this.isTransparent && this.getId() == neighborBlock.getId()) return false;
-        if (neighborBlock.isTransparent) return true;
-        return false;
+        return neighborBlock.isTransparent;
     }
 
     @Override
@@ -37,125 +60,77 @@ public class CubeBlock extends Block {
         renderBox(state, x, y, z, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, true, true, true, true, true, true, chunk, cm);
     }
 
-    // --- MAGIE 1: Bilineare Interpolation ---
-    // Berechnet fließende Übergänge für Licht und AO auf Teil-Blöcken (z.B. Slabs)
     private float bilerp(float c00, float c10, float c11, float c01, float u, float v) {
         return c00 * (1 - u) * (1 - v) + c10 * u * (1 - v) + c01 * (1 - u) * v + c11 * u * v;
     }
 
-    // --- MAGIE 2: Der Treppen-Knick ---
-    // Fügt exakt an inneren Kanten (wie der Mitte einer Treppe) einen leichten Schatten hinzu
     private float getCrease(float vx, float vy, float vz) {
         boolean inX = vx > 0.01f && vx < 0.99f;
         boolean inY = vy > 0.01f && vy < 0.99f;
         boolean inZ = vz > 0.01f && vz < 0.99f;
-        if ((inX && inY) || (inX && inZ) || (inY && inZ)) return 0.85f; // Leichter Schatten!
+        if ((inX && inY) || (inX && inZ) || (inY && inZ)) return 0.85f;
         return 1.0f;
+    }
+
+    private void addMappedFace(Chunk chunk, float x0, float y0, float z0, float ao0, float x1, float y1, float z1, float ao1, float x2, float y2, float z2, float ao2, float x3, float y3, float z3, float ao3, float lu0, float lv0, float lu1, float lv1, AtlasRegion reg, float light, float sl0, float sl1, float sl2, float sl3, float bl0, float bl1, float bl2, float bl3) {
+        if (reg == null) return;
+        float u0 = reg.u0 + (reg.u1 - reg.u0) * lu0;
+        float v0 = reg.v0 + (reg.v1 - reg.v0) * lv0;
+        float u1 = reg.u0 + (reg.u1 - reg.u0) * lu1;
+        float v1 = reg.v0 + (reg.v1 - reg.v0) * lv1;
+        chunk.addFace(x0, y0, z0, ao0, x1, y1, z1, ao1, x2, y2, z2, ao2, x3, y3, z3, ao3, u0, v0, u1, v1, reg.layer, light, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
     }
 
     protected void renderBox(BlockState state, int x, int y, int z, float minX, float minY, float minZ, float maxX, float maxY, float maxZ, boolean rTop, boolean rBot, boolean rN, boolean rS, boolean rE, boolean rW, Chunk chunk, ChunkManager cm) {
         float tint = getColorTint();
         float lightTop = 1.0f * tint, lightBot = 0.4f * tint, lightFrontBack = 0.8f * tint, lightLeftRight = 0.65f * tint;
 
-        int tTop = getTextureForFace(state, BlockFace.UP); int tBot = getTextureForFace(state, BlockFace.DOWN);
-        int tNorth = getTextureForFace(state, BlockFace.NORTH); int tSouth = getTextureForFace(state, BlockFace.SOUTH);
-        int tEast = getTextureForFace(state, BlockFace.EAST); int tWest = getTextureForFace(state, BlockFace.WEST);
+        AtlasRegion tTop = getTextureForFace(state, BlockFace.UP); AtlasRegion tBot = getTextureForFace(state, BlockFace.DOWN);
+        AtlasRegion tNorth = getTextureForFace(state, BlockFace.NORTH); AtlasRegion tSouth = getTextureForFace(state, BlockFace.SOUTH);
+        AtlasRegion tEast = getTextureForFace(state, BlockFace.EAST); AtlasRegion tWest = getTextureForFace(state, BlockFace.WEST);
 
-        // TOP (UP)
-        if (rTop && (maxY < 1.0f || shouldRenderFaceAgainst(BlockRegistry.get(chunk.getBlockAt(x, y + 1, z, cm)), 1.0f, 1.0f))) {
+        // --- HIER NUTZEN WIR JETZT DIE SMARTE STATE-ABFRAGE ---
+        BlockState sTop = getNeighborState(chunk, cm, x, y + 1, z);
+        if (rTop && (maxY < 1.0f || shouldRenderFaceAgainstState(state, sTop, BlockFace.UP))) {
             float ao0 = chunk.getAO(x, y+1, z, -1, 0, 0, 0, 0, -1, cm); float ao1 = chunk.getAO(x, y+1, z, -1, 0, 0, 0, 0, 1, cm); float ao2 = chunk.getAO(x, y+1, z, 1, 0, 0, 0, 0, 1, cm); float ao3 = chunk.getAO(x, y+1, z, 1, 0, 0, 0, 0, -1, cm);
             float sl0 = chunk.getSmoothSkyLight(x, y+1, z, -1, 0, 0, 0, 0, -1, cm); float sl1 = chunk.getSmoothSkyLight(x, y+1, z, -1, 0, 0, 0, 0, 1, cm); float sl2 = chunk.getSmoothSkyLight(x, y+1, z, 1, 0, 0, 0, 0, 1, cm); float sl3 = chunk.getSmoothSkyLight(x, y+1, z, 1, 0, 0, 0, 0, -1, cm);
             float bl0 = chunk.getSmoothBlockLight(x, y+1, z, -1, 0, 0, 0, 0, -1, cm); float bl1 = chunk.getSmoothBlockLight(x, y+1, z, -1, 0, 0, 0, 0, 1, cm); float bl2 = chunk.getSmoothBlockLight(x, y+1, z, 1, 0, 0, 0, 0, 1, cm); float bl3 = chunk.getSmoothBlockLight(x, y+1, z, 1, 0, 0, 0, 0, -1, cm);
-
-            float n_ao0 = bilerp(ao0, ao3, ao2, ao1, minX, minZ) * getCrease(minX, maxY, minZ);
-            float n_ao1 = bilerp(ao0, ao3, ao2, ao1, minX, maxZ) * getCrease(minX, maxY, maxZ);
-            float n_ao2 = bilerp(ao0, ao3, ao2, ao1, maxX, maxZ) * getCrease(maxX, maxY, maxZ);
-            float n_ao3 = bilerp(ao0, ao3, ao2, ao1, maxX, minZ) * getCrease(maxX, maxY, minZ);
-
-            float n_sl0 = bilerp(sl0, sl3, sl2, sl1, minX, minZ); float n_sl1 = bilerp(sl0, sl3, sl2, sl1, minX, maxZ); float n_sl2 = bilerp(sl0, sl3, sl2, sl1, maxX, maxZ); float n_sl3 = bilerp(sl0, sl3, sl2, sl1, maxX, minZ);
-            float n_bl0 = bilerp(bl0, bl3, bl2, bl1, minX, minZ); float n_bl1 = bilerp(bl0, bl3, bl2, bl1, minX, maxZ); float n_bl2 = bilerp(bl0, bl3, bl2, bl1, maxX, maxZ); float n_bl3 = bilerp(bl0, bl3, bl2, bl1, maxX, minZ);
-
-            chunk.addFace(x+minX, y+maxY, z+minZ, n_ao0, x+minX, y+maxY, z+maxZ, n_ao1, x+maxX, y+maxY, z+maxZ, n_ao2, x+maxX, y+maxY, z+minZ, n_ao3, minX, minZ, maxX, maxZ, tTop, lightTop, this, n_sl0, n_sl1, n_sl2, n_sl3, n_bl0, n_bl1, n_bl2, n_bl3);
+            addMappedFace(chunk, x+minX, y+maxY, z+minZ, bilerp(ao0, ao3, ao2, ao1, minX, minZ)*getCrease(minX,maxY,minZ), x+minX, y+maxY, z+maxZ, bilerp(ao0, ao3, ao2, ao1, minX, maxZ)*getCrease(minX,maxY,maxZ), x+maxX, y+maxY, z+maxZ, bilerp(ao0, ao3, ao2, ao1, maxX, maxZ)*getCrease(maxX,maxY,maxZ), x+maxX, y+maxY, z+minZ, bilerp(ao0, ao3, ao2, ao1, maxX, minZ)*getCrease(maxX,maxY,minZ), minX, minZ, maxX, maxZ, tTop, lightTop, bilerp(sl0, sl3, sl2, sl1, minX, minZ), bilerp(sl0, sl3, sl2, sl1, minX, maxZ), bilerp(sl0, sl3, sl2, sl1, maxX, maxZ), bilerp(sl0, sl3, sl2, sl1, maxX, minZ), bilerp(bl0, bl3, bl2, bl1, minX, minZ), bilerp(bl0, bl3, bl2, bl1, minX, maxZ), bilerp(bl0, bl3, bl2, bl1, maxX, maxZ), bilerp(bl0, bl3, bl2, bl1, maxX, minZ));
         }
-        // BOTTOM (DOWN)
-        if (rBot && (minY > 0.0f || (y > 0 && shouldRenderFaceAgainst(BlockRegistry.get(chunk.getBlockAt(x, y - 1, z, cm)), 1.0f, 1.0f)))) {
+        BlockState sBot = getNeighborState(chunk, cm, x, y - 1, z);
+        if (rBot && (minY > 0.0f || (y > 0 && shouldRenderFaceAgainstState(state, sBot, BlockFace.DOWN)))) {
             float ao0 = chunk.getAO(x, y-1, z, -1, 0, 0, 0, 0, 1, cm); float ao1 = chunk.getAO(x, y-1, z, -1, 0, 0, 0, 0, -1, cm); float ao2 = chunk.getAO(x, y-1, z, 1, 0, 0, 0, 0, -1, cm); float ao3 = chunk.getAO(x, y-1, z, 1, 0, 0, 0, 0, 1, cm);
             float sl0 = chunk.getSmoothSkyLight(x, y-1, z, -1, 0, 0, 0, 0, 1, cm); float sl1 = chunk.getSmoothSkyLight(x, y-1, z, -1, 0, 0, 0, 0, -1, cm); float sl2 = chunk.getSmoothSkyLight(x, y-1, z, 1, 0, 0, 0, 0, -1, cm); float sl3 = chunk.getSmoothSkyLight(x, y-1, z, 1, 0, 0, 0, 0, 1, cm);
             float bl0 = chunk.getSmoothBlockLight(x, y-1, z, -1, 0, 0, 0, 0, 1, cm); float bl1 = chunk.getSmoothBlockLight(x, y-1, z, -1, 0, 0, 0, 0, -1, cm); float bl2 = chunk.getSmoothBlockLight(x, y-1, z, 1, 0, 0, 0, 0, -1, cm); float bl3 = chunk.getSmoothBlockLight(x, y-1, z, 1, 0, 0, 0, 0, 1, cm);
-
-            float n_ao0 = bilerp(ao1, ao2, ao3, ao0, minX, maxZ) * getCrease(minX, minY, maxZ);
-            float n_ao1 = bilerp(ao1, ao2, ao3, ao0, minX, minZ) * getCrease(minX, minY, minZ);
-            float n_ao2 = bilerp(ao1, ao2, ao3, ao0, maxX, minZ) * getCrease(maxX, minY, minZ);
-            float n_ao3 = bilerp(ao1, ao2, ao3, ao0, maxX, maxZ) * getCrease(maxX, minY, maxZ);
-
-            float n_sl0 = bilerp(sl1, sl2, sl3, sl0, minX, maxZ); float n_sl1 = bilerp(sl1, sl2, sl3, sl0, minX, minZ); float n_sl2 = bilerp(sl1, sl2, sl3, sl0, maxX, minZ); float n_sl3 = bilerp(sl1, sl2, sl3, sl0, maxX, maxZ);
-            float n_bl0 = bilerp(bl1, bl2, bl3, bl0, minX, maxZ); float n_bl1 = bilerp(bl1, bl2, bl3, bl0, minX, minZ); float n_bl2 = bilerp(bl1, bl2, bl3, bl0, maxX, minZ); float n_bl3 = bilerp(bl1, bl2, bl3, bl0, maxX, maxZ);
-
-            chunk.addFace(x+minX, y+minY, z+maxZ, n_ao0, x+minX, y+minY, z+minZ, n_ao1, x+maxX, y+minY, z+minZ, n_ao2, x+maxX, y+minY, z+maxZ, n_ao3, minX, minZ, maxX, maxZ, tBot, lightBot, this, n_sl0, n_sl1, n_sl2, n_sl3, n_bl0, n_bl1, n_bl2, n_bl3);
+            addMappedFace(chunk, x+minX, y+minY, z+maxZ, bilerp(ao1, ao2, ao3, ao0, minX, maxZ)*getCrease(minX,minY,maxZ), x+minX, y+minY, z+minZ, bilerp(ao1, ao2, ao3, ao0, minX, minZ)*getCrease(minX,minY,minZ), x+maxX, y+minY, z+minZ, bilerp(ao1, ao2, ao3, ao0, maxX, minZ)*getCrease(maxX,minY,minZ), x+maxX, y+minY, z+maxZ, bilerp(ao1, ao2, ao3, ao0, maxX, maxZ)*getCrease(maxX,minY,maxZ), minX, minZ, maxX, maxZ, tBot, lightBot, bilerp(sl1, sl2, sl3, sl0, minX, maxZ), bilerp(sl1, sl2, sl3, sl0, minX, minZ), bilerp(sl1, sl2, sl3, sl0, maxX, minZ), bilerp(sl1, sl2, sl3, sl0, maxX, maxZ), bilerp(bl1, bl2, bl3, bl0, minX, maxZ), bilerp(bl1, bl2, bl3, bl0, minX, minZ), bilerp(bl1, bl2, bl3, bl0, maxX, minZ), bilerp(bl1, bl2, bl3, bl0, maxX, maxZ));
         }
-        // SOUTH (Z+)
-        if (rS && (maxZ < 1.0f || shouldRenderFaceAgainst(BlockRegistry.get(chunk.getBlockAt(x, y, z + 1, cm)), 1.0f, 1.0f))) {
+        BlockState sSouth = getNeighborState(chunk, cm, x, y, z + 1);
+        if (rS && (maxZ < 1.0f || shouldRenderFaceAgainstState(state, sSouth, BlockFace.SOUTH))) {
             float ao0 = chunk.getAO(x, y, z+1, -1, 0, 0, 0, -1, 0, cm); float ao1 = chunk.getAO(x, y, z+1, 1, 0, 0, 0, -1, 0, cm); float ao2 = chunk.getAO(x, y, z+1, 1, 0, 0, 0, 1, 0, cm); float ao3 = chunk.getAO(x, y, z+1, -1, 0, 0, 0, 1, 0, cm);
             float sl0 = chunk.getSmoothSkyLight(x, y, z+1, -1, 0, 0, 0, -1, 0, cm); float sl1 = chunk.getSmoothSkyLight(x, y, z+1, 1, 0, 0, 0, -1, 0, cm); float sl2 = chunk.getSmoothSkyLight(x, y, z+1, 1, 0, 0, 0, 1, 0, cm); float sl3 = chunk.getSmoothSkyLight(x, y, z+1, -1, 0, 0, 0, 1, 0, cm);
             float bl0 = chunk.getSmoothBlockLight(x, y, z+1, -1, 0, 0, 0, -1, 0, cm); float bl1 = chunk.getSmoothBlockLight(x, y, z+1, 1, 0, 0, 0, -1, 0, cm); float bl2 = chunk.getSmoothBlockLight(x, y, z+1, 1, 0, 0, 0, 1, 0, cm); float bl3 = chunk.getSmoothBlockLight(x, y, z+1, -1, 0, 0, 0, 1, 0, cm);
-
-            float n_ao0 = bilerp(ao0, ao1, ao2, ao3, minX, minY) * getCrease(minX, minY, maxZ);
-            float n_ao1 = bilerp(ao0, ao1, ao2, ao3, maxX, minY) * getCrease(maxX, minY, maxZ);
-            float n_ao2 = bilerp(ao0, ao1, ao2, ao3, maxX, maxY) * getCrease(maxX, maxY, maxZ);
-            float n_ao3 = bilerp(ao0, ao1, ao2, ao3, minX, maxY) * getCrease(minX, maxY, maxZ);
-
-            float n_sl0 = bilerp(sl0, sl1, sl2, sl3, minX, minY); float n_sl1 = bilerp(sl0, sl1, sl2, sl3, maxX, minY); float n_sl2 = bilerp(sl0, sl1, sl2, sl3, maxX, maxY); float n_sl3 = bilerp(sl0, sl1, sl2, sl3, minX, maxY);
-            float n_bl0 = bilerp(bl0, bl1, bl2, bl3, minX, minY); float n_bl1 = bilerp(bl0, bl1, bl2, bl3, maxX, minY); float n_bl2 = bilerp(bl0, bl1, bl2, bl3, maxX, maxY); float n_bl3 = bilerp(bl0, bl1, bl2, bl3, minX, maxY);
-
-            chunk.addFace(x+minX, y+minY, z+maxZ, n_ao0, x+maxX, y+minY, z+maxZ, n_ao1, x+maxX, y+maxY, z+maxZ, n_ao2, x+minX, y+maxY, z+maxZ, n_ao3, minX, 1.0f-maxY, maxX, 1.0f-minY, tSouth, lightFrontBack, this, n_sl0, n_sl1, n_sl2, n_sl3, n_bl0, n_bl1, n_bl2, n_bl3);
+            addMappedFace(chunk, x+minX, y+minY, z+maxZ, bilerp(ao0, ao1, ao2, ao3, minX, minY)*getCrease(minX,minY,maxZ), x+maxX, y+minY, z+maxZ, bilerp(ao0, ao1, ao2, ao3, maxX, minY)*getCrease(maxX,minY,maxZ), x+maxX, y+maxY, z+maxZ, bilerp(ao0, ao1, ao2, ao3, maxX, maxY)*getCrease(maxX,maxY,maxZ), x+minX, y+maxY, z+maxZ, bilerp(ao0, ao1, ao2, ao3, minX, maxY)*getCrease(minX,maxY,maxZ), minX, 1.0f-maxY, maxX, 1.0f-minY, tSouth, lightFrontBack, bilerp(sl0, sl1, sl2, sl3, minX, minY), bilerp(sl0, sl1, sl2, sl3, maxX, minY), bilerp(sl0, sl1, sl2, sl3, maxX, maxY), bilerp(sl0, sl1, sl2, sl3, minX, maxY), bilerp(bl0, bl1, bl2, bl3, minX, minY), bilerp(bl0, bl1, bl2, bl3, maxX, minY), bilerp(bl0, bl1, bl2, bl3, maxX, maxY), bilerp(bl0, bl1, bl2, bl3, minX, maxY));
         }
-        // NORTH (Z-)
-        if (rN && (minZ > 0.0f || shouldRenderFaceAgainst(BlockRegistry.get(chunk.getBlockAt(x, y, z - 1, cm)), 1.0f, 1.0f))) {
+        BlockState sNorth = getNeighborState(chunk, cm, x, y, z - 1);
+        if (rN && (minZ > 0.0f || shouldRenderFaceAgainstState(state, sNorth, BlockFace.NORTH))) {
             float ao0 = chunk.getAO(x, y, z-1, 1, 0, 0, 0, -1, 0, cm); float ao1 = chunk.getAO(x, y, z-1, -1, 0, 0, 0, -1, 0, cm); float ao2 = chunk.getAO(x, y, z-1, -1, 0, 0, 0, 1, 0, cm); float ao3 = chunk.getAO(x, y, z-1, 1, 0, 0, 0, 1, 0, cm);
             float sl0 = chunk.getSmoothSkyLight(x, y, z-1, 1, 0, 0, 0, -1, 0, cm); float sl1 = chunk.getSmoothSkyLight(x, y, z-1, -1, 0, 0, 0, -1, 0, cm); float sl2 = chunk.getSmoothSkyLight(x, y, z-1, -1, 0, 0, 0, 1, 0, cm); float sl3 = chunk.getSmoothSkyLight(x, y, z-1, 1, 0, 0, 0, 1, 0, cm);
             float bl0 = chunk.getSmoothBlockLight(x, y, z-1, 1, 0, 0, 0, -1, 0, cm); float bl1 = chunk.getSmoothBlockLight(x, y, z-1, -1, 0, 0, 0, -1, 0, cm); float bl2 = chunk.getSmoothBlockLight(x, y, z-1, -1, 0, 0, 0, 1, 0, cm); float bl3 = chunk.getSmoothBlockLight(x, y, z-1, 1, 0, 0, 0, 1, 0, cm);
-
-            float n_ao0 = bilerp(ao1, ao0, ao3, ao2, maxX, minY) * getCrease(maxX, minY, minZ);
-            float n_ao1 = bilerp(ao1, ao0, ao3, ao2, minX, minY) * getCrease(minX, minY, minZ);
-            float n_ao2 = bilerp(ao1, ao0, ao3, ao2, minX, maxY) * getCrease(minX, maxY, minZ);
-            float n_ao3 = bilerp(ao1, ao0, ao3, ao2, maxX, maxY) * getCrease(maxX, maxY, minZ);
-
-            float n_sl0 = bilerp(sl1, sl0, sl3, sl2, maxX, minY); float n_sl1 = bilerp(sl1, sl0, sl3, sl2, minX, minY); float n_sl2 = bilerp(sl1, sl0, sl3, sl2, minX, maxY); float n_sl3 = bilerp(sl1, sl0, sl3, sl2, maxX, maxY);
-            float n_bl0 = bilerp(bl1, bl0, bl3, bl2, maxX, minY); float n_bl1 = bilerp(bl1, bl0, bl3, bl2, minX, minY); float n_bl2 = bilerp(bl1, bl0, bl3, bl2, minX, maxY); float n_bl3 = bilerp(bl1, bl0, bl3, bl2, maxX, maxY);
-
-            chunk.addFace(x+maxX, y+minY, z+minZ, n_ao0, x+minX, y+minY, z+minZ, n_ao1, x+minX, y+maxY, z+minZ, n_ao2, x+maxX, y+maxY, z+minZ, n_ao3, 1.0f-maxX, 1.0f-maxY, 1.0f-minX, 1.0f-minY, tNorth, lightFrontBack, this, n_sl0, n_sl1, n_sl2, n_sl3, n_bl0, n_bl1, n_bl2, n_bl3);
+            addMappedFace(chunk, x+maxX, y+minY, z+minZ, bilerp(ao1, ao0, ao3, ao2, maxX, minY)*getCrease(maxX,minY,minZ), x+minX, y+minY, z+minZ, bilerp(ao1, ao0, ao3, ao2, minX, minY)*getCrease(minX,minY,minZ), x+minX, y+maxY, z+minZ, bilerp(ao1, ao0, ao3, ao2, minX, maxY)*getCrease(minX,maxY,minZ), x+maxX, y+maxY, z+minZ, bilerp(ao1, ao0, ao3, ao2, maxX, maxY)*getCrease(maxX,maxY,minZ), 1.0f-maxX, 1.0f-maxY, 1.0f-minX, 1.0f-minY, tNorth, lightFrontBack, bilerp(sl1, sl0, sl3, sl2, maxX, minY), bilerp(sl1, sl0, sl3, sl2, minX, minY), bilerp(sl1, sl0, sl3, sl2, minX, maxY), bilerp(sl1, sl0, sl3, sl2, maxX, maxY), bilerp(bl1, bl0, bl3, bl2, maxX, minY), bilerp(bl1, bl0, bl3, bl2, minX, minY), bilerp(bl1, bl0, bl3, bl2, minX, maxY), bilerp(bl1, bl0, bl3, bl2, maxX, maxY));
         }
-        // WEST (X-)
-        if (rW && (minX > 0.0f || shouldRenderFaceAgainst(BlockRegistry.get(chunk.getBlockAt(x - 1, y, z, cm)), 1.0f, 1.0f))) {
+        BlockState sWest = getNeighborState(chunk, cm, x - 1, y, z);
+        if (rW && (minX > 0.0f || shouldRenderFaceAgainstState(state, sWest, BlockFace.WEST))) {
             float ao0 = chunk.getAO(x-1, y, z, 0, -1, 0, 0, 0, -1, cm); float ao1 = chunk.getAO(x-1, y, z, 0, -1, 0, 0, 0, 1, cm); float ao2 = chunk.getAO(x-1, y, z, 0, 1, 0, 0, 0, 1, cm); float ao3 = chunk.getAO(x-1, y, z, 0, 1, 0, 0, 0, -1, cm);
             float sl0 = chunk.getSmoothSkyLight(x-1, y, z, 0, -1, 0, 0, 0, -1, cm); float sl1 = chunk.getSmoothSkyLight(x-1, y, z, 0, -1, 0, 0, 0, 1, cm); float sl2 = chunk.getSmoothSkyLight(x-1, y, z, 0, 1, 0, 0, 0, 1, cm); float sl3 = chunk.getSmoothSkyLight(x-1, y, z, 0, 1, 0, 0, 0, -1, cm);
             float bl0 = chunk.getSmoothBlockLight(x-1, y, z, 0, -1, 0, 0, 0, -1, cm); float bl1 = chunk.getSmoothBlockLight(x-1, y, z, 0, -1, 0, 0, 0, 1, cm); float bl2 = chunk.getSmoothBlockLight(x-1, y, z, 0, 1, 0, 0, 0, 1, cm); float bl3 = chunk.getSmoothBlockLight(x-1, y, z, 0, 1, 0, 0, 0, -1, cm);
-
-            float n_ao0 = bilerp(ao0, ao1, ao2, ao3, minZ, minY) * getCrease(minX, minY, minZ);
-            float n_ao1 = bilerp(ao0, ao1, ao2, ao3, maxZ, minY) * getCrease(minX, minY, maxZ);
-            float n_ao2 = bilerp(ao0, ao1, ao2, ao3, maxZ, maxY) * getCrease(minX, maxY, maxZ);
-            float n_ao3 = bilerp(ao0, ao1, ao2, ao3, minZ, maxY) * getCrease(minX, maxY, minZ);
-
-            float n_sl0 = bilerp(sl0, sl1, sl2, sl3, minZ, minY); float n_sl1 = bilerp(sl0, sl1, sl2, sl3, maxZ, minY); float n_sl2 = bilerp(sl0, sl1, sl2, sl3, maxZ, maxY); float n_sl3 = bilerp(sl0, sl1, sl2, sl3, minZ, maxY);
-            float n_bl0 = bilerp(bl0, bl1, bl2, bl3, minZ, minY); float n_bl1 = bilerp(bl0, bl1, bl2, bl3, maxZ, minY); float n_bl2 = bilerp(bl0, bl1, bl2, bl3, maxZ, maxY); float n_bl3 = bilerp(bl0, bl1, bl2, bl3, minZ, maxY);
-
-            chunk.addFace(x+minX, y+minY, z+minZ, n_ao0, x+minX, y+minY, z+maxZ, n_ao1, x+minX, y+maxY, z+maxZ, n_ao2, x+minX, y+maxY, z+minZ, n_ao3, minZ, 1.0f-maxY, maxZ, 1.0f-minY, tWest, lightLeftRight, this, n_sl0, n_sl1, n_sl2, n_sl3, n_bl0, n_bl1, n_bl2, n_bl3);
+            addMappedFace(chunk, x+minX, y+minY, z+minZ, bilerp(ao0, ao1, ao2, ao3, minZ, minY)*getCrease(minX,minY,minZ), x+minX, y+minY, z+maxZ, bilerp(ao0, ao1, ao2, ao3, maxZ, minY)*getCrease(minX,minY,maxZ), x+minX, y+maxY, z+maxZ, bilerp(ao0, ao1, ao2, ao3, maxZ, maxY)*getCrease(minX,maxY,maxZ), x+minX, y+maxY, z+minZ, bilerp(ao0, ao1, ao2, ao3, minZ, maxY)*getCrease(minX,maxY,minZ), minZ, 1.0f-maxY, maxZ, 1.0f-minY, tWest, lightLeftRight, bilerp(sl0, sl1, sl2, sl3, minZ, minY), bilerp(sl0, sl1, sl2, sl3, maxZ, minY), bilerp(sl0, sl1, sl2, sl3, maxZ, maxY), bilerp(sl0, sl1, sl2, sl3, minZ, maxY), bilerp(bl0, bl1, bl2, bl3, minZ, minY), bilerp(bl0, bl1, bl2, bl3, maxZ, minY), bilerp(bl0, bl1, bl2, bl3, maxZ, maxY), bilerp(bl0, bl1, bl2, bl3, minZ, maxY));
         }
-        // EAST (X+)
-        if (rE && (maxX < 1.0f || shouldRenderFaceAgainst(BlockRegistry.get(chunk.getBlockAt(x + 1, y, z, cm)), 1.0f, 1.0f))) {
+        BlockState sEast = getNeighborState(chunk, cm, x + 1, y, z);
+        if (rE && (maxX < 1.0f || shouldRenderFaceAgainstState(state, sEast, BlockFace.EAST))) {
             float ao0 = chunk.getAO(x+1, y, z, 0, -1, 0, 0, 0, 1, cm); float ao1 = chunk.getAO(x+1, y, z, 0, -1, 0, 0, 0, -1, cm); float ao2 = chunk.getAO(x+1, y, z, 0, 1, 0, 0, 0, -1, cm); float ao3 = chunk.getAO(x+1, y, z, 0, 1, 0, 0, 0, 1, cm);
             float sl0 = chunk.getSmoothSkyLight(x+1, y, z, 0, -1, 0, 0, 0, 1, cm); float sl1 = chunk.getSmoothSkyLight(x+1, y, z, 0, -1, 0, 0, 0, -1, cm); float sl2 = chunk.getSmoothSkyLight(x+1, y, z, 0, 1, 0, 0, 0, -1, cm); float sl3 = chunk.getSmoothSkyLight(x+1, y, z, 0, 1, 0, 0, 0, 1, cm);
             float bl0 = chunk.getSmoothBlockLight(x+1, y, z, 0, -1, 0, 0, 0, 1, cm); float bl1 = chunk.getSmoothBlockLight(x+1, y, z, 0, -1, 0, 0, 0, -1, cm); float bl2 = chunk.getSmoothBlockLight(x+1, y, z, 0, 1, 0, 0, 0, -1, cm); float bl3 = chunk.getSmoothBlockLight(x+1, y, z, 0, 1, 0, 0, 0, 1, cm);
-
-            float n_ao0 = bilerp(ao1, ao0, ao3, ao2, maxZ, minY) * getCrease(maxX, minY, maxZ);
-            float n_ao1 = bilerp(ao1, ao0, ao3, ao2, minZ, minY) * getCrease(maxX, minY, minZ);
-            float n_ao2 = bilerp(ao1, ao0, ao3, ao2, minZ, maxY) * getCrease(maxX, maxY, minZ);
-            float n_ao3 = bilerp(ao1, ao0, ao3, ao2, maxZ, maxY) * getCrease(maxX, maxY, maxZ);
-
-            float n_sl0 = bilerp(sl1, sl0, sl3, sl2, maxZ, minY); float n_sl1 = bilerp(sl1, sl0, sl3, sl2, minZ, minY); float n_sl2 = bilerp(sl1, sl0, sl3, sl2, minZ, maxY); float n_sl3 = bilerp(sl1, sl0, sl3, sl2, maxZ, maxY);
-            float n_bl0 = bilerp(bl1, bl0, bl3, bl2, maxZ, minY); float n_bl1 = bilerp(bl1, bl0, bl3, bl2, minZ, minY); float n_bl2 = bilerp(bl1, bl0, bl3, bl2, minZ, maxY); float n_bl3 = bilerp(bl1, bl0, bl3, bl2, maxZ, maxY);
-
-            chunk.addFace(x+maxX, y+minY, z+maxZ, n_ao0, x+maxX, y+minY, z+minZ, n_ao1, x+maxX, y+maxY, z+minZ, n_ao2, x+maxX, y+maxY, z+maxZ, n_ao3, 1.0f-maxZ, 1.0f-maxY, 1.0f-minZ, 1.0f-minY, tEast, lightLeftRight, this, n_sl0, n_sl1, n_sl2, n_sl3, n_bl0, n_bl1, n_bl2, n_bl3);
+            addMappedFace(chunk, x+maxX, y+minY, z+maxZ, bilerp(ao1, ao0, ao3, ao2, maxZ, minY)*getCrease(maxX,minY,maxZ), x+maxX, y+minY, z+minZ, bilerp(ao1, ao0, ao3, ao2, minZ, minY)*getCrease(maxX,minY,minZ), x+maxX, y+maxY, z+minZ, bilerp(ao1, ao0, ao3, ao2, minZ, maxY)*getCrease(maxX,maxY,minZ), x+maxX, y+maxY, z+maxZ, bilerp(ao1, ao0, ao3, ao2, maxZ, maxY)*getCrease(maxX,maxY,maxZ), 1.0f-maxZ, 1.0f-maxY, 1.0f-minZ, 1.0f-minY, tEast, lightLeftRight, bilerp(sl1, sl0, sl3, sl2, maxZ, minY), bilerp(sl1, sl0, sl3, sl2, minZ, minY), bilerp(sl1, sl0, sl3, sl2, minZ, maxY), bilerp(sl1, sl0, sl3, sl2, maxZ, maxY), bilerp(bl1, bl0, bl3, bl2, maxZ, minY), bilerp(bl1, bl0, bl3, bl2, minZ, minY), bilerp(bl1, bl0, bl3, bl2, minZ, maxY), bilerp(bl1, bl0, bl3, bl2, maxZ, maxY));
         }
     }
 }

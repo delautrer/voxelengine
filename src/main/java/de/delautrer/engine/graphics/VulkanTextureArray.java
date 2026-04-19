@@ -1,5 +1,6 @@
 package de.delautrer.engine.graphics;
 
+import de.delautrer.engine.graphics.utils.TextureStitcher;
 import de.delautrer.engine.utils.AssetManager;
 import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.MemoryStack;
@@ -19,15 +20,65 @@ public class VulkanTextureArray {
     private long descriptorPool;
     private long descriptorSet;
 
+    // --- ALTE METHODE (Bleibt als Fallback, falls du sie noch woanders brauchst) ---
     public VulkanTextureArray(VulkanContext context, VulkanCommandBuffers commandBuffers, long descriptorSetLayout, String path) {
         this.context = context;
-        int layerCount = 256; // 16x16 Grid auf dem Atlas
-
+        int layerCount = 256;
         createTextureArray(commandBuffers, path, layerCount);
         createTextureImageView(layerCount);
         createTextureSampler();
         createDescriptorPool();
         createDescriptorSet(descriptorSetLayout);
+    }
+
+    // --- NEUE METHODE: Direkt aus dem Arbeitsspeicher (TextureStitcher) ---
+    public VulkanTextureArray(VulkanContext context, VulkanCommandBuffers commandBuffers, long descriptorSetLayout, TextureStitcher.AtlasResult atlasResult) {
+        this.context = context;
+
+        // Berechne, wie viele Bilder im Atlas sind
+        int tilesX = atlasResult.atlasWidth / TextureStitcher.TEXTURE_SIZE;
+        int tilesY = atlasResult.atlasHeight / TextureStitcher.TEXTURE_SIZE;
+        int layerCount = tilesX * tilesY; // Z.B. 4x4 Grid = 16 Layers
+
+        createTextureArrayFromMemory(commandBuffers, atlasResult.atlasPixels, atlasResult.atlasWidth, atlasResult.atlasHeight, tilesX, tilesY, layerCount);
+
+        createTextureImageView(layerCount);
+        createTextureSampler();
+        createDescriptorPool();
+        createDescriptorSet(descriptorSetLayout);
+    }
+
+    // --- NEUE HILFSMETHODE: Kopiert die reinen Bytes ohne STBImage! ---
+    private void createTextureArrayFromMemory(VulkanCommandBuffers commandBuffers, ByteBuffer pixels, int texWidth, int texHeight, int tilesX, int tilesY, int layerCount) {
+        long imageSize = (long) texWidth * texHeight * 4;
+        int tileSizeX = texWidth / tilesX; // Sollte immer 16 sein
+        int tileSizeY = texHeight / tilesY;
+
+        VulkanBuffer stagingBuffer = new VulkanBuffer(context, imageSize, VK10.VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                VK10.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK10.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            org.lwjgl.PointerBuffer data = stack.mallocPointer(1);
+            VK10.vkMapMemory(context.getDevice(), stagingBuffer.getBufferMemory(), 0, imageSize, 0, data);
+            long destAddress = data.get(0);
+
+            // Pixel direkt rüberkopieren!
+            org.lwjgl.system.MemoryUtil.memCopy(org.lwjgl.system.MemoryUtil.memAddress(pixels), destAddress, imageSize);
+            VK10.vkUnmapMemory(context.getDevice(), stagingBuffer.getBufferMemory());
+
+            createImageArray(tileSizeX, tileSizeY, layerCount, VK10.VK_FORMAT_R8G8B8A8_SRGB, VK10.VK_IMAGE_TILING_OPTIMAL,
+                    VK10.VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK10.VK_IMAGE_USAGE_SAMPLED_BIT,
+                    VK10.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+            transitionImageLayout(commandBuffers, textureImage, VK10.VK_FORMAT_R8G8B8A8_SRGB,
+                    VK10.VK_IMAGE_LAYOUT_UNDEFINED, VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, layerCount);
+
+            copyBufferToImageLayers(commandBuffers, stagingBuffer.getBuffer(), textureImage, texWidth, texHeight, tileSizeX, tileSizeY, tilesX, layerCount);
+
+            transitionImageLayout(commandBuffers, textureImage, VK10.VK_FORMAT_R8G8B8A8_SRGB,
+                    VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK10.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, layerCount);
+        }
+        stagingBuffer.cleanup();
     }
 
     private void createTextureArray(VulkanCommandBuffers commandBuffers, String path, int layerCount) {
