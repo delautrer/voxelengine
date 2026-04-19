@@ -31,18 +31,21 @@ public class MasterRenderer {
     private VulkanTexture uiTexture;
     private VulkanTexture itemTexture;
     private VulkanTexture fontTexture;
+    private VulkanTexture blockUITexture;
     private VulkanMesh highlightMesh;
     private VulkanMesh cloudMesh;
     private VulkanFont font;
 
     private final TextureStitcher.AtlasResult blockAtlas;
+    private final TextureStitcher.AtlasResult itemAtlas;
 
     private int lastVisibleChunkCount = 0;
 
-    public MasterRenderer(VulkanContext vulkanContext, Window window, TextureStitcher.AtlasResult blockAtlas) {
+    public MasterRenderer(VulkanContext vulkanContext, Window window, TextureStitcher.AtlasResult blockAtlas, TextureStitcher.AtlasResult itemAtlas) {
         this.vulkanContext = vulkanContext;
         this.window = window;
         this.blockAtlas = blockAtlas;
+        this.itemAtlas = itemAtlas;
         this.renderer = new VulkanRenderer(vulkanContext, window);
         this.uiRenderer = new UIRenderer(vulkanContext, renderer.getWidth(), renderer.getHeight());
 
@@ -51,9 +54,9 @@ public class MasterRenderer {
 
     private void initResources() {
         worldTexture = new VulkanTextureArray(vulkanContext, renderer.getCommandBuffers(), renderer.getGraphicsLayout(), blockAtlas);
-        //worldTexture = new VulkanTextureArray(vulkanContext, renderer.getCommandBuffers(), renderer.getGraphicsLayout(), "texture.png");
         uiTexture = new VulkanTexture(vulkanContext, renderer.getCommandBuffers(), renderer.getUiLayout(), "menu_gui.png");
-        itemTexture = new VulkanTexture(vulkanContext, renderer.getCommandBuffers(), renderer.getUiLayout(), "gui.png");
+        itemTexture = new VulkanTexture(vulkanContext, renderer.getCommandBuffers(), renderer.getUiLayout(), itemAtlas);
+        blockUITexture = new VulkanTexture(vulkanContext, renderer.getCommandBuffers(), renderer.getUiLayout(), blockAtlas);
 
         font = new VulkanFont("MinecraftRegular-Bmg3.otf", 24.0f);
         if (font.getRgbaPixels() != null) {
@@ -71,7 +74,7 @@ public class MasterRenderer {
         uiRenderer.rebuildMesh(
                 renderer.getWidth(), renderer.getHeight(),
                 input, interaction, input.getMouseX(), input.getMouseY(),
-                debugOverlay, chatOverlay, font, pauseScreen
+                debugOverlay, chatOverlay, font, pauseScreen, blockAtlas.atlasWidth
         );
     }
 
@@ -100,6 +103,8 @@ public class MasterRenderer {
         );
         // ---------------------------
 
+        packet.blockUITexture = blockUITexture;
+        packet.overlayMesh = uiRenderer.getOverlayMesh();
         packet.uiTexture = uiTexture;
         packet.itemTexture = itemTexture;
         packet.uiMesh = uiRenderer.getUiMesh();
@@ -137,6 +142,7 @@ public class MasterRenderer {
     public void cleanup() {
         if (cloudMesh != null) cloudMesh.cleanup();
         if (worldTexture != null) worldTexture.cleanup();
+        if (blockUITexture != null) blockUITexture.cleanup();
         if (uiTexture != null) uiTexture.cleanup();
         if (itemTexture != null) itemTexture.cleanup();
         if (fontTexture != null) fontTexture.cleanup();

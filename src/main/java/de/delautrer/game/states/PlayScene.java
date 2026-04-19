@@ -75,7 +75,7 @@ public class PlayScene extends Scene {
     @Override
     public void init() {
         eventBus = new EventBus();
-        masterRenderer = new MasterRenderer(engine.getVulkanContext(), engine.getWindow(), engine.getBlockAtlas());
+        masterRenderer = new MasterRenderer(engine.getVulkanContext(), engine.getWindow(), engine.getBlockAtlas(), engine.getItemAtlas());
         debugOverlay = new DebugOverlay();
         chatOverlay = new ChatOverlay(eventBus);
 

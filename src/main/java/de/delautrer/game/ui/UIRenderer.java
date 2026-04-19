@@ -15,6 +15,7 @@ public class UIRenderer {
     private VulkanMesh uiMesh;
     private VulkanMesh itemMesh;
     private VulkanMesh textMesh;
+    private VulkanMesh overlayMesh;
     private final VulkanContext context;
 
     private final UIManager uiManager;
@@ -26,20 +27,19 @@ public class UIRenderer {
         this.meshBuilder = new UIMeshBuilder();
     }
 
-    public void rebuildMesh(int width, int height, InputManager input, PlayerInteraction interaction, float mouseX, float mouseY, DebugOverlay debugOverlay, ChatOverlay chatOverlay, VulkanFont font, MenuScreen pauseScreen) {
+    public void rebuildMesh(int width, int height, InputManager input, PlayerInteraction interaction, float mouseX, float mouseY, DebugOverlay debugOverlay, ChatOverlay chatOverlay, VulkanFont font, MenuScreen pauseScreen, int blockAtlasWidth) {
         VK10.vkDeviceWaitIdle(context.getDevice());
         if (uiMesh != null) uiMesh.cleanup();
         if (itemMesh != null) itemMesh.cleanup();
         if (textMesh != null) textMesh.cleanup();
-        uiMesh = null; itemMesh = null; textMesh = null;
+        if (overlayMesh != null) overlayMesh.cleanup();
+        uiMesh = null; itemMesh = null; textMesh = null; overlayMesh = null;
 
         meshBuilder.clear();
 
-        // --- FIX: HUD und Inventar nur rendern, wenn wir im normalen Spiel oder im Chat sind! ---
         boolean renderHUD = true;
         if (pauseScreen != null) {
             String screenName = pauseScreen.getClass().getSimpleName();
-            // Pause- oder Ladescreen sollen das HUD komplett verstecken!
             if (!screenName.equals("ChatScreen")) {
                 renderHUD = false;
             }
@@ -48,7 +48,7 @@ public class UIRenderer {
         // 1. Alles für HUD & Inventare sammeln (nur wenn renderHUD true ist)
         if (renderHUD) {
             uiManager.update(input, interaction);
-            uiManager.buildMeshes(meshBuilder, width, height, input, interaction, mouseX, mouseY, debugOverlay, chatOverlay, font);
+            uiManager.buildMeshes(meshBuilder, width, height, input, interaction, mouseX, mouseY, debugOverlay, chatOverlay, font, blockAtlasWidth);
         }
 
         // 2. Pause/Menu Screen obendrauf rendern
@@ -67,12 +67,17 @@ public class UIRenderer {
         if (!meshBuilder.textVerts.isEmpty()) {
             textMesh = new VulkanMesh(context, toArray(meshBuilder.textVerts), toIntArray(meshBuilder.textInds));
         }
+        if (!meshBuilder.overlayVerts.isEmpty()) {
+            overlayMesh = new VulkanMesh(context, toArray(meshBuilder.overlayVerts), toIntArray(meshBuilder.overlayInds));
+        }
     }
 
-    // Und passe die Getter an:
     public VulkanMesh getUiMesh() { return uiMesh; }
     public VulkanMesh getItemMesh() { return itemMesh; }
     public VulkanMesh getTextMesh() { return textMesh; }
+    public VulkanMesh getOverlayMesh() {
+        return overlayMesh;
+    }
 
     private float[] toArray(java.util.List<Float> list) {
         float[] arr = new float[list.size()];
@@ -89,5 +94,6 @@ public class UIRenderer {
         if (uiMesh != null) uiMesh.cleanup();
         if (textMesh != null) textMesh.cleanup();
         if (itemMesh != null) itemMesh.cleanup();
+        if (overlayMesh != null) overlayMesh.cleanup();
     }
 }

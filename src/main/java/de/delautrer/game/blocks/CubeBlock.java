@@ -9,8 +9,14 @@ import de.delautrer.game.world.ChunkManager;
 
 public class CubeBlock extends Block {
 
+    public CubeBlock(boolean isSolid, boolean isTransparent, boolean isPassable,  boolean isRaycastable) {
+        super(isSolid, isTransparent, isPassable, isRaycastable);
+    }
+    public CubeBlock(boolean isSolid, boolean isTransparent, boolean isPassable) {
+        super(isSolid, isTransparent, isPassable, true);
+    }
     public CubeBlock(boolean isSolid, boolean isTransparent) {
-        super(isSolid, isTransparent);
+        super(isSolid, isTransparent, false, true);
     }
 
     protected float getColorTint() { return 1.0f; }

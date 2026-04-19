@@ -56,7 +56,7 @@ public class TorchBlock extends CubeBlock {
     }
 
     public TorchBlock() {
-        super(false, true);
+        super(false, true, true);
     }
 
     @Override
@@ -148,4 +148,5 @@ public class TorchBlock extends CubeBlock {
                 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f
         );
     }
+
 }

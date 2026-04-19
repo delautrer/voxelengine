@@ -4,11 +4,11 @@ import org.joml.Vector3f;
 
 public class Environment {
     private float timeOfDay = 0.0f; // 0.0 = Mittag
-    private float timeSpeed = 0.0f; // Langsamere Zeit für besseres Feeling
+    private float timeSpeed = 0.01f;
 
     private final Vector3f colorDay = new Vector3f(0.4f, 0.7f, 1.0f);
-    private final Vector3f colorSunrise = new Vector3f(1.0f, 0.4f, 0.1f); // Satteres Orange
-    private final Vector3f colorNight = new Vector3f(0.002f, 0.002f, 0.008f); // Fast Schwarz
+    private final Vector3f colorSunrise = new Vector3f(1.0f, 0.4f, 0.1f);
+    private final Vector3f colorNight = new Vector3f(0.002f, 0.002f, 0.008f);
 
     private final Vector3f currentSkyColor = new Vector3f();
     private final Vector3f sunDirection = new Vector3f();

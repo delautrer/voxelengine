@@ -272,4 +272,8 @@ public class ChunkManager {
             asyncBuilder.cleanup();
         }
     }
+
+    public World getWorld() {
+        return world;
+    }
 }

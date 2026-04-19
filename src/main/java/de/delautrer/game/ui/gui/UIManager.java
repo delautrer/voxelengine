@@ -36,7 +36,7 @@ public class UIManager {
         }
     }
 
-    public void buildMeshes(UIMeshBuilder builder, int width, int height, InputManager input, PlayerInteraction interaction, float mouseX, float mouseY, DebugOverlay debugOverlay, ChatOverlay chatOverlay, VulkanFont font) {
+    public void buildMeshes(UIMeshBuilder builder, int width, int height, InputManager input, PlayerInteraction interaction, float mouseX, float mouseY, DebugOverlay debugOverlay, ChatOverlay chatOverlay, VulkanFont font, int blockAtlasWidth) {
         builder.clear();
 
         if (width != lastWidth || height != lastHeight) {
@@ -52,7 +52,7 @@ public class UIManager {
             input.setCursorHover(false);
         }
 
-        hud.render(builder, width, height, interaction, hoveredSlot, debugOverlay, chatOverlay, font);
+        hud.render(builder, width, height, interaction, hoveredSlot, debugOverlay, chatOverlay, font, blockAtlasWidth);
 
         if (currentScreen != null) {
             if (currentScreen instanceof MenuScreen) {

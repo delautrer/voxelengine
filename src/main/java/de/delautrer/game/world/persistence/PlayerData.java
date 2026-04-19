@@ -1,9 +1,12 @@
 package de.delautrer.game.world.persistence;
 
+import de.delautrer.game.entity.player.GameMode;
+
 public class PlayerData {
     public float x, y, z;
     public float yaw, pitch;
 
+    public GameMode gamemode;
     public int selectedHotbarSlot;
     public SavedSlot[] inventory;
 

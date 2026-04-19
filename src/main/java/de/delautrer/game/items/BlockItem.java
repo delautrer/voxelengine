@@ -16,8 +16,8 @@ import java.util.List;
 public class BlockItem extends Item {
     public final Block block;
 
-    public BlockItem(String name, int iconIndex, Block block) {
-        super(name, iconIndex);
+    public BlockItem(String name, String textureName, Block block) {
+        super(name, textureName);
         this.block = block;
     }
 

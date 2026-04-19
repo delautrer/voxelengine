@@ -1,5 +1,6 @@
 package de.delautrer.engine.graphics;
 
+import de.delautrer.engine.graphics.utils.TextureStitcher;
 import de.delautrer.engine.utils.AssetManager;
 import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.MemoryStack;
@@ -31,6 +32,15 @@ public class VulkanTexture {
     public VulkanTexture(VulkanContext context, VulkanCommandBuffers commandBuffers, long descriptorSetLayout, ByteBuffer pixels, int width, int height) {
         this.context = context;
         createTextureImage(commandBuffers, pixels, width, height);
+        createTextureImageView();
+        createTextureSampler();
+        createDescriptorPool();
+        createDescriptorSet(descriptorSetLayout);
+    }
+
+    public VulkanTexture(VulkanContext context, VulkanCommandBuffers commandBuffers, long descriptorSetLayout, TextureStitcher.AtlasResult atlasResult) {
+        this.context = context;
+        createTextureImage(commandBuffers, atlasResult.atlasPixels, atlasResult.atlasWidth, atlasResult.atlasHeight);
         createTextureImageView();
         createTextureSampler();
         createDescriptorPool();

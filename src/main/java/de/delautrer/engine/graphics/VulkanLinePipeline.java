@@ -126,7 +126,7 @@ public class VulkanLinePipeline {
                             VK10.VK_COLOR_COMPONENT_G_BIT |
                             VK10.VK_COLOR_COMPONENT_B_BIT |
                             VK10.VK_COLOR_COMPONENT_A_BIT);
-            colorBlendAttachment.blendEnable(false);
+            colorBlendAttachment.blendEnable(true);
 
             VkPipelineColorBlendStateCreateInfo colorBlending = VkPipelineColorBlendStateCreateInfo.calloc(stack);
             colorBlending.sType(VK10.VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO);

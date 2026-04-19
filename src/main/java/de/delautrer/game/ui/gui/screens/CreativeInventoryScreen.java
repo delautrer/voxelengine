@@ -84,11 +84,18 @@ public class CreativeInventoryScreen extends MenuScreen {
         }
 
         // --- 3. HOTBAR & GRID HINTERGRUND ---
-        builder.addAtlasQuad(hx, hotbarY, 0.2f, hotbarWidth, hotbarHeight, 1, 1, 9, 1, false);
+        for (int visualCol = 0; visualCol < 9; visualCol++) {
+            builder.addAtlasQuad(hx + (visualCol * 24.0f) * pixelScale, hotbarY, 0.2f, 24.0f * pixelScale, 24.0f * pixelScale, 5,0, 1, 1, false);
+        }
+        //builder.addAtlasQuad(hx, hotbarY, 0.2f, hotbarWidth, hotbarHeight, 1, 1, 9, 1, false);
 
-        for (int visualRow = 0; visualRow < visibleRows; visualRow++) {
+
+        for (int visualRow = 0; visualRow < rows; visualRow++) {
             float y = gridY + (visualRow * hotbarHeight);
-            builder.addAtlasQuad(hx, y, 0.2f, hotbarWidth, hotbarHeight, 1, 1, 9, 1, false);
+            for (int visualCol = 0; visualCol < 9; visualCol++) {
+                builder.addAtlasQuad(hx + (visualCol * 24.0f) * pixelScale, y, 0.2f, 24.0f * pixelScale, 24.0f * pixelScale, 5,0, 1, 1, false);
+            }
+            //builder.addAtlasQuad(hx, y, 0.2f, hotbarWidth, hotbarHeight, 1, 1, 9, 1, false);
         }
 
         // --- 4. SCROLLBAR ZEICHNEN ---

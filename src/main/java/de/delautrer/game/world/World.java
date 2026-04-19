@@ -64,6 +64,7 @@ public class World {
             localPlayer.position.set(pData.x, pData.y, pData.z);
             localPlayer.getCamera().setPitch(pData.pitch);
             localPlayer.getCamera().setYaw(pData.yaw);
+            localPlayer.setGameMode(pData.gamemode);
             if (localPlayer.getInventory() != null) {
                 localPlayer.getInventory().importFromSavedData(pData.inventory);
                 localPlayer.getInventory().setSelectedSlot(pData.selectedHotbarSlot);
@@ -195,6 +196,7 @@ public class World {
         pData.pitch = localPlayer.getCamera().getPitch();
         pData.selectedHotbarSlot = localPlayer.getInventory().getSelectedSlot();
         pData.inventory = localPlayer.getInventory().exportToSavedData();
+        pData.gamemode = localPlayer.getGameMode();
 
         storageManager.savePlayerData("lokaler-spieler", pData);
 

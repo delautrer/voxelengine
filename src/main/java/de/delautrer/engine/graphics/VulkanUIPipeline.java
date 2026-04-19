@@ -105,15 +105,19 @@ public class VulkanUIPipeline {
                     VK10.VK_COLOR_COMPONENT_R_BIT | VK10.VK_COLOR_COMPONENT_G_BIT |
                             VK10.VK_COLOR_COMPONENT_B_BIT | VK10.VK_COLOR_COMPONENT_A_BIT
             );
-            colorBlendAttachment.blendEnable(false);
+            colorBlendAttachment.blendEnable(true);
+
+            // Neue Farbe * Alpha + Alte Farbe * (1 - Alpha)
+            colorBlendAttachment.srcColorBlendFactor(VK10.VK_BLEND_FACTOR_SRC_ALPHA);
+            colorBlendAttachment.dstColorBlendFactor(VK10.VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA);
+            colorBlendAttachment.colorBlendOp(VK10.VK_BLEND_OP_ADD);
+            colorBlendAttachment.srcAlphaBlendFactor(VK10.VK_BLEND_FACTOR_ONE);
+            colorBlendAttachment.dstAlphaBlendFactor(VK10.VK_BLEND_FACTOR_ZERO);
+            colorBlendAttachment.alphaBlendOp(VK10.VK_BLEND_OP_ADD);
 
             VkPipelineColorBlendStateCreateInfo colorBlending = VkPipelineColorBlendStateCreateInfo.calloc(stack);
             colorBlending.sType(VK10.VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO);
-
-            // --- HIER IST DIE INVERTIERUNGS-MAGIE ---
-            colorBlending.logicOpEnable(true);
-            colorBlending.logicOp(VK10.VK_LOGIC_OP_INVERT);
-            // ----------------------------------------
+            colorBlending.logicOpEnable(false);
 
             colorBlending.attachmentCount(1);
             colorBlending.pAttachments(colorBlendAttachment);

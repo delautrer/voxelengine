@@ -16,6 +16,9 @@ public class RenderPacket {
     public Matrix4f cameraProj;
     public Matrix4f cameraView;
 
+    public VulkanTexture blockUITexture;
+    public VulkanMesh overlayMesh;
+
     public VulkanMesh cloudMesh;
     public Vector3f cloudOffset;
     public Vector3f sunDirection;

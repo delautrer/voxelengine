@@ -1,17 +1,23 @@
 package de.delautrer.game.ui.gui;
 
 import de.delautrer.engine.graphics.VulkanFont;
+import de.delautrer.game.blocks.Block;
+import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.entity.player.GameMode;
 import de.delautrer.game.entity.player.PlayerInteraction;
+import de.delautrer.game.items.Item;
+import de.delautrer.game.items.ItemRegistry;
+import de.delautrer.game.items.ItemStack;
 import de.delautrer.game.ui.ChatOverlay;
 import de.delautrer.game.ui.DebugOverlay;
 import de.delautrer.game.player.Inventory;
 
 import java.util.List;
+import java.util.Map;
 
 public class HUD {
 
-    public void render(UIMeshBuilder builder, int width, int height, PlayerInteraction interaction, int hoveredSlot, DebugOverlay debugOverlay, ChatOverlay chatOverlay, VulkanFont font) {
+    public void render(UIMeshBuilder builder, int width, int height, PlayerInteraction interaction, int hoveredSlot, DebugOverlay debugOverlay, ChatOverlay chatOverlay, VulkanFont font, int blockAtlasWidth) {
         float pixelScale = 2.0f;
         if (height >= 1080) pixelScale = 3.0f;
         if (height >= 1440) pixelScale = 4.0f;
@@ -47,6 +53,37 @@ public class HUD {
                     builder.drawText(msg.text, 10.0f, textY, 0.4f, font);
                     textY += 20.0f;
                 }
+            }
+        }
+
+        // --- 1.5 SUFFOCATION (KOPF IM BLOCK) ---
+        Block headBlock = interaction.getPlayer().getHeadBlock();
+        if (interaction.getPlayer().getGameMode() != GameMode.SPECTATOR && headBlock != BlockRegistry.AIR) {
+
+            // Wir nehmen direkt das Modell des Blocks (Vorderseite)
+            de.delautrer.engine.graphics.utils.TextureStitcher.AtlasRegion reg = headBlock.getModel().north;
+
+            if (reg != null) {
+                // --- Die Mathematik: Layer-Index in 2D UV-Koordinaten umrechnen ---
+                int gridSize = blockAtlasWidth / 16;
+                int layer = (int) reg.layer;
+
+                int gridX = layer % gridSize;
+                int gridY = layer / gridSize;
+
+                float epsilon = 0.0005f;
+                float uStep = 1.0f / gridSize;
+
+                float u0 = gridX * uStep + epsilon;
+                float v0 = gridY * uStep + epsilon;
+                float u1 = u0 + uStep - (2 * epsilon);
+                float v1 = v0 + uStep - (2 * epsilon);
+
+                float maxDim = Math.max(width, height) * 1.5f;
+                float offX = (width - maxDim) / 2.0f;
+                float offY = (height - maxDim) / 2.0f;
+
+                builder.addOverlayQuad(offX, offY, maxDim, maxDim, u0, v0, u1, v1);
             }
         }
 

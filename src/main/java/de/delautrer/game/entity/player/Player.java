@@ -10,6 +10,8 @@ public class Player extends Entity {
     protected final Inventory inventory;
     protected float eyeHeight = 1.62f;
     protected boolean isSneaking = false;
+    protected boolean isFlying = false;
+    protected boolean isSprinting = false;
 
     public Player(Vector3f spawnPosition) {
         super(spawnPosition);
@@ -18,8 +20,8 @@ public class Player extends Entity {
 
     @Override
     public void update(float deltaTime, ChunkManager chunkManager) {
-        // Basis-Physik für JEDEN Spieler anwenden
-        velocity.y += gravity * deltaTime;
+        if(!isFlying)   velocity.y += gravity * deltaTime;
+
         moveAndCollide(chunkManager, deltaTime, isSneaking);
     }
 

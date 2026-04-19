@@ -21,6 +21,7 @@ public class Engine {
     private SceneManager sceneManager;
 
     private TextureStitcher.AtlasResult blockAtlas;
+    private TextureStitcher.AtlasResult itemAtlas;
 
     private float lastFrame = 0.0f;
     private int currentFps = 0;
@@ -37,19 +38,21 @@ public class Engine {
         vulkanContext = new VulkanContext(window);
         inputManager = new InputManager(window.getHandle());
 
-        System.out.println("Reading BlockModels...");
-        Set<String> requiredTextures = BlockModelManager.getRequiredTextures();
-
-        System.out.println("Building texture atlas with " + requiredTextures.size() + " textures...");
+        System.out.println("building block atlas...");
         try {
-            blockAtlas = TextureStitcher.buildAtlas(requiredTextures, "atlas_debug.png");
-            System.out.println("Texture atlas built with " + blockAtlas.atlasWidth + "x" + blockAtlas.atlasHeight);
+            java.util.Set<String> reqBlocks = de.delautrer.game.blocks.models.BlockModelManager.getRequiredTextures();
+            // is2DAtlas = false, Ordner = "assets/textures/block"
+            blockAtlas = TextureStitcher.buildAtlas(reqBlocks, "atlas_blocks_debug.png", "assets/textures/block", false);
             de.delautrer.game.blocks.models.BlockModelManager.loadAllModels(blockAtlas);
+        } catch (Exception e) { e.printStackTrace(); }
 
-        } catch (Exception e) {
-            System.err.println("Error whilst building texture atlas:");
-            e.printStackTrace();
-        }
+        System.out.println("Building item atlas...");
+        try {
+            java.util.Set<String> reqItems = de.delautrer.game.items.ItemModelManager.getRequiredTextures();
+            // is2DAtlas = true, Ordner = "assets/textures/item"
+            itemAtlas = TextureStitcher.buildAtlas(reqItems, "atlas_items_debug.png", "assets/textures/item", true);
+            de.delautrer.game.items.ItemModelManager.loadAllModels(itemAtlas);
+        } catch (Exception e) { e.printStackTrace(); }
 
         BlockModelManager.loadAllModels(blockAtlas);
 
@@ -85,6 +88,7 @@ public class Engine {
 
         sceneManager.cleanup();
         if (blockAtlas != null) blockAtlas.cleanup();
+        if (itemAtlas != null) itemAtlas.cleanup();
         if (vulkanContext != null) vulkanContext.cleanup();
         if (window != null) window.cleanup();
 
@@ -97,4 +101,7 @@ public class Engine {
     public InputManager getInputManager() { return inputManager; }
     public int getCurrentFps() { return currentFps; }
     public TextureStitcher.AtlasResult getBlockAtlas() { return blockAtlas; }
+    public TextureStitcher.AtlasResult getItemAtlas() {
+        return itemAtlas;
+    }
 }

@@ -32,6 +32,14 @@ public class UIRenderSystem implements IRenderSystem {
             packet.ortho.get(orthoBuffer);
             VK10.vkCmdPushConstants(cmd, pipeline.getPipelineLayout(), VK10.VK_SHADER_STAGE_VERTEX_BIT, 0, orthoBuffer);
 
+            // --- 0. OVERLAYS (Ersticken, Schaden, Portale -> blockUITexture) ---
+            if (packet.overlayMesh != null && packet.overlayMesh.getIndexCount() > 0 && packet.blockUITexture != null) {
+                VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayout(), 0, stack.longs(packet.blockUITexture.getDescriptorSet()), null);
+                VK10.vkCmdBindVertexBuffers(cmd, 0, stack.longs(packet.overlayMesh.getVertexBuffer()), stack.longs(0));
+                VK10.vkCmdBindIndexBuffer(cmd, packet.overlayMesh.getIndexBuffer(), 0, VK10.VK_INDEX_TYPE_UINT32);
+                VK10.vkCmdDrawIndexed(cmd, packet.overlayMesh.getIndexCount(), 1, 0, 0, 0);
+            }
+
             // --- 1. UI RENDERN (Hotbar, Fenster, Fadenkreuz -> menu_gui.png) ---
             if (packet.uiMesh != null && packet.uiMesh.getIndexCount() > 0 && packet.uiTexture != null) {
                 VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayout(), 0, stack.longs(packet.uiTexture.getDescriptorSet()), null);

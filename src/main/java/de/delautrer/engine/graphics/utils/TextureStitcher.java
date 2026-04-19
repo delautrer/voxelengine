@@ -11,6 +11,7 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class TextureStitcher {
 
@@ -44,9 +45,9 @@ public class TextureStitcher {
         }
     }
 
-    public static AtlasResult buildAtlas(java.util.Set<String> textureNames, String debugOutputPath) {
+    public static AtlasResult buildAtlas(Set<String> textureNames, String debugOutputPath, String textureFolder, boolean is2DAtlas) {
         if (textureNames == null || textureNames.isEmpty()) {
-            throw new RuntimeException("Lmao I need some textures bro.");
+            throw new RuntimeException("lmao I need textures bro...");
         }
 
         int numImages = textureNames.size();
@@ -64,7 +65,7 @@ public class TextureStitcher {
 
             int i = 0;
             for (String name : textureNames) {
-                String assetPath = "assets/textures/block/" + name + ".png";
+                String assetPath = textureFolder + "/" + name + ".png";
 
                 try {
                     ByteBuffer fileBuffer = AssetManager.loadResource(assetPath);
@@ -88,26 +89,37 @@ public class TextureStitcher {
                                 atlasPixels.put(dstIndex + 3, imagePixels.get(srcIndex + 3));
                             }
                         }
-
                         STBImage.stbi_image_free(imagePixels);
-                        regions.put(name, new AtlasRegion(0.0f, 0.0f, 1.0f, 1.0f, (float) i));
+
+                        // --- NEU: UV-Koordinaten je nach Atlas-Typ berechnen ---
+                        float u0, v0, u1, v1, layer;
+                        if (is2DAtlas) {
+                            // 2D Atlas: Echte UV-Koordinaten im Raster, Layer ist immer 0
+                            float epsilon = 0.0005f;
+                            u0 = (float) gridX / gridSize + epsilon;
+                            v0 = (float) gridY / gridSize + epsilon;
+                            u1 = (float) (gridX + 1) / gridSize - epsilon;
+                            v1 = (float) (gridY + 1) / gridSize - epsilon;
+                            layer = 0.0f;
+                        } else {
+                            // Texture Array (Blöcke): Volle Textur, Layer ist der Index
+                            u0 = 0.0f; v0 = 0.0f; u1 = 1.0f; v1 = 1.0f;
+                            layer = (float) i;
+                        }
+
+                        regions.put(name, new AtlasRegion(u0, v0, u1, v1, layer));
                     } else {
-                        System.err.println("Error loading texture: " + assetPath);
+                        System.err.println("Fehler beim Entpacken von: " + assetPath);
                     }
                 } catch (Exception e) {
-                    System.err.println("Texture could NOT be found in classpath: " + assetPath);
+                    System.err.println("Textur nicht gefunden: " + assetPath);
                 }
-
                 i++;
             }
         }
 
         if (debugOutputPath != null) {
-            try {
-                STBImageWrite.stbi_write_png(debugOutputPath, atlasWidth, atlasHeight, 4, atlasPixels, atlasWidth * 4);
-            } catch (Exception ignored) {
-
-            }
+            try { STBImageWrite.stbi_write_png(debugOutputPath, atlasWidth, atlasHeight, 4, atlasPixels, atlasWidth * 4); } catch (Exception ignored) {}
         }
 
         return new AtlasResult(atlasPixels, atlasWidth, atlasHeight, regions);

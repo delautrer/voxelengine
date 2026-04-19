@@ -48,14 +48,29 @@ public class PlayerInteraction {
 
         if (player.getGameMode() == GameMode.SPECTATOR) return;
 
-        // 1. Raycast
-        Raycaster.RaycastResult result = Raycaster.raycast(world, camera.getPosition(), camera.getFront(), 6.0f);
-        if (result != null) {
-            selectedBlockPos = result.hitPos;
-            adjacentBlockPos = result.adjacentPos;
+        de.delautrer.game.blocks.Block headBlock = player.getHeadBlock();
+
+        // 1. Raycast (Kopf steckt fest oder normal)
+        if (headBlock != de.delautrer.game.blocks.BlockRegistry.AIR) {
+            org.joml.Vector3f eyePos = player.getEyePosition();
+
+            selectedBlockPos = new org.joml.Vector3i(
+                    (int) Math.floor(eyePos.x),
+                    (int) Math.floor(eyePos.y),
+                    (int) Math.floor(eyePos.z)
+            );
+
+            // hitFace = de.delautrer.game.blocks.state.BlockProperties.BlockFace.UP;
         } else {
-            selectedBlockPos = null;
-            adjacentBlockPos = null;
+            // 1.2 Sonst normaler raycast
+            Raycaster.RaycastResult result = Raycaster.raycast(world, camera.getPosition(), camera.getFront(), 6.0f);
+            if (result != null) {
+                selectedBlockPos = result.hitPos;
+                adjacentBlockPos = result.adjacentPos;
+            } else {
+                selectedBlockPos = null;
+                adjacentBlockPos = null;
+            }
         }
 
         if (!camera.isCursorCaptured()) return;

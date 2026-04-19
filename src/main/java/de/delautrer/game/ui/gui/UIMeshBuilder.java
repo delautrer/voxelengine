@@ -1,6 +1,7 @@
 package de.delautrer.game.ui.gui;
 
 import de.delautrer.engine.graphics.VulkanFont;
+import de.delautrer.engine.graphics.utils.TextureStitcher;
 import de.delautrer.game.items.ItemStack;
 import org.lwjgl.stb.STBTTBakedChar;
 
@@ -14,6 +15,8 @@ public class UIMeshBuilder {
     public final List<Integer> itemInds = new ArrayList<>();
     public final List<Float> textVerts = new ArrayList<>();
     public final List<Integer> textInds = new ArrayList<>();
+    public final List<Float> overlayVerts = new ArrayList<>();
+    public final List<Integer> overlayInds = new ArrayList<>();
 
     public static final float UI_GRID = 16.0f;
     public static final float ITEM_GRID = 9.0f;
@@ -25,6 +28,7 @@ public class UIMeshBuilder {
         uiVerts.clear(); uiInds.clear();
         itemVerts.clear(); itemInds.clear();
         textVerts.clear(); textInds.clear();
+        overlayVerts.clear(); overlayInds.clear();
         clippingEnabled = false;
     }
 
@@ -63,17 +67,9 @@ public class UIMeshBuilder {
 
     public void drawItem(ItemStack stack, float x, float y, float z, float size) {
         if (stack == null) return;
-        int idx = stack.type.iconIndex;
-        int gridX = idx % 9;
-        int gridY = 3 + (idx / 9);
-
-        float epsilon = 0.0005f;
-        float u0 = (float) gridX / ITEM_GRID + epsilon;
-        float v0 = (float) gridY / ITEM_GRID + epsilon;
-        float u1 = (float) (gridX + 1) / ITEM_GRID - epsilon;
-        float v1 = (float) (gridY + 1) / ITEM_GRID - epsilon;
-
-        addClippedQuad(itemVerts, itemInds, x, y, x + size, y + size, z, 1f, 1f, 1f, u0, v1, u1, v0);
+        TextureStitcher.AtlasRegion reg = stack.type.getIconRegion();
+        if(reg == null) return;
+        addClippedQuad(itemVerts, itemInds, x, y, x + size, y + size, z, 1f, 1f, 1f, reg.u0, reg.v1, reg.u1, reg.v0);
     }
 
     public void addAtlasQuad(float x, float y, float z, float w, float h, int gridX, int gridY, int gridW, int gridH, boolean flipV) {
@@ -102,6 +98,10 @@ public class UIMeshBuilder {
         float v1 = (float) (gridY + 1) / gridSize - epsilon;
 
         addClippedQuad(uiVerts, uiInds, x, y, x + w, y + h, z, 1f, 1f, 1f, u0, v0, u1, v1);
+    }
+
+    public void addOverlayQuad(float x, float y, float w, float h, float u0, float v0, float u1, float v1) {
+        addClippedQuad(overlayVerts, overlayInds, x, y, x + w, y + h, 0.0f, 0.2f, 0.2f, 0.2f, u0, v0, u1, v1);
     }
 
     public void add9Slice(float x, float y, float z, float w, float h, int gridX, int gridY, float cornerRenderSize) {
