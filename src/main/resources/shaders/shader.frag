@@ -2,6 +2,8 @@
 layout(location = 0) in vec4 fragColor;
 layout(location = 1) in vec3 fragTexCoord;
 layout(location = 2) in vec2 fragLight;
+layout(location = 3) in float fragFogDist;
+layout(location = 4) in vec3 fragWorldPos;
 
 layout(binding = 0) uniform sampler2DArray texSampler;
 
@@ -10,43 +12,80 @@ layout(location = 0) out vec4 outColor;
 layout(push_constant) uniform PushConstants {
     mat4 mvp;
     float globalLight;
+    float renderDistance;
+    float fogMultiplier;
+    float camX;
+    float camY;
+    float camZ;
+    float offsetX;
+    float offsetY;
+    float offsetZ;
+    float isCloud;
 } pc;
 
 void main() {
     vec4 textureColor = texture(texSampler, fragTexCoord);
-    if (textureColor.a < 0.1) discard;
+    float alpha = textureColor.a;
 
-    // 1. SCHATTEN KNACKIGER MACHEN
-    // pow(1.8) statt 1.5 für den Himmel. Dadurch fallen Schatten tagsüber
-    // minimal schneller ab und wirken tiefer. Das killt den Matsch-Look.
-    float skyCurve = pow(fragLight.x, 1.8) * pc.globalLight;
-    float blockCurve = pow(fragLight.y, 1.5);
+    // Genereller Check: Wenn die Textur sowieso komplett unsichtbar ist, direkt abbrechen.
+    if (alpha < 0.05) discard;
 
-    // 2. DAS TAGESLICHT DROSSELN
-    vec3 blockLightColor = vec3(1.0, 0.85, 0.7) * blockCurve;
+    vec3 finalColor;
 
-    // Hier war das Hauptproblem: 1.0 (Weiß) ist zu aggressiv.
-    // Wir machen den Tag ein winziges bisschen dunkler und wärmer (wie Sonnenlicht).
-    vec3 dayColor = vec3(0.95, 0.92, 0.88);
-    vec3 nightColor = vec3(0.15, 0.20, 0.35);
+    if (pc.isCloud > 0.5) {
+        // ==========================================
+        // 1. WOLKEN-LOGIK (Kugelsicher)
+        // ==========================================
+        vec3 cloudColor = textureColor.rgb * fragColor.rgb;
+        vec3 dayColor = vec3(1.0, 1.0, 1.0);
+        vec3 nightColor = vec3(0.15, 0.20, 0.35);
+        vec3 timeColor = mix(nightColor, dayColor, pc.globalLight);
+        finalColor = cloudColor * timeColor;
 
-    vec3 skyLightColor = mix(nightColor, dayColor, pc.globalLight) * skyCurve;
+        // DER FIX: Wolken dürfen 4x weiter entfernt sein als Terrain!
+        float fadeEnd = pc.renderDistance * 4.0;
+        float fadeStart = fadeEnd * 0.5;
 
-    vec3 totalLight = max(skyLightColor, blockLightColor);
-    totalLight = max(totalLight, vec3(0.045));
+        // Distanz-Faktor berechnen
+        float fadeFactor = clamp((fragFogDist - fadeStart) / (fadeEnd - fadeStart), 0.0, 1.0);
 
-    // 3. FARBEN KOMBINIEREN
-    vec3 finalColor = textureColor.rgb * fragColor.rgb * totalLight;
+        // Transparenz am Weltrand sanft verringern
+        alpha *= (1.0 - fadeFactor);
 
-    // 4. DER TAGES-KONTRAST ("Anti-Weichspüler")
-    // Wir nehmen eine S-Kurve (smoothstep), die das Bild knackiger macht.
-    // Der Trick: Wir mischen sie umso stärker ein, je heller es draußen ist!
-    // Nachts (globalLight = 0) passiert hier gar nichts.
-    vec3 contrastColor = smoothstep(0.0, 1.0, finalColor);
-    finalColor = mix(finalColor, contrastColor, pc.globalLight * 0.4);
+    } else {
+        // ==========================================
+        // 2. TERRAIN-LOGIK
+        // ==========================================
+        float skyCurve = pow(fragLight.x, 1.8) * pc.globalLight;
+        float blockCurve = pow(fragLight.y, 1.5);
 
-    // WICHTIG: Die Gamma-Korrektur (pow(1.0/1.1)) von vorhin ist komplett WEG,
-    // denn die hat alles nur noch blasser gemacht!
+        vec3 blockLightColor = vec3(1.0, 0.85, 0.7) * blockCurve;
+        vec3 dayColor = vec3(0.95, 0.92, 0.88);
+        vec3 nightColor = vec3(0.15, 0.20, 0.35);
 
-    outColor = vec4(finalColor, textureColor.a);
+        vec3 skyLightColor = mix(nightColor, dayColor, pc.globalLight) * skyCurve;
+        vec3 totalLight = max(skyLightColor, blockLightColor);
+        totalLight = max(totalLight, vec3(0.045));
+
+        finalColor = textureColor.rgb * fragColor.rgb * totalLight;
+
+        vec3 contrastColor = smoothstep(0.0, 1.0, finalColor);
+        finalColor = mix(finalColor, contrastColor, pc.globalLight * 0.4);
+
+        // Zylindrischer Chunk-Nebel für Terrain
+        float fogEnd = pc.renderDistance;
+        float fogStart = fogEnd * 0.75;
+
+        float distXZ = length(fragWorldPos.xz - vec2(pc.camX, pc.camZ));
+        float fogFactor = clamp((distXZ - fogStart) / (fogEnd - fogStart), 0.0, 1.0);
+        fogFactor *= pc.fogMultiplier;
+
+        vec3 skyDayColorFog = vec3(0.5, 0.7, 1.0);
+        vec3 skyNightColorFog = vec3(0.02, 0.02, 0.05);
+        vec3 fogColor = mix(skyNightColorFog, skyDayColorFog, pc.globalLight);
+
+        finalColor = mix(finalColor, fogColor, fogFactor);
+    }
+
+    outColor = vec4(finalColor, alpha);
 }

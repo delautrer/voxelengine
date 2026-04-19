@@ -23,10 +23,26 @@ public class TerrainRenderSystem implements IRenderSystem {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayout(), 0, stack.longs(packet.worldTexture.getDescriptorSet()), null);
 
-            FloatBuffer mvpBuffer = stack.mallocFloat(17);
+            // NEU: 26 Floats
+            FloatBuffer mvpBuffer = stack.mallocFloat(26);
             packet.mvp.get(mvpBuffer);
             mvpBuffer.put(16, packet.globalLight);
-            VK10.vkCmdPushConstants(cmd, pipeline.getPipelineLayout(), VK10.VK_SHADER_STAGE_VERTEX_BIT, 0, mvpBuffer);
+            mvpBuffer.put(17, packet.renderDistance);
+            mvpBuffer.put(18, 1.0f); // Nebel an
+
+            mvpBuffer.put(19, packet.cameraPos.x);
+            mvpBuffer.put(20, packet.cameraPos.y);
+            mvpBuffer.put(21, packet.cameraPos.z);
+
+            // NEU: Kein Offset für Terrain
+            mvpBuffer.put(22, 0.0f);
+            mvpBuffer.put(23, 0.0f);
+            mvpBuffer.put(24, 0.0f);
+
+            // NEU: isCloud Schalter AUS
+            mvpBuffer.put(25, 0.0f);
+
+            VK10.vkCmdPushConstants(cmd, pipeline.getPipelineLayout(), VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, mvpBuffer);
 
             for (VulkanMesh chunkMesh : packet.visibleMeshes) {
                 if (chunkMesh.getIndexCount() > 0) {

@@ -108,7 +108,7 @@ public class VulkanGraphicsPipeline {
         descriptorSetLayout = pLayout.get(0);
 
         VkPushConstantRange.Buffer pushConstantRange = VkPushConstantRange.calloc(1, stack);
-        pushConstantRange.stageFlags(VK10.VK_SHADER_STAGE_VERTEX_BIT).offset(0).size(68);
+        pushConstantRange.stageFlags(VK10.VK_SHADER_STAGE_VERTEX_BIT).offset(0).size(104);
 
         VkPipelineLayoutCreateInfo pipelineLayoutInfo = VkPipelineLayoutCreateInfo.calloc(stack).sType(VK10.VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO).pSetLayouts(stack.longs(descriptorSetLayout)).pPushConstantRanges(pushConstantRange);
         VK10.vkCreatePipelineLayout(context.getDevice(), pipelineLayoutInfo, null, pLayout);

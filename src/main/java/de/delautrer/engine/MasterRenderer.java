@@ -1,5 +1,6 @@
 package de.delautrer.engine;
 
+import de.delautrer.Constants;
 import de.delautrer.engine.graphics.*;
 import de.delautrer.engine.graphics.utils.TextureStitcher;
 import de.delautrer.engine.input.InputManager;
@@ -103,6 +104,8 @@ public class MasterRenderer {
         );
         // ---------------------------
 
+        packet.cameraPos = camera.getPosition();
+        packet.renderDistance = Constants.RENDERDISTANCE * 16.0f;
         packet.blockUITexture = blockUITexture;
         packet.overlayMesh = uiRenderer.getOverlayMesh();
         packet.uiTexture = uiTexture;

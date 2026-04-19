@@ -1,5 +1,6 @@
 package de.delautrer.game.world;
 
+import de.delautrer.Constants;
 import de.delautrer.engine.graphics.VulkanContext;
 import de.delautrer.engine.graphics.VulkanMesh;
 import org.joml.Vector2i;
@@ -25,7 +26,6 @@ public class ChunkManager {
     private final LightEngine lightEngine;
 
     private final VulkanContext context;
-    private final int renderDistance = 6;
 
     private boolean initialLoadComplete = false;
     private final int requiredInitialRadius = 4;
@@ -47,7 +47,7 @@ public class ChunkManager {
         int pZ = Math.floorDiv((int) Math.floor(playerZ), Chunk.SIZE);
 
         // 1. CHUNKS ASYNCHRON LADEN UND GENERIEREN
-        int dataDistance = renderDistance + 2;
+        int dataDistance = Constants.RENDERDISTANCE + 2;
 
         for (int x = pX - dataDistance; x <= pX + dataDistance; x++) {
             for (int z = pZ - dataDistance; z <= pZ + dataDistance; z++) {
@@ -104,8 +104,8 @@ public class ChunkManager {
         }
 
         // 2. MESHES IM HINTERGRUND BERECHNEN
-        for (int x = pX - renderDistance; x <= pX + renderDistance; x++) {
-            for (int z = pZ - renderDistance; z <= pZ + renderDistance; z++) {
+        for (int x = pX - Constants.RENDERDISTANCE; x <= pX + Constants.RENDERDISTANCE; x++) {
+            for (int z = pZ - Constants.RENDERDISTANCE; z <= pZ + Constants.RENDERDISTANCE; z++) {
                 Vector2i pos = new Vector2i(x, z);
 
                 if (!meshes.containsKey(pos) && !chunksInPreparation.contains(pos)) {
@@ -149,7 +149,7 @@ public class ChunkManager {
         }
 
         // 4. ALTE MESHES ENTLADEN (Vulkan-Cleanup)
-        int unloadMeshDistance = renderDistance + 1;
+        int unloadMeshDistance = Constants.RENDERDISTANCE + 1;
         List<Vector2i> meshesToRemove = new ArrayList<>();
 
         for (Vector2i pos : meshes.keySet()) {
@@ -170,7 +170,7 @@ public class ChunkManager {
         }
 
         // 5. ALTE CHUNK-DATEN ENTLADEN (RAM-Cleanup)
-        int unloadDataDistance = renderDistance + 3;
+        int unloadDataDistance = Constants.RENDERDISTANCE + 3;
         List<Vector2i> chunksToRemove = new ArrayList<>();
 
         for (Map.Entry<Vector2i, Chunk> entry : chunks.entrySet()) {
