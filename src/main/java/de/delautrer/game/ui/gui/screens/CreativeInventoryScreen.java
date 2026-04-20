@@ -122,7 +122,7 @@ public class CreativeInventoryScreen extends MenuScreen {
             if (hoveredSlot == col) {
                 builder.addAtlasQuad(slotX, hotbarY, 0.1f, selectorW, hotbarHeight, 10, 1, 1, 1, false);
             }
-            builder.drawItem(container.getInventory().getStack(col), slotX + 2, hotbarY + 2, 0.0f, selectorW - 4);
+            builder.drawItem(container.getInventory().getStack(col), slotX + 3 * pixelScale, hotbarY + 3 * pixelScale, 0.0f, selectorW - 6 * pixelScale);
         }
 
         for (int visualRow = 0; visualRow < visibleRows; visualRow++) {
@@ -142,16 +142,17 @@ public class CreativeInventoryScreen extends MenuScreen {
 
                 if (itemIndex < allItems.size()) {
                     Item item = allItems.get(itemIndex);
-                    builder.drawItem(new ItemStack(item, 1), slotX + 2, rowY + 2, 0.0f, selectorW - 4);
+                    builder.drawItem(new ItemStack(item, 1), slotX + 3 * pixelScale, rowY + 3 * pixelScale, 0.0f, selectorW - 6 * pixelScale);
                 }
             }
         }
 
         // --- 6. MAUS ITEM ---
         if (container.getMouseStack() != null) {
-            float itemSize = 24.0f * pixelScale - 4;
+            float itemSize = (24.0f - 4) * pixelScale ;
             float invertedMouseY = height - mouseY;
-            builder.drawItem(container.getMouseStack(), mouseX - itemSize / 2.0f + 2, invertedMouseY - itemSize / 2.0f + 2 , -0.1f, itemSize);
+
+            builder.drawItem(container.getMouseStack(), mouseX - itemSize / 2.0f + 3 * pixelScale, invertedMouseY - itemSize / 2.0f + 3 * pixelScale, -0.1f, itemSize);
         }
     }
 

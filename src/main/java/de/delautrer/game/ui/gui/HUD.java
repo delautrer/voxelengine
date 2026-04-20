@@ -117,7 +117,7 @@ public class HUD {
                 builder.addAtlasQuad(slotX, hotbarY, 0.1f, selectorW, hotbarHeight, 10, 1, 1, 1, false);
             }
 
-            builder.drawItem(inventory.getStack(col), slotX + 2, hotbarY + 2, 0.0f, selectorW - 4);
+            builder.drawItem(inventory.getStack(col), slotX + 3 * pixelScale, hotbarY + 3 * pixelScale, 0.0f, selectorW - 6 * pixelScale);
         }
     }
 }

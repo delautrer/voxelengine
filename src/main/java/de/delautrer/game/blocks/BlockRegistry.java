@@ -16,8 +16,17 @@ public class BlockRegistry {
     public static final Block AIR = registerAir();
 
     public static final Block GRASS_BLOCK = register(1, "grass_block", new CubeBlock(true, false));
+    public static final Block GRASS_BLOCK_SLABS = register(24, "grass_block_slabs", new SlabBlock());
+    public static final Block GRASS_BLOCK_STAIRS = register(25, "grass_block_stairs", new StairBlock());
+
     public static final Block DIRT        = register(2, "dirt", new CubeBlock(true, false));
+    public static final Block DIRT_SLABS = register(26, "dirt_slabs", new SlabBlock());
+    public static final Block DIRT_STAIRS = register(27, "dirt_stairs", new StairBlock());
+
     public static final Block STONE       = register(3, "stone", new CubeBlock(true, false));
+    public static final Block STONE_SLABS = register(28,  "stone_slabs", new SlabBlock());
+    public static final Block STONE_STAIRS = register(29, "stone_stairs", new StairBlock());
+
     public static final Block WATER       = register(4, "water", new WaterBlock());
     public static final Block GLASS       = register(5, "glass", new CubeBlock(true, true));
     public static final Block LEAVES      = register(6, "leaves", new LeavesBlock());

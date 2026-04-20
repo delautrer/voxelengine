@@ -11,8 +11,17 @@ public class ItemRegistry {
     private static final Map<String, Item> ITEMS = new HashMap<>();
 
     public static final Item GRASS_BLOCK  = register("grass_block", new BlockItem("Grass", "grass_block", BlockRegistry.GRASS_BLOCK));
-    public static final Item DIRT_BLOCK   = register("dirt", new BlockItem("Dirt", "dirt", BlockRegistry.DIRT));
-    public static final Item STONE_BLOCK  = register("stone", new BlockItem("Stone", "stone", BlockRegistry.STONE));
+    public static final Item GRASS_BLOCK_SLABS  = register("grass_block_slabs", new BlockItem("Grass Slabs", "grass_block_slabs", BlockRegistry.GRASS_BLOCK_SLABS));
+    public static final Item GRASS_BLOCK_STAIRS  = register("grass_block_stairs", new BlockItem("Grass Stairs", "grass_block_stairs", BlockRegistry.GRASS_BLOCK_STAIRS));
+
+    public static final Item DIRT   = register("dirt", new BlockItem("Dirt", "dirt", BlockRegistry.DIRT));
+    public static final Item DIRT_SLABS  = register("dirt_slabs", new BlockItem("Dirt Slabs", "dirt_slabs", BlockRegistry.DIRT_SLABS));
+    public static final Item DIRT_STAIRS  = register("dirt_stairs", new BlockItem("Dirt Stairs", "dirt_stairs", BlockRegistry.DIRT_STAIRS));
+
+    public static final Item STONE  = register("stone", new BlockItem("Stone", "stone", BlockRegistry.STONE));
+    public static final Item STONE_SLABS  = register("stone_slabs", new BlockItem("Stone Slabs", "stone_slabs", BlockRegistry.STONE_SLABS));
+    public static final Item STONE_STAIRS  = register("stone_stairs", new BlockItem("Stone Stairs", "stone_stairs", BlockRegistry.STONE_STAIRS));
+
     public static final Item WATER_BUCKET = register("water_bucket", new BlockItem("Water bucket", "water_bucket", BlockRegistry.WATER));
     public static final Item GLASS_BLOCK  = register("glass", new BlockItem("Glass", "glass", BlockRegistry.GLASS));
     public static final Item LEAVES_BLOCK = register("leaves", new BlockItem("Leaves", "leaves", BlockRegistry.LEAVES));

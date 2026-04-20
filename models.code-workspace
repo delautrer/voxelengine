@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"path": "src/main/resources/assets/models/block"
+		},
+		{
+			"path": "src/main/resources/assets/models/item"
+		}
+	],
+	"settings": {}
+}
