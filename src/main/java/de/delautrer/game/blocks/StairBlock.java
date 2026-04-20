@@ -21,7 +21,7 @@ public class StairBlock extends CubeBlock {
     public static final EnumProperty<StairShape> SHAPE = EnumProperty.create("shape", StairShape.class);
 
     public StairBlock() {
-        super(true, true);
+        super(false, true);
     }
 
     @Override

@@ -56,9 +56,10 @@ public class CubeBlock extends Block {
     @Override
     public boolean shouldRenderFaceAgainst(Block neighborBlock, float myHeight, float neighborHeight) {
         if (neighborBlock.getId() == 0) return true;
-        if (this.isTransparent && this.getId() == neighborBlock.getId()) return false;
         if (neighborBlock instanceof SlabBlock) return true;
         if (neighborBlock instanceof StairBlock) return true;
+
+        if (this.isTransparent && this.getId() == neighborBlock.getId()) return false;
         return neighborBlock.isTransparent;
     }
 

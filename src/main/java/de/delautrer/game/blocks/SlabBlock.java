@@ -17,7 +17,7 @@ public class SlabBlock extends CubeBlock {
     public static final EnumProperty<SlabType> TYPE = EnumProperty.create("type", SlabType.class);
 
     public SlabBlock() {
-        super(true, true);
+        super(false, true);
     }
 
     @Override
