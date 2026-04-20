@@ -9,6 +9,7 @@ import java.io.PrintStream;
 public class Main {
     public static void main(String[] args) {
 
+        /*
         try {
             File logFile = new File("crash.log");
             PrintStream logStream = new PrintStream(new FileOutputStream(logFile, true));
@@ -19,6 +20,7 @@ public class Main {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        */
 
         Engine engine = new Engine();
         engine.run();

@@ -21,12 +21,13 @@ public class VulkanMesh {
     }
 
     public void updateMesh(MeshData data) {
-        cleanup();
-        createBuffers(data.vertices, data.indices);
+        cleanup(); // Zerstört alte Buffer
+        createBuffers(data.vertices, data.indices); // Baut neue auf (falls vorhanden)
     }
 
     private void createBuffers(float[] vertices, int[] indices) {
         indexCount = indices.length;
+        // Wenn kein Wasser/Mesh da ist, bricht er hier ab.
         if (indexCount == 0) return;
 
         long vertexBufferSize = (long) vertices.length * Float.BYTES;
@@ -61,7 +62,14 @@ public class VulkanMesh {
     public int getIndexCount() { return indexCount; }
 
     public void cleanup() {
-        if (vertexBuffer != null) vertexBuffer.cleanup();
-        if (indexBuffer != null) indexBuffer.cleanup();
+        if (vertexBuffer != null) {
+            vertexBuffer.cleanup();
+            vertexBuffer = null;
+        }
+        if (indexBuffer != null) {
+            indexBuffer.cleanup();
+            indexBuffer = null;
+        }
+        indexCount = 0; // Setzt die Vertices sicherheitshalber wieder auf 0
     }
 }

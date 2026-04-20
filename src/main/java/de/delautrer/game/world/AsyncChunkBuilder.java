@@ -2,6 +2,8 @@ package de.delautrer.game.world;
 
 import de.delautrer.engine.graphics.VulkanMesh;
 import org.joml.Vector2i;
+import org.lwjgl.vulkan.VK10;
+
 import java.util.concurrent.*;
 import java.util.Set;
 
@@ -26,13 +28,11 @@ public class AsyncChunkBuilder {
 
     public void uploadReadyMeshes(ChunkManager cm) {
         if (readyMeshes.isEmpty()) return;
-        org.lwjgl.vulkan.VK10.vkQueueWaitIdle(cm.getContext().getGraphicsQueue());
+        VK10.vkQueueWaitIdle(cm.getContext().getGraphicsQueue());
 
         while (!readyMeshes.isEmpty()) {
             ChunkBuildResult result = readyMeshes.poll();
             Vector2i pos = new Vector2i(result.chunk.getWorldX(), result.chunk.getWorldZ());
-
-            // HIER DER FIX: Beide Meshes im Manager updaten
             cm.updateChunkMeshes(pos, result.data);
         }
     }

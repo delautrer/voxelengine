@@ -40,17 +40,17 @@ public class InventoryScreen extends MenuScreen {
         float panelX = hx - padding;
         float panelY = hotbarY - padding;
 
-        builder.add9Slice(panelX, panelY, 0.3f, panelW, panelH, 4, 0, 8.0f * pixelScale);
+        builder.add9Slice(panelX, panelY, 0.0f, panelW, panelH, 4, 0, 8.0f * pixelScale);
 
         // --- 2. TITEL TEXT ---
         if (font != null) {
             float titleY = panelY + panelH - (18.0f * pixelScale);
-            builder.drawText("Inventory", panelX + padding, titleY, 0.4f, font);
+            builder.drawText("Inventory", panelX + padding, titleY, 0.1f, font);
         }
 
         // --- 3. HOTBAR HINTERGRUND ---
         for (int visualCol = 0; visualCol < 9; visualCol++) {
-            builder.addAtlasQuad(hx + (visualCol * 24.0f) * pixelScale, hotbarY, 0.2f, 24.0f * pixelScale, 24.0f * pixelScale, 5,0, 1, 1, false);
+            builder.addAtlasQuad(hx + (visualCol * 24.0f) * pixelScale, hotbarY, 0.1f, 24.0f * pixelScale, 24.0f * pixelScale, 5,0, 1, 1, false);
         }
         //builder.addAtlasQuad(hx, hotbarY, 0.2f, hotbarWidth, hotbarHeight, 1, 1, 9, 1, false);
 
@@ -58,7 +58,7 @@ public class InventoryScreen extends MenuScreen {
         for (int visualRow = 0; visualRow < 3; visualRow++) {
             float y = invY + (visualRow * hotbarHeight);
             for (int visualCol = 0; visualCol < 9; visualCol++) {
-                builder.addAtlasQuad(hx + (visualCol * 24.0f) * pixelScale, y, 0.2f, 24.0f * pixelScale, 24.0f * pixelScale, 5,0, 1, 1, false);
+                builder.addAtlasQuad(hx + (visualCol * 24.0f) * pixelScale, y, 0.1f, 24.0f * pixelScale, 24.0f * pixelScale, 5,0, 1, 1, false);
             }
             //builder.addAtlasQuad(hx, y, 0.2f, hotbarWidth, hotbarHeight, 1, 1, 9, 1, false);
         }
@@ -72,9 +72,9 @@ public class InventoryScreen extends MenuScreen {
             float selectorW = 24.0f * pixelScale;
 
             if (hoveredSlot == col) {
-                builder.addAtlasQuad(slotX, hotbarY, 0.1f, selectorW, hotbarHeight, 10, 1, 1, 1, false);
+                builder.addAtlasQuad(slotX, hotbarY, 0.3f, selectorW, hotbarHeight, 10, 1, 1, 1, false);
             }
-            builder.drawItem(container.getInventory().getStack(col), slotX + 3 * pixelScale, hotbarY + 3 * pixelScale, 0.0f, selectorW - 6 * pixelScale);
+            builder.drawItem(container.getInventory().getStack(col), slotX + 3 * pixelScale, hotbarY + 3 * pixelScale, 0.5f, selectorW - 6 * pixelScale);
         }
 
         // Main Inventory Items (Slots 9-35)
@@ -87,9 +87,9 @@ public class InventoryScreen extends MenuScreen {
                 float selectorW = 24.0f * pixelScale;
 
                 if (hoveredSlot == slot) {
-                    builder.addAtlasQuad(slotX, rowY, 0.1f, selectorW, hotbarHeight, 10, 1, 1, 1, false);
+                    builder.addAtlasQuad(slotX, rowY, 0.3f, selectorW, hotbarHeight, 10, 1, 1, 1, false);
                 }
-                builder.drawItem(container.getInventory().getStack(col), slotX + 3 * pixelScale, hotbarY + 3 * pixelScale, 0.0f, selectorW - 6 * pixelScale);
+                builder.drawItem(container.getInventory().getStack(col), slotX + 3 * pixelScale, hotbarY + 3 * pixelScale, 0.5f, selectorW - 6 * pixelScale);
             }
         }
 
@@ -97,7 +97,7 @@ public class InventoryScreen extends MenuScreen {
         if (container.getMouseStack() != null) {
             float itemSize = (24.0f - 4) * pixelScale;
             float invertedMouseY = height - mouseY;
-            builder.drawItem(container.getMouseStack(), mouseX - itemSize / 2.0f + 3 * pixelScale, invertedMouseY - itemSize / 2.0f + 3 * pixelScale, -0.1f, itemSize);
+            builder.drawItem(container.getMouseStack(), mouseX - itemSize / 2.0f + 3 * pixelScale, invertedMouseY - itemSize / 2.0f + 3 * pixelScale, 0.5f, itemSize);
         }
     }
 

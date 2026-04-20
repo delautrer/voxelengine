@@ -127,6 +127,10 @@ public class ChunkManager {
         // 3. FERTIGE MESHES AN VULKAN SENDEN
         int maxUploads = initialLoadComplete ? 2 : 20;
         int uploadsThisFrame = 0;
+
+        // NEU: Ein Schalter, damit wir pro Frame maximal einmal auf die GPU warten müssen
+        boolean waitIdleCalled = false;
+
         while (uploadsThisFrame < maxUploads) {
             MeshGenerationResult result = meshUploadQueue.poll();
             if (result == null) break;
@@ -135,7 +139,10 @@ public class ChunkManager {
             chunksInPreparation.remove(pos);
 
             if (chunks.containsKey(pos)) {
-                // Wir nutzen die neue Update-Methode, um beide Meshes zu setzen
+                if (meshes.containsKey(pos) && !waitIdleCalled) {
+                    VK10.vkDeviceWaitIdle(context.getDevice());
+                    waitIdleCalled = true;
+                }
                 updateChunkMeshes(pos, result.meshData);
                 uploadsThisFrame++;
             }

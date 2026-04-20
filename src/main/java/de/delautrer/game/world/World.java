@@ -44,18 +44,9 @@ public class World {
             this.worldSpawnpoint = wData.worldSpawnpoint;
         } else {
             this.seed = defaultSeed;
-
-            WorldData saveWData = new WorldData();
-            saveWData.worldName = worldName;
-            saveWData.seed = this.seed;
-            saveWData.timeOfDay = environment.getTimeOfDay();
-            storageManager.saveLevelMetadata(saveWData);
+            saveWorldData();
         }
         this.chunkManager = new ChunkManager(this, context);
-
-        /*if(worldSpawnpoint == null)
-            this.worldSpawnpoint = findSafeSpawn(0, 0);*/
-
         this.tickScheduler = new TickScheduler(this);
         this.cloudSystem = new CloudSystem();
 
@@ -70,23 +61,33 @@ public class World {
                 localPlayer.getInventory().setSelectedSlot(pData.selectedHotbarSlot);
             }
         } else {
-            //localPlayer.position.set(worldSpawnpoint);
             int i = 0;
             for (de.delautrer.game.items.Item item : ItemRegistry.getAll().values()) {
                 localPlayer.getInventory().setStack(i++, new ItemStack(item, 64));
                 if (i >= Inventory.TOTAL_SIZE) break;
             }
         }
+
         chunkManager.update(localPlayer.position.x, localPlayer.position.z);
     }
 
     public void update(float deltaTime, LocalPlayer localPlayer) {
+
+        if(worldSpawnpoint == null) {
+            worldSpawnpoint = findSafeSpawn(0,0);
+            if (worldSpawnpoint != null) {
+                localPlayer.position.set(worldSpawnpoint);
+                saveWorldData();
+            }
+        }
+
         chunkManager.update(localPlayer.position.x, localPlayer.position.z);
         tickScheduler.update(deltaTime);
         cloudSystem.update(deltaTime);
 
         if (localPlayer.position.y < -50) {
-            Vector3f safeSpawn = findSafeSpawn((int)localPlayer.position.x, (int)localPlayer.position.z);
+            //Vector3f safeSpawn = findSafeSpawn((int)localPlayer.position.x, (int)localPlayer.position.z);
+            Vector3f safeSpawn = worldSpawnpoint == null ? findSafeSpawn((int)localPlayer.position.x, (int)localPlayer.position.z) : worldSpawnpoint;
 
             if (safeSpawn != null) {
                 localPlayer.position.set(safeSpawn);
@@ -181,12 +182,17 @@ public class World {
 
     public byte getBlockAt(Vector3i pos) { return getBlockAt(pos.x, pos.y, pos.z); }
 
-    public void saveWorld(LocalPlayer localPlayer) {
+    public void saveWorldData() {
         WorldData wData = new WorldData();
         wData.worldName = worldName;
         wData.seed = this.seed;
         wData.timeOfDay = environment.getTimeOfDay();
+        wData.worldSpawnpoint = worldSpawnpoint;
         storageManager.saveLevelMetadata(wData);
+    }
+
+    public void saveWorld(LocalPlayer localPlayer) {
+        saveWorldData();
 
         PlayerData pData = new PlayerData();
         pData.x = localPlayer.position.x;
