@@ -24,6 +24,8 @@ public class RenderPacket {
     public Vector3f cameraPos;
     public float renderDistance;
 
+    public boolean isUnderwater;
+
     public VulkanTexture fontTexture;
     public VulkanTextureArray worldTexture;
     public VulkanTexture uiTexture;

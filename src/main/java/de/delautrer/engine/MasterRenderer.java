@@ -102,8 +102,17 @@ public class MasterRenderer {
         );
         // ---------------------------
 
+        packet.isUnderwater = interaction.getPlayer().isHeadInWater();
         packet.cameraPos = camera.getPosition();
         packet.renderDistance = Constants.RENDERDISTANCE * 16.0f;
+
+        Vector3f skyColor = environment.getCurrentSkyColor();
+        float intensity = environment.getGlobalLightIntensity();
+        if(packet.isUnderwater)
+            renderer.setClearColor(0.02f*intensity, 0.1f*intensity, 0.3f*intensity);
+        else
+            renderer.setClearColor(skyColor.x, skyColor.y, skyColor.z);
+
         packet.blockUITexture = blockUITexture;
         packet.overlayMesh = uiRenderer.getOverlayMesh();
         packet.uiTexture = uiTexture;
@@ -123,7 +132,7 @@ public class MasterRenderer {
         } else {
             packet.highlightMesh = highlightMesh;
         }
-        Vector3f skyColor = environment.getCurrentSkyColor();
+
         packet.sunDirection = environment.getSunDirection();
         packet.globalLight = environment.getGlobalLightIntensity();
         packet.skyR = skyColor.x;

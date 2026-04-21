@@ -23,6 +23,7 @@ layout(push_constant) uniform PushConstants {
     float offsetY;
     float offsetZ;
     float isCloud;
+    float isUnderwater;
 } pc;
 
 void main() {
@@ -33,6 +34,6 @@ void main() {
     fragTexCoord = vec3(inTexCoord, inTexLayer);
     fragLight = inLight;
 
-    fragFogDist = clipPos.w;   // Absolute Distanz zur Kamera
-    fragWorldPos = inPosition; // Fürs Terrain
+    fragFogDist = clipPos.w;
+    fragWorldPos = inPosition;
 }

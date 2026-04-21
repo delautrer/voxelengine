@@ -203,7 +203,7 @@ public class WaterBlock extends Block {
         float lightTop = 1.0f, lightBot = 0.4f, lightFrontBack = 0.8f, lightLeftRight = 0.65f;
         TextureStitcher.AtlasRegion reg = getModel().top;
 
-        // TOP FACE
+        // TOP FACE (Wasseroberfläche)
         Block topNeighbor = BlockRegistry.get(chunk.getBlockAt(x, y + 1, z, cm));
         if (shouldRenderFaceAgainst(topNeighbor, h, 1.0f) || h < 0.99f) {
             float sl0 = chunk.getSmoothSkyLight(x, y+1, z, -1, 0, 0, 0, 0, -1, cm);
@@ -214,7 +214,25 @@ public class WaterBlock extends Block {
             float bl1 = chunk.getSmoothBlockLight(x, y+1, z, -1, 0, 0, 0, 0, 1, cm);
             float bl2 = chunk.getSmoothBlockLight(x, y+1, z, 1, 0, 0, 0, 0, 1, cm);
             float bl3 = chunk.getSmoothBlockLight(x, y+1, z, 1, 0, 0, 0, 0, -1, cm);
+
+            // 1. Normale Oberfläche (Sichtbar von Oben)
             chunk.addFace(x,yTop,z,1, x,yTop,z+1,1, x+1,yTop,z+1,1, x+1,yTop,z,1,reg.u0, reg.v0, reg.u1, reg.v1, reg.layer, lightTop, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
+
+            // 2. Unterseite der Oberfläche (Sichtbar von Unten)
+            if (topNeighbor != this) {
+                // Minimaler Offset nach unten (0.001f), verhindert Z-Fighting und Glitches an der Kamera
+                float surfaceY = yTop - 0.001f;
+                // Vertex-Reihenfolge ist umgedreht (z+1, z, z, z+1), damit die Normal nach unten zeigt
+                chunk.addFace(
+                        x, surfaceY, z+1, 1,
+                        x, surfaceY, z, 1,
+                        x+1, surfaceY, z, 1,
+                        x+1, surfaceY, z+1, 1,
+                        reg.u0, reg.v0, reg.u1, reg.v1, reg.layer,
+                        0.5f, this, // 0.5f Helligkeit, da es von unten betrachtet dunkler sein sollte
+                        sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3
+                );
+            }
         }
 
         // BOTTOM FACE

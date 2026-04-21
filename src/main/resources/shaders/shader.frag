@@ -21,15 +21,11 @@ layout(push_constant) uniform PushConstants {
     float offsetY;
     float offsetZ;
     float isCloud;
+    float isUnderwater;
 } pc;
 
 void main() {
     vec4 textureColor = texture(texSampler, fragTexCoord);
-
-    // ==========================================
-    // HIER IST DER FIX FÜRS WASSER:
-    // Wir mischen Textur-Alpha (1.0) mit Java-Alpha (0.7 bei Wasser)
-    // ==========================================
     float alpha = textureColor.a * fragColor.a;
 
     if (alpha < 0.05) discard;
@@ -78,6 +74,19 @@ void main() {
         vec3 fogColor = mix(skyNightColorFog, skyDayColorFog, pc.globalLight);
 
         finalColor = mix(finalColor, fogColor, fogFactor);
+    }
+
+    if (pc.isUnderwater > 0.5) {
+        vec3 waterFogColor = vec3(0.05, 0.2, 0.6) * pc.globalLight;
+
+        waterFogColor = max(waterFogColor, vec3(0.02, 0.05, 0.15));
+
+        float waterFogStart = 0.0;
+        float waterFogEnd = 16.0;
+
+        float waterFogFactor = clamp((fragFogDist - waterFogStart) / (waterFogEnd - waterFogStart), 0.0, 1.0);
+
+        finalColor = mix(finalColor, waterFogColor, waterFogFactor);
     }
 
     outColor = vec4(finalColor, alpha);

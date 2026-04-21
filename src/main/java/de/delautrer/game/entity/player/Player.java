@@ -13,6 +13,14 @@ public class Player extends Entity {
     protected boolean isFlying = false;
     protected boolean isSprinting = false;
 
+    protected boolean swimLock = false;
+    protected boolean isSwimming = false;
+    protected boolean isInWater = false;
+    protected boolean isHeadInWater = false;
+
+    // NEU: Animations-Fortschritt (0.0 = Stehen, 1.0 = Schwimmen)
+    protected float swimProgress = 0.0f;
+
     public Player(Vector3f spawnPosition) {
         super(spawnPosition);
         this.inventory = new Inventory();
@@ -20,8 +28,9 @@ public class Player extends Entity {
 
     @Override
     public void update(float deltaTime, ChunkManager chunkManager) {
-        if(!isFlying)   velocity.y += gravity * deltaTime;
-
+        if (!isFlying && !isInWater) {
+            velocity.y += gravity * deltaTime;
+        }
         moveAndCollide(chunkManager, deltaTime, isSneaking);
     }
 
@@ -30,6 +39,11 @@ public class Player extends Entity {
     }
 
     public Vector3f getEyePosition() {
-        return new Vector3f(position.x, position.y + eyeHeight, position.z);
+        float currentEyeHeight = 1.62f + (0.4f - 1.62f) * swimProgress;
+        return new Vector3f(position.x, position.y + currentEyeHeight, position.z);
+    }
+
+    public boolean isHeadInWater() {
+        return isHeadInWater;
     }
 }

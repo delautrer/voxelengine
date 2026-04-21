@@ -81,6 +81,7 @@ public class VulkanRenderer {
             commandBuffers.endRecording(cmd);*/
 
             VkCommandBuffer cmd = commandBuffers.beginRecording(imageIndex, swapchain, renderPass, framebuffers, packet.skyR, packet.skyG, packet.skyB);
+            //VkCommandBuffer cmd = commandBuffers.beginRecording(imageIndex, swapchain, renderPass, framebuffers, clearR, clearG, clearB);
 
             org.lwjgl.vulkan.VkViewport.Buffer viewport = org.lwjgl.vulkan.VkViewport.calloc(1, stack)
                     .x(0.0f)
@@ -186,4 +187,12 @@ public class VulkanRenderer {
     public VulkanCommandBuffers getCommandBuffers() { return commandBuffers; }
     public int getWidth() { return swapchain.getExtent().width(); }
     public int getHeight() { return swapchain.getExtent().height(); }
+
+    private float clearR = 0.5f, clearG = 0.7f, clearB = 1.0f; // Standard-Himmel
+
+    public void setClearColor(float r, float g, float b) {
+        this.clearR = r;
+        this.clearG = g;
+        this.clearB = b;
+    }
 }
