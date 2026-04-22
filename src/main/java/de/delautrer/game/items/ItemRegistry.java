@@ -1,7 +1,10 @@
 package de.delautrer.game.items;
 
 import de.delautrer.Constants;
+import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
+import de.delautrer.game.blocks.PlantBlock;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -38,6 +41,16 @@ public class ItemRegistry {
     public static final Item BRICKS         = register("bricks", new BlockItem("Bricks", "bricks_block", BlockRegistry.BRICKS));
     public static final Item BRICKS_STAIRS  = register("bricks_stairs", new BlockItem("Bricks Stairs", "bricks_stairs", BlockRegistry.BRICKS_STAIRS));
     public static final Item BRICKS_SLABS   = register("bricks_slabs", new BlockItem("Bricks Slabs", "bricks_slabs", BlockRegistry.BRICKS_SLABS));
+
+    public static final Item GRASS         = register("grass", new BlockItem("Grass","grass", BlockRegistry.GRASS));
+    public static final Item SANDY_GRASS   = register("sandy_grass", new BlockItem("Sandy Grass", "sandy_grass", BlockRegistry.SANDY_GRASS));
+    public static final Item POPPY         = register("poppy", new BlockItem("Poppy", "poppy", BlockRegistry.POPPY));
+    public static final Item DANDELION     = register("dandelion", new BlockItem("Dandelion", "dandelion", BlockRegistry.DANDELION));
+    public static final Item DOTTY         = register("dotty", new BlockItem("Dotty", "dotty", BlockRegistry.DOTTY));
+    public static final Item FAIRY_BELL    = register("fairy_bell", new BlockItem("Fairy Bell", "fairy_bell", BlockRegistry.FAIRY_BELL));
+    public static final Item RED_TULIP     = register("red_tulip", new BlockItem("Red Tulip", "red_tulip", BlockRegistry.PURPLE_TULIP));
+    public static final Item PURPLE_TULIP  = register("purple_tulip", new BlockItem("Purple Tulip", "purple_tulip", BlockRegistry.PURPLE_TULIP));
+    public static final Item MAVVINILIA    = register("mavvinilia", new BlockItem("Mavvinilia", "mavvinilia", BlockRegistry.MAVVINILIA));
 
     public static void init() {
         System.out.println("ItemRegistry initialized. " + ITEMS.size() + " Items loaded.");
