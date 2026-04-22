@@ -99,19 +99,21 @@ public class ChunkManager {
             if (loadedChunk.isDirty()) {
                 lightEngine.initSkyLightForChunk(loadedChunk);
             }
+            lightEngine.stitchChunkBorders(loadedChunk);
         }
 
         // 2. MESHES IM HINTERGRUND BERECHNEN
         for (int x = pX - Constants.RENDERDISTANCE; x <= pX + Constants.RENDERDISTANCE; x++) {
             for (int z = pZ - Constants.RENDERDISTANCE; z <= pZ + Constants.RENDERDISTANCE; z++) {
                 Vector2i pos = new Vector2i(x, z);
-                if (!meshes.containsKey(pos) && !chunksInPreparation.contains(pos)) {
-                    Chunk c = chunks.get(pos);
-                    if (c != null) {
+                Chunk c = chunks.get(pos);
+
+                if (c != null && !chunksInPreparation.contains(pos)) {
+                    if (!meshes.containsKey(pos) || c.isDirty()) {
+                        c.clearDirty();
                         chunksInPreparation.add(pos);
                         chunkExecutor.submit(() -> {
                             try {
-                                // Neues System: ChunkMeshResult erzeugen
                                 Chunk.ChunkMeshResult result = c.generateMeshData(this);
                                 meshUploadQueue.add(new MeshGenerationResult(c, result));
                             } catch (Exception e) {

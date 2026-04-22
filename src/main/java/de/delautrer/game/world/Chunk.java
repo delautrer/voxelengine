@@ -103,12 +103,14 @@ public class Chunk {
         return (lightMap[x][y][z] >> 4) & 0x0F;
     }
     public int getSkyLightAt(int x, int y, int z, ChunkManager cm) {
-        if (y < 0 || y >= HEIGHT) return 15;
+        if (y >= HEIGHT) return 15;
+        if (y < 0) return 0;
         if (x >= 0 && x < SIZE && z >= 0 && z < SIZE) return getSkyLight(x, y, z);
-        if (cm == null) return 15;
+        if (cm == null) return 0;
         Chunk neighbor = cm.getChunkAtBlock(worldX * SIZE + x, y, worldZ * SIZE + z);
-        return neighbor != null ? neighbor.getSkyLight(Math.floorMod(worldX * SIZE + x, SIZE), y, Math.floorMod(worldZ * SIZE + z, SIZE)) : 15;
+        return neighbor != null ? neighbor.getSkyLight(Math.floorMod(worldX * SIZE + x, SIZE), y, Math.floorMod(worldZ * SIZE + z, SIZE)) : 0;
     }
+
     public int getBlockLightAt(int x, int y, int z, ChunkManager cm) {
         if (y < 0 || y >= HEIGHT) return 0;
         if (x >= 0 && x < SIZE && z >= 0 && z < SIZE) return getBlockLight(x, y, z);

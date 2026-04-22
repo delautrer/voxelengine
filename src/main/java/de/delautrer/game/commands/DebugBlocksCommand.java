@@ -34,33 +34,38 @@ public class DebugBlocksCommand implements ICommand {
         int gridSize = (int) Math.ceil(Math.sqrt(count));
 
         byte airId = BlockRegistry.AIR.getId();
-        // Nimm am besten Gras oder Erde als Boden, damit die Pflanzen darauf überleben können!
         byte floorId = BlockRegistry.GRASS_BLOCK.getId();
 
-        // 1. ZUERST DEN BODEN BAUEN
-        for (int gx = -1; gx < gridSize * 2; gx++) {
-            for (int gz = -1; gz < gridSize * 2; gz++) {
-                world.setBlock(startX + gx, targetY - 1, startZ + gz, floorId);
-            }
-        }
+        // 1. ZUERST DAS KOMPLETTE RASTER LEEREN UND DEN BODEN BAUEN
+        // (Das verhindert, dass spätere Block-Updates beim Platzieren fehlschlagen)
+        for (int gx = -1; gx <= gridSize * 2; gx++) {
+            for (int gz = -1; gz <= gridSize * 2; gz++) {
+                int bx = startX + gx;
+                int bz = startZ + gz;
 
-        // 2. DANACH DIE BLÖCKE PLATZIEREN
-        int blockIndex = 0;
-        for (int gx = 0; gx < gridSize; gx++) {
-            for (int gz = 0; gz < gridSize; gz++) {
-                int bx = startX + (gx * 2);
-                int bz = startZ + (gz * 2);
-
-                // Platz über dem Boden schaffen
+                // 3 Blöcke hoch Luft machen, damit wirklich nichts im Weg ist
                 world.setBlock(bx, targetY, bz, airId);
                 world.setBlock(bx, targetY + 1, bz, airId);
                 world.setBlock(bx, targetY + 2, bz, airId);
 
+                // Darunter einen massiven Grasboden ziehen
+                world.setBlock(bx, targetY - 1, bz, floorId);
+            }
+        }
+
+        // 2. JETZT ERST DIE BLÖCKE PLATZIEREN
+        int blockIndex = 0;
+        for (int gx = 0; gx < gridSize; gx++) {
+            for (int gz = 0; gz < gridSize; gz++) {
+                if (blockIndex >= count) break; // Nicht weiterlaufen, wenn wir alle haben
+
+                int bx = startX + (gx * 2);
+                int bz = startZ + (gz * 2);
+
                 // Block aus der Registry platzieren
-                if (blockIndex < count) {
-                    world.setBlock(bx, targetY, bz, allBlocks[blockIndex].getId());
-                    blockIndex++;
-                }
+                System.out.println(allBlocks[blockIndex]);
+                world.setBlock(bx, targetY, bz, allBlocks[blockIndex].getId());
+                blockIndex++;
             }
         }
 

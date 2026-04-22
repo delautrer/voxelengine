@@ -72,7 +72,6 @@ public class World {
     }
 
     public void update(float deltaTime, LocalPlayer localPlayer) {
-
         if(worldSpawnpoint == null) {
             worldSpawnpoint = findSafeSpawn(0,0);
             if (worldSpawnpoint != null) {
@@ -86,7 +85,6 @@ public class World {
         cloudSystem.update(deltaTime);
 
         if (localPlayer.position.y < -50) {
-            //Vector3f safeSpawn = findSafeSpawn((int)localPlayer.position.x, (int)localPlayer.position.z);
             Vector3f safeSpawn = worldSpawnpoint == null ? findSafeSpawn((int)localPlayer.position.x, (int)localPlayer.position.z) : worldSpawnpoint;
 
             if (safeSpawn != null) {
@@ -114,6 +112,11 @@ public class World {
 
         targetChunk.setBlock(localX, y, localZ, newBlockId);
 
+        // --- FIX: Licht nach dem Setzen des Blocks sofort aktualisieren ---
+        targetChunk.recalculateSunlightColumn(localX, localZ, chunkManager.getLightEngine());
+        chunkManager.getLightEngine().notifyBlockChanged(x, y, z);
+        chunkManager.getLightEngine().processLightUpdates();
+
         Vector3i pos = new Vector3i(x, y, z);
         eventBus.publish(new BlockChangeEvent(pos, oldBlockId, newBlockId, targetChunk));
 
@@ -125,7 +128,9 @@ public class World {
 
         Block placedBlock = BlockRegistry.get(newBlockId);
         if (placedBlock != null) {
-            placedBlock.onNeighborChanged(this, x, y, z, new Vector3i(x, y - 1, z), oldBlockId);
+            // --- FIX: Wir fragen den ECHTEN Block darunter ab, nicht den alten gelöschten Block! ---
+            byte blockBelow = getBlockAt(x, y - 1, z);
+            placedBlock.onNeighborChanged(this, x, y, z, new Vector3i(x, y - 1, z), blockBelow);
         }
     }
 
@@ -148,6 +153,11 @@ public class World {
 
         targetChunk.setBlock(localX, y, localZ, newBlockId, newState);
 
+        // --- FIX: Licht nach dem Setzen des Blocks sofort aktualisieren ---
+        targetChunk.recalculateSunlightColumn(localX, localZ, chunkManager.getLightEngine());
+        chunkManager.getLightEngine().notifyBlockChanged(x, y, z);
+        chunkManager.getLightEngine().processLightUpdates();
+
         Vector3i pos = new Vector3i(x, y, z);
         eventBus.publish(new BlockChangeEvent(pos, oldBlockId, newBlockId, targetChunk));
 
@@ -158,7 +168,11 @@ public class World {
         }
 
         Block placedBlock = BlockRegistry.get(newBlockId);
-        if (placedBlock != null) placedBlock.onNeighborChanged(this, x, y, z, new Vector3i(x, y - 1, z), oldBlockId);
+        if (placedBlock != null) {
+            // --- FIX: Echter Block für neighbor updates ---
+            byte blockBelow = getBlockAt(x, y - 1, z);
+            placedBlock.onNeighborChanged(this, x, y, z, new Vector3i(x, y - 1, z), blockBelow);
+        }
     }
 
     public void setBlockState(int x, int y, int z, BlockState state) {
