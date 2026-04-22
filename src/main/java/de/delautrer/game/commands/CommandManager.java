@@ -25,6 +25,9 @@ public class CommandManager implements EventListener<CommandExecutedEvent> {
     private void registerDefaultCommands() {
         register(new GameModeCommand());
         register(new TeleportCommand());
+        register(new ClearCommand());
+        register(new TimeCommand());
+        register(new DebugBlocksCommand());
     }
 
     public void register(ICommand command) {

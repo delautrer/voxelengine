@@ -11,11 +11,15 @@ import de.delautrer.game.items.ItemStack;
 import de.delautrer.game.ui.ChatOverlay;
 import de.delautrer.game.ui.DebugOverlay;
 import de.delautrer.game.player.Inventory;
+import de.delautrer.game.ui.UIUtils;
 
 import java.util.List;
 import java.util.Map;
 
 public class HUD {
+
+    private long lastSlotChangeTime = 0;
+    private int lastSelectedSlot = -1;
 
     public void render(UIMeshBuilder builder, int width, int height, PlayerInteraction interaction, int hoveredSlot, DebugOverlay debugOverlay, ChatOverlay chatOverlay, VulkanFont font, int blockAtlasWidth) {
         float pixelScale = 2.0f;
@@ -107,17 +111,45 @@ public class HUD {
 
         builder.addAtlasQuad(hx, hotbarY, 0.2f, hotbarWidth, hotbarHeight, 1, 1, 9, 1, false);
 
+        // Überprüfe Slot-Wechsel für das Namens-Popup
+        int currentSlot = inventory.getSelectedSlot();
+        if (currentSlot != lastSelectedSlot) {
+            lastSelectedSlot = currentSlot;
+            lastSlotChangeTime = System.currentTimeMillis();
+        }
+
         for (int col = 0; col < 9; col++) {
             float slotX = hx + (col * 24.0f) * pixelScale;
             float selectorW = 24.0f * pixelScale;
 
-            if (!isScreenOpen && inventory.getSelectedSlot() == col) {
+            if (!isScreenOpen && currentSlot == col) {
                 builder.addAtlasQuad(slotX, hotbarY, 0.1f, selectorW, hotbarHeight, 10, 1, 1, 1, false);
             } else if (isScreenOpen && hoveredSlot == col) {
                 builder.addAtlasQuad(slotX, hotbarY, 0.1f, selectorW, hotbarHeight, 10, 1, 1, 1, false);
             }
 
-            builder.drawItem(inventory.getStack(col), slotX + 3 * pixelScale, hotbarY + 3 * pixelScale, 0.0f, selectorW - 6 * pixelScale);
+            ItemStack stack = inventory.getStack(col);
+            builder.drawItem(stack, slotX + 3 * pixelScale, hotbarY + 3 * pixelScale, 0.0f, selectorW - 6 * pixelScale);
+
+            // Anzahl anzeigen, wenn > 1
+            if (stack != null && stack.amount > 1) {
+                builder.drawText(String.valueOf(stack.amount), slotX + selectorW - (12.0f * pixelScale), hotbarY + (2.0f * pixelScale), 0.25f, font);
+            }
+        }
+
+        // --- ITEM NAME POPUP ---
+        long elapsed = System.currentTimeMillis() - lastSlotChangeTime;
+        if (elapsed < 2000 && inventory.getStack(currentSlot) != null) {
+            String rawId = ItemRegistry.getId(inventory.getStack(currentSlot).type);
+            String itemName = UIUtils.formatItemName(rawId);
+
+            float textScale = 0.3f;
+            float textWidth = builder.getTextWidth(itemName, font);
+            float textY = hotbarY + hotbarHeight + (16.0f * pixelScale);
+            float textX = (width / 2.0f) - (textWidth / 2);
+
+            builder.drawText(itemName, textX, textY, textScale, font);
         }
     }
+
 }

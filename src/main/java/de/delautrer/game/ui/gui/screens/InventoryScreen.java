@@ -1,6 +1,8 @@
 package de.delautrer.game.ui.gui.screens;
 
 import de.delautrer.engine.graphics.VulkanFont;
+import de.delautrer.game.items.ItemStack;
+import de.delautrer.game.ui.UIUtils;
 import de.delautrer.game.ui.gui.Container;
 import de.delautrer.game.ui.gui.UIMeshBuilder;
 
@@ -67,14 +69,17 @@ public class InventoryScreen extends MenuScreen {
 
         // Hotbar Items (Slots 0-8)
         for (int col = 0; col < 9; col++) {
-
             float slotX = hx + (col * 24.0f) * pixelScale;
             float selectorW = 24.0f * pixelScale;
 
             if (hoveredSlot == col) {
                 builder.addAtlasQuad(slotX, hotbarY, 0.3f, selectorW, hotbarHeight, 10, 1, 1, 1, false);
             }
-            builder.drawItem(container.getInventory().getStack(col), slotX + 3 * pixelScale, hotbarY + 3 * pixelScale, 0.5f, selectorW - 6 * pixelScale);
+            ItemStack stack = container.getInventory().getStack(col);
+            builder.drawItem(stack, slotX + 3 * pixelScale, hotbarY + 3 * pixelScale, 0.5f, selectorW - 6 * pixelScale);
+            if (stack != null && stack.amount > 1) {
+                builder.drawText(String.valueOf(stack.amount), slotX + selectorW - (12.0f * pixelScale), hotbarY + (2.0f * pixelScale), 0.25f, font);
+            }
         }
 
         // Main Inventory Items (Slots 9-35)
@@ -89,7 +94,11 @@ public class InventoryScreen extends MenuScreen {
                 if (hoveredSlot == slot) {
                     builder.addAtlasQuad(slotX, rowY, 0.3f, selectorW, hotbarHeight, 10, 1, 1, 1, false);
                 }
-                builder.drawItem(container.getInventory().getStack(col), slotX + 3 * pixelScale, hotbarY + 3 * pixelScale, 0.5f, selectorW - 6 * pixelScale);
+                ItemStack stack = container.getInventory().getStack(slot);
+                builder.drawItem(stack, slotX + 3 * pixelScale, rowY + 3 * pixelScale, 0.5f, selectorW - 6 * pixelScale);
+                if (stack != null && stack.amount > 1) {
+                    builder.drawText(String.valueOf(stack.amount), slotX + selectorW - (12.0f * pixelScale), rowY + (2.0f * pixelScale), 0.25f, font);
+                }
             }
         }
 
@@ -98,6 +107,35 @@ public class InventoryScreen extends MenuScreen {
             float itemSize = (24.0f - 4) * pixelScale;
             float invertedMouseY = height - mouseY;
             builder.drawItem(container.getMouseStack(), mouseX - itemSize / 2.0f + 3 * pixelScale, invertedMouseY - itemSize / 2.0f + 3 * pixelScale, 0.5f, itemSize);
+            if (container.getMouseStack().amount > 1) {
+                builder.drawText(String.valueOf(container.getMouseStack().amount), mouseX + (itemSize / 2.0f) - (8.0f * pixelScale), invertedMouseY - (itemSize / 2.0f), 0.25f, font);
+            }
+        }
+
+        // --- 7. TOOLTIP ---
+        if (hoveredSlot != -1 && container.getMouseStack() == null) {
+            ItemStack hoveredStack = container.getInventory().getStack(hoveredSlot);
+            if (hoveredStack != null && hoveredStack.type != null) {
+                String name = UIUtils.formatItemName(de.delautrer.game.items.ItemRegistry.getId(hoveredStack.type));
+
+                float textScale = 0.2f;
+                float textWidth = builder.getTextWidth(name, font);
+                float textHeight = 28.0f * pixelScale * textScale;
+
+                float invertedMouseY = height - mouseY;
+                float tipX = mouseX + (12.0f * pixelScale);
+                float tipY = invertedMouseY - (12.0f * pixelScale);
+
+                if (tipX + textWidth + (10.0f * pixelScale) > width) {
+                    tipX = mouseX - textWidth - (16.0f * pixelScale);
+                }
+                if (tipY < textHeight) {
+                    tipY = textHeight;
+                }
+
+                builder.addTooltipBackground(tipX, tipY - (textHeight / 2.0f), 1f, textWidth + (12.0f*pixelScale), textHeight + (8.0f*pixelScale), 4, 0, 4.0f * pixelScale);
+                builder.drawText(name, tipX + (6.0f*pixelScale), tipY, textScale, font);
+            }
         }
     }
 

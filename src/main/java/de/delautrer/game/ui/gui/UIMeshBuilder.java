@@ -17,6 +17,8 @@ public class UIMeshBuilder {
     public final List<Integer> textInds = new ArrayList<>();
     public final List<Float> overlayVerts = new ArrayList<>();
     public final List<Integer> overlayInds = new ArrayList<>();
+    public final List<Float> topUiVerts = new ArrayList<>();
+    public final List<Integer> topUiInds = new ArrayList<>();
 
     public static final float UI_GRID = 16.0f;
     public static final float ITEM_GRID = 9.0f;
@@ -29,6 +31,7 @@ public class UIMeshBuilder {
         itemVerts.clear(); itemInds.clear();
         textVerts.clear(); textInds.clear();
         overlayVerts.clear(); overlayInds.clear();
+        topUiVerts.clear(); topUiInds.clear();
         clippingEnabled = false;
     }
 
@@ -169,5 +172,34 @@ public class UIMeshBuilder {
             }
         }
         return textWidth;
+    }
+
+    public void addTooltipBackground(float x, float y, float z, float w, float h, int gridX, int gridY, float cornerRenderSize) {
+        float epsilon = 0.0005f;
+        float uvStep = 1.0f / UI_GRID;
+
+        float u0 = (float) gridX * uvStep + epsilon;
+        float v0 = (float) gridY * uvStep + epsilon;
+        float u3 = u0 + uvStep - 2 * epsilon;
+        float v3 = v0 + uvStep - 2 * epsilon;
+
+        float cornerUV = (uvStep - 2 * epsilon) * 0.25f;
+
+        float[] u = {u0, u0 + cornerUV, u3 - cornerUV, u3};
+        float[] v = {v0, v0 + cornerUV, v3 - cornerUV, v3};
+        float[] posX = {x, x + cornerRenderSize, x + w - cornerRenderSize, x + w};
+        float[] posY = {y, y + cornerRenderSize, y + h - cornerRenderSize, y + h};
+
+        for (int row = 0; row < 3; row++) {
+            for (int col = 0; col < 3; col++) {
+                float px0 = posX[col]; float px1 = posX[col+1];
+                float py0 = posY[row]; float py1 = posY[row+1];
+
+                if (px1 < px0) px1 = px0;
+                if (py1 < py0) py1 = py0;
+
+                addClippedQuad(topUiVerts, topUiInds, px0, py0, px1, py1, z, 1f, 1f, 1f, u[col], v[row], u[col+1], v[row+1]);
+            }
+        }
     }
 }

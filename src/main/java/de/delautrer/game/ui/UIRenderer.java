@@ -16,6 +16,7 @@ public class UIRenderer {
     private VulkanMesh itemMesh;
     private VulkanMesh textMesh;
     private VulkanMesh overlayMesh;
+    private VulkanMesh topUiMesh;
     private final VulkanContext context;
 
     private final UIManager uiManager;
@@ -29,6 +30,8 @@ public class UIRenderer {
 
     public void rebuildMesh(int width, int height, InputManager input, PlayerInteraction interaction, float mouseX, float mouseY, DebugOverlay debugOverlay, ChatOverlay chatOverlay, VulkanFont font, MenuScreen pauseScreen, int blockAtlasWidth) {
         VK10.vkDeviceWaitIdle(context.getDevice());
+        if (topUiMesh != null) topUiMesh.cleanup();
+        topUiMesh = null;
         if (uiMesh != null) uiMesh.cleanup();
         if (itemMesh != null) itemMesh.cleanup();
         if (textMesh != null) textMesh.cleanup();
@@ -70,6 +73,9 @@ public class UIRenderer {
         if (!meshBuilder.overlayVerts.isEmpty()) {
             overlayMesh = new VulkanMesh(context, toArray(meshBuilder.overlayVerts), toIntArray(meshBuilder.overlayInds));
         }
+        if (!meshBuilder.topUiVerts.isEmpty()) {
+            topUiMesh = new VulkanMesh(context, toArray(meshBuilder.topUiVerts), toIntArray(meshBuilder.topUiInds));
+        }
     }
 
     public VulkanMesh getUiMesh() { return uiMesh; }
@@ -78,6 +84,7 @@ public class UIRenderer {
     public VulkanMesh getOverlayMesh() {
         return overlayMesh;
     }
+    public VulkanMesh getTopUiMesh() { return topUiMesh; }
 
     private float[] toArray(java.util.List<Float> list) {
         float[] arr = new float[list.size()];
@@ -91,6 +98,7 @@ public class UIRenderer {
     }
 
     public void cleanup() {
+        if (topUiMesh != null) topUiMesh.cleanup();
         if (uiMesh != null) uiMesh.cleanup();
         if (textMesh != null) textMesh.cleanup();
         if (itemMesh != null) itemMesh.cleanup();

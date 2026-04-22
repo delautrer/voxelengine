@@ -56,6 +56,14 @@ public class UIRenderSystem implements IRenderSystem {
                 VK10.vkCmdDrawIndexed(cmd, packet.itemMesh.getIndexCount(), 1, 0, 0, 0);
             }
 
+            // --- 2.5 TOP UI RENDERN (Tooltips -> menu_gui.png) ---
+            if (packet.topUiMesh != null && packet.topUiMesh.getIndexCount() > 0 && packet.uiTexture != null) {
+                VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayout(), 0, stack.longs(packet.uiTexture.getDescriptorSet()), null);
+                VK10.vkCmdBindVertexBuffers(cmd, 0, stack.longs(packet.topUiMesh.getVertexBuffer()), stack.longs(0));
+                VK10.vkCmdBindIndexBuffer(cmd, packet.topUiMesh.getIndexBuffer(), 0, VK10.VK_INDEX_TYPE_UINT32);
+                VK10.vkCmdDrawIndexed(cmd, packet.topUiMesh.getIndexCount(), 1, 0, 0, 0);
+            }
+
             // --- 3. TEXT RENDERN (Font-Textur) ---
             if (packet.textMesh != null && packet.textMesh.getIndexCount() > 0 && packet.fontTexture != null) {
                 VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayout(), 0, stack.longs(packet.fontTexture.getDescriptorSet()), null);

@@ -114,12 +114,13 @@ public class MasterRenderer {
             renderer.setClearColor(skyColor.x, skyColor.y, skyColor.z);
 
         packet.blockUITexture = blockUITexture;
-        packet.overlayMesh = uiRenderer.getOverlayMesh();
-        packet.uiTexture = uiTexture;
-        packet.itemTexture = itemTexture;
         packet.uiMesh = uiRenderer.getUiMesh();
         packet.itemMesh = uiRenderer.getItemMesh();
         packet.textMesh = uiRenderer.getTextMesh();
+        packet.overlayMesh = uiRenderer.getOverlayMesh();
+        packet.topUiMesh = uiRenderer.getTopUiMesh();
+        packet.uiTexture = uiTexture;
+        packet.itemTexture = itemTexture;
         packet.fontTexture = fontTexture;
         packet.worldTexture = worldTexture;
         Vector3i selectedBlockPos = interaction.getSelectedBlockPos();
@@ -132,6 +133,8 @@ public class MasterRenderer {
         } else {
             packet.highlightMesh = highlightMesh;
         }
+
+        packet.topUiMesh = uiRenderer.getTopUiMesh();
 
         packet.sunDirection = environment.getSunDirection();
         packet.globalLight = environment.getGlobalLightIntensity();

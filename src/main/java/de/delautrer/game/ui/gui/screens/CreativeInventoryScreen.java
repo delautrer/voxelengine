@@ -5,6 +5,7 @@ import de.delautrer.engine.input.InputManager;
 import de.delautrer.game.items.Item;
 import de.delautrer.game.items.ItemRegistry;
 import de.delautrer.game.items.ItemStack;
+import de.delautrer.game.ui.UIUtils;
 import de.delautrer.game.ui.gui.Container;
 import de.delautrer.game.ui.gui.UIMeshBuilder;
 
@@ -88,7 +89,6 @@ public class CreativeInventoryScreen extends MenuScreen {
             builder.addAtlasQuad(hx + (visualCol * 24.0f) * pixelScale, hotbarY, 0.1f, 24.0f * pixelScale, 24.0f * pixelScale, 5,0, 1, 1, false);
         }
 
-
         for (int visualRow = 0; visualRow < rows; visualRow++) {
             float y = gridY + (visualRow * hotbarHeight);
             for (int visualCol = 0; visualCol < 9; visualCol++) {
@@ -113,6 +113,8 @@ public class CreativeInventoryScreen extends MenuScreen {
         }
 
         // --- 5. ITEMS & SELEKTOR ---
+
+        // Hotbar Items
         for (int col = 0; col < 9; col++) {
             float slotX = hx + (col * 24.0f) * pixelScale;
             float selectorW = 24.0f * pixelScale;
@@ -120,9 +122,16 @@ public class CreativeInventoryScreen extends MenuScreen {
             if (hoveredSlot == col) {
                 builder.addAtlasQuad(slotX, hotbarY, 0.3f, selectorW, hotbarHeight, 10, 1, 1, 1, false);
             }
-            builder.drawItem(container.getInventory().getStack(col), slotX + 3 * pixelScale, hotbarY + 3 * pixelScale, 0.2f, selectorW - 6 * pixelScale);
+            ItemStack stack = container.getInventory().getStack(col);
+            builder.drawItem(stack, slotX + 3 * pixelScale, hotbarY + 3 * pixelScale, 0.2f, selectorW - 6 * pixelScale);
+
+            // Anzahl in der Hotbar
+            if (stack != null && stack.amount > 1) {
+                builder.drawText(String.valueOf(stack.amount), slotX + selectorW - (12.0f * pixelScale), hotbarY + (2.0f * pixelScale), 0.25f, font);
+            }
         }
 
+        // Creative Grid Items
         for (int visualRow = 0; visualRow < visibleRows; visualRow++) {
             int actualRow = scrollRow + visualRow;
             float rowY = gridY + (visualRow * hotbarHeight);
@@ -141,6 +150,7 @@ public class CreativeInventoryScreen extends MenuScreen {
                 if (itemIndex < allItems.size()) {
                     Item item = allItems.get(itemIndex);
                     builder.drawItem(new ItemStack(item, 1), slotX + 3 * pixelScale, rowY + 3 * pixelScale, 0.2f, selectorW - 6 * pixelScale);
+                    // Im Creative-Grid zeigen wir keine Anzahl an
                 }
             }
         }
@@ -151,6 +161,56 @@ public class CreativeInventoryScreen extends MenuScreen {
             float invertedMouseY = height - mouseY;
 
             builder.drawItem(container.getMouseStack(), mouseX - itemSize / 2.0f + 3 * pixelScale, invertedMouseY - itemSize / 2.0f + 3 * pixelScale, 0.3f, itemSize);
+
+            // Anzahl am Maus-Item
+            if (container.getMouseStack().amount > 1) {
+                builder.drawText(String.valueOf(container.getMouseStack().amount), mouseX + (itemSize / 2.0f) - (8.0f * pixelScale), invertedMouseY - (itemSize / 2.0f), 0.25f, font);
+            }
+        }
+
+        // --- 7. TOOLTIP ---
+        if (hoveredSlot != -1 && container.getMouseStack() == null) {
+            ItemStack hoveredStack = null;
+
+            if (hoveredSlot < 9) {
+                // Hotbar
+                hoveredStack = container.getInventory().getStack(hoveredSlot);
+            } else {
+                // Creative Grid
+                int virtualIndex = hoveredSlot - 9;
+                int visualRow = virtualIndex / cols;
+                int col = virtualIndex % cols;
+                int actualRow = scrollRow + visualRow;
+                int itemIndex = actualRow * cols + col;
+
+                if (itemIndex < allItems.size()) {
+                    // Wir wrappen das Item nur für den Tooltip in einen temporären Stack
+                    hoveredStack = new ItemStack(allItems.get(itemIndex), 1);
+                }
+            }
+
+            if (hoveredStack != null && hoveredStack.type != null) {
+                String name = UIUtils.formatItemName(ItemRegistry.getId(hoveredStack.type));
+
+                float textScale = 0.2f;
+                float textWidth = builder.getTextWidth(name, font);
+                float textHeight = 28.0f * pixelScale * textScale;
+
+                float invertedMouseY = height - mouseY;
+                float tipX = mouseX + (12.0f * pixelScale);
+                float tipY = invertedMouseY - (12.0f * pixelScale);
+
+                // Screen-Bounds check
+                if (tipX + textWidth + (10.0f * pixelScale) > width) {
+                    tipX = mouseX - textWidth - (16.0f * pixelScale);
+                }
+                if (tipY < textHeight) {
+                    tipY = textHeight;
+                }
+
+                builder.addTooltipBackground(tipX, tipY - (textHeight / 2.0f), 1f, textWidth + (12.0f*pixelScale), textHeight + (8.0f*pixelScale), 4, 0, 4.0f * pixelScale);
+                builder.drawText(name, tipX + (6.0f*pixelScale), tipY, textScale, font);
+            }
         }
     }
 

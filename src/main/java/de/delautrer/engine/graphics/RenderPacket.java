@@ -14,6 +14,7 @@ public class RenderPacket {
 
     public VulkanMesh highlightMesh;
     public VulkanMesh uiMesh;
+    public VulkanMesh topUiMesh;
     public VulkanMesh textMesh;
     public VulkanMesh itemMesh;
 
