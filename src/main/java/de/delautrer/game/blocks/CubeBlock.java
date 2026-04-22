@@ -32,7 +32,6 @@ public class CubeBlock extends Block {
         return model.west;
     }
 
-    // Hilfsmethode, um den exakten BlockState des Nachbarn zu bekommen
     protected BlockState getNeighborState(Chunk chunk, ChunkManager cm, int nx, int ny, int nz) {
         byte bId = chunk.getBlockAt(nx, ny, nz, cm);
         if (bId == 0) return BlockRegistry.AIR.getDefaultState();
@@ -40,13 +39,11 @@ public class CubeBlock extends Block {
         return BlockRegistry.get(bId).getStateForId(sId);
     }
 
-    // --- NEU: Die smarte Culling-Methode! ---
     public boolean shouldRenderFaceAgainstState(BlockState myState, BlockState neighborState, BlockFace face) {
         Block myBlock = myState.getBlock();
         Block nBlock = neighborState.getBlock();
         if (nBlock.getId() == 0) return true;
 
-        // Die Glas-Logik (Cullt identische, transparente Blöcke wie Glas weg)
         if (myBlock.isTransparent && myBlock == nBlock) {
             return false;
         }
@@ -99,37 +96,38 @@ public class CubeBlock extends Block {
         AtlasRegion tEast = getTextureForFace(state, BlockFace.EAST); AtlasRegion tWest = getTextureForFace(state, BlockFace.WEST);
 
         // ==========================================
-        // DYNAMISCHE TEXTUR-WEICHE (inkl. Bit-Logik für Stairs/Slabs)
+        // DYNAMISCHE TEXTUR-WEICHE
         // ==========================================
         BlockModelData model = getModel();
         boolean isDirectional = (model != null && model.directional_textures);
 
-        float sideV0; // Oben auf der Textur (0.0 = Start)
-        float sideV1; // Unten auf der Textur (1.0 = Ende)
+        float sideV0;
+        float sideV1;
 
         if (isDirectional) {
-            // Gras-Logik (Directional = true)
+            // Directional = TRUE (z.B. Holztreppen, Steintreppen)
+            // Textur wird stufenlos an die Y-Koordinaten der Box (Bit) zugeschnitten.
+            sideV0 = 1.0f - maxY;
+            sideV1 = 1.0f - minY;
+        } else {
+            // Directional = FALSE (z.B. Gras, Dirt)
+            // Nutzt die klassische "Obere oder Untere Hälfte"-Bit-Logik
             if (maxY - minY > 0.99f) {
-                // Voller Block (4+4 Bits): Nutze die volle Textur
+                // Voller Block
                 sideV0 = 0.0f;
                 sideV1 = 1.0f;
             } else {
-                // Halber Block / Teil-Bit (z.B. bei Stairs oder Slabs)
+                // Halber Block / Treppen-Bit
                 if (rTop) {
-                    // Es gibt KEIN Teil obendrüber (es ist die Oberfläche) -> obere Hälfte der Textur (Gras)
+                    // Kein Bit drüber -> Obere Hälfte der Textur (Gras)
                     sideV0 = 0.0f;
                     sideV1 = 0.5f;
                 } else {
-                    // Es gibt ein Teil obendrüber (es ist begraben) -> untere Hälfte der Textur (Dreck)
+                    // Bit drüber -> Untere Hälfte der Textur (Dreck)
                     sideV0 = 0.5f;
                     sideV1 = 1.0f;
                 }
             }
-        } else {
-            // Standard-Verhalten für normale Blöcke (Holz, Stein, Glas etc.)
-            // Hier schneiden wir die Textur anhand der Höhe der Box ab
-            sideV0 = 0.0f;
-            sideV1 = maxY - minY;
         }
 
         BlockState sTop = getNeighborState(chunk, cm, x, y + 1, z);
@@ -151,7 +149,6 @@ public class CubeBlock extends Block {
             float ao0 = chunk.getAO(x, y, z+1, -1, 0, 0, 0, -1, 0, cm); float ao1 = chunk.getAO(x, y, z+1, 1, 0, 0, 0, -1, 0, cm); float ao2 = chunk.getAO(x, y, z+1, 1, 0, 0, 0, 1, 0, cm); float ao3 = chunk.getAO(x, y, z+1, -1, 0, 0, 0, 1, 0, cm);
             float sl0 = chunk.getSmoothSkyLight(x, y, z+1, -1, 0, 0, 0, -1, 0, cm); float sl1 = chunk.getSmoothSkyLight(x, y, z+1, 1, 0, 0, 0, -1, 0, cm); float sl2 = chunk.getSmoothSkyLight(x, y, z+1, 1, 0, 0, 0, 1, 0, cm); float sl3 = chunk.getSmoothSkyLight(x, y, z+1, -1, 0, 0, 0, 1, 0, cm);
             float bl0 = chunk.getSmoothBlockLight(x, y, z+1, -1, 0, 0, 0, -1, 0, cm); float bl1 = chunk.getSmoothBlockLight(x, y, z+1, 1, 0, 0, 0, -1, 0, cm); float bl2 = chunk.getSmoothBlockLight(x, y, z+1, 1, 0, 0, 0, 1, 0, cm); float bl3 = chunk.getSmoothBlockLight(x, y, z+1, -1, 0, 0, 0, 1, 0, cm);
-            // sideV0 und sideV1 werden hier nun un-geflippt angewendet
             addMappedFace(chunk, x+minX, y+minY, z+maxZ, bilerp(ao0, ao1, ao2, ao3, minX, minY)*getCrease(minX,minY,maxZ), x+maxX, y+minY, z+maxZ, bilerp(ao0, ao1, ao2, ao3, maxX, minY)*getCrease(maxX,minY,maxZ), x+maxX, y+maxY, z+maxZ, bilerp(ao0, ao1, ao2, ao3, maxX, maxY)*getCrease(maxX,maxY,maxZ), x+minX, y+maxY, z+maxZ, bilerp(ao0, ao1, ao2, ao3, minX, maxY)*getCrease(minX,maxY,maxZ), minX, sideV0, maxX, sideV1, tSouth, lightFrontBack, bilerp(sl0, sl1, sl2, sl3, minX, minY), bilerp(sl0, sl1, sl2, sl3, maxX, minY), bilerp(sl0, sl1, sl2, sl3, maxX, maxY), bilerp(sl0, sl1, sl2, sl3, minX, maxY), bilerp(bl0, bl1, bl2, bl3, minX, minY), bilerp(bl0, bl1, bl2, bl3, maxX, minY), bilerp(bl0, bl1, bl2, bl3, maxX, maxY), bilerp(bl0, bl1, bl2, bl3, minX, maxY));
         }
         BlockState sNorth = getNeighborState(chunk, cm, x, y, z - 1);
