@@ -99,7 +99,7 @@ public class CubeBlock extends Block {
         AtlasRegion tEast = getTextureForFace(state, BlockFace.EAST); AtlasRegion tWest = getTextureForFace(state, BlockFace.WEST);
 
         // ==========================================
-        // NEUE DYNAMISCHE TEXTUR-WEICHE
+        // DYNAMISCHE TEXTUR-WEICHE (inkl. Bit-Logik für Stairs/Slabs)
         // ==========================================
         BlockModelData model = getModel();
         boolean isDirectional = (model != null && model.directional_textures);
@@ -108,14 +108,26 @@ public class CubeBlock extends Block {
         float sideV1; // Unten auf der Textur (1.0 = Ende)
 
         if (isDirectional) {
-            // GRAS-LOGIK (Directional = true)
-            // Die Textur ist fest an den globalen Block-Koordinaten verankert.
-            // V=0.0 ist ganz oben am Block, V=1.0 ist ganz unten.
-            // Beispiel Top-Slab (maxY=1.0, minY=0.5) -> V0=0.0, V1=0.5 (Gras)
-            // Beispiel Bot-Slab (maxY=0.5, minY=0.0) -> V0=0.5, V1=1.0 (Dreck)
-            sideV0 = 1.0f - maxY;
-            sideV1 = 1.0f - minY;
+            // Gras-Logik (Directional = true)
+            if (maxY - minY > 0.99f) {
+                // Voller Block (4+4 Bits): Nutze die volle Textur
+                sideV0 = 0.0f;
+                sideV1 = 1.0f;
+            } else {
+                // Halber Block / Teil-Bit (z.B. bei Stairs oder Slabs)
+                if (rTop) {
+                    // Es gibt KEIN Teil obendrüber (es ist die Oberfläche) -> obere Hälfte der Textur (Gras)
+                    sideV0 = 0.0f;
+                    sideV1 = 0.5f;
+                } else {
+                    // Es gibt ein Teil obendrüber (es ist begraben) -> untere Hälfte der Textur (Dreck)
+                    sideV0 = 0.5f;
+                    sideV1 = 1.0f;
+                }
+            }
         } else {
+            // Standard-Verhalten für normale Blöcke (Holz, Stein, Glas etc.)
+            // Hier schneiden wir die Textur anhand der Höhe der Box ab
             sideV0 = 0.0f;
             sideV1 = maxY - minY;
         }
