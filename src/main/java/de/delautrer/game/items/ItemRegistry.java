@@ -30,9 +30,14 @@ public class ItemRegistry {
     public static final Item GRAVEL       = register("gravel", new BlockItem("Gravel", "gravel", BlockRegistry.GRAVEL));
     public static final Item SAND         = register("sand", new BlockItem("Sand", "sand", BlockRegistry.SAND));
     public static final Item LOG          = register("log", new BlockItem("Log", "log", BlockRegistry.LOG));
+
     public static final Item PLANKS       = register("planks", new BlockItem("Planks", "planks", BlockRegistry.PLANKS));
     public static final Item STAIRS       = register("stairs", new BlockItem("Stairs", "stairs", BlockRegistry.STAIRS));
     public static final Item SLABS        = register("slabs", new BlockItem("Slabs", "slabs", BlockRegistry.SLABS));
+
+    public static final Item BRICKS         = register("bricks", new BlockItem("Bricks", "bricks_block", BlockRegistry.BRICKS));
+    public static final Item BRICKS_STAIRS  = register("bricks_stairs", new BlockItem("Bricks Stairs", "bricks_stairs", BlockRegistry.BRICKS_STAIRS));
+    public static final Item BRICKS_SLABS   = register("bricks_slabs", new BlockItem("Bricks Slabs", "bricks_slabs", BlockRegistry.BRICKS_SLABS));
 
     public static void init() {
         System.out.println("ItemRegistry initialized. " + ITEMS.size() + " Items loaded.");

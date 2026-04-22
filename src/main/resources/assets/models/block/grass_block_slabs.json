@@ -1,5 +1,6 @@
 {
   "parent": "block/slab",
+  "directional_textures": false,
   "textures": {
     "top": "grass_block_top",
     "bottom": "dirt",

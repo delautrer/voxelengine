@@ -44,12 +44,16 @@ public class BlockRegistry {
     public static final Block FAIRY_BELL    = register(17, "fairy_bell", new PlantBlock());
     public static final Block RED_TULIP     = register(18, "red_tulip", new PlantBlock());
     public static final Block PURPLE_TULIP  = register(19, "purple_tulip", new PlantBlock());
+    public static final Block MAVVINILIA    = register(23, "mavvinilia", new PlantBlock());
 
     public static final Block PLANKS  = register(20, "planks", new CubeBlock(true, false));
     public static final Block STAIRS  = register(21, "stairs", new StairBlock());
     public static final Block SLABS   = register(22, "slabs", new SlabBlock());
 
-    public static final Block MAVVINILIA = register(23, "mavvinilia", new PlantBlock());
+    public static final Block BRICKS  = register(30, "bricks", new CubeBlock(true, false));
+    public static final Block BRICKS_STAIRS  = register(31, "bricks_stairs", new StairBlock());
+    public static final Block BRICKS_SLABS   = register(32, "bricks_slabs", new SlabBlock());
+
 
     public static void init() {
         System.out.println("BlockRegistry initialized. " + BLOCKS.size() + " Blocks loaded.");

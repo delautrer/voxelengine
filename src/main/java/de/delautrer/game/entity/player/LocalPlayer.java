@@ -230,7 +230,7 @@ public class LocalPlayer extends Player {
 
                 velocity.y = 0;
                 if (input.isActionActive("JUMP")) velocity.y = currentSpeed;
-                if (input.isActionActive("SNEAK")) velocity.y = -currentSpeed * 2.5f;
+                if (input.isActionActive("SNEAK")) velocity.y = -currentSpeed * 1.2f;
 
             } else {
                 // Normales Laufen auf Land ODER langsames Waten im Wasser

@@ -99,26 +99,25 @@ public class CubeBlock extends Block {
         AtlasRegion tEast = getTextureForFace(state, BlockFace.EAST); AtlasRegion tWest = getTextureForFace(state, BlockFace.WEST);
 
         // ==========================================
-        // DIE BIT-LOGIK FÜR DIE SEITEN-TEXTUREN
+        // NEUE DYNAMISCHE TEXTUR-WEICHE
         // ==========================================
-        float sideV0; // Oben auf der Textur (0.0 = Gras)
-        float sideV1; // Unten auf der Textur (1.0 = Dreck)
+        BlockModelData model = getModel();
+        boolean isDirectional = (model != null && model.directional_textures);
 
-        if (maxY - minY > 0.99f) {
-            // Voller Block (4+4 Bits): Nutze die volle Textur
-            sideV0 = 0.0f;
-            sideV1 = 1.0f;
+        float sideV0; // Oben auf der Textur (0.0 = Start)
+        float sideV1; // Unten auf der Textur (1.0 = Ende)
+
+        if (isDirectional) {
+            // GRAS-LOGIK (Directional = true)
+            // Die Textur ist fest an den globalen Block-Koordinaten verankert.
+            // V=0.0 ist ganz oben am Block, V=1.0 ist ganz unten.
+            // Beispiel Top-Slab (maxY=1.0, minY=0.5) -> V0=0.0, V1=0.5 (Gras)
+            // Beispiel Bot-Slab (maxY=0.5, minY=0.0) -> V0=0.5, V1=1.0 (Dreck)
+            sideV0 = 1.0f - maxY;
+            sideV1 = 1.0f - minY;
         } else {
-            // Halber Block / Einzelnes Bit (0.5 Höhe)
-            if (rTop) {
-                // Es gibt KEIN Bit obendrüber -> Nimm die obere Hälfte der Textur (Gras)
-                sideV0 = 0.0f;
-                sideV1 = 0.5f;
-            } else {
-                // Es gibt ein Bit obendrüber -> Nimm die untere Hälfte der Textur (Dreck)
-                sideV0 = 0.5f;
-                sideV1 = 1.0f;
-            }
+            sideV0 = 0.0f;
+            sideV1 = maxY - minY;
         }
 
         BlockState sTop = getNeighborState(chunk, cm, x, y + 1, z);

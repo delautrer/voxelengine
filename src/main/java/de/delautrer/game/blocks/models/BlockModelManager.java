@@ -48,6 +48,11 @@ public class BlockModelManager {
             }
 
             JsonObject json = JsonParser.parseReader(new InputStreamReader(is)).getAsJsonObject();
+
+            if (json.has("directional_textures")) {
+                model.directional_textures = json.get("directional_textures").getAsBoolean();
+            }
+
             if (json.has("textures")) {
                 JsonObject textures = json.getAsJsonObject("textures");
 

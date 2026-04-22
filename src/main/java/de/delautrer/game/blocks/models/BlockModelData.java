@@ -10,6 +10,8 @@ public class BlockModelData {
     public AtlasRegion east;
     public AtlasRegion west;
 
+    public boolean directional_textures = true;
+
     public void fillMissing(AtlasRegion missing) {
         if (top == null) top = missing;
         if (bottom == null) bottom = missing;
