@@ -4,6 +4,7 @@ import de.delautrer.engine.graphics.*;
 import de.delautrer.engine.graphics.utils.TextureStitcher.AtlasRegion;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.CubeBlock;
+import de.delautrer.game.blocks.TorchBlock;
 import de.delautrer.game.blocks.state.BlockProperties.BlockFace;
 import de.delautrer.game.entity.Entity;
 import de.delautrer.game.entity.ItemEntity;
@@ -76,7 +77,7 @@ public class EntityRenderSystem implements IRenderSystem {
                         .translate(e.position.x + pileOffsetX, e.position.y + hoverY + pileOffsetY, e.position.z + pileOffsetZ)
                         .rotateY((float)(t * 1.5));
 
-                if (itemType instanceof BlockItem blockItem && blockItem.getBlock() instanceof CubeBlock cubeBlock) {
+                if (itemType instanceof BlockItem blockItem && blockItem.getBlock() instanceof CubeBlock cubeBlock && !(cubeBlock instanceof TorchBlock)) {
                     modelMat.scale(0.25f);
                     build3DBlock(blockVerts, blockInds, blockOffset, modelMat, cubeBlock);
                     blockOffset = blockVerts.size() / 12;
