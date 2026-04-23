@@ -12,6 +12,8 @@ public abstract class Item {
     private TextureStitcher.AtlasRegion iconRegion;
     private String id;
 
+    protected int maxStackSize = 64;
+
     public Item(String name, String textureName) {
         this.name = name;
         this.textureName = textureName;
@@ -23,6 +25,15 @@ public abstract class Item {
 
     public TextureStitcher.AtlasRegion getIconRegion() {
         return iconRegion;
+    }
+
+    public Item setMaxStackSize(int size) {
+        this.maxStackSize = size;
+        return this;
+    }
+
+    public int getMaxStackSize() {
+        return maxStackSize;
     }
 
     public abstract void onUseRightClick(World world, LocalPlayer localPlayer, Vector3i targetBlock, Vector3i adjacentBlock, PlayerInteraction interaction);

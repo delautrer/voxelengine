@@ -21,8 +21,6 @@ import java.util.List;
 
 public class EntityRenderSystem implements IRenderSystem {
     private final VulkanContext context;
-
-    // DIE EINZIGE PIPELINE: Der echte 3D-Terrain-Shader (12 Floats)
     private final VulkanGraphicsPipeline blockPipeline;
 
     private VulkanMesh blockMesh;
@@ -53,63 +51,68 @@ public class EntityRenderSystem implements IRenderSystem {
         for (Entity e : packet.entities) {
             if (!(e instanceof ItemEntity itemEntity) || itemEntity.isDead()) continue;
 
-            float hoverY = (float) Math.sin(t * 3.0) * 0.1f + 0.15f;
-
-            // JOML rotateY lässt liegende Items sich flach wie ein Kreisel drehen
-            Matrix4f modelMat = new Matrix4f()
-                    .translate(e.position.x, e.position.y + hoverY, e.position.z)
-                    .rotateY((float)(t * 1.5)); // Wir entfernen hier .scale()
-
             Item itemType = itemEntity.stack.type;
 
-            // Echte Blöcke (CubeBlock, Stairs, Slabs) -> 3D Miniatur
-            if (itemType instanceof BlockItem blockItem && blockItem.getBlock() instanceof CubeBlock cubeBlock) {
-                modelMat.scale(0.25f);
-                build3DBlock(blockVerts, blockInds, blockOffset, modelMat, cubeBlock);
-                blockOffset = blockVerts.size() / 12;
-            }
-            else {
-                AtlasRegion reg = itemType.getIconRegion();
-                if (reg != null) {
-                    modelMat.scale(0.5f);
-                    buildThickItem(itemVerts, itemInds, itemOffset, modelMat, reg);
-                    itemOffset += 24;
+            // NEU: Wir lesen den Count aus dem Stack aus (falls deine Variable anders heißt, hier anpassen)
+            int count = itemEntity.stack.amount;
+
+            // Berechnen, wie viele Meshes wir für den "Haufen" zeichnen
+            int visualCount = 1;
+            if (count > 1)  visualCount = 2; // Der 2er Haufen
+            if (count > 15) visualCount = 3; // Der 3er Haufen
+            if (count > 31) visualCount = 4; // Der 4er Haufen
+
+            float hoverY = (float) Math.sin(t * 3.0) * 0.1f + 0.15f;
+
+            // NEU: Wir iterieren über den visualCount und zeichnen das Item mehrfach versetzt
+            for (int v = 0; v < visualCount; v++) {
+
+                // Leichter 3D-Versatz für jedes weitere Item im Haufen (Minecraft-Style)
+                float pileOffsetX = v * 0.04f;
+                float pileOffsetY = v * 0.04f;
+                float pileOffsetZ = v * -0.04f;
+
+                Matrix4f modelMat = new Matrix4f()
+                        .translate(e.position.x + pileOffsetX, e.position.y + hoverY + pileOffsetY, e.position.z + pileOffsetZ)
+                        .rotateY((float)(t * 1.5));
+
+                if (itemType instanceof BlockItem blockItem && blockItem.getBlock() instanceof CubeBlock cubeBlock) {
+                    modelMat.scale(0.25f);
+                    build3DBlock(blockVerts, blockInds, blockOffset, modelMat, cubeBlock);
+                    blockOffset = blockVerts.size() / 12;
+                } else {
+                    AtlasRegion reg = itemType.getIconRegion();
+                    if (reg != null) {
+                        modelMat.scale(0.5f);
+                        buildThickItem(itemVerts, itemInds, itemOffset, modelMat, reg);
+                        itemOffset += 24;
+                    }
                 }
             }
         }
 
         if (blockVerts.isEmpty() && itemVerts.isEmpty()) return;
 
-        // === ALTE VERZÖGERUNG ENTFERNT ===
-        // VK10.vkDeviceWaitIdle(context.getDevice()); <--- DAS HIER IST WEG!
-
-        // 1. BLÖCKE ZEICHNEN
         if (!blockVerts.isEmpty()) {
             if (blockMesh == null) {
-                // Einmalig erstellen
                 blockMesh = new VulkanMesh(context, toFloatArray(blockVerts), toIntArray(blockInds));
             } else {
-                // Dynamisch updaten (superschnell)
                 blockMesh.updateMesh(toFloatArray(blockVerts), toIntArray(blockInds));
             }
-
             VK10.vkCmdBindPipeline(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, blockPipeline.getHandle());
             bindAndDraw(cmd, packet, blockPipeline.getPipelineLayout(), blockMesh, packet.worldTexture.getDescriptorSet());
         } else if (blockMesh != null) {
-            // Wenn alle Items aufgesammelt wurden, räumen wir auf
             VK10.vkDeviceWaitIdle(context.getDevice());
             blockMesh.cleanup();
             blockMesh = null;
         }
 
-        // 2. ITEMS ZEICHNEN
         if (!itemVerts.isEmpty()) {
             if (itemMesh == null) {
                 itemMesh = new VulkanMesh(context, toFloatArray(itemVerts), toIntArray(itemInds));
             } else {
                 itemMesh.updateMesh(toFloatArray(itemVerts), toIntArray(itemInds));
             }
-
             VK10.vkCmdBindPipeline(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, blockPipeline.getHandle());
             bindAndDraw(cmd, packet, blockPipeline.getPipelineLayout(), itemMesh, packet.itemTexture.getDescriptorSet());
         } else if (itemMesh != null) {
@@ -133,32 +136,21 @@ public class EntityRenderSystem implements IRenderSystem {
         }
     }
 
-    // ==========================================
-    // "DICKE" ITEMS (Liegen auf dem Boden, 3D-Karton-Look)
-    // ==========================================
     private void buildThickItem(List<Float> verts, List<Integer> inds, int offset, Matrix4f transform, AtlasRegion reg) {
-        // Die Dicke entspricht etwa 1-2 Pixeln
         float thickness = 0.03f;
 
-        // Koordinaten liegen auf der X/Z Achse, leicht auf der Y-Achse verschoben
         Vector3f[] posUp = {
-                new Vector3f(-0.5f, thickness, -0.5f),
-                new Vector3f( 0.5f, thickness, -0.5f),
-                new Vector3f( 0.5f, thickness,  0.5f),
-                new Vector3f(-0.5f, thickness,  0.5f)
+                new Vector3f(-0.5f, thickness, -0.5f), new Vector3f( 0.5f, thickness, -0.5f),
+                new Vector3f( 0.5f, thickness,  0.5f), new Vector3f(-0.5f, thickness,  0.5f)
         };
-        // Für die Unterseite drehen wir die Reihenfolge um (wegen Backface Culling)
         Vector3f[] posDown = {
-                new Vector3f(-0.5f, 0.0f,  0.5f),
-                new Vector3f( 0.5f, 0.0f,  0.5f),
-                new Vector3f( 0.5f, 0.0f, -0.5f),
-                new Vector3f(-0.5f, 0.0f, -0.5f)
+                new Vector3f(-0.5f, 0.0f,  0.5f), new Vector3f( 0.5f, 0.0f,  0.5f),
+                new Vector3f( 0.5f, 0.0f, -0.5f), new Vector3f(-0.5f, 0.0f, -0.5f)
         };
 
         float[] u = {reg.u0, reg.u1, reg.u1, reg.u0};
         float[] v = {reg.v1, reg.v1, reg.v0, reg.v0};
 
-        // 1. Oberseite (Volle Helligkeit)
         for (int i = 0; i < 4; i++) {
             Vector3f p = new Vector3f(posUp[i]).mulPosition(transform);
             addVertex(verts, p.x, p.y, p.z, 1.0f, 1.0f, 1.0f, 1.0f, u[i], v[i], (float)reg.layer, 1.0f, 0.0f);
@@ -166,7 +158,6 @@ public class EntityRenderSystem implements IRenderSystem {
         addIndices(inds, offset);
         offset += 4;
 
-        // 2. Unterseite (etwas abgedunkelt zur besseren 3D-Wirkung)
         for (int i = 0; i < 4; i++) {
             Vector3f p = new Vector3f(posDown[i]).mulPosition(transform);
             addVertex(verts, p.x, p.y, p.z, 0.6f, 0.6f, 0.6f, 1.0f, u[i], v[i], (float)reg.layer, 1.0f, 0.0f);
@@ -174,19 +165,16 @@ public class EntityRenderSystem implements IRenderSystem {
         addIndices(inds, offset);
         offset += 4;
 
-        // 3. Die 4 Seitenkanten (Fake-3D)
         Vector3f[][] edges = {
-                {posUp[3], posUp[2], posDown[1], posDown[0]}, // Nord
-                {posUp[1], posUp[0], posDown[3], posDown[2]}, // Süd
-                {posUp[2], posUp[1], posDown[2], posDown[1]}, // Ost
-                {posUp[0], posUp[3], posDown[0], posDown[3]}  // West
+                {posUp[3], posUp[2], posDown[1], posDown[0]},
+                {posUp[1], posUp[0], posDown[3], posDown[2]},
+                {posUp[2], posUp[1], posDown[2], posDown[1]},
+                {posUp[0], posUp[3], posDown[0], posDown[3]}
         };
 
         for (int e = 0; e < 4; e++) {
             for(int i = 0; i < 4; i++) {
                 Vector3f p = new Vector3f(edges[e][i]).mulPosition(transform);
-                // Wir nutzen die UV u0, v0 für die Kante – das ist meistens ein guter Standard.
-                // Die Kante wird stark abgedunkelt für mehr Tiefenwirkung.
                 addVertex(verts, p.x, p.y, p.z, 0.3f, 0.3f, 0.3f, 1.0f, reg.u0, reg.v0, (float)reg.layer, 1.0f, 0.0f);
             }
             addIndices(inds, offset);
@@ -272,7 +260,6 @@ public class EntityRenderSystem implements IRenderSystem {
                     float finalU = reg.u0 + (u[j] * (reg.u1 - reg.u0));
                     float finalV = reg.v0 + (v[j] * (reg.v1 - reg.v0));
 
-                    // 12 Floats, SkyLight = 1.0f!
                     addVertex(verts, tv.x, tv.y, tv.z, s, s, s, 1.0f, finalU, finalV, (float)reg.layer, 1.0f, 0.0f);
                 }
                 addIndices(inds, offset);
@@ -298,7 +285,6 @@ public class EntityRenderSystem implements IRenderSystem {
     private int[] toIntArray(List<Integer> list) { int[] a = new int[list.size()]; for(int i=0;i<list.size();i++) a[i]=list.get(i); return a; }
 
     private void cleanupMeshes() {
-        if (blockMesh != null || itemMesh != null) VK10.vkDeviceWaitIdle(context.getDevice());
         if (blockMesh != null) { blockMesh.cleanup(); blockMesh = null; }
         if (itemMesh != null) { itemMesh.cleanup(); itemMesh = null; }
     }

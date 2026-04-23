@@ -93,7 +93,12 @@ public class World {
 
         // Entities updaten
         for (Entity entity : entities) {
-            entity.update(deltaTime, chunkManager);
+
+            if (entity instanceof ItemEntity itemEntity) {
+                itemEntity.update(deltaTime, chunkManager, this);
+            } else {
+                entity.update(deltaTime, chunkManager);
+            }
 
             // Spezifische Item-Logik (Aufsammeln)
             if (entity instanceof ItemEntity) {

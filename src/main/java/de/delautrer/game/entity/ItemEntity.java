@@ -2,40 +2,54 @@ package de.delautrer.game.entity;
 
 import de.delautrer.engine.physics.AABB;
 import de.delautrer.game.blocks.BlockRegistry;
+import de.delautrer.game.items.ItemRegistry;
 import de.delautrer.game.items.ItemStack;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
+import de.delautrer.game.world.World;
 import org.joml.Vector3f;
+
+import java.util.Objects;
 
 public class ItemEntity extends Entity {
 
     public ItemStack stack;
     public float pickupDelay = 1.0f;
-    private boolean isDead = false;
-    public AABB boundingBox; // Fallback, falls nicht in Entity deklariert
+    public AABB boundingBox;
+
+    // Wir merken uns, wie lange das Item schon lebt. Ältere Items schlucken jüngere beim Stacking.
+    private float age = 0.0f;
+    // Wir prüfen Kollisionen nicht jeden Frame, sondern z.B. nur alle 0.2 Sekunden (Performance)
+    private float stackCheckTimer = 0.0f;
 
     public ItemEntity(ItemStack stack, Vector3f spawnPos, Vector3f initialVelocity) {
-        super(spawnPos); // FIX: Ruft den Konstruktor deiner Entity-Basisklasse auf
+        super(spawnPos);
         this.stack = stack;
         this.velocity = new Vector3f(initialVelocity);
         this.boundingBox = new AABB(new Vector3f(-0.125f, 0, -0.125f), new Vector3f(0.125f, 0.25f, 0.125f));
     }
 
     @Override
-    public void update(float deltaTime, ChunkManager cm) { // FIX: Korrekte Signatur
+    public void update(float deltaTime, ChunkManager cm) {
+        // Diese Methode wird momentan nur vom World-Code OHNE World-Referenz aufgerufen.
+        // Wir brauchen für das Stacking aber die World-Referenz.
+        // Da du im World.java die Schleife hast, überladen wir die Update Methode unten!
+    }
+
+    // NEUE UPDATE METHODE: Wird von World.java aufgerufen
+    public void update(float deltaTime, ChunkManager cm, World world) {
         if (isDead) return;
 
-        if (pickupDelay > 0) {
-            pickupDelay -= deltaTime;
-        }
+        age += deltaTime;
+        if (pickupDelay > 0) pickupDelay -= deltaTime;
 
-        velocity.y -= 20.0f * deltaTime; // Schwerkraft
+        // 1. SCHWERKRAFT & KOLLISION
+        velocity.y -= 20.0f * deltaTime;
 
         float nextX = position.x + velocity.x * deltaTime;
         float nextY = position.y + velocity.y * deltaTime;
         float nextZ = position.z + velocity.z * deltaTime;
 
-        // Block unter dem Item prüfen (über den ChunkManager)
         Chunk c = cm.getChunkAtBlock((int) Math.floor(nextX), (int) Math.floor(nextY), (int) Math.floor(nextZ));
         if (c != null) {
             byte blockBelow = c.getBlock(Math.floorMod((int) Math.floor(nextX), Chunk.SIZE), (int) Math.floor(nextY), Math.floorMod((int) Math.floor(nextZ), Chunk.SIZE));
@@ -46,10 +60,55 @@ public class ItemEntity extends Entity {
                 velocity.z *= 0.5f;
             }
         }
-
         position.set(nextX, nextY, nextZ);
+
+        // 2. STACKING LOGIK
+        stackCheckTimer += deltaTime;
+        if (stackCheckTimer >= 0.2f && velocity.lengthSquared() < 0.1f) { // Nur checken, wenn wir relativ still liegen
+            stackCheckTimer = 0.0f;
+            tryStacking(world);
+        }
     }
 
-    public boolean isDead() { return isDead; }
-    public void setDead(boolean dead) { this.isDead = dead; }
+    private void tryStacking(World world) {
+        // Wenn wir schon voll sind, brauchen wir nicht suchen
+        if (stack.amount >= stack.type.getMaxStackSize()) return;
+
+        float mergeRadius = 1.2f; // Wie nah Items beieinander liegen müssen
+
+        for (Entity e : world.getEntities()) {
+            if (e == this || e.isDead()) continue;
+
+            if (e instanceof ItemEntity otherItem) {
+
+                if (ItemRegistry.getId(this.stack.type).equals(ItemRegistry.getId(otherItem.stack.type))) {
+                    float dist = this.position.distance(otherItem.position);
+                    if (dist < mergeRadius) {
+
+                        // Derjenige mit mehr Items (oder der Ältere) überlebt und zieht die Items an sich
+                        boolean iShouldMerge = (this.stack.amount > otherItem.stack.amount) ||
+                                (this.stack.amount == otherItem.stack.amount && this.age > otherItem.age);
+
+                        if (iShouldMerge) {
+                            int spaceLeft = this.stack.type.getMaxStackSize() - this.stack.amount;
+                            int amountToTake = Math.min(spaceLeft, otherItem.stack.amount);
+
+                            if (amountToTake > 0) {
+                                this.stack.amount += amountToTake;
+                                otherItem.stack.amount -= amountToTake;
+
+                                // Kleine visuelle "Hüpf"-Animation beim Verschmelzen
+                                this.velocity.y = 1.5f;
+
+                                if (otherItem.stack.amount <= 0) {
+                                    otherItem.setDead(true);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 }

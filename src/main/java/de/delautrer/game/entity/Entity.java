@@ -16,6 +16,7 @@ public abstract class Entity {
     protected float width = 0.3f;
     protected float height = 1.8f;
 
+    protected boolean isDead = false;
     protected boolean onGround = false;
     protected float gravity = -28.0f;
 
@@ -169,4 +170,7 @@ public abstract class Entity {
                 new Vector3f(position.x + width, position.y + height, position.z + width)
         );
     }
+
+    public boolean isDead() { return isDead; }
+    public void setDead(boolean dead) { this.isDead = dead; }
 }
