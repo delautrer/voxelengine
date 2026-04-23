@@ -10,47 +10,65 @@ public class VulkanMesh {
     private VulkanBuffer indexBuffer;
     private int indexCount;
 
+    // Wir merken uns die maximal allokierte Größe in Bytes
+    private long maxVertexBufferSize = 0;
+    private long maxIndexBufferSize = 0;
+
     public VulkanMesh(VulkanContext context, float[] vertices, int[] indices) {
         this.context = context;
-        createBuffers(vertices, indices);
+        updateMesh(vertices, indices); // Nutzt direkt die neue, smarte Logik
     }
 
     public VulkanMesh(VulkanContext context, MeshData data) {
         this.context = context;
-        createBuffers(data.vertices, data.indices);
+        updateMesh(data.vertices, data.indices);
     }
 
     public void updateMesh(MeshData data) {
-        cleanup(); // Zerstört alte Buffer
-        createBuffers(data.vertices, data.indices); // Baut neue auf (falls vorhanden)
+        updateMesh(data.vertices, data.indices);
     }
 
-    private void createBuffers(float[] vertices, int[] indices) {
+    // Die neue, dynamische Update-Methode
+    public void updateMesh(float[] vertices, int[] indices) {
         indexCount = indices.length;
-        // Wenn kein Wasser/Mesh da ist, bricht er hier ab.
         if (indexCount == 0) return;
 
-        long vertexBufferSize = (long) vertices.length * Float.BYTES;
-        vertexBuffer = new VulkanBuffer(context, vertexBufferSize,
-                VK10.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                VK10.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK10.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+        long requiredVertexSize = (long) vertices.length * Float.BYTES;
+        long requiredIndexSize = (long) indices.length * Integer.BYTES;
 
+        // 1. Vertex Buffer prüfen und updaten
+        if (requiredVertexSize > maxVertexBufferSize) {
+            // Buffer zu klein: Zerstören und neu (größer) bauen
+            if (vertexBuffer != null) vertexBuffer.cleanup();
+            // Wir reservieren direkt ein bisschen mehr Puffer, um nicht sofort wieder neu zu bauen (z.B. 1.5x)
+            maxVertexBufferSize = (long) (requiredVertexSize * 1.5);
+            vertexBuffer = new VulkanBuffer(context, maxVertexBufferSize,
+                    VK10.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                    VK10.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK10.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+        }
+
+        // Daten flink reinschreiben (ohne den Puffer zu zerstören!)
         try (MemoryStack stack = MemoryStack.stackPush()) {
             org.lwjgl.PointerBuffer data = stack.mallocPointer(1);
-            VK10.vkMapMemory(context.getDevice(), vertexBuffer.getBufferMemory(), 0, vertexBufferSize, 0, data);
+            VK10.vkMapMemory(context.getDevice(), vertexBuffer.getBufferMemory(), 0, requiredVertexSize, 0, data);
             java.nio.FloatBuffer floatBuffer = MemoryUtil.memFloatBuffer(data.get(0), vertices.length);
             floatBuffer.put(vertices);
             VK10.vkUnmapMemory(context.getDevice(), vertexBuffer.getBufferMemory());
         }
 
-        long indexBufferSize = (long) indices.length * Integer.BYTES;
-        indexBuffer = new VulkanBuffer(context, indexBufferSize,
-                VK10.VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-                VK10.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK10.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+        // 2. Index Buffer prüfen und updaten
+        if (requiredIndexSize > maxIndexBufferSize) {
+            if (indexBuffer != null) indexBuffer.cleanup();
+            maxIndexBufferSize = (long) (requiredIndexSize * 1.5);
+            indexBuffer = new VulkanBuffer(context, maxIndexBufferSize,
+                    VK10.VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                    VK10.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK10.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+        }
 
+        // Daten flink reinschreiben
         try (MemoryStack stack = MemoryStack.stackPush()) {
             org.lwjgl.PointerBuffer data = stack.mallocPointer(1);
-            VK10.vkMapMemory(context.getDevice(), indexBuffer.getBufferMemory(), 0, indexBufferSize, 0, data);
+            VK10.vkMapMemory(context.getDevice(), indexBuffer.getBufferMemory(), 0, requiredIndexSize, 0, data);
             java.nio.IntBuffer intBuffer = MemoryUtil.memIntBuffer(data.get(0), indices.length);
             intBuffer.put(indices);
             VK10.vkUnmapMemory(context.getDevice(), indexBuffer.getBufferMemory());
@@ -70,6 +88,8 @@ public class VulkanMesh {
             indexBuffer.cleanup();
             indexBuffer = null;
         }
-        indexCount = 0; // Setzt die Vertices sicherheitshalber wieder auf 0
+        indexCount = 0;
+        maxVertexBufferSize = 0;
+        maxIndexBufferSize = 0;
     }
 }

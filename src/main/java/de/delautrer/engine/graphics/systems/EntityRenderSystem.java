@@ -80,25 +80,42 @@ public class EntityRenderSystem implements IRenderSystem {
 
         if (blockVerts.isEmpty() && itemVerts.isEmpty()) return;
 
-        VK10.vkDeviceWaitIdle(context.getDevice());
+        // === ALTE VERZÖGERUNG ENTFERNT ===
+        // VK10.vkDeviceWaitIdle(context.getDevice()); <--- DAS HIER IST WEG!
 
-        // 1. BLÖCKE ZEICHNEN (Terrain-Pipeline + World-Texture)
+        // 1. BLÖCKE ZEICHNEN
         if (!blockVerts.isEmpty()) {
-            if (blockMesh != null) blockMesh.cleanup();
-            blockMesh = new VulkanMesh(context, toFloatArray(blockVerts), toIntArray(blockInds));
+            if (blockMesh == null) {
+                // Einmalig erstellen
+                blockMesh = new VulkanMesh(context, toFloatArray(blockVerts), toIntArray(blockInds));
+            } else {
+                // Dynamisch updaten (superschnell)
+                blockMesh.updateMesh(toFloatArray(blockVerts), toIntArray(blockInds));
+            }
 
             VK10.vkCmdBindPipeline(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, blockPipeline.getHandle());
             bindAndDraw(cmd, packet, blockPipeline.getPipelineLayout(), blockMesh, packet.worldTexture.getDescriptorSet());
+        } else if (blockMesh != null) {
+            // Wenn alle Items aufgesammelt wurden, räumen wir auf
+            VK10.vkDeviceWaitIdle(context.getDevice());
+            blockMesh.cleanup();
+            blockMesh = null;
         }
 
-        // 2. ITEMS ZEICHNEN (Terrain-Pipeline + Item-Texture)
+        // 2. ITEMS ZEICHNEN
         if (!itemVerts.isEmpty()) {
-            if (itemMesh != null) itemMesh.cleanup();
-            itemMesh = new VulkanMesh(context, toFloatArray(itemVerts), toIntArray(itemInds));
+            if (itemMesh == null) {
+                itemMesh = new VulkanMesh(context, toFloatArray(itemVerts), toIntArray(itemInds));
+            } else {
+                itemMesh.updateMesh(toFloatArray(itemVerts), toIntArray(itemInds));
+            }
 
-            // WIR NUTZEN WIEDER DIE BLOCK-PIPELINE!
             VK10.vkCmdBindPipeline(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, blockPipeline.getHandle());
             bindAndDraw(cmd, packet, blockPipeline.getPipelineLayout(), itemMesh, packet.itemTexture.getDescriptorSet());
+        } else if (itemMesh != null) {
+            VK10.vkDeviceWaitIdle(context.getDevice());
+            itemMesh.cleanup();
+            itemMesh = null;
         }
     }
 
