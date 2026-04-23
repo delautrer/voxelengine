@@ -5,6 +5,8 @@ import de.delautrer.engine.graphics.VulkanContext;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.blocks.state.BlockState;
+import de.delautrer.game.entity.Entity;
+import de.delautrer.game.entity.ItemEntity;
 import de.delautrer.game.entity.player.LocalPlayer;
 import de.delautrer.game.events.BlockChangeEvent;
 import de.delautrer.game.events.BlockNeighborUpdateEvent;
@@ -15,6 +17,9 @@ import de.delautrer.game.world.persistence.PlayerData;
 import de.delautrer.game.world.persistence.WorldData;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
+
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class World {
     private final EventBus eventBus;
@@ -29,6 +34,8 @@ public class World {
     private boolean isCleanedUp = false;
     private final String worldName;
     private final String worldSave;
+
+    private final List<Entity> entities = new CopyOnWriteArrayList<>();
 
     public World(VulkanContext context, LocalPlayer localPlayer, EventBus eventBus, long defaultSeed, String worldName, String worldSave) {
         this.eventBus = eventBus;
@@ -83,6 +90,39 @@ public class World {
         chunkManager.update(localPlayer.position.x, localPlayer.position.z);
         tickScheduler.update(deltaTime);
         cloudSystem.update(deltaTime);
+
+        // Entities updaten
+        for (Entity entity : entities) {
+            entity.update(deltaTime, chunkManager);
+
+            // Spezifische Item-Logik (Aufsammeln)
+            if (entity instanceof ItemEntity) {
+                ItemEntity item = (ItemEntity) entity;
+
+                if (!item.isDead() && item.pickupDelay <= 0) {
+                    float dist = localPlayer.position.distance(item.position);
+                    if (dist < 1.5f) {
+                        de.delautrer.game.events.PlayerItemPickupEvent event = new de.delautrer.game.events.PlayerItemPickupEvent(localPlayer, item.stack);
+                        eventBus.publish(event);
+
+                        if (!event.isCancelled()) {
+                            int leftover = localPlayer.getInventory().addItem(item.stack);
+                            eventBus.publish(new de.delautrer.game.events.InventoryChangeEvent());
+
+                            if (leftover == 0) {
+                                item.setDead(true);
+                            } else {
+                                item.stack.amount = leftover;
+                            }
+                        }
+                    }
+                }
+
+                if (item.isDead()) {
+                    entities.remove(item);
+                }
+            }
+        }
 
         if (localPlayer.position.y < -50) {
             Vector3f safeSpawn = worldSpawnpoint == null ? findSafeSpawn((int)localPlayer.position.x, (int)localPlayer.position.z) : worldSpawnpoint;
@@ -248,6 +288,18 @@ public class World {
                 player.position.set(worldSpawnpoint);
             }
         }
+    }
+
+    public void spawnEntity(Entity entity) {
+        entities.add(entity);
+    }
+
+    public void removeEntity(Entity entity) {
+        entities.remove(entity);
+    }
+
+    public List<Entity> getEntities() {
+        return entities;
     }
 
     public long getSeed() { return seed; }

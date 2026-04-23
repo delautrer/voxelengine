@@ -76,4 +76,8 @@ public class BlockItem extends Item {
             }
         }
     }
+
+    public Block getBlock() {
+        return block;
+    }
 }

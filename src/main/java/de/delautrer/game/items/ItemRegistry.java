@@ -48,7 +48,7 @@ public class ItemRegistry {
     public static final Item DANDELION     = register("dandelion", new BlockItem("Dandelion", "dandelion", BlockRegistry.DANDELION));
     public static final Item DOTTY         = register("dotty", new BlockItem("Dotty", "dotty", BlockRegistry.DOTTY));
     public static final Item FAIRY_BELL    = register("fairy_bell", new BlockItem("Fairy Bell", "fairy_bell", BlockRegistry.FAIRY_BELL));
-    public static final Item RED_TULIP     = register("red_tulip", new BlockItem("Red Tulip", "red_tulip", BlockRegistry.PURPLE_TULIP));
+    public static final Item RED_TULIP     = register("red_tulip", new BlockItem("Red Tulip", "red_tulip", BlockRegistry.RED_TULIP));
     public static final Item PURPLE_TULIP  = register("purple_tulip", new BlockItem("Purple Tulip", "purple_tulip", BlockRegistry.PURPLE_TULIP));
     public static final Item MAVVINILIA    = register("mavvinilia", new BlockItem("Mavvinilia", "mavvinilia", BlockRegistry.MAVVINILIA));
 

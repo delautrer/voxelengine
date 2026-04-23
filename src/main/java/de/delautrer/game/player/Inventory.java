@@ -63,6 +63,35 @@ public class Inventory {
         }
     }
 
+    public int addItem(ItemStack stackToAdd) {
+        if (stackToAdd == null || stackToAdd.type == null || stackToAdd.amount <= 0) return 0;
+
+        // 1. Versuche, existierende Stacks desselben Typs aufzufüllen
+        for (int i = 0; i < TOTAL_SIZE; i++) {
+            ItemStack current = getStack(i);
+            if (current != null && current.type == stackToAdd.type) {
+                int spaceLeft = 64 - current.amount; // 64 = Max Stack Size
+                if (spaceLeft > 0) {
+                    int amountToAdd = Math.min(spaceLeft, stackToAdd.amount);
+                    current.amount += amountToAdd;
+                    stackToAdd.amount -= amountToAdd;
+                    if (stackToAdd.amount == 0) return 0; // Komplett hinzugefügt!
+                }
+            }
+        }
+
+        // 2. Wenn noch Reste da sind, suche den ersten leeren Slot
+        for (int i = 0; i < TOTAL_SIZE; i++) {
+            if (getStack(i) == null) {
+                setStack(i, new ItemStack(stackToAdd.type, stackToAdd.amount));
+                return 0; // Komplett hinzugefügt!
+            }
+        }
+
+        // 3. Inventar ist voll: Gib die Menge zurück, die nicht passte
+        return stackToAdd.amount;
+    }
+
     public ItemStack getSelectedHotbarStack() { return slots[selectedHotbarSlot]; }
     public void setSelectedSlot(int s) { this.selectedHotbarSlot = s; }
     public int getSelectedSlot() { return selectedHotbarSlot; }

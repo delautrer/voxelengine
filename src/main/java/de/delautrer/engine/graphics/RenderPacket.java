@@ -1,5 +1,6 @@
 package de.delautrer.engine.graphics;
 
+import de.delautrer.game.entity.Entity;
 import org.joml.Matrix4f;
 import org.joml.Vector3i;
 import org.joml.Vector3f;
@@ -8,9 +9,10 @@ import java.util.List;
 public class RenderPacket {
     public Matrix4f mvp, proj, view, ortho;
 
-    // Die neuen Listen für das Wasser-Splitting
     public List<VulkanMesh> opaqueMeshes;
     public List<VulkanMesh> waterMeshes;
+
+    public List<Entity> entities;
 
     public VulkanMesh highlightMesh;
     public VulkanMesh uiMesh;

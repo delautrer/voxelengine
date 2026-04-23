@@ -11,6 +11,7 @@ import de.delautrer.game.commands.CommandManager;
 import de.delautrer.game.entity.player.LocalPlayer;
 import de.delautrer.game.events.DebugToggleEvent;
 import de.delautrer.game.events.HotbarSlotChangeEvent;
+import de.delautrer.game.events.InventoryChangeEvent;
 import de.delautrer.game.events.InventoryToggleEvent;
 import de.delautrer.game.ui.ChatOverlay;
 import de.delautrer.game.ui.DebugOverlay;
@@ -55,6 +56,7 @@ public class PlayScene extends Scene {
     private EventListener<InventoryToggleEvent> inventoryToggleListener;
     private EventListener<HotbarSlotChangeEvent> hotbarSlotChangeListener;
     private EventListener<DebugToggleEvent> debugToggleListener;
+    private EventListener<InventoryChangeEvent> inventoryChangeEvent;
 
     public PlayScene(Engine engine, String worldName, long seed) {
         super(engine);
@@ -185,11 +187,14 @@ public class PlayScene extends Scene {
         };
         hotbarSlotChangeListener = event -> uiNeedsRebuild = true;
         debugToggleListener = event -> uiNeedsRebuild = true;
+        inventoryChangeEvent = event -> uiNeedsRebuild = true;
 
         eventBus.subscribe(InventoryToggleEvent.class, inventoryToggleListener);
         eventBus.subscribe(HotbarSlotChangeEvent.class, hotbarSlotChangeListener);
         eventBus.subscribe(DebugToggleEvent.class, debugToggleListener);
+        eventBus.subscribe(InventoryChangeEvent.class, inventoryChangeEvent);
     }
+
 
     @Override
     public void update(float deltaTime) {
@@ -380,4 +385,5 @@ public class PlayScene extends Scene {
         localPlayer.getCamera().resetMouseTracking();
         uiNeedsRebuild = true;
     }
+
 }

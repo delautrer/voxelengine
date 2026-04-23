@@ -20,6 +20,7 @@ import de.delautrer.game.world.World;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
+import org.lwjgl.vulkan.VK10;
 
 public class MasterRenderer {
     private final VulkanContext vulkanContext;
@@ -35,6 +36,7 @@ public class MasterRenderer {
     private VulkanTexture blockUITexture;
     private VulkanMesh highlightMesh;
     private VulkanMesh cloudMesh;
+    private VulkanMesh dynamicHighlightMesh;
     private VulkanFont font;
 
     private final TextureStitcher.AtlasResult blockAtlas;
@@ -129,10 +131,18 @@ public class MasterRenderer {
             byte selectedBlockId = world.getBlockAt(selectedBlockPos);
             Block block = BlockRegistry.get(selectedBlockId);
             BlockState state = world.getBlockState(selectedBlockPos);
-            packet.highlightMesh = new VulkanMesh(vulkanContext, block.getHighlightVertices(state), block.getHighlightIndices(state));
+
+            if (dynamicHighlightMesh != null) {
+                VK10.vkDeviceWaitIdle(vulkanContext.getDevice());
+                dynamicHighlightMesh.cleanup();
+            }
+            dynamicHighlightMesh = new VulkanMesh(vulkanContext, block.getHighlightVertices(state), block.getHighlightIndices(state));
+            packet.highlightMesh = dynamicHighlightMesh;
         } else {
             packet.highlightMesh = highlightMesh;
         }
+
+        packet.entities = world.getEntities();
 
         packet.topUiMesh = uiRenderer.getTopUiMesh();
 

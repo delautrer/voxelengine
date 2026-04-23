@@ -29,6 +29,7 @@ public class VulkanRenderer {
     private CloudRenderSystem cloudSystem;
     private HighlightRenderSystem highlightSystem;
     private UIRenderSystem uiSystem;
+    private EntityRenderSystem entityRenderSystem;
 
     private int currentFrame = 0;
 
@@ -48,9 +49,11 @@ public class VulkanRenderer {
         cloudSystem = new CloudRenderSystem(context, swapchain, renderPass);
         highlightSystem = new HighlightRenderSystem(context, swapchain, renderPass);
         uiSystem = new UIRenderSystem(context, swapchain, renderPass);
+        entityRenderSystem = new EntityRenderSystem(context, swapchain, renderPass);
 
         renderSystems.add(skyRenderSystem);
         renderSystems.add(terrainSystem);
+        renderSystems.add(entityRenderSystem);
         renderSystems.add(cloudSystem);
         renderSystems.add(highlightSystem);
         renderSystems.add(uiSystem);
@@ -156,9 +159,11 @@ public class VulkanRenderer {
         cloudSystem = new CloudRenderSystem(context, swapchain, renderPass);
         highlightSystem = new HighlightRenderSystem(context, swapchain, renderPass);
         uiSystem = new UIRenderSystem(context, swapchain, renderPass);
+        entityRenderSystem = new EntityRenderSystem(context, swapchain, renderPass);
 
         renderSystems.add(skyRenderSystem);
         renderSystems.add(terrainSystem);
+        renderSystems.add(entityRenderSystem);
         renderSystems.add(cloudSystem);
         renderSystems.add(highlightSystem);
         renderSystems.add(uiSystem);

@@ -6,8 +6,12 @@ import de.delautrer.engine.graphics.VulkanContext;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
+import de.delautrer.game.entity.ItemEntity;
 import de.delautrer.game.events.HotbarSlotChangeEvent;
 import de.delautrer.game.events.InventoryToggleEvent;
+import de.delautrer.game.events.PlayerItemDropEvent;
+import de.delautrer.game.items.ItemStack;
+import de.delautrer.game.player.Inventory;
 import de.delautrer.game.world.ChunkManager;
 import de.delautrer.game.world.World;
 import org.joml.Vector3f;
@@ -105,6 +109,49 @@ public class LocalPlayer extends Player {
         }
 
         boolean isInventoryOpen = inventory.isOpen() || isChatOpen;
+
+        if (input.isActionJustPressed("DROP_ITEM") && !isInventoryOpen) {
+            ItemStack currentStack = inventory.getStack(inventory.getSelectedSlot());
+
+            if (currentStack != null) {
+                // Wir droppen immer 1 Item (wie in Minecraft)
+                ItemStack dropStack = new ItemStack(currentStack.type, 1);
+
+                // Wenn der Spieler z.B. Strg+Q drückt, droppt er den ganzen Stack:
+                // if (inputManager.isKeyDown(GLFW_KEY_LEFT_CONTROL)) { ... }
+
+                currentStack.amount -= 1;
+                if (currentStack.amount <= 0) {
+                    inventory.setStack(inventory.getSelectedSlot(), null);
+                }
+
+                eventBus.publish(new de.delautrer.game.events.InventoryChangeEvent());
+
+                // Spawn-Position (auf Augenhöhe des Spielers)
+                Vector3f spawnPos = new Vector3f(this.position).add(0, 1.5f, 0);
+
+                // --- MATHEMATISCH KORREKTE BLICKRICHTUNG ---
+                float yawRad = (float) Math.toRadians(this.getCamera().getYaw());
+                float pitchRad = (float) Math.toRadians(this.getCamera().getPitch());
+
+                // FIX: Wir ziehen exakt 90 Grad vom Yaw ab, um den Versatz deiner Kamera auszugleichen
+                float adjustedYaw = yawRad;
+
+                float vx = (float) (Math.cos(adjustedYaw) * Math.cos(pitchRad));
+                float vy = (float) (-Math.sin(pitchRad));
+                float vz = (float) (Math.sin(adjustedYaw) * Math.cos(pitchRad));
+
+                Vector3f lookDir = new Vector3f(vx, vy, vz).normalize();
+
+                // 5 Blöcke weit, 1.5 Blöcke hoch werfen
+                Vector3f throwVelocity = new Vector3f(lookDir).mul(5.0f).add(0, 1.5f, 0);
+
+                ItemEntity itemEntity = new ItemEntity(dropStack, spawnPos, throwVelocity);
+                chunkManager.getWorld().spawnEntity(itemEntity);
+
+                eventBus.publish(new PlayerItemDropEvent(this, dropStack));
+            }
+        }
 
         // ==========================================
         // 2. STATUS-UPDATES (Sprinten & Schwimmen & Hitbox)
