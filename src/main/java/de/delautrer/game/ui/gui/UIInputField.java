@@ -70,4 +70,16 @@ public class UIInputField extends UIElement {
             builder.addRect(x + 12.0f + textWidth, textY, 0.2f, 2.0f, 20.0f, 1.0f, 1.0f, 1.0f, 1.0f);
         }
     }
+
+    public void handleInput(de.delautrer.engine.input.InputManager input) {
+        if (!isFocused) return;
+
+        for (char c : input.consumeTypedChars()) {
+            typeChar(c);
+        }
+
+        if (input.isActionJustPressed("UI_BACKSPACE")) {
+            backspace();
+        }
+    }
 }

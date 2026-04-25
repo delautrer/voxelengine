@@ -1,7 +1,7 @@
 package de.delautrer.game.commands;
 
 import de.delautrer.game.entity.player.LocalPlayer;
-import de.delautrer.game.player.Inventory;
+import de.delautrer.game.inventory.PlayerInventory;
 import de.delautrer.game.world.World;
 
 import java.util.ArrayList;
@@ -20,8 +20,8 @@ public class ClearCommand implements ICommand {
 
     @Override
     public void execute(LocalPlayer player, World world, String[] args, CommandManager manager) {
-        Inventory inv = player.getInventory();
-        for (int i = 0; i < Inventory.TOTAL_SIZE; i++) {
+        PlayerInventory inv = player.getInventory();
+        for (int i = 0; i < PlayerInventory.TOTAL_SIZE; i++) {
             inv.setStack(i, null);
         }
         manager.sendMessageInChat("Your inventory has been cleared.");

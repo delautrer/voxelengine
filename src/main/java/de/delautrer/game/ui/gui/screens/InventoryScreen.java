@@ -1,172 +1,45 @@
 package de.delautrer.game.ui.gui.screens;
 
-import de.delautrer.engine.graphics.VulkanFont;
-import de.delautrer.game.items.ItemStack;
-import de.delautrer.game.ui.UIUtils;
-import de.delautrer.game.ui.gui.Container;
+import de.delautrer.game.ui.gui.PlayerContainer;
 import de.delautrer.game.ui.gui.UIMeshBuilder;
 
-public class InventoryScreen extends MenuScreen {
+public class InventoryScreen extends ContainerScreen {
 
-    private final Container container;
-    private VulkanFont font;
-    private float hx, hotbarY, invY, hotbarWidth, hotbarHeight, slotHitboxSize;
+    private float panelX, panelY, panelW, panelH, padding;
 
-    public InventoryScreen(Container container) {
-        this.container = container;
-    }
-
-    public void setFont(VulkanFont font) {
-        this.font = font;
+    public InventoryScreen(PlayerContainer container) {
+        super(container);
     }
 
     @Override
     protected void onInit() {
-        hotbarWidth = 24f * 9f * pixelScale;
-        hotbarHeight = 24f * pixelScale;
-        slotHitboxSize = 24.0f * pixelScale;
+        slotSize = 24f * pixelScale;
 
-        hx = (float) Math.floor((width - hotbarWidth) / 2.0f);
-        hotbarY = height / 2.0f - hotbarHeight * 2.0f;
+        float hotbarWidth = 24f * 9f * pixelScale;
+        float hotbarHeight = 24f * pixelScale;
 
-        invY = hotbarY + hotbarHeight + (10.0f * pixelScale);
+        // guiX und guiY legen fest, wo unser Container (Slot X/Y = 0) beginnt.
+        guiX = (float) Math.floor((width - hotbarWidth) / 2.0f);
+        guiY = height / 2.0f - hotbarHeight * 2.0f;
+
+        // Panel Bounds berechnen (nur für den Hintergrund wichtig)
+        padding = 10.0f * pixelScale;
+        panelW = hotbarWidth + padding * 2;
+        // Höhe: 3 Reihen à 24px + 34px Abstand + Padding
+        panelH = (34f * pixelScale + 3 * hotbarHeight) + padding * 2 + (15.0f * pixelScale);
+        panelX = guiX - padding;
+        panelY = guiY - padding;
     }
 
     @Override
-    public void render(UIMeshBuilder builder, float mouseX, float mouseY) {
-        int hoveredSlot = getHoveredSlot(mouseX, mouseY);
-
-        float padding = 10.0f * pixelScale;
-        float panelW = hotbarWidth + padding * 2;
-        float panelH = (invY + 3 * hotbarHeight - hotbarY) + padding * 2 + (15.0f * pixelScale);
-        float panelX = hx - padding;
-        float panelY = hotbarY - padding;
-
+    protected void drawBackground(UIMeshBuilder builder, float mouseX, float mouseY) {
+        // Hintergrund
         builder.add9Slice(panelX, panelY, 0.0f, panelW, panelH, 4, 0, 8.0f * pixelScale);
 
-        // --- 2. TITEL TEXT ---
+        // Titel
         if (font != null) {
             float titleY = panelY + panelH - (18.0f * pixelScale);
             builder.drawText("Inventory", panelX + padding, titleY, 0.1f, font);
         }
-
-        // --- 3. HOTBAR HINTERGRUND ---
-        for (int visualCol = 0; visualCol < 9; visualCol++) {
-            builder.addAtlasQuad(hx + (visualCol * 24.0f) * pixelScale, hotbarY, 0.1f, 24.0f * pixelScale, 24.0f * pixelScale, 5,0, 1, 1, false);
-        }
-        //builder.addAtlasQuad(hx, hotbarY, 0.2f, hotbarWidth, hotbarHeight, 1, 1, 9, 1, false);
-
-        // --- 4. INVENTAR HINTERGRUND ---
-        for (int visualRow = 0; visualRow < 3; visualRow++) {
-            float y = invY + (visualRow * hotbarHeight);
-            for (int visualCol = 0; visualCol < 9; visualCol++) {
-                builder.addAtlasQuad(hx + (visualCol * 24.0f) * pixelScale, y, 0.1f, 24.0f * pixelScale, 24.0f * pixelScale, 5,0, 1, 1, false);
-            }
-            //builder.addAtlasQuad(hx, y, 0.2f, hotbarWidth, hotbarHeight, 1, 1, 9, 1, false);
-        }
-
-        // --- 5. ITEMS & HOVER-EFFEKTE ---
-
-        // Hotbar Items (Slots 0-8)
-        for (int col = 0; col < 9; col++) {
-            float slotX = hx + (col * 24.0f) * pixelScale;
-            float selectorW = 24.0f * pixelScale;
-
-            if (hoveredSlot == col) {
-                builder.addAtlasQuad(slotX, hotbarY, 0.3f, selectorW, hotbarHeight, 10, 1, 1, 1, false);
-            }
-            ItemStack stack = container.getInventory().getStack(col);
-            builder.drawItem(stack, slotX + 3 * pixelScale, hotbarY + 3 * pixelScale, 0.5f, selectorW - 6 * pixelScale);
-            if (stack != null && stack.amount > 1) {
-                builder.drawText(String.valueOf(stack.amount), slotX + selectorW - (12.0f * pixelScale), hotbarY + (2.0f * pixelScale), 0.25f, font);
-            }
-        }
-
-        // Main Inventory Items (Slots 9-35)
-        for (int logicalRow = 0; logicalRow < 3; logicalRow++) {
-            float rowY = invY + (logicalRow * hotbarHeight);
-            for (int col = 0; col < 9; col++) {
-                int slot = 9 + (logicalRow * 9) + col;
-
-                float slotX = hx + (col * 24.0f) * pixelScale;
-                float selectorW = 24.0f * pixelScale;
-
-                if (hoveredSlot == slot) {
-                    builder.addAtlasQuad(slotX, rowY, 0.3f, selectorW, hotbarHeight, 10, 1, 1, 1, false);
-                }
-                ItemStack stack = container.getInventory().getStack(slot);
-                builder.drawItem(stack, slotX + 3 * pixelScale, rowY + 3 * pixelScale, 0.5f, selectorW - 6 * pixelScale);
-                if (stack != null && stack.amount > 1) {
-                    builder.drawText(String.valueOf(stack.amount), slotX + selectorW - (12.0f * pixelScale), rowY + (2.0f * pixelScale), 0.25f, font);
-                }
-            }
-        }
-
-        // --- 6. ITEM AN DER MAUS ---
-        if (container.getMouseStack() != null) {
-            float itemSize = (24.0f - 4) * pixelScale;
-            float invertedMouseY = height - mouseY;
-            builder.drawItem(container.getMouseStack(), mouseX - itemSize / 2.0f + 3 * pixelScale, invertedMouseY - itemSize / 2.0f + 3 * pixelScale, 0.5f, itemSize);
-            if (container.getMouseStack().amount > 1) {
-                builder.drawText(String.valueOf(container.getMouseStack().amount), mouseX + (itemSize / 2.0f) - (8.0f * pixelScale), invertedMouseY - (itemSize / 2.0f), 0.25f, font);
-            }
-        }
-
-        // --- 7. TOOLTIP ---
-        if (hoveredSlot != -1 && container.getMouseStack() == null) {
-            ItemStack hoveredStack = container.getInventory().getStack(hoveredSlot);
-            if (hoveredStack != null && hoveredStack.type != null) {
-                String name = UIUtils.formatItemName(de.delautrer.game.items.ItemRegistry.getId(hoveredStack.type));
-
-                float textScale = 0.2f;
-                float textWidth = builder.getTextWidth(name, font);
-                float textHeight = 28.0f * pixelScale * textScale;
-
-                float invertedMouseY = height - mouseY;
-                float tipX = mouseX + (12.0f * pixelScale);
-                float tipY = invertedMouseY - (12.0f * pixelScale);
-
-                if (tipX + textWidth + (10.0f * pixelScale) > width) {
-                    tipX = mouseX - textWidth - (16.0f * pixelScale);
-                }
-                if (tipY < textHeight) {
-                    tipY = textHeight;
-                }
-
-                builder.addTooltipBackground(tipX, tipY - (textHeight / 2.0f), 1f, textWidth + (12.0f*pixelScale), textHeight + (8.0f*pixelScale), 4, 0, 4.0f * pixelScale);
-                builder.drawText(name, tipX + (6.0f*pixelScale), tipY, textScale, font);
-            }
-        }
-    }
-
-    @Override
-    public int getHoveredSlot(float mouseX, float mouseY) {
-        float invertedMouseY = height - mouseY;
-
-        if (invertedMouseY >= hotbarY && invertedMouseY <= hotbarY + hotbarHeight) {
-            for (int col = 0; col < 9; col++) {
-                float slotX = hx + (col * 24.0f) * pixelScale;
-                if (mouseX >= slotX && mouseX <= slotX + slotHitboxSize) return col;
-            }
-        }
-
-        for (int logicalRow = 0; logicalRow < 3; logicalRow++) {
-            float rowY = invY + (logicalRow * hotbarHeight);
-            if (invertedMouseY >= rowY && invertedMouseY <= rowY + hotbarHeight) {
-                for (int col = 0; col < 9; col++) {
-                    float slotX = hx + (col * 24.0f) * pixelScale;
-                    if (mouseX >= slotX && mouseX <= slotX + slotHitboxSize) {
-                        return 9 + (logicalRow * 9) + col;
-                    }
-                }
-            }
-        }
-        return -1;
-    }
-
-    @Override
-    protected void mouseClicked(float mouseX, float mouseY, int button) {
-        int slot = getHoveredSlot(mouseX, mouseY);
-        if (slot != -1) container.handleSlotClick(slot);
     }
 }

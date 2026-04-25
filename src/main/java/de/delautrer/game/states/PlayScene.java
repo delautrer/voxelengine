@@ -183,6 +183,7 @@ public class PlayScene extends Scene {
                 engine.getWindow().disableCursor();
                 localPlayer.getCamera().resetMouseTracking();
                 localPlayer.getInteraction().resetCooldown();
+                engine.getInputManager().setTypingMode(false);
             }
         };
         hotbarSlotChangeListener = event -> uiNeedsRebuild = true;
@@ -371,6 +372,7 @@ public class PlayScene extends Scene {
         localPlayer.setChatOpen(true);
         chatScreen.open(startWithSlash);
 
+        engine.getInputManager().setTypingMode(true);
         engine.getInputManager().consumeTypedChars();
 
         engine.getWindow().enableCursor();
@@ -382,6 +384,7 @@ public class PlayScene extends Scene {
         isChatOpen = false;
         localPlayer.setChatOpen(false);
         engine.getWindow().disableCursor();
+        engine.getInputManager().setTypingMode(false);
         localPlayer.getCamera().resetMouseTracking();
         uiNeedsRebuild = true;
     }

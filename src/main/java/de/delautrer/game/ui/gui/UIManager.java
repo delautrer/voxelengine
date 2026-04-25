@@ -23,9 +23,11 @@ public class UIManager {
         if (interaction.getInventory().isOpen()) {
             if (currentScreen == null) {
                 if (interaction.getPlayer().getGameMode() == GameMode.CREATIVE) {
-                    currentScreen = new CreativeInventoryScreen(new Container(interaction.getInventory()));
+                    // Creative-Inventory benutzt NOCH das alte System
+                    currentScreen = new CreativeInventoryScreen(new CreativeContainer(interaction.getInventory()));
                 } else {
-                    currentScreen = new InventoryScreen(new Container(interaction.getInventory()));
+                    // Survival nutzt den neuen PlayerContainer!
+                    currentScreen = new InventoryScreen(new PlayerContainer(interaction.getInventory()));
                 }
 
                 if (lastWidth > 0) currentScreen.init(lastWidth, lastHeight);

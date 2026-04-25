@@ -1,13 +1,13 @@
 package de.delautrer.game.entity.player;
 
 import de.delautrer.game.entity.Entity;
-import de.delautrer.game.player.Inventory;
+import de.delautrer.game.inventory.PlayerInventory;
 import de.delautrer.game.world.ChunkManager;
 import org.joml.Vector3f;
 
 public class Player extends Entity {
 
-    protected final Inventory inventory;
+    protected final PlayerInventory inventory;
     protected float eyeHeight = 1.62f;
     protected boolean isSneaking = false;
     protected boolean isFlying = false;
@@ -23,7 +23,7 @@ public class Player extends Entity {
 
     public Player(Vector3f spawnPosition) {
         super(spawnPosition);
-        this.inventory = new Inventory();
+        this.inventory = new PlayerInventory();
     }
 
     @Override
@@ -34,7 +34,7 @@ public class Player extends Entity {
         moveAndCollide(chunkManager, deltaTime, isSneaking);
     }
 
-    public Inventory getInventory() {
+    public PlayerInventory getInventory() {
         return inventory;
     }
 

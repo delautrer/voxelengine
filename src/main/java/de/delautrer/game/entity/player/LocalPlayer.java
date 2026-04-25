@@ -11,11 +11,9 @@ import de.delautrer.game.events.HotbarSlotChangeEvent;
 import de.delautrer.game.events.InventoryToggleEvent;
 import de.delautrer.game.events.PlayerItemDropEvent;
 import de.delautrer.game.items.ItemStack;
-import de.delautrer.game.player.Inventory;
 import de.delautrer.game.world.ChunkManager;
 import de.delautrer.game.world.World;
 import org.joml.Vector3f;
-import org.joml.Vector3i;
 
 public class LocalPlayer extends Player {
 

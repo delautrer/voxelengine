@@ -11,6 +11,7 @@ public class InputManager {
     private final long windowHandle;
 
     private final List<Character> typedChars = new ArrayList<>();
+    private boolean typingMode = false;
 
     private final Map<String, Integer> keyBindings = new HashMap<>();
     private final Map<String, Integer> mouseBindings = new HashMap<>();
@@ -108,6 +109,18 @@ public class InputManager {
     }
 
     public boolean isActionActive(String action) {
+        if (typingMode) {
+            if (!action.equals("UI_BACKSPACE") &&
+                    !action.equals("PAUSE") &&
+                    !action.equals("CHAT_SEND") &&
+                    !action.equals("UI_TAB") &&
+                    !action.equals("UI_UP") &&
+                    !action.equals("UI_DOWN") &&
+                    !mouseBindings.containsKey(action)) {
+                return false;
+            }
+        }
+
         if (keyBindings.containsKey(action)) return GLFW.glfwGetKey(windowHandle, keyBindings.get(action)) == GLFW.GLFW_PRESS;
         if (mouseBindings.containsKey(action)) return GLFW.glfwGetMouseButton(windowHandle, mouseBindings.get(action)) == GLFW.GLFW_PRESS;
         return false;
@@ -121,4 +134,5 @@ public class InputManager {
     public float getMouseY() { return mouseY; }
     public int getWindowWidth() { return windowWidth; }
     public int getWindowHeight() { return windowHeight; }
+    public void setTypingMode(boolean typingMode) { this.typingMode = typingMode; }
 }

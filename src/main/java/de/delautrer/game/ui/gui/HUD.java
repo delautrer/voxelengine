@@ -5,12 +5,12 @@ import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.entity.player.GameMode;
 import de.delautrer.game.entity.player.PlayerInteraction;
+import de.delautrer.game.inventory.PlayerInventory;
 import de.delautrer.game.items.Item;
 import de.delautrer.game.items.ItemRegistry;
 import de.delautrer.game.items.ItemStack;
 import de.delautrer.game.ui.ChatOverlay;
 import de.delautrer.game.ui.DebugOverlay;
-import de.delautrer.game.player.Inventory;
 import de.delautrer.game.ui.UIUtils;
 
 import java.util.List;
@@ -26,7 +26,7 @@ public class HUD {
         if (height >= 1080) pixelScale = 3.0f;
         if (height >= 1440) pixelScale = 4.0f;
 
-        Inventory inventory = interaction.getInventory();
+        PlayerInventory inventory = interaction.getInventory();
         boolean isScreenOpen = inventory.isOpen();
 
         boolean isChatOpen = interaction.getPlayer().isChatOpen();

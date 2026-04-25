@@ -10,9 +10,9 @@ import de.delautrer.game.entity.ItemEntity;
 import de.delautrer.game.entity.player.LocalPlayer;
 import de.delautrer.game.events.BlockChangeEvent;
 import de.delautrer.game.events.BlockNeighborUpdateEvent;
+import de.delautrer.game.inventory.PlayerInventory;
 import de.delautrer.game.items.ItemRegistry;
 import de.delautrer.game.items.ItemStack;
-import de.delautrer.game.player.Inventory;
 import de.delautrer.game.world.persistence.PlayerData;
 import de.delautrer.game.world.persistence.WorldData;
 import org.joml.Vector3f;
@@ -71,7 +71,7 @@ public class World {
             int i = 0;
             for (de.delautrer.game.items.Item item : ItemRegistry.getAll().values()) {
                 localPlayer.getInventory().setStack(i++, new ItemStack(item, 64));
-                if (i >= Inventory.TOTAL_SIZE) break;
+                if (i >= PlayerInventory.TOTAL_SIZE) break;
             }
         }
 

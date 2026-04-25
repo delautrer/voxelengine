@@ -46,4 +46,9 @@ public abstract class UIElement {
     public float getWidth() {
         return width;
     }
+
+    public void setSize(float width, float height) {
+        this.width = width;
+        this.height = height;
+    }
 }

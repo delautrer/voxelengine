@@ -5,7 +5,7 @@ import de.delautrer.engine.graphics.VulkanContext;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.engine.graphics.Camera;
 import de.delautrer.engine.physics.Raycaster;
-import de.delautrer.game.player.Inventory;
+import de.delautrer.game.inventory.PlayerInventory;
 import de.delautrer.game.world.World;
 import de.delautrer.game.items.ItemStack;
 import de.delautrer.game.items.BlockItem;
@@ -119,7 +119,7 @@ public class PlayerInteraction {
     }
 
     public Vector3i getSelectedBlockPos() { return selectedBlockPos; }
-    public Inventory getInventory() { return player.getInventory(); }
+    public PlayerInventory getInventory() { return player.getInventory(); }
     public void resetCooldown() {
         this.clickCooldown = 0.2f;
     }
