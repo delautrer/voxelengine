@@ -5,6 +5,7 @@ import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.entity.player.LocalPlayer;
+import de.delautrer.game.events.BlockPlaceEvent;
 import de.delautrer.game.world.World;
 import de.delautrer.engine.physics.AABB;
 import de.delautrer.game.entity.player.PlayerInteraction;
@@ -54,8 +55,9 @@ public class BlockItem extends Item {
         );
 
         boolean canPlace = true;
-        if (this.block.isSolid) {
-            List<AABB> blockBoxes = block.getBoundingBoxes(newState);
+        List<AABB> blockBoxes = block.getBoundingBoxes(newState);
+
+        if (blockBoxes != null && !blockBoxes.isEmpty()) {
             for (AABB box : blockBoxes) {
                 AABB worldBox = new AABB(
                         new Vector3f(box.min).add(placePos.x, placePos.y, placePos.z),
@@ -69,10 +71,15 @@ public class BlockItem extends Item {
         }
 
         if (canPlace) {
-            if (this.block == BlockRegistry.WATER) {
-                world.setBlockWithState(placePos.x, placePos.y, placePos.z, block.getId(), (byte)8);
-            } else {
-                world.setBlockState(placePos.x, placePos.y, placePos.z, newState);
+            BlockPlaceEvent placeEvent = new BlockPlaceEvent(player, placePos, newState);
+            interaction.getEventBus().publish(placeEvent);
+
+            if (!placeEvent.isCancelled()) {
+                if (this.block == BlockRegistry.WATER) {
+                    world.setBlockWithState(placePos.x, placePos.y, placePos.z, block.getId(), (byte)8);
+                } else {
+                    world.setBlockState(placePos.x, placePos.y, placePos.z, newState);
+                }
             }
         }
     }

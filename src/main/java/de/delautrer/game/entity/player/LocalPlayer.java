@@ -30,6 +30,9 @@ public class LocalPlayer extends Player {
 
     private Block headBlock = BlockRegistry.AIR;
 
+    // NEU: Damit wir wissen, ob wir den GLFW-Cursor-Modus ändern müssen
+    private boolean wasUIOpen = false;
+
     public LocalPlayer(Vector3f spawnPosition) {
         super(spawnPosition);
         this.camera = new Camera();
@@ -50,11 +53,7 @@ public class LocalPlayer extends Player {
         // ==========================================
         int bx = (int) Math.floor(position.x);
         int byFeet = (int) Math.floor(position.y + 0.1f);
-
-        // NEU: Die "Hüfte" (Waist) - fest auf 0.6f Höhe.
-        // Bestimmt, ab wann das Wasser tief genug zum Schwimmen/Paddeln ist.
         int byWaist = (int) Math.floor(position.y + 0.6f);
-
         int byBody = (int) Math.floor(position.y + (height * 0.5f));
         int byHead = (int) Math.floor(getEyePosition().y);
         int bz = (int) Math.floor(position.z);
@@ -65,7 +64,6 @@ public class LocalPlayer extends Player {
         byte blockHead = chunkManager.getWorld().getBlockAt(bx, byHead, bz);
         byte waterId = BlockRegistry.WATER.getId();
 
-        // Wir sind im Wasser, wenn zumindest die Füße nass sind
         this.isInWater = (blockFeet == waterId || blockBody == waterId);
         this.isHeadInWater = (blockHead == waterId);
 
@@ -85,14 +83,32 @@ public class LocalPlayer extends Player {
 
             if (input.isActionJustPressed("INVENTORY") && gameMode != GameMode.SPECTATOR) {
                 inventory.toggle();
+
+                // 1. Das alte Event, das du behalten wolltest
                 eventBus.publish(new InventoryToggleEvent(inventory.isOpen()));
+
+                // 2. Die neuen dedizierten Events
+                if (inventory.isOpen()) {
+                    eventBus.publish(new de.delautrer.game.events.InventoryOpenedEvent(this, inventory));
+                } else {
+                    eventBus.publish(new de.delautrer.game.events.InventoryClosedEvent(this, inventory));
+                    // Falls eine Kiste offen war, diese ebenfalls logisch schließen
+                    if (getOpenedInventory() != null) {
+                        eventBus.publish(new de.delautrer.game.events.InventoryClosedEvent(this, getOpenedInventory()));
+                        closeInventory();
+                    }
+                }
             }
 
-            if (!inventory.isOpen()) {
+            // Hotbar-Auswahl (Darf nur möglich sein, wenn kein UI offen ist)
+            if (!inventory.isOpen() && getOpenedInventory() == null) {
+                boolean slotChanged = false;
+
                 for (int i = 0; i < 9; i++) {
                     if (input.isActionJustPressed("SLOT_" + (i + 1))) {
                         inventory.setSelectedSlot(i);
                         eventBus.publish(new HotbarSlotChangeEvent(i));
+                        slotChanged = true;
                     }
                 }
                 double scroll = input.consumeScroll();
@@ -102,22 +118,30 @@ public class LocalPlayer extends Player {
                     else if (newSlot > 8) newSlot = 0;
                     inventory.setSelectedSlot(newSlot);
                     eventBus.publish(new HotbarSlotChangeEvent(newSlot));
+                    slotChanged = true;
+                }
+
+                // 3. BlockSelectedEvent feuern
+                if (slotChanged) {
+                    ItemStack selectedStack = inventory.getStack(inventory.getSelectedSlot());
+                    if (selectedStack != null && selectedStack.type instanceof de.delautrer.game.items.BlockItem) {
+                        de.delautrer.game.items.BlockItem blockItem = (de.delautrer.game.items.BlockItem) selectedStack.type;
+                        eventBus.publish(new de.delautrer.game.events.BlockSelectedEvent(blockItem.getBlock().getId()));
+                    } else {
+                        // Senden wir 0 (Air), wenn kein Block in der Hand ist
+                        eventBus.publish(new de.delautrer.game.events.BlockSelectedEvent((byte) 0));
+                    }
                 }
             }
         }
 
-        boolean isInventoryOpen = inventory.isOpen() || isChatOpen;
+        boolean isUIOpen = inventory.isOpen() || isChatOpen || getOpenedInventory() != null;
 
-        if (input.isActionJustPressed("DROP_ITEM") && !isInventoryOpen) {
+        if (input.isActionJustPressed("DROP_ITEM") && !isUIOpen) {
             ItemStack currentStack = inventory.getStack(inventory.getSelectedSlot());
 
             if (currentStack != null) {
-                // Wir droppen immer 1 Item (wie in Minecraft)
                 ItemStack dropStack = new ItemStack(currentStack.type, 1);
-
-                // Wenn der Spieler z.B. Strg+Q drückt, droppt er den ganzen Stack:
-                // if (inputManager.isKeyDown(GLFW_KEY_LEFT_CONTROL)) { ... }
-
                 currentStack.amount -= 1;
                 if (currentStack.amount <= 0) {
                     inventory.setStack(inventory.getSelectedSlot(), null);
@@ -125,14 +149,10 @@ public class LocalPlayer extends Player {
 
                 eventBus.publish(new de.delautrer.game.events.InventoryChangeEvent());
 
-                // Spawn-Position (auf Augenhöhe des Spielers)
                 Vector3f spawnPos = new Vector3f(this.position).add(0, 1.5f, 0);
 
-                // --- MATHEMATISCH KORREKTE BLICKRICHTUNG ---
                 float yawRad = (float) Math.toRadians(this.getCamera().getYaw());
                 float pitchRad = (float) Math.toRadians(this.getCamera().getPitch());
-
-                // FIX: Wir ziehen exakt 90 Grad vom Yaw ab, um den Versatz deiner Kamera auszugleichen
                 float adjustedYaw = yawRad;
 
                 float vx = (float) (Math.cos(adjustedYaw) * Math.cos(pitchRad));
@@ -140,8 +160,6 @@ public class LocalPlayer extends Player {
                 float vz = (float) (Math.sin(adjustedYaw) * Math.cos(pitchRad));
 
                 Vector3f lookDir = new Vector3f(vx, vy, vz).normalize();
-
-                // 5 Blöcke weit, 1.5 Blöcke hoch werfen
                 Vector3f throwVelocity = new Vector3f(lookDir).mul(5.0f).add(0, 1.5f, 0);
 
                 ItemEntity itemEntity = new ItemEntity(dropStack, spawnPos, throwVelocity);
@@ -154,7 +172,7 @@ public class LocalPlayer extends Player {
         // ==========================================
         // 2. STATUS-UPDATES (Sprinten & Schwimmen & Hitbox)
         // ==========================================
-        if (!isInventoryOpen) {
+        if (!isUIOpen) {
             isSneaking = input.isActionActive("SNEAK");
             isSprinting = input.isActionActive("SPRINT") && !isSneaking;
 
@@ -184,7 +202,6 @@ public class LocalPlayer extends Player {
         }
 
         // --- HITBOX & 1x1 TUNNEL SCHUTZ ---
-        // Wir prüfen nun swimProgress statt der harten this.height
         if (!isSwimming && swimProgress > 0.1f) {
             int headBlockWhenStanding = chunkManager.getWorld().getBlockAt(
                     (int) Math.floor(position.x),
@@ -197,7 +214,7 @@ public class LocalPlayer extends Player {
             }
         }
 
-        // --- NEU: ANIMATION BERECHNEN ---
+        // --- ANIMATION BERECHNEN ---
         if (isSwimming) {
             swimProgress += deltaTime * 5.0f;
             if (swimProgress > 1.0f) swimProgress = 1.0f;
@@ -206,7 +223,6 @@ public class LocalPlayer extends Player {
             if (swimProgress < 0.0f) swimProgress = 0.0f;
         }
 
-        // Hitbox fließend anpassen statt hart umschalten
         this.height = 1.8f + (0.6f - 1.8f) * swimProgress;
 
         // ==========================================
@@ -216,9 +232,9 @@ public class LocalPlayer extends Player {
         if (isFlying) {
             currentSpeed *= isSneaking ? 2.0f : 1.5f;
         } else if (isSwimming) {
-            currentSpeed *= 1.3f; // Schnelles Schwimmen
+            currentSpeed *= 1.3f;
         } else if (isInWater) {
-            currentSpeed *= 0.4f; // Sehr langsames Waten, wenn man normal im Wasser geht
+            currentSpeed *= 0.4f;
         } else {
             if (isSneaking) currentSpeed *= 0.4f;
             else if (isSprinting) currentSpeed *= 1.5f;
@@ -232,9 +248,8 @@ public class LocalPlayer extends Player {
         // ==========================================
         // 4. BEWEGUNGS-LOGIK
         // ==========================================
-        if (!isInventoryOpen) {
+        if (!isUIOpen) {
             if (isSwimming) {
-                // VOLLE 3D-STEUERUNG
                 if (input.isActionActive("MOVE_FORWARD")) moveDir.add(cameraFront);
                 if (input.isActionActive("MOVE_BACKWARD")) moveDir.sub(cameraFront);
                 if (input.isActionActive("MOVE_LEFT")) moveDir.sub(flatRight);
@@ -246,22 +261,13 @@ public class LocalPlayer extends Player {
                 velocity.z = moveDir.z;
                 velocity.y = moveDir.y;
 
-                // ==========================================
-                // FIX: WEICHE OBERFLÄCHENSPANNUNG
-                // ==========================================
                 int blockAtTop = chunkManager.getWorld().getBlockAt(bx, (int) Math.floor(position.y + height + 0.1f), bz);
-
-                // NEU: Halte den Spieler NUR zurück, wenn er NICHT springen will!
                 if (blockAtTop != waterId && velocity.y > 0 && !input.isActionActive("JUMP")) {
                     velocity.y *= 0.1f;
                 }
 
-                if (input.isActionActive("JUMP")) {
-                    velocity.y += 3.5f; // Starker Schub aus dem Wasser heraus
-                }
-                if (input.isActionActive("SNEAK")) {
-                    velocity.y -= 2.0f; // Abtauchen
-                }
+                if (input.isActionActive("JUMP")) velocity.y += 3.5f;
+                if (input.isActionActive("SNEAK")) velocity.y -= 2.0f;
 
             } else if (isFlying) {
                 if (input.isActionActive("MOVE_FORWARD")) moveDir.add(flatFront);
@@ -278,7 +284,6 @@ public class LocalPlayer extends Player {
                 if (input.isActionActive("SNEAK")) velocity.y = -currentSpeed * 1.2f;
 
             } else {
-                // Normales Laufen auf Land ODER langsames Waten im Wasser
                 if (input.isActionActive("MOVE_FORWARD")) moveDir.add(flatFront);
                 if (input.isActionActive("MOVE_BACKWARD")) moveDir.sub(flatFront);
                 if (input.isActionActive("MOVE_LEFT")) moveDir.sub(flatRight);
@@ -290,7 +295,6 @@ public class LocalPlayer extends Player {
 
                 if (isInWater) {
                     if (blockWaist == waterId) {
-                        // TIEFES WASSER (Hüfte im Wasser -> Paddeln & Sinken)
                         if (input.isActionActive("JUMP")) {
                             velocity.y += 15.0f * deltaTime;
                             if (velocity.y > 4.0f) velocity.y = 4.0f;
@@ -302,31 +306,24 @@ public class LocalPlayer extends Player {
                             if (velocity.y < -2.0f) velocity.y = -2.0f;
                         }
                     } else {
-                        // FLACHES WASSER ("1-Pixel-Berührung" bis zu den Knien)
                         if (input.isActionActive("JUMP")) {
-                            // Wenn wir auf dem Boden sind, machen wir einen echten Sprung
                             if (onGround) {
                                 velocity.y = jumpForce;
                                 onGround = false;
                             } else {
-                                // WICHTIG: Wenn wir im flachen Wasser SCHWEBEN (z.B. gerade beim Rausklettern),
-                                // müssen wir uns trotzdem noch nach oben paddeln können!
                                 velocity.y += 15.0f * deltaTime;
                                 if (velocity.y > 3.0f) velocity.y = 3.0f;
                             }
                         } else {
-                            // Schwerkraft wirkt normal, wenn wir nichts drücken
                             velocity.y += gravity * deltaTime;
                         }
                     }
                 } else if (onGround && input.isActionActive("JUMP")) {
-                    // Normaler Sprung auf komplett trockenem Land
                     velocity.y = jumpForce;
                     onGround = false;
                 }
             }
         } else {
-            // Wenn Inventar offen ist, abrupt abbremsen in X/Z (im Wasser bremst auch Y)
             velocity.x = 0;
             velocity.z = 0;
             if (isInWater && !isFlying) velocity.y *= 0.9f;
@@ -354,7 +351,6 @@ public class LocalPlayer extends Player {
 
         cameraVisualYOffset += (0.0f - cameraVisualYOffset) * 15.0f * deltaTime;
 
-        // Block am Kopf
         Block b = BlockRegistry.get(blockHead);
         if (b.isSolid && !b.isTransparent) {
             headBlock = b;
@@ -368,11 +364,11 @@ public class LocalPlayer extends Player {
     }
 
     protected void pushOutOfBlocks(ChunkManager cm, de.delautrer.engine.input.InputManager input, float deltaTime) {
+        // ... (Dein bisheriger Kollisionscode, der bleibt absolut identisch)
         int byFeet = (int) Math.floor(position.y + 0.1f);
         int byHead = (int) Math.floor(position.y + height * 0.8f);
         boolean isStuck = false;
 
-        // Breite deiner Entity (z.B. 0.6 / 2 = 0.3f)
         float checkW = 0.3f - 0.01f;
 
         int minX = (int) Math.floor(position.x - checkW);
@@ -444,12 +440,27 @@ public class LocalPlayer extends Player {
         Vector3f smoothEyePos = new Vector3f(getEyePosition());
         smoothEyePos.y += cameraVisualYOffset;
 
-        if (!inventory.isOpen() && !isChatOpen) {
+        // Prüfen, ob IRGENDEIN UI Element offen ist (Spieler-Inv, Kisten-Inv, Chat)
+        boolean isUIOpen = inventory.isOpen() || isChatOpen || getOpenedInventory() != null;
+
+        if (isUIOpen != wasUIOpen) {
+            if (isUIOpen) {
+                // Cursor sichtbar machen, Kamera stoppen
+                org.lwjgl.glfw.GLFW.glfwSetInputMode(windowHandle, org.lwjgl.glfw.GLFW.GLFW_CURSOR, org.lwjgl.glfw.GLFW.GLFW_CURSOR_NORMAL);
+            } else {
+                org.lwjgl.glfw.GLFW.glfwSetInputMode(windowHandle, org.lwjgl.glfw.GLFW.GLFW_CURSOR, org.lwjgl.glfw.GLFW.GLFW_CURSOR_DISABLED);
+                camera.resetMouseTracking();
+            }
+            wasUIOpen = isUIOpen;
+        }
+
+        if (!isUIOpen) {
             camera.update(windowHandle, deltaTime, smoothEyePos);
         } else {
             camera.setPosition(smoothEyePos);
         }
     }
+
     public void setChatOpen(boolean chatOpen) { this.isChatOpen = chatOpen; }
     public boolean isChatOpen() { return isChatOpen; }
     public void setGameMode(GameMode mode) {

@@ -1,6 +1,7 @@
 package de.delautrer.game.entity.player;
 
 import de.delautrer.game.entity.Entity;
+import de.delautrer.game.inventory.IInventory;
 import de.delautrer.game.inventory.PlayerInventory;
 import de.delautrer.game.world.ChunkManager;
 import org.joml.Vector3f;
@@ -8,6 +9,8 @@ import org.joml.Vector3f;
 public class Player extends Entity {
 
     protected final PlayerInventory inventory;
+    protected IInventory openedExternalInventory = null;
+
     protected float eyeHeight = 1.62f;
     protected boolean isSneaking = false;
     protected boolean isFlying = false;
@@ -18,7 +21,6 @@ public class Player extends Entity {
     protected boolean isInWater = false;
     protected boolean isHeadInWater = false;
 
-    // NEU: Animations-Fortschritt (0.0 = Stehen, 1.0 = Schwimmen)
     protected float swimProgress = 0.0f;
 
     public Player(Vector3f spawnPosition) {
@@ -45,5 +47,17 @@ public class Player extends Entity {
 
     public boolean isHeadInWater() {
         return isHeadInWater;
+    }
+
+    public void openInventory(IInventory inventory) {
+        this.openedExternalInventory = inventory;
+    }
+
+    public void closeInventory() {
+        this.openedExternalInventory = null;
+    }
+
+    public IInventory getOpenedInventory() {
+        return openedExternalInventory;
     }
 }

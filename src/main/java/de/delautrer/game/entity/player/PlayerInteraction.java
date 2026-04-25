@@ -5,6 +5,8 @@ import de.delautrer.engine.graphics.VulkanContext;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.engine.graphics.Camera;
 import de.delautrer.engine.physics.Raycaster;
+import de.delautrer.game.blocks.state.BlockState;
+import de.delautrer.game.events.BlockBreakEvent;
 import de.delautrer.game.inventory.PlayerInventory;
 import de.delautrer.game.world.World;
 import de.delautrer.game.items.ItemStack;
@@ -108,7 +110,14 @@ public class PlayerInteraction {
         if (selectedBlockPos == null) return;
 
         if (isBreak) {
-            world.setBlock(selectedBlockPos, (byte) 0);
+            BlockState state = world.getBlockState(selectedBlockPos.x, selectedBlockPos.y, selectedBlockPos.z);
+            BlockBreakEvent breakEvent = new BlockBreakEvent(player, selectedBlockPos, state);
+
+            eventBus.publish(breakEvent);
+
+            if (!breakEvent.isCancelled()) {
+                world.setBlock(selectedBlockPos, (byte) 0);
+            }
         } else {
             if (adjacentBlockPos == null) return;
             ItemStack heldStack = player.getInventory().getSelectedHotbarStack();
@@ -122,5 +131,8 @@ public class PlayerInteraction {
     public PlayerInventory getInventory() { return player.getInventory(); }
     public void resetCooldown() {
         this.clickCooldown = 0.2f;
+    }
+    public EventBus getEventBus() {
+        return eventBus;
     }
 }
