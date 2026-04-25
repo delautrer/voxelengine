@@ -1,4 +1,4 @@
-package de.delautrer.game.ui.gui;
+package de.delautrer.game.ui.elements;
 
 public class UIDrawCall {
     public final UITexture texture;

@@ -3,10 +3,10 @@ package de.delautrer.game.ui.gui.screens;
 import de.delautrer.engine.graphics.VulkanFont;
 import de.delautrer.game.items.ItemStack;
 import de.delautrer.game.ui.UIUtils;
-import de.delautrer.game.ui.gui.BaseContainer;
+import de.delautrer.game.ui.gui.container.BaseContainer;
 import de.delautrer.game.ui.gui.ClickType;
-import de.delautrer.game.ui.gui.Slot;
-import de.delautrer.game.ui.gui.UIMeshBuilder;
+import de.delautrer.game.ui.gui.container.Slot;
+import de.delautrer.game.ui.UIMeshBuilder;
 
 import java.util.LinkedHashSet;
 import java.util.Set;

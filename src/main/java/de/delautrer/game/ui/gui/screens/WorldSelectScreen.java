@@ -1,9 +1,12 @@
 package de.delautrer.game.ui.gui.screens;
 
 import de.delautrer.engine.Engine;
-import de.delautrer.engine.states.Scene;
 import de.delautrer.game.states.PlayScene;
-import de.delautrer.game.ui.gui.*;
+import de.delautrer.game.ui.UIMeshBuilder;
+import de.delautrer.game.ui.elements.UIButton;
+import de.delautrer.game.ui.elements.UIConfirmButton;
+import de.delautrer.game.ui.elements.UIInputField;
+import de.delautrer.game.ui.elements.UIScrollableList;
 import de.delautrer.game.world.WorldStorageManager;
 import de.delautrer.game.world.persistence.WorldData;
 

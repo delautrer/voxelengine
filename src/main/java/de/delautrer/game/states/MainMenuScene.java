@@ -5,7 +5,7 @@ import de.delautrer.engine.MenuRenderer;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.engine.states.Scene;
 import de.delautrer.game.ui.gui.screens.MenuScreen;
-import de.delautrer.game.ui.gui.UIButton;
+import de.delautrer.game.ui.elements.UIButton;
 import de.delautrer.game.ui.gui.screens.WorldSelectScreen;
 import org.lwjgl.glfw.GLFW;
 

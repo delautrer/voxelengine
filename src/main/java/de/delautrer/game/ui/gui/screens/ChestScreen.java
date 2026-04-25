@@ -1,7 +1,7 @@
 package de.delautrer.game.ui.gui.screens;
 
-import de.delautrer.game.ui.gui.ChestContainer;
-import de.delautrer.game.ui.gui.UIMeshBuilder;
+import de.delautrer.game.ui.gui.container.ChestContainer;
+import de.delautrer.game.ui.UIMeshBuilder;
 
 public class ChestScreen extends ContainerScreen {
 

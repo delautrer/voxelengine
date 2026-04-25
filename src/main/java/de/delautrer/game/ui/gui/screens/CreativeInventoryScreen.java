@@ -2,7 +2,10 @@ package de.delautrer.game.ui.gui.screens;
 
 import de.delautrer.game.items.Item;
 import de.delautrer.game.items.ItemStack;
-import de.delautrer.game.ui.gui.*;
+import de.delautrer.game.ui.UIMeshBuilder;
+import de.delautrer.game.ui.elements.UIInputField;
+import de.delautrer.game.ui.gui.container.CreativeContainer;
+import de.delautrer.game.ui.gui.container.Slot;
 
 public class CreativeInventoryScreen extends ContainerScreen {
 

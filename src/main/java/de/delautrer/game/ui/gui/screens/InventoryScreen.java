@@ -1,7 +1,7 @@
 package de.delautrer.game.ui.gui.screens;
 
-import de.delautrer.game.ui.gui.PlayerContainer;
-import de.delautrer.game.ui.gui.UIMeshBuilder;
+import de.delautrer.game.ui.gui.container.PlayerContainer;
+import de.delautrer.game.ui.UIMeshBuilder;
 
 public class InventoryScreen extends ContainerScreen {
 

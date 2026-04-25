@@ -1,7 +1,7 @@
 package de.delautrer.engine.graphics;
 
 import de.delautrer.game.entity.Entity;
-import de.delautrer.game.ui.gui.UIDrawCall;
+import de.delautrer.game.ui.elements.UIDrawCall;
 import org.joml.Matrix4f;
 import org.joml.Vector3i;
 import org.joml.Vector3f;

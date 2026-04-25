@@ -1,7 +1,4 @@
-package de.delautrer.game.ui.gui;
-
-import de.delautrer.game.inventory.ChestInventory;
-import de.delautrer.game.inventory.PlayerInventory;
+package de.delautrer.game.ui.gui.container;
 
 public class ChestContainer extends BaseContainer {
 

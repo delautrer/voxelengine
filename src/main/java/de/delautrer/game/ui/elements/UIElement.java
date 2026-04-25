@@ -1,6 +1,7 @@
-package de.delautrer.game.ui.gui;
+package de.delautrer.game.ui.elements;
 
 import de.delautrer.engine.graphics.VulkanFont;
+import de.delautrer.game.ui.UIMeshBuilder;
 
 public abstract class UIElement {
     protected float x, y;

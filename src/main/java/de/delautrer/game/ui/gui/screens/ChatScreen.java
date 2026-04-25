@@ -8,8 +8,8 @@ import de.delautrer.game.entity.player.LocalPlayer;
 import de.delautrer.game.events.ChatMessageEvent;
 import de.delautrer.game.events.CommandExecutedEvent;
 import de.delautrer.game.ui.ChatOverlay;
-import de.delautrer.game.ui.gui.UIInputField;
-import de.delautrer.game.ui.gui.UIMeshBuilder;
+import de.delautrer.game.ui.elements.UIInputField;
+import de.delautrer.game.ui.UIMeshBuilder;
 import de.delautrer.game.world.World;
 
 import java.util.ArrayList;

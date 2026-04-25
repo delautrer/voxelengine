@@ -1,7 +1,7 @@
 package de.delautrer.engine.graphics.systems;
 
 import de.delautrer.engine.graphics.*;
-import de.delautrer.game.ui.gui.UIDrawCall;
+import de.delautrer.game.ui.elements.UIDrawCall;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VK10;
 import org.lwjgl.vulkan.VkCommandBuffer;

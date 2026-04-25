@@ -1,8 +1,9 @@
-package de.delautrer.game.ui.gui;
+package de.delautrer.game.ui;
 
 import de.delautrer.engine.graphics.VulkanFont;
 import de.delautrer.engine.graphics.utils.TextureStitcher;
 import de.delautrer.game.items.ItemStack;
+import de.delautrer.game.ui.elements.UITexture;
 import org.lwjgl.stb.STBTTBakedChar;
 
 import java.util.*;

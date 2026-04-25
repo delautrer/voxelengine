@@ -1,7 +1,6 @@
 package de.delautrer.game.inventory;
 
 import de.delautrer.game.items.ItemStack;
-import de.delautrer.game.ui.gui.Slot;
 
 public abstract class BaseInventory implements IInventory {
     private boolean sortable = false;

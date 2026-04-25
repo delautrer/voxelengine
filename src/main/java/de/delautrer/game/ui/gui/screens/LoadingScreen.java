@@ -1,8 +1,7 @@
 package de.delautrer.game.ui.gui.screens;
 
-import de.delautrer.game.ui.gui.UIElement;
-import de.delautrer.game.ui.gui.UIMeshBuilder;
-import de.delautrer.game.ui.gui.UIProgressBar;
+import de.delautrer.game.ui.UIMeshBuilder;
+import de.delautrer.game.ui.elements.UIProgressBar;
 
 public class LoadingScreen extends MenuScreen {
     private UIProgressBar progressBar;

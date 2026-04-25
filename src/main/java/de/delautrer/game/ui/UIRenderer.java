@@ -5,7 +5,8 @@ import de.delautrer.engine.graphics.VulkanFont;
 import de.delautrer.engine.graphics.VulkanMesh;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.game.entity.player.PlayerInteraction;
-import de.delautrer.game.ui.gui.*;
+import de.delautrer.game.ui.elements.UIDrawCall;
+import de.delautrer.game.ui.elements.UITexture;
 import de.delautrer.game.ui.gui.screens.MenuScreen;
 import org.lwjgl.vulkan.VK10;
 

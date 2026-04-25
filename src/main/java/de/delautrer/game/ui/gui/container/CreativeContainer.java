@@ -1,9 +1,10 @@
-package de.delautrer.game.ui.gui;
+package de.delautrer.game.ui.gui.container;
 
 import de.delautrer.game.inventory.PlayerInventory;
 import de.delautrer.game.items.Item;
 import de.delautrer.game.items.ItemRegistry;
 import de.delautrer.game.items.ItemStack;
+import de.delautrer.game.ui.gui.ClickType;
 
 import java.util.ArrayList;
 import java.util.List;

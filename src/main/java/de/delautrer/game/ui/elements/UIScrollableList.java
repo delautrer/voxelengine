@@ -1,7 +1,8 @@
-package de.delautrer.game.ui.gui;
+package de.delautrer.game.ui.elements;
 
 import de.delautrer.engine.graphics.VulkanFont;
 import de.delautrer.engine.input.InputManager;
+import de.delautrer.game.ui.UIMeshBuilder;
 
 import java.util.ArrayList;
 import java.util.List;

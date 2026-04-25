@@ -1,4 +1,4 @@
-package de.delautrer.game.ui.gui;
+package de.delautrer.game.ui.gui.container;
 
 import de.delautrer.engine.graphics.VulkanFont;
 import de.delautrer.game.blocks.Block;
@@ -6,15 +6,14 @@ import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.entity.player.GameMode;
 import de.delautrer.game.entity.player.PlayerInteraction;
 import de.delautrer.game.inventory.PlayerInventory;
-import de.delautrer.game.items.Item;
 import de.delautrer.game.items.ItemRegistry;
 import de.delautrer.game.items.ItemStack;
 import de.delautrer.game.ui.ChatOverlay;
 import de.delautrer.game.ui.DebugOverlay;
 import de.delautrer.game.ui.UIUtils;
+import de.delautrer.game.ui.UIMeshBuilder;
 
 import java.util.List;
-import java.util.Map;
 
 public class HUD {
 

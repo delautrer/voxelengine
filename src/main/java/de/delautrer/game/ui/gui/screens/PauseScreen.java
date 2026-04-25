@@ -1,9 +1,9 @@
 package de.delautrer.game.ui.gui.screens;
 
 import de.delautrer.game.states.PlayScene;
-import de.delautrer.game.ui.gui.UIButton;
-import de.delautrer.game.ui.gui.UIElement;
-import de.delautrer.game.ui.gui.UIMeshBuilder;
+import de.delautrer.game.ui.elements.UIButton;
+import de.delautrer.game.ui.elements.UIElement;
+import de.delautrer.game.ui.UIMeshBuilder;
 
 public class PauseScreen extends MenuScreen {
     private final PlayScene playScene;

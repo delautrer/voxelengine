@@ -1,6 +1,7 @@
-package de.delautrer.game.ui.gui;
+package de.delautrer.game.ui.gui.screens;
 
 import de.delautrer.engine.input.InputManager;
+import de.delautrer.game.ui.UIMeshBuilder;
 
 import java.util.List;
 
