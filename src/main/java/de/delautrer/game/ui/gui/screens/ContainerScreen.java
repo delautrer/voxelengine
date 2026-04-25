@@ -62,11 +62,11 @@ public abstract class ContainerScreen extends MenuScreen {
 
             // Item im Slot
             ItemStack stack = slot.getStack();
-            builder.drawItem(stack, slotX + 3 * pixelScale, slotY + 3 * pixelScale, 0.5f, slotSize - 6 * pixelScale);
+            builder.drawItem(stack, slotX + 3 * pixelScale, slotY + 3 * pixelScale, 0.25f, slotSize - 6 * pixelScale);
 
             // Anzahl
             if (stack != null && stack.amount > 1 && font != null) {
-                builder.drawText(String.valueOf(stack.amount), slotX + slotSize - (12.0f * pixelScale), slotY + (2.0f * pixelScale), 0.25f, font);
+                builder.drawText(String.valueOf(stack.amount), slotX + slotSize - (12.0f * pixelScale), slotY + (2.0f * pixelScale), 0.3f, font);
             }
         }
 
@@ -75,10 +75,10 @@ public abstract class ContainerScreen extends MenuScreen {
         if (mouseStack != null) {
             float itemSize = slotSize - 4 * pixelScale;
             float invertedMouseY = height - mouseY;
-            builder.drawItem(mouseStack, mouseX - itemSize / 2.0f + 3 * pixelScale, invertedMouseY - itemSize / 2.0f + 3 * pixelScale, 0.6f, itemSize);
+            builder.drawItem(mouseStack, mouseX - itemSize / 2.0f + 3 * pixelScale, invertedMouseY - itemSize / 2.0f + 3 * pixelScale, 0.5f, itemSize);
 
             if (mouseStack.amount > 1 && font != null) {
-                builder.drawText(String.valueOf(mouseStack.amount), mouseX + (itemSize / 2.0f) - (8.0f * pixelScale), invertedMouseY - (itemSize / 2.0f), 0.25f, font);
+                builder.drawText(String.valueOf(mouseStack.amount), mouseX + (itemSize / 2.0f) - (8.0f * pixelScale), invertedMouseY - (itemSize / 2.0f), 0.55f, font);
             }
         }
 
@@ -106,7 +106,7 @@ public abstract class ContainerScreen extends MenuScreen {
         }
 
         builder.addTooltipBackground(tipX, tipY - (textHeight / 2.0f), 1.0f, textWidth + (12.0f*pixelScale), textHeight + (8.0f*pixelScale), 4, 0, 4.0f * pixelScale);
-        builder.drawText(text, tipX + (6.0f*pixelScale), tipY, textScale, font);
+        builder.drawText(text, tipX + (6.0f*pixelScale), tipY, 1.1f, font);
     }
 
     public Slot getHoveredSlotObj(float mouseX, float mouseY) {

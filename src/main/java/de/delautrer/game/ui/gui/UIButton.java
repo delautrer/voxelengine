@@ -34,7 +34,7 @@ public class UIButton extends UIElement {
             float textX = x + (width / 2.0f) - (textWidth / 2.0f);
             float textY = y + (height - 24.0f + 10f) / 2.0f;
 
-            builder.drawText(text, textX, textY, 0.0f, font);
+            builder.drawText(text, textX, textY, 0.3f, font);
         }
     }
 

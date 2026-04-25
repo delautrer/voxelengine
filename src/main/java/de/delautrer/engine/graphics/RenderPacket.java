@@ -1,6 +1,7 @@
 package de.delautrer.engine.graphics;
 
 import de.delautrer.game.entity.Entity;
+import de.delautrer.game.ui.gui.UIDrawCall;
 import org.joml.Matrix4f;
 import org.joml.Vector3i;
 import org.joml.Vector3f;
@@ -15,10 +16,9 @@ public class RenderPacket {
     public List<Entity> entities;
 
     public VulkanMesh highlightMesh;
-    public VulkanMesh uiMesh;
-    public VulkanMesh topUiMesh;
-    public VulkanMesh textMesh;
-    public VulkanMesh itemMesh;
+
+    public VulkanMesh uiCombinedMesh;
+    public List<UIDrawCall> uiDrawCalls;
 
     public VulkanMesh cloudMesh;
     public Vector3f cloudOffset;

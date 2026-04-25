@@ -116,11 +116,9 @@ public class MasterRenderer {
             renderer.setClearColor(skyColor.x, skyColor.y, skyColor.z);
 
         packet.blockUITexture = blockUITexture;
-        packet.uiMesh = uiRenderer.getUiMesh();
-        packet.itemMesh = uiRenderer.getItemMesh();
-        packet.textMesh = uiRenderer.getTextMesh();
-        packet.overlayMesh = uiRenderer.getOverlayMesh();
-        packet.topUiMesh = uiRenderer.getTopUiMesh();
+        packet.uiCombinedMesh = uiRenderer.getCombinedMesh();
+        packet.uiDrawCalls = uiRenderer.getDrawCalls();
+
         packet.uiTexture = uiTexture;
         packet.itemTexture = itemTexture;
         packet.fontTexture = fontTexture;
@@ -143,8 +141,6 @@ public class MasterRenderer {
         }
 
         packet.entities = world.getEntities();
-
-        packet.topUiMesh = uiRenderer.getTopUiMesh();
 
         packet.sunDirection = environment.getSunDirection();
         packet.globalLight = environment.getGlobalLightIntensity();

@@ -94,10 +94,12 @@ public class VulkanUIPipeline {
             multisampling.sType(VK10.VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO);
             multisampling.rasterizationSamples(VK10.VK_SAMPLE_COUNT_1_BIT);
 
-            // UI soll immer oben liegen -> Tiefentest aus!
+            // --- Z-INDEX: Tiefentest AN und auf GREATER_OR_EQUAL gesetzt ---
             VkPipelineDepthStencilStateCreateInfo depthStencil = VkPipelineDepthStencilStateCreateInfo.calloc(stack);
             depthStencil.sType(VK10.VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO);
+            //depthStencil.depthTestEnable(true).depthWriteEnable(true);
             depthStencil.depthTestEnable(false).depthWriteEnable(false);
+            depthStencil.depthCompareOp(VK10.VK_COMPARE_OP_GREATER_OR_EQUAL);
 
             // Blending-Attachment (hier deaktivieren wir das klassische Alpha-Blending, damit LogicOp greift)
             VkPipelineColorBlendAttachmentState.Buffer colorBlendAttachment = VkPipelineColorBlendAttachmentState.calloc(1, stack);

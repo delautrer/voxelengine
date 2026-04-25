@@ -4,10 +4,15 @@ import de.delautrer.engine.graphics.*;
 import de.delautrer.engine.window.Window;
 import de.delautrer.game.ui.gui.screens.MenuScreen;
 import de.delautrer.game.ui.gui.UIMeshBuilder;
+import de.delautrer.game.ui.gui.UIDrawCall;
+import de.delautrer.game.ui.gui.UITexture;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.vulkan.VK10;
+
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class MenuRenderer {
     private final VulkanContext context;
@@ -18,8 +23,11 @@ public class MenuRenderer {
     private VulkanTexture fontTexture;
     private VulkanFont font;
 
-    private VulkanMesh uiMesh;
-    private VulkanMesh textMesh;
+    // --- NEUES UI SYSTEM ---
+    private VulkanMesh uiCombinedMesh;
+    private final List<UIDrawCall> drawCalls = new ArrayList<>();
+    // -----------------------
+
     private final UIMeshBuilder meshBuilder;
 
     public MenuRenderer(VulkanContext context, Window window) {
@@ -39,34 +47,73 @@ public class MenuRenderer {
     }
 
     public void draw(MenuScreen screen, float uiMouseX, float uiMouseY) {
-        if (uiMesh != null) { VK10.vkDeviceWaitIdle(context.getDevice()); uiMesh.cleanup(); uiMesh = null; }
-        if (textMesh != null) { VK10.vkDeviceWaitIdle(context.getDevice()); textMesh.cleanup(); textMesh = null; }
+        if (uiCombinedMesh != null) {
+            VK10.vkDeviceWaitIdle(context.getDevice());
+            uiCombinedMesh.cleanup();
+            uiCombinedMesh = null;
+        }
 
+        drawCalls.clear();
         meshBuilder.clear();
         screen.render(meshBuilder, uiMouseX, uiMouseY);
 
-        if (!meshBuilder.uiVerts.isEmpty()) {
-            float[] vArr = new float[meshBuilder.uiVerts.size()];
-            for (int i = 0; i < vArr.length; i++) vArr[i] = meshBuilder.uiVerts.get(i);
-            int[] iArr = new int[meshBuilder.uiInds.size()];
-            for (int i = 0; i < iArr.length; i++) iArr[i] = meshBuilder.uiInds.get(i);
-            uiMesh = new VulkanMesh(context, vArr, iArr);
+        // --- FLATTENING LOGIK (Wie im UIRenderer) ---
+        List<Float> allVerts = new ArrayList<>();
+        List<Integer> allInds = new ArrayList<>();
+        int globalVertexOffset = 0;
+
+        UITexture currentTex = null;
+        int currentStartIndex = 0;
+        int currentIndexCount = 0;
+
+        for (Map<UITexture, UIMeshBuilder.Batch> layer : meshBuilder.getLayers().values()) {
+            for (Map.Entry<UITexture, UIMeshBuilder.Batch> entry : layer.entrySet()) {
+                UITexture tex = entry.getKey();
+                UIMeshBuilder.Batch batch = entry.getValue();
+
+                if (batch.inds.isEmpty()) continue;
+
+                if (currentTex == tex) {
+                    currentIndexCount += batch.inds.size();
+                } else {
+                    if (currentTex != null) {
+                        drawCalls.add(new UIDrawCall(currentTex, currentStartIndex, currentIndexCount));
+                    }
+                    currentTex = tex;
+                    currentStartIndex = allInds.size();
+                    currentIndexCount = batch.inds.size();
+                }
+
+                for (int ind : batch.inds) {
+                    allInds.add(ind + globalVertexOffset);
+                }
+                allVerts.addAll(batch.verts);
+                globalVertexOffset += batch.verts.size() / 8;
+            }
         }
 
-        if (!meshBuilder.textVerts.isEmpty()) {
-            float[] vArr = new float[meshBuilder.textVerts.size()];
-            for (int i = 0; i < vArr.length; i++) vArr[i] = meshBuilder.textVerts.get(i);
-            int[] iArr = new int[meshBuilder.textInds.size()];
-            for (int i = 0; i < iArr.length; i++) iArr[i] = meshBuilder.textInds.get(i);
-            textMesh = new VulkanMesh(context, vArr, iArr);
+        if (currentTex != null) {
+            drawCalls.add(new UIDrawCall(currentTex, currentStartIndex, currentIndexCount));
         }
+
+        if (!allVerts.isEmpty()) {
+            float[] vArr = new float[allVerts.size()];
+            for (int i = 0; i < vArr.length; i++) vArr[i] = allVerts.get(i);
+            int[] iArr = new int[allInds.size()];
+            for (int i = 0; i < iArr.length; i++) iArr[i] = allInds.get(i);
+            uiCombinedMesh = new VulkanMesh(context, vArr, iArr);
+        }
+        // ----------------------------------------------
 
         RenderPacket packet = new RenderPacket();
         packet.ortho = new Matrix4f().ortho(0.0f, renderer.getWidth(), renderer.getHeight(), 0.0f, -1.0f, 1.0f);
-        packet.uiMesh = uiMesh;
+
+        // --- NEUES PAKET ---
+        packet.uiCombinedMesh = uiCombinedMesh;
+        packet.uiDrawCalls = drawCalls;
         packet.uiTexture = guiTexture;
-        packet.textMesh = textMesh;
         packet.fontTexture = fontTexture;
+        // -------------------
 
         packet.mvp = new Matrix4f(); packet.proj = new Matrix4f(); packet.view = new Matrix4f();
 
@@ -89,8 +136,7 @@ public class MenuRenderer {
     public void cleanup() {
         if (guiTexture != null) guiTexture.cleanup();
         if (fontTexture != null) fontTexture.cleanup();
-        if (uiMesh != null) uiMesh.cleanup();
-        if (textMesh != null) textMesh.cleanup();
+        if (uiCombinedMesh != null) uiCombinedMesh.cleanup();
         if (font != null) font.cleanup();
         if (renderer != null) renderer.cleanup();
     }

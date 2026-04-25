@@ -1,6 +1,7 @@
 package de.delautrer.engine.graphics.systems;
 
 import de.delautrer.engine.graphics.*;
+import de.delautrer.game.ui.gui.UIDrawCall;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VK10;
 import org.lwjgl.vulkan.VkCommandBuffer;
@@ -16,60 +17,35 @@ public class UIRenderSystem implements IRenderSystem {
 
     @Override
     public void render(VkCommandBuffer cmd, RenderPacket packet) {
-        // Wenn alle drei Meshes leer sind, brechen wir direkt ab
-        if ((packet.uiMesh == null || packet.uiMesh.getIndexCount() == 0) &&
-                (packet.itemMesh == null || packet.itemMesh.getIndexCount() == 0) &&
-                (packet.textMesh == null || packet.textMesh.getIndexCount() == 0)) {
+        if (packet.uiCombinedMesh == null || packet.uiCombinedMesh.getIndexCount() == 0 || packet.uiDrawCalls == null || packet.uiDrawCalls.isEmpty()) {
             return;
         }
 
         VK10.vkCmdBindPipeline(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getHandle());
 
         try (MemoryStack stack = MemoryStack.stackPush()) {
-            // Push Constants (Ortho-Matrix) gelten für die gesamte Pipeline,
-            // müssen also nur einmal pro Frame gesetzt werden.
             FloatBuffer orthoBuffer = stack.mallocFloat(16);
             packet.ortho.get(orthoBuffer);
             VK10.vkCmdPushConstants(cmd, pipeline.getPipelineLayout(), VK10.VK_SHADER_STAGE_VERTEX_BIT, 0, orthoBuffer);
 
-            // --- 0. OVERLAYS (Ersticken, Schaden, Portale -> blockUITexture) ---
-            if (packet.overlayMesh != null && packet.overlayMesh.getIndexCount() > 0 && packet.blockUITexture != null) {
-                VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayout(), 0, stack.longs(packet.blockUITexture.getDescriptorSet()), null);
-                VK10.vkCmdBindVertexBuffers(cmd, 0, stack.longs(packet.overlayMesh.getVertexBuffer()), stack.longs(0));
-                VK10.vkCmdBindIndexBuffer(cmd, packet.overlayMesh.getIndexBuffer(), 0, VK10.VK_INDEX_TYPE_UINT32);
-                VK10.vkCmdDrawIndexed(cmd, packet.overlayMesh.getIndexCount(), 1, 0, 0, 0);
-            }
+            // Binde das EINE große Vertex/Index-Buffer-Paar
+            VK10.vkCmdBindVertexBuffers(cmd, 0, stack.longs(packet.uiCombinedMesh.getVertexBuffer()), stack.longs(0));
+            VK10.vkCmdBindIndexBuffer(cmd, packet.uiCombinedMesh.getIndexBuffer(), 0, VK10.VK_INDEX_TYPE_UINT32);
 
-            // --- 1. UI RENDERN (Hotbar, Fenster, Fadenkreuz -> menu_gui.png) ---
-            if (packet.uiMesh != null && packet.uiMesh.getIndexCount() > 0 && packet.uiTexture != null) {
-                VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayout(), 0, stack.longs(packet.uiTexture.getDescriptorSet()), null);
-                VK10.vkCmdBindVertexBuffers(cmd, 0, stack.longs(packet.uiMesh.getVertexBuffer()), stack.longs(0));
-                VK10.vkCmdBindIndexBuffer(cmd, packet.uiMesh.getIndexBuffer(), 0, VK10.VK_INDEX_TYPE_UINT32);
-                VK10.vkCmdDrawIndexed(cmd, packet.uiMesh.getIndexCount(), 1, 0, 0, 0);
-            }
+            // Dynamisch die Draw-Calls abarbeiten (perfekt Z-Sortiert)
+            for (UIDrawCall dc : packet.uiDrawCalls) {
+                VulkanTexture tex = switch (dc.texture) {
+                    case UI -> packet.uiTexture;
+                    case ITEM -> packet.itemTexture;
+                    case FONT -> packet.fontTexture;
+                    case BLOCK -> packet.blockUITexture;
+                };
 
-            // --- 2. ITEMS RENDERN (Blöcke, Werkzeuge -> gui.png / items.png) ---
-            if (packet.itemMesh != null && packet.itemMesh.getIndexCount() > 0 && packet.itemTexture != null) {
-                VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayout(), 0, stack.longs(packet.itemTexture.getDescriptorSet()), null);
-                VK10.vkCmdBindVertexBuffers(cmd, 0, stack.longs(packet.itemMesh.getVertexBuffer()), stack.longs(0));
-                VK10.vkCmdBindIndexBuffer(cmd, packet.itemMesh.getIndexBuffer(), 0, VK10.VK_INDEX_TYPE_UINT32);
-                VK10.vkCmdDrawIndexed(cmd, packet.itemMesh.getIndexCount(), 1, 0, 0, 0);
-            }
-
-            // --- 2.5 TOP UI RENDERN (Tooltips -> menu_gui.png) ---
-            if (packet.topUiMesh != null && packet.topUiMesh.getIndexCount() > 0 && packet.uiTexture != null) {
-                VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayout(), 0, stack.longs(packet.uiTexture.getDescriptorSet()), null);
-                VK10.vkCmdBindVertexBuffers(cmd, 0, stack.longs(packet.topUiMesh.getVertexBuffer()), stack.longs(0));
-                VK10.vkCmdBindIndexBuffer(cmd, packet.topUiMesh.getIndexBuffer(), 0, VK10.VK_INDEX_TYPE_UINT32);
-                VK10.vkCmdDrawIndexed(cmd, packet.topUiMesh.getIndexCount(), 1, 0, 0, 0);
-            }
-
-            // --- 3. TEXT RENDERN (Font-Textur) ---
-            if (packet.textMesh != null && packet.textMesh.getIndexCount() > 0 && packet.fontTexture != null) {
-                VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayout(), 0, stack.longs(packet.fontTexture.getDescriptorSet()), null);
-                VK10.vkCmdBindVertexBuffers(cmd, 0, stack.longs(packet.textMesh.getVertexBuffer()), stack.longs(0));
-                VK10.vkCmdBindIndexBuffer(cmd, packet.textMesh.getIndexBuffer(), 0, VK10.VK_INDEX_TYPE_UINT32);
-                VK10.vkCmdDrawIndexed(cmd, packet.textMesh.getIndexCount(), 1, 0, 0, 0);
+                if (tex != null) {
+                    VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayout(), 0, stack.longs(tex.getDescriptorSet()), null);
+                    // Parameter: commandBuffer, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance
+                    VK10.vkCmdDrawIndexed(cmd, dc.indexCount, 1, dc.indexOffset, 0, 0);
+                }
             }
         }
     }
