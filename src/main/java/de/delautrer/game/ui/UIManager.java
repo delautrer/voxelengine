@@ -5,7 +5,7 @@ import de.delautrer.engine.input.InputManager;
 import de.delautrer.game.entity.player.GameMode;
 import de.delautrer.game.entity.player.PlayerInteraction;
 import de.delautrer.game.ui.gui.container.CreativeContainer;
-import de.delautrer.game.ui.gui.container.HUD;
+import de.delautrer.game.ui.gui.screens.HUD;
 import de.delautrer.game.ui.gui.container.PlayerContainer;
 import de.delautrer.game.ui.gui.screens.CreativeInventoryScreen;
 import de.delautrer.game.ui.gui.screens.InventoryScreen;

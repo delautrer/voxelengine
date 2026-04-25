@@ -1,6 +1,7 @@
-package de.delautrer.game.ui.gui.container;
+package de.delautrer.game.ui.gui.screens;
 
 import de.delautrer.engine.graphics.VulkanFont;
+import de.delautrer.engine.graphics.utils.TextureStitcher;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.entity.player.GameMode;
@@ -64,7 +65,7 @@ public class HUD {
         if (interaction.getPlayer().getGameMode() != GameMode.SPECTATOR && headBlock != BlockRegistry.AIR) {
 
             // Wir nehmen direkt das Modell des Blocks (Vorderseite)
-            de.delautrer.engine.graphics.utils.TextureStitcher.AtlasRegion reg = headBlock.getModel().north;
+            TextureStitcher.AtlasRegion reg = headBlock.getModel().north;
 
             if (reg != null) {
                 // --- Die Mathematik: Layer-Index in 2D UV-Koordinaten umrechnen ---
@@ -108,7 +109,7 @@ public class HUD {
         float hx = (float) Math.floor((width - hotbarWidth) / 2.0f);
         float hotbarY = (float) Math.floor(10.0f * pixelScale);
 
-        builder.addAtlasQuad(hx, hotbarY, 0.2f, hotbarWidth, hotbarHeight, 1, 1, 9, 1, false);
+        builder.addAtlasQuad(hx, hotbarY, 0.0f, hotbarWidth, hotbarHeight, 1, 1, 9, 1, false);
 
         // Überprüfe Slot-Wechsel für das Namens-Popup
         int currentSlot = inventory.getSelectedSlot();
@@ -128,7 +129,7 @@ public class HUD {
             }
 
             ItemStack stack = inventory.getStack(col);
-            builder.drawItem(stack, slotX + 3 * pixelScale, hotbarY + 3 * pixelScale, 0.0f, selectorW - 6 * pixelScale);
+            builder.drawItem(stack, slotX + 3 * pixelScale, hotbarY + 3 * pixelScale, 0.2f, selectorW - 6 * pixelScale);
 
             // Anzahl anzeigen, wenn > 1
             if (stack != null && stack.amount > 1) {
