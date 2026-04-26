@@ -44,10 +44,18 @@ public class TerrainRenderSystem implements IRenderSystem {
                 }
             }
 
-            // 2. WASSER ZEICHNEN (TRANSPARENT)
+            // 2. OVERLAY ZEICHNEN (Block-Risse) VOR DEM WASSER!
+            if (packet.overlayMesh != null && packet.overlayMesh.getIndexCount() > 0) {
+                VK10.vkCmdBindPipeline(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getTransparentHandle());
+                VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayout(), 0, stack.longs(packet.worldTexture.getDescriptorSet()), null);
+                VK10.vkCmdPushConstants(cmd, pipeline.getPipelineLayout(), VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, pcBuffer);
+
+                drawMesh(cmd, stack, packet.overlayMesh);
+            }
+
+            // 3. WASSER ZEICHNEN (TRANSPARENT)
             if (packet.waterMeshes != null && !packet.waterMeshes.isEmpty()) {
                 VK10.vkCmdBindPipeline(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getTransparentHandle());
-                // Wir binden das DescriptorSet erneut, falls die Pipeline ein anderes Layout hätte (sollte hier aber identisch sein)
                 VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayout(), 0, stack.longs(packet.worldTexture.getDescriptorSet()), null);
                 VK10.vkCmdPushConstants(cmd, pipeline.getPipelineLayout(), VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, pcBuffer);
 

@@ -123,19 +123,45 @@ public class MasterRenderer {
         packet.itemTexture = itemTexture;
         packet.fontTexture = fontTexture;
         packet.worldTexture = worldTexture;
+
         Vector3i selectedBlockPos = interaction.getSelectedBlockPos();
         packet.selectedBlockPos = selectedBlockPos;
+
+        // --- HIGHLIGHT & CRACKING MESH LÖSCHEN ---
+        if (dynamicHighlightMesh != null) {
+            VK10.vkDeviceWaitIdle(vulkanContext.getDevice());
+            dynamicHighlightMesh.cleanup();
+            dynamicHighlightMesh = null;
+        }
+        if (packet.overlayMesh != null) {
+            VK10.vkDeviceWaitIdle(vulkanContext.getDevice());
+            packet.overlayMesh.cleanup();
+            packet.overlayMesh = null;
+        }
+
         if(selectedBlockPos != null) {
             byte selectedBlockId = world.getBlockAt(selectedBlockPos);
             Block block = BlockRegistry.get(selectedBlockId);
             BlockState state = world.getBlockState(selectedBlockPos);
 
-            if (dynamicHighlightMesh != null) {
-                VK10.vkDeviceWaitIdle(vulkanContext.getDevice());
-                dynamicHighlightMesh.cleanup();
-            }
             dynamicHighlightMesh = new VulkanMesh(vulkanContext, block.getHighlightVertices(state), block.getHighlightIndices(state));
             packet.highlightMesh = dynamicHighlightMesh;
+
+            // ==========================================
+            // NEU: MINING CRACKING OVERLAY BERECHNEN
+            // ==========================================
+            float miningProgress = interaction.getMiningProgressPercent();
+            if (miningProgress > 0.0f) {
+                // Berechne Stage 0 bis 9
+                int stage = (int) Math.min(9, Math.floor(miningProgress * 10.0f));
+                String textureName = "destroy_stage_" + stage;
+
+                // Prüfen, ob die Textur im Atlas ist
+                if (blockAtlas.regions.containsKey(textureName)) {
+                    float layer = blockAtlas.regions.get(textureName).layer;
+                    packet.overlayMesh = buildCrackingMesh(selectedBlockPos, layer);
+                }
+            }
         } else {
             packet.highlightMesh = highlightMesh;
         }
@@ -148,7 +174,70 @@ public class MasterRenderer {
         packet.skyG = skyColor.y;
         packet.skyB = skyColor.z;
 
-        return renderer.render(packet);
+        boolean success = renderer.render(packet);
+
+        // Nach dem Rendern müssen wir das Mesh aufräumen, da wir es jeden Frame neu bauen
+        if (packet.overlayMesh != null) {
+            VK10.vkDeviceWaitIdle(vulkanContext.getDevice());
+            packet.overlayMesh.cleanup();
+        }
+
+        return success;
+    }
+
+    // Hilfsmethode, um den Crack-Würfel zu bauen
+    private VulkanMesh buildCrackingMesh(Vector3i pos, float layer) {
+        float x = pos.x, y = pos.y, z = pos.z;
+        float e = -0.005f; // Epsilon (leicht ausdehnen, damit es nicht z-fightet)
+        float s = 1.0f + 0.005f; // Size
+
+        // Format: x, y, z, r, g, b, a, u, v, layer, skyLight, blockLight (12 Floats)
+        float r = 1.0f, g = 1.0f, b = 1.0f, a = 1.0f; // Keine Verdunkelung
+        float sl = 1.0f, bl = 1.0f; // Volles Licht auf den Rissen
+
+        float[] verts = {
+                // Front (-Z)
+                x+e, y+e, z+e, r,g,b,a, 0,1, layer, sl,bl,
+                x+s, y+e, z+e, r,g,b,a, 1,1, layer, sl,bl,
+                x+s, y+s, z+e, r,g,b,a, 1,0, layer, sl,bl,
+                x+e, y+s, z+e, r,g,b,a, 0,0, layer, sl,bl,
+                // Back (+Z)
+                x+e, y+e, z+s, r,g,b,a, 1,1, layer, sl,bl,
+                x+s, y+e, z+s, r,g,b,a, 0,1, layer, sl,bl,
+                x+s, y+s, z+s, r,g,b,a, 0,0, layer, sl,bl,
+                x+e, y+s, z+s, r,g,b,a, 1,0, layer, sl,bl,
+                // Left (-X)
+                x+e, y+e, z+e, r,g,b,a, 1,1, layer, sl,bl,
+                x+e, y+e, z+s, r,g,b,a, 0,1, layer, sl,bl,
+                x+e, y+s, z+s, r,g,b,a, 0,0, layer, sl,bl,
+                x+e, y+s, z+e, r,g,b,a, 1,0, layer, sl,bl,
+                // Right (+X)
+                x+s, y+e, z+e, r,g,b,a, 0,1, layer, sl,bl,
+                x+s, y+e, z+s, r,g,b,a, 1,1, layer, sl,bl,
+                x+s, y+s, z+s, r,g,b,a, 1,0, layer, sl,bl,
+                x+s, y+s, z+e, r,g,b,a, 0,0, layer, sl,bl,
+                // Top (+Y)
+                x+e, y+s, z+e, r,g,b,a, 0,1, layer, sl,bl,
+                x+s, y+s, z+e, r,g,b,a, 1,1, layer, sl,bl,
+                x+s, y+s, z+s, r,g,b,a, 1,0, layer, sl,bl,
+                x+e, y+s, z+s, r,g,b,a, 0,0, layer, sl,bl,
+                // Bottom (-Y)
+                x+e, y+e, z+e, r,g,b,a, 0,0, layer, sl,bl,
+                x+s, y+e, z+e, r,g,b,a, 1,0, layer, sl,bl,
+                x+s, y+e, z+s, r,g,b,a, 1,1, layer, sl,bl,
+                x+e, y+e, z+s, r,g,b,a, 0,1, layer, sl,bl,
+        };
+
+        int[] inds = {
+                2,1,0, 0,3,2,       // Front
+                6,7,4, 4,5,6,       // Back
+                10,11,8, 8,9,10,    // Left
+                14,13,12, 12,15,14, // Right
+                18,17,16, 16,19,18, // Top
+                22,23,20, 20,21,22  // Bottom
+        };
+
+        return new VulkanMesh(vulkanContext, verts, inds);
     }
 
     public void recreate(PlayerInteraction interaction, InputManager input, DebugOverlay debugOverlay, MenuScreen pauseScreen, ChatOverlay chatOverlay) {

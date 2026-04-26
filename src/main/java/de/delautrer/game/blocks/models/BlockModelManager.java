@@ -105,6 +105,17 @@ public class BlockModelManager {
         // WICHTIG: Fallbacks und spezielle Texturen (wie die Wolken) manuell hinzufügen!
         textures.add("just_white");
 
+        textures.add("destroy_stage_0");
+        textures.add("destroy_stage_1");
+        textures.add("destroy_stage_2");
+        textures.add("destroy_stage_3");
+        textures.add("destroy_stage_4");
+        textures.add("destroy_stage_5");
+        textures.add("destroy_stage_6");
+        textures.add("destroy_stage_7");
+        textures.add("destroy_stage_8");
+        textures.add("destroy_stage_9");
+
         for (Map.Entry<String, Block> entry : BlockRegistry.getAll().entrySet()) {
             if (entry.getValue() == BlockRegistry.AIR) continue;
 

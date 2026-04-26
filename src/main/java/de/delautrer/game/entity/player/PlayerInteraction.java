@@ -11,6 +11,7 @@ import de.delautrer.game.blocks.IInteractable;
 import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.events.BlockBreakEvent;
 import de.delautrer.game.inventory.PlayerInventory;
+import de.delautrer.game.items.ItemType;
 import de.delautrer.game.world.World;
 import de.delautrer.game.items.ItemStack;
 import de.delautrer.game.items.BlockItem;
@@ -31,6 +32,8 @@ public class PlayerInteraction {
     private final float INTERACT_COOLDOWN = 0.2f;
     private float clickCooldown = 0.0f;
 
+    private Vector3i currentlyMiningPos = null;
+    private float miningProgress = 0.0f;
 
     public PlayerInteraction(World world, Camera camera, LocalPlayer player, VulkanContext vulkanContext, EventBus eventBus) {
         this.world = world;
@@ -103,14 +106,104 @@ public class PlayerInteraction {
         // 3. Interaktion (Abbauen / Bauen)
         if (interactTimer > 0) interactTimer -= deltaTime;
 
-        if (input.isActionActive("INTERACT_BREAK") && interactTimer <= 0) {
-            handleMouseClick(true);
-            interactTimer = INTERACT_COOLDOWN;
-        } else if (input.isActionActive("INTERACT_PLACE") && interactTimer <= 0) {
-            handleMouseClick(false);
-            interactTimer = INTERACT_COOLDOWN;
-        } else if (!input.isActionActive("INTERACT_BREAK") && !input.isActionActive("INTERACT_PLACE")){
-            interactTimer = 0.0f;
+        if (input.isActionActive("INTERACT_BREAK")) {
+            if (player.getGameMode() == GameMode.CREATIVE) {
+                // Im Creative Mode bleibt es Instant-Break
+                miningProgress = 0.0f;
+                currentlyMiningPos = null;
+                if (interactTimer <= 0) {
+                    handleMouseClick(true);
+                    interactTimer = INTERACT_COOLDOWN;
+                }
+            } else if (player.getGameMode() == GameMode.SURVIVAL) {
+                // Im Survival Mode: Härte und Zeit berechnen
+                if (selectedBlockPos != null) {
+                    // Prüfen, ob wir immer noch denselben Block anschauen
+                    if (currentlyMiningPos == null || !currentlyMiningPos.equals(selectedBlockPos)) {
+                        currentlyMiningPos = new Vector3i(selectedBlockPos);
+                        miningProgress = 0.0f; // Reset, wenn man wegschaut
+                    }
+
+                    byte blockId = world.getBlockAt(selectedBlockPos);
+                    Block targetBlock = BlockRegistry.get(blockId);
+
+                    if (targetBlock != BlockRegistry.AIR && targetBlock.getHardness() >= 0) {
+                        miningProgress += deltaTime;
+
+                        // Formel: Wie lange dauert der Abbau? (Base-Härte * 1.5 Sekunden als Richtwert)
+                        // Später kannst du hier Werkzeuge einberechnen (z.B. miningProgress += deltaTime * toolMultiplier)
+                        float requiredTime = targetBlock.getHardness() * 1.5f;
+
+                        if (miningProgress >= requiredTime) {
+                            handleSurvivalBreak(targetBlock, blockId);
+                            miningProgress = 0.0f;
+                            currentlyMiningPos = null;
+                            interactTimer = INTERACT_COOLDOWN;
+                        }
+                    } else {
+                        miningProgress = 0.0f; // Unzerstörbar (Bedrock) oder Luft
+                    }
+                } else {
+                    miningProgress = 0.0f;
+                    currentlyMiningPos = null;
+                }
+            }
+        } else {
+            // Maustaste losgelassen: Alles zurücksetzen
+            miningProgress = 0.0f;
+            currentlyMiningPos = null;
+
+            // Platzieren-Logik (unverändert)
+            if (input.isActionActive("INTERACT_PLACE") && interactTimer <= 0) {
+                handleMouseClick(false);
+                interactTimer = INTERACT_COOLDOWN;
+            } else if (!input.isActionActive("INTERACT_PLACE")) {
+                interactTimer = 0.0f;
+            }
+        }
+    }
+
+    private void handleSurvivalBreak(Block block, byte blockId) {
+        if (selectedBlockPos == null) return;
+
+        BlockState state = world.getBlockState(selectedBlockPos.x, selectedBlockPos.y, selectedBlockPos.z);
+        de.delautrer.game.events.BlockBreakEvent breakEvent = new de.delautrer.game.events.BlockBreakEvent(player, selectedBlockPos, state);
+
+        eventBus.publish(breakEvent);
+
+        if (!breakEvent.isCancelled()) {
+            world.setBlock(selectedBlockPos, (byte) 0);
+
+            // Item Drop generieren (Wir droppen das passende BlockItem)
+            /*
+            ItemType dropItemType = null;
+            for (String key : ItemRegistry.getAll().keySet()) {
+                ItemType type = ItemRegistry.get(key);
+                if (type instanceof BlockItem blockItem) {
+                    if (blockItem.getBlock().getId() == blockId) {
+                        dropItemType = type;
+                        break;
+                    }
+                }
+            }
+
+            if (dropItemType != null) {
+                // Item in die Mitte des Blocks spawnen, mit einem kleinen "Plop" nach oben
+                org.joml.Vector3f dropPos = new org.joml.Vector3f(
+                        selectedBlockPos.x + 0.5f,
+                        selectedBlockPos.y + 0.5f,
+                        selectedBlockPos.z + 0.5f
+                );
+                org.joml.Vector3f dropVel = new org.joml.Vector3f(
+                        (float)(Math.random() - 0.5) * 2.0f,
+                        2.0f,
+                        (float)(Math.random() - 0.5) * 2.0f
+                );
+
+                de.delautrer.game.entity.ItemEntity entity = new de.delautrer.game.entity.ItemEntity(new ItemStack(dropItemType, 1), dropPos, dropVel);
+                world.spawnEntity(entity);
+            }
+            */
         }
     }
 
@@ -144,6 +237,22 @@ public class PlayerInteraction {
 
             heldStack.type.onUseRightClick(world, player, selectedBlockPos, adjacentBlockPos, this);
         }
+    }
+
+    public float getMiningProgressPercent() {
+        if (currentlyMiningPos == null || selectedBlockPos == null || !currentlyMiningPos.equals(selectedBlockPos)) {
+            return 0.0f;
+        }
+
+        byte blockId = world.getBlockAt(currentlyMiningPos);
+        Block targetBlock = BlockRegistry.get(blockId);
+
+        if (targetBlock == BlockRegistry.AIR || targetBlock.getHardness() < 0) {
+            return 0.0f;
+        }
+
+        float requiredTime = targetBlock.getHardness() * 1.5f;
+        return Math.min(1.0f, miningProgress / requiredTime);
     }
 
     public Vector3i getSelectedBlockPos() { return selectedBlockPos; }

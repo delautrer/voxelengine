@@ -15,46 +15,46 @@ public class BlockRegistry {
 
     public static final Block AIR = registerAir();
 
-    public static final Block GRASS_BLOCK = register(1, "grass_block", new CubeBlock(true, false));
-    public static final Block GRASS_BLOCK_SLABS = register(24, "grass_block_slabs", new SlabBlock());
-    public static final Block GRASS_BLOCK_STAIRS = register(25, "grass_block_stairs", new StairBlock());
+    public static final Block GRASS_BLOCK = register(1, "grass_block", new CubeBlock(true, false).setHardness(0.6f));
+    public static final Block GRASS_BLOCK_SLABS = register(24, "grass_block_slabs", new SlabBlock().setHardness(0.6f));
+    public static final Block GRASS_BLOCK_STAIRS = register(25, "grass_block_stairs", new StairBlock().setHardness(0.6f));
 
-    public static final Block DIRT        = register(2, "dirt", new CubeBlock(true, false));
-    public static final Block DIRT_SLABS = register(26, "dirt_slabs", new SlabBlock());
-    public static final Block DIRT_STAIRS = register(27, "dirt_stairs", new StairBlock());
+    public static final Block DIRT        = register(2, "dirt", new CubeBlock(true, false).setHardness(0.5f));
+    public static final Block DIRT_SLABS = register(26, "dirt_slabs", new SlabBlock().setHardness(0.5f));
+    public static final Block DIRT_STAIRS = register(27, "dirt_stairs", new StairBlock().setHardness(0.5f));
 
-    public static final Block STONE       = register(3, "stone", new CubeBlock(true, false));
-    public static final Block STONE_SLABS = register(28,  "stone_slabs", new SlabBlock());
-    public static final Block STONE_STAIRS = register(29, "stone_stairs", new StairBlock());
+    public static final Block STONE       = register(3, "stone", new CubeBlock(true, false).setHardness(1.5f));
+    public static final Block STONE_SLABS = register(28,  "stone_slabs", new SlabBlock().setHardness(1.5f));
+    public static final Block STONE_STAIRS = register(29, "stone_stairs", new StairBlock().setHardness(1.5f));
 
-    public static final Block WATER       = register(4, "water", new WaterBlock());
-    public static final Block GLASS       = register(5, "glass", new CubeBlock(true, true));
-    public static final Block LEAVES      = register(6, "leaves", new LeavesBlock());
-    public static final Block TORCH       = register(7, "torch", new TorchBlock().setLightEmission(14));
-    public static final Block BEDROCK     = register(8, "bedrock", new CubeBlock(true, false));
-    public static final Block GRAVEL      = register(9, "gravel", new CubeBlock(true, false));
-    public static final Block SAND        = register(10, "sand", new CubeBlock(true, false));
-    public static final Block LOG         = register(11, "log", new LogBlock());
+    public static final Block WATER       = register(4, "water", new WaterBlock().setHardness(-1f));
+    public static final Block GLASS       = register(5, "glass", new CubeBlock(true, true).setHardness(0.25f));
+    public static final Block LEAVES      = register(6, "leaves", new LeavesBlock().setHardness(0.2f));
+    public static final Block TORCH       = register(7, "torch", new TorchBlock().setLightEmission(14).setHardness(0.0001f));
+    public static final Block BEDROCK     = register(8, "bedrock", new CubeBlock(true, false).setHardness(-1f));
+    public static final Block GRAVEL      = register(9, "gravel", new CubeBlock(true, false).setHardness(0.6f));
+    public static final Block SAND        = register(10, "sand", new CubeBlock(true, false).setHardness(0.5f));
+    public static final Block LOG         = register(11, "log", new LogBlock().setHardness(2.0f));
 
-    public static final Block GRASS         = register(12, "grass", new PlantBlock());
-    public static final Block SANDY_GRASS   = register(13, "sandy_grass", new PlantBlock());
-    public static final Block POPPY         = register(14, "poppy", new PlantBlock());
-    public static final Block DANDELION     = register(15, "dandelion", new PlantBlock());
-    public static final Block DOTTY         = register(16, "dotty", new PlantBlock());
-    public static final Block FAIRY_BELL    = register(17, "fairy_bell", new PlantBlock());
-    public static final Block RED_TULIP     = register(18, "red_tulip", new PlantBlock());
-    public static final Block PURPLE_TULIP  = register(19, "purple_tulip", new PlantBlock());
-    public static final Block MAVVINILIA    = register(23, "mavvinilia", new PlantBlock());
+    public static final Block GRASS         = register(12, "grass", new PlantBlock().setHardness(0.0001f));
+    public static final Block SANDY_GRASS   = register(13, "sandy_grass", new PlantBlock().setHardness(0.0001f));
+    public static final Block POPPY         = register(14, "poppy", new PlantBlock().setHardness(0.0001f));
+    public static final Block DANDELION     = register(15, "dandelion", new PlantBlock().setHardness(0.0001f));
+    public static final Block DOTTY         = register(16, "dotty", new PlantBlock().setHardness(0.0001f));
+    public static final Block FAIRY_BELL    = register(17, "fairy_bell", new PlantBlock().setHardness(0.0001f));
+    public static final Block RED_TULIP     = register(18, "red_tulip", new PlantBlock().setHardness(0.0001f));
+    public static final Block PURPLE_TULIP  = register(19, "purple_tulip", new PlantBlock().setHardness(0.0001f));
+    public static final Block MAVVINILIA    = register(23, "mavvinilia", new PlantBlock().setHardness(0.0001f));
 
-    public static final Block PLANKS  = register(20, "planks", new CubeBlock(true, false));
-    public static final Block STAIRS  = register(21, "stairs", new StairBlock());
-    public static final Block SLABS   = register(22, "slabs", new SlabBlock());
+    public static final Block PLANKS  = register(20, "planks", new CubeBlock(true, false).setHardness(2.0f));
+    public static final Block STAIRS  = register(21, "stairs", new StairBlock().setHardness(2.0f));
+    public static final Block SLABS   = register(22, "slabs", new SlabBlock().setHardness(2.0f));
 
-    public static final Block BRICKS  = register(30, "bricks", new CubeBlock(true, false));
-    public static final Block BRICKS_STAIRS  = register(31, "bricks_stairs", new StairBlock());
-    public static final Block BRICKS_SLABS   = register(32, "bricks_slabs", new SlabBlock());
+    public static final Block BRICKS  = register(30, "bricks", new CubeBlock(true, false).setHardness(2.0f));
+    public static final Block BRICKS_STAIRS  = register(31, "bricks_stairs", new StairBlock().setHardness(2.0f));
+    public static final Block BRICKS_SLABS   = register(32, "bricks_slabs", new SlabBlock().setHardness(2.0f));
 
-    public static final Block CHEST   = register(33, "chest", new ChestBlock());
+    public static final Block CHEST   = register(33, "chest", new ChestBlock().setHardness(1.42f));
 
 
     public static void init() {

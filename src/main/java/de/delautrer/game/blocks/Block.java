@@ -21,6 +21,8 @@ public abstract class Block {
 
     protected int lightEmission = 0;
 
+    protected float hardness = 0.42f;
+
     public final boolean isSolid;
     public final boolean isTransparent;
     public final boolean isPassable;
@@ -192,4 +194,13 @@ public abstract class Block {
 
     public boolean hasBlockEntity() { return false; }
     public BlockEntity createBlockEntity(World world, Vector3i pos) { return null; }
+
+    public float getHardness() {
+        return hardness;
+    }
+
+    public Block setHardness(float hardness) {
+        this.hardness = hardness;
+        return this;
+    }
 }

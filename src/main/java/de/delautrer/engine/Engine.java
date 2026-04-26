@@ -7,6 +7,7 @@ import de.delautrer.engine.input.InputManager;
 import de.delautrer.engine.states.SceneManager;
 import de.delautrer.engine.window.Window;
 import de.delautrer.game.blocks.models.BlockModelManager;
+import de.delautrer.game.items.ItemModelManager;
 import de.delautrer.game.states.MainMenuScene;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.vulkan.VK10;
@@ -39,18 +40,18 @@ public class Engine {
 
         System.out.println("building block atlas...");
         try {
-            java.util.Set<String> reqBlocks = de.delautrer.game.blocks.models.BlockModelManager.getRequiredTextures();
+            java.util.Set<String> reqBlocks = BlockModelManager.getRequiredTextures();
             // is2DAtlas = false, Ordner = "assets/textures/block"
             blockAtlas = TextureStitcher.buildAtlas(reqBlocks, "atlas_blocks_debug.png", "assets/textures/block", false);
-            de.delautrer.game.blocks.models.BlockModelManager.loadAllModels(blockAtlas);
+            BlockModelManager.loadAllModels(blockAtlas);
         } catch (Exception e) { e.printStackTrace(); }
 
         System.out.println("Building item atlas...");
         try {
-            java.util.Set<String> reqItems = de.delautrer.game.items.ItemModelManager.getRequiredTextures();
+            java.util.Set<String> reqItems = ItemModelManager.getRequiredTextures();
             // is2DAtlas = true, Ordner = "assets/textures/item"
             itemAtlas = TextureStitcher.buildAtlas(reqItems, "atlas_items_debug.png", "assets/textures/item", true);
-            de.delautrer.game.items.ItemModelManager.loadAllModels(itemAtlas);
+            ItemModelManager.loadAllModels(itemAtlas);
         } catch (Exception e) { e.printStackTrace(); }
 
         BlockModelManager.loadAllModels(blockAtlas);
