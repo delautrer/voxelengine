@@ -1,6 +1,7 @@
 package de.delautrer.game.blocks;
 
 import de.delautrer.engine.physics.AABB;
+import de.delautrer.game.blocks.entities.BlockEntity;
 import de.delautrer.game.blocks.models.BlockModelData;
 import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.blocks.state.Property;
@@ -188,4 +189,7 @@ public abstract class Block {
     public BlockModelData getModel() {
         return model;
     }
+
+    public boolean hasBlockEntity() { return false; }
+    public BlockEntity createBlockEntity(World world, Vector3i pos) { return null; }
 }

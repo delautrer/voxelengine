@@ -54,6 +54,8 @@ public class BlockRegistry {
     public static final Block BRICKS_STAIRS  = register(31, "bricks_stairs", new StairBlock());
     public static final Block BRICKS_SLABS   = register(32, "bricks_slabs", new SlabBlock());
 
+    public static final Block CHEST   = register(33, "chest", new ChestBlock());
+
 
     public static void init() {
         System.out.println("BlockRegistry initialized. " + BLOCKS.size() + " Blocks loaded.");

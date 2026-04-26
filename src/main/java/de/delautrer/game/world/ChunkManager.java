@@ -31,7 +31,6 @@ public class ChunkManager {
     private final AsyncChunkBuilder asyncBuilder;
     private final ExecutorService chunkExecutor;
 
-    // Wir speichern nun das Resultat der Mesh-Generierung in der Queue
     private final ConcurrentLinkedQueue<MeshGenerationResult> meshUploadQueue = new ConcurrentLinkedQueue<>();
 
     private final Set<Vector2i> chunksInPreparation = ConcurrentHashMap.newKeySet();
@@ -109,8 +108,9 @@ public class ChunkManager {
                 Chunk c = chunks.get(pos);
 
                 if (c != null && !chunksInPreparation.contains(pos)) {
-                    if (!meshes.containsKey(pos) || c.isDirty()) {
-                        c.clearDirty();
+                    if (!meshes.containsKey(pos) || c.needsMeshUpdate()) {
+                        c.clearMeshUpdate();
+
                         chunksInPreparation.add(pos);
                         chunkExecutor.submit(() -> {
                             try {

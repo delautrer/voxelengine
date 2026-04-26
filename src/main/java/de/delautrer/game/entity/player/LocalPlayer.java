@@ -82,20 +82,17 @@ public class LocalPlayer extends Player {
             }
 
             if (input.isActionJustPressed("INVENTORY") && gameMode != GameMode.SPECTATOR) {
-                inventory.toggle();
-
-                // 1. Das alte Event, das du behalten wolltest
-                eventBus.publish(new InventoryToggleEvent(inventory.isOpen()));
-
-                // 2. Die neuen dedizierten Events
-                if (inventory.isOpen()) {
-                    eventBus.publish(new de.delautrer.game.events.InventoryOpenedEvent(this, inventory));
+                if (getOpenedInventory() != null) {
+                    eventBus.publish(new de.delautrer.game.events.InventoryClosedEvent(this, getOpenedInventory()));
+                    closeInventory();
                 } else {
-                    eventBus.publish(new de.delautrer.game.events.InventoryClosedEvent(this, inventory));
-                    // Falls eine Kiste offen war, diese ebenfalls logisch schließen
-                    if (getOpenedInventory() != null) {
-                        eventBus.publish(new de.delautrer.game.events.InventoryClosedEvent(this, getOpenedInventory()));
-                        closeInventory();
+                    inventory.toggle();
+                    eventBus.publish(new InventoryToggleEvent(inventory.isOpen()));
+
+                    if (inventory.isOpen()) {
+                        eventBus.publish(new de.delautrer.game.events.InventoryOpenedEvent(this, inventory));
+                    } else {
+                        eventBus.publish(new de.delautrer.game.events.InventoryClosedEvent(this, inventory));
                     }
                 }
             }

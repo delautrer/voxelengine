@@ -5,6 +5,9 @@ import de.delautrer.engine.graphics.VulkanContext;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.engine.graphics.Camera;
 import de.delautrer.engine.physics.Raycaster;
+import de.delautrer.game.blocks.Block;
+import de.delautrer.game.blocks.BlockRegistry;
+import de.delautrer.game.blocks.IInteractable;
 import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.events.BlockBreakEvent;
 import de.delautrer.game.inventory.PlayerInventory;
@@ -42,7 +45,12 @@ public class PlayerInteraction {
     }
 
     public void update(InputManager input, float deltaTime) {
-        if (player.getInventory().isOpen() || player.isChatOpen()) return;
+        if (player.getInventory().isOpen() || player.isChatOpen() || player.getOpenedInventory() != null) {
+            selectedBlockPos = null;
+            adjacentBlockPos = null;
+            return;
+        }
+
         if (clickCooldown > 0) {
             clickCooldown -= deltaTime;
             return;
@@ -50,10 +58,10 @@ public class PlayerInteraction {
 
         if (player.getGameMode() == GameMode.SPECTATOR) return;
 
-        de.delautrer.game.blocks.Block headBlock = player.getHeadBlock();
+        Block headBlock = player.getHeadBlock();
 
         // 1. Raycast (Kopf steckt fest oder normal)
-        if (headBlock != de.delautrer.game.blocks.BlockRegistry.AIR) {
+        if (headBlock != BlockRegistry.AIR) {
             org.joml.Vector3f eyePos = player.getEyePosition();
 
             selectedBlockPos = new org.joml.Vector3i(
@@ -120,8 +128,19 @@ public class PlayerInteraction {
             }
         } else {
             if (adjacentBlockPos == null) return;
+
+            if (!player.isSneaking) {
+                Block clickedBlock = BlockRegistry.get(world.getBlockAt(selectedBlockPos));
+
+                if (clickedBlock instanceof IInteractable interactable) {
+                    boolean handled = interactable.onInteract(world, selectedBlockPos, player);
+                    if (handled) return;
+                }
+            }
+
+            // --- 2. BLOCK ODER ITEM VERWENDEN ---
             ItemStack heldStack = player.getInventory().getSelectedHotbarStack();
-            if (heldStack == null) return;
+            if (heldStack == null || heldStack.type == null) return;
 
             heldStack.type.onUseRightClick(world, player, selectedBlockPos, adjacentBlockPos, this);
         }

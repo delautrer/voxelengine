@@ -52,6 +52,8 @@ public class ItemRegistry {
     public static final Item PURPLE_TULIP  = register("purple_tulip", new BlockItem("Purple Tulip", "purple_tulip", BlockRegistry.PURPLE_TULIP));
     public static final Item MAVVINILIA    = register("mavvinilia", new BlockItem("Mavvinilia", "mavvinilia", BlockRegistry.MAVVINILIA));
 
+    public static final Item CHEST         = register("chest", new BlockItem("Chest", "chest", BlockRegistry.CHEST));
+
     public static void init() {
         System.out.println("ItemRegistry initialized. " + ITEMS.size() + " Items loaded.");
     }

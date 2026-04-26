@@ -20,6 +20,7 @@ public class Chunk {
 
     private final int worldX, worldZ;
     private boolean isDirty = false;
+    private boolean needsMeshUpdate = false;
     private long lastAccessedTime;
 
     private float[] opaqueVertices = new float[4096];
@@ -50,7 +51,9 @@ public class Chunk {
         if (blocks[x][y][z] != type || states[x][y][z] != state) {
             blocks[x][y][z] = type;
             states[x][y][z] = state;
+
             this.isDirty = true;
+            this.needsMeshUpdate = true;
         }
     }
     public void setBlock(int x, int y, int z, byte type) {
@@ -430,6 +433,7 @@ public class Chunk {
     public int getWorldZ() { return worldZ; }
     public void markDirty() {
         this.isDirty = true;
+        this.needsMeshUpdate = true;
     }
     public boolean isDirty() {
         return isDirty;
@@ -437,6 +441,8 @@ public class Chunk {
     public void clearDirty() {
         this.isDirty = false;
     }
+    public boolean needsMeshUpdate() { return needsMeshUpdate; }
+    public void clearMeshUpdate() { this.needsMeshUpdate = false; }
     public void access() {
         this.lastAccessedTime = System.currentTimeMillis();
     }

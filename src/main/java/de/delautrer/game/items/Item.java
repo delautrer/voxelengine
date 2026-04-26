@@ -36,5 +36,9 @@ public abstract class Item {
         return maxStackSize;
     }
 
+    public String getName() {
+        return name;
+    }
+
     public abstract void onUseRightClick(World world, LocalPlayer localPlayer, Vector3i targetBlock, Vector3i adjacentBlock, PlayerInteraction interaction);
 }

@@ -1,14 +1,25 @@
 package de.delautrer.game.world;
 
 import org.joml.Vector2i;
+import org.joml.Vector3i;
+import org.joml.Vector3f;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import de.delautrer.game.world.persistence.RegionFile;
 import de.delautrer.game.world.persistence.WorldData;
 import de.delautrer.game.world.persistence.PlayerData;
 
+// NEUE IMPORTS FÜR KISTEN UND ITEMS
+import de.delautrer.game.blocks.entities.BlockEntity;
+import de.delautrer.game.blocks.entities.ChestBlockEntity;
+import de.delautrer.game.entity.Entity;
+import de.delautrer.game.entity.ItemEntity;
+import de.delautrer.game.items.ItemRegistry;
+import de.delautrer.game.items.ItemStack;
+
 import java.io.*;
 import java.nio.file.*;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -49,14 +60,10 @@ public class WorldStorageManager {
     }
 
     // ==========================================
-    // STATISCHE HELPER FÜR DAS MENÜ (NEU!)
+    // STATISCHE HELPER FÜR DAS MENÜ
     // ==========================================
 
-    /**
-     * Erstellt einen garantierten, fehlerfreien und einmaligen Ordnernamen für eine neue Welt.
-     */
     public static String getUniqueValidFolderName(String rawName) {
-        // 1. Verbotene Zeichen durch Unterstriche ersetzen
         String safeName = ILLEGAL_FILENAME_CHARS.matcher(rawName).replaceAll("_").trim();
         if (safeName.isEmpty() || safeName.equals("_")) {
             safeName = "World";
@@ -67,7 +74,6 @@ public class WorldStorageManager {
             try { Files.createDirectories(savesDir); } catch (IOException ignored) {}
         }
 
-        // 2. Prüfen ob der Ordner existiert. Wenn ja: Nummern anhängen (-1, -2, etc.)
         Path target = savesDir.resolve(safeName);
         int counter = 1;
         while (Files.exists(target)) {
@@ -78,10 +84,6 @@ public class WorldStorageManager {
         return target.getFileName().toString();
     }
 
-    /**
-     * Liest die WorldData extrem schnell aus, OHNE den ganzen Manager zu starten.
-     * Perfekt für die Welt-Auswahl im Hauptmenü!
-     */
     public static WorldData readMetadataForUI(File saveFolder) {
         Path levelFile = saveFolder.toPath().resolve("level.json");
         if (!Files.exists(levelFile)) return null;
@@ -141,6 +143,9 @@ public class WorldStorageManager {
             byte[] data = chunk.serialize();
             RegionFile region = getRegionFile(chunk.getWorldX(), chunk.getWorldZ());
             region.writeChunk(chunk.getWorldX(), chunk.getWorldZ(), data);
+
+            // WICHTIGER FIX: Ohne das speichert der Chunk jeden Frame aufs Neue!
+            chunk.clearDirty();
         } catch (IOException e) {
             System.err.println("Fehler beim Speichern von Chunk " + chunk.getWorldX() + "," + chunk.getWorldZ());
             e.printStackTrace();
@@ -160,6 +165,114 @@ public class WorldStorageManager {
             System.err.println("Beschädigter Chunk gefunden bei " + chunk.getWorldX() + "," + chunk.getWorldZ());
             return false;
         }
+    }
+
+    // ==========================================
+    // ENTITIES & BLOCK ENTITIES (NEU)
+    // ==========================================
+
+    public void saveBlockEntities(Map<Vector3i, BlockEntity> entities) {
+        Path file = worldDir.resolve("block_entities.dat");
+        try (DataOutputStream out = new DataOutputStream(Files.newOutputStream(file, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING))) {
+            out.writeInt(entities.size());
+            for (Map.Entry<Vector3i, BlockEntity> entry : entities.entrySet()) {
+                Vector3i pos = entry.getKey();
+                out.writeInt(pos.x); out.writeInt(pos.y); out.writeInt(pos.z);
+
+                if (entry.getValue() instanceof ChestBlockEntity chest) {
+                    out.writeUTF("CHEST");
+                    saveInventory(out, chest.getInventory());
+                } else {
+                    out.writeUTF("UNKNOWN");
+                }
+            }
+        } catch (IOException e) { e.printStackTrace(); }
+    }
+
+    public void loadBlockEntities(World world) {
+        Path file = worldDir.resolve("block_entities.dat");
+        if (!Files.exists(file)) return;
+
+        try (DataInputStream in = new DataInputStream(Files.newInputStream(file))) {
+            int count = in.readInt();
+            for (int i = 0; i < count; i++) {
+                Vector3i pos = new Vector3i(in.readInt(), in.readInt(), in.readInt());
+                String type = in.readUTF();
+                if (type.equals("CHEST")) {
+                    ChestBlockEntity chest = new ChestBlockEntity(world, pos);
+                    loadInventory(in, chest.getInventory());
+                    world.setBlockEntity(pos, chest);
+                }
+            }
+        } catch (IOException e) { e.printStackTrace(); }
+    }
+
+    public void saveEntities(List<Entity> entities) {
+        Path file = worldDir.resolve("entities.dat");
+        try (DataOutputStream out = new DataOutputStream(Files.newOutputStream(file, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING))) {
+            // Wir filtern nur ItemEntities (Drops)
+            List<ItemEntity> items = entities.stream()
+                    .filter(e -> e instanceof ItemEntity)
+                    .map(e -> (ItemEntity) e)
+                    .toList();
+
+            out.writeInt(items.size());
+            for (ItemEntity item : items) {
+                out.writeFloat(item.position.x); out.writeFloat(item.position.y); out.writeFloat(item.position.z);
+                out.writeFloat(item.velocity.x); out.writeFloat(item.velocity.y); out.writeFloat(item.velocity.z);
+                saveItemStack(out, item.stack);
+            }
+        } catch (IOException e) { e.printStackTrace(); }
+    }
+
+    public void loadEntities(World world) {
+        Path file = worldDir.resolve("entities.dat");
+        if (!Files.exists(file)) return;
+
+        try (DataInputStream in = new DataInputStream(Files.newInputStream(file))) {
+            int count = in.readInt();
+            for (int i = 0; i < count; i++) {
+                Vector3f pos = new Vector3f(in.readFloat(), in.readFloat(), in.readFloat());
+                Vector3f vel = new Vector3f(in.readFloat(), in.readFloat(), in.readFloat());
+                ItemStack stack = loadItemStack(in);
+                if (stack != null) {
+                    world.spawnEntity(new ItemEntity(stack, pos, vel));
+                }
+            }
+        } catch (IOException e) { e.printStackTrace(); }
+    }
+
+    // Hilfsmethoden für ItemStacks
+    private void saveInventory(DataOutputStream out, de.delautrer.game.inventory.IInventory inv) throws IOException {
+        out.writeInt(inv.getSize());
+        for (int i = 0; i < inv.getSize(); i++) {
+            saveItemStack(out, inv.getStack(i));
+        }
+    }
+
+    private void loadInventory(DataInputStream in, de.delautrer.game.inventory.IInventory inv) throws IOException {
+        int size = in.readInt();
+        for (int i = 0; i < size; i++) {
+            inv.setStack(i, loadItemStack(in));
+        }
+    }
+
+    private void saveItemStack(DataOutputStream out, ItemStack stack) throws IOException {
+        if (stack == null || stack.type == null) {
+            out.writeUTF("null");
+        } else {
+            String id = de.delautrer.game.items.ItemRegistry.getId(stack.type);
+            out.writeUTF(id != null ? id : "null");
+            out.writeInt(stack.amount);
+        }
+    }
+
+    private ItemStack loadItemStack(DataInputStream in) throws IOException {
+        String id = in.readUTF();
+        if (id.equals("null")) return null;
+        int amount = in.readInt();
+        de.delautrer.game.items.Item item = de.delautrer.game.items.ItemRegistry.get(id);
+        return item != null ? new ItemStack(item, amount) : null;
     }
 
     // ==========================================

@@ -9,10 +9,7 @@ import de.delautrer.engine.states.Scene;
 import de.delautrer.engine.Engine;
 import de.delautrer.game.commands.CommandManager;
 import de.delautrer.game.entity.player.LocalPlayer;
-import de.delautrer.game.events.DebugToggleEvent;
-import de.delautrer.game.events.HotbarSlotChangeEvent;
-import de.delautrer.game.events.InventoryChangeEvent;
-import de.delautrer.game.events.InventoryToggleEvent;
+import de.delautrer.game.events.*;
 import de.delautrer.game.ui.ChatOverlay;
 import de.delautrer.game.ui.DebugOverlay;
 import de.delautrer.game.ui.gui.screens.ChatScreen;
@@ -57,6 +54,8 @@ public class PlayScene extends Scene {
     private EventListener<HotbarSlotChangeEvent> hotbarSlotChangeListener;
     private EventListener<DebugToggleEvent> debugToggleListener;
     private EventListener<InventoryChangeEvent> inventoryChangeEvent;
+    private EventListener<InventoryOpenedEvent> openListener;
+    private EventListener<InventoryClosedEvent> closeListener;
 
     public PlayScene(Engine engine, String worldName, long seed) {
         super(engine);
@@ -189,11 +188,15 @@ public class PlayScene extends Scene {
         hotbarSlotChangeListener = event -> uiNeedsRebuild = true;
         debugToggleListener = event -> uiNeedsRebuild = true;
         inventoryChangeEvent = event -> uiNeedsRebuild = true;
+        openListener = event -> uiNeedsRebuild = true;
+        closeListener = event -> uiNeedsRebuild = true;
 
         eventBus.subscribe(InventoryToggleEvent.class, inventoryToggleListener);
         eventBus.subscribe(HotbarSlotChangeEvent.class, hotbarSlotChangeListener);
         eventBus.subscribe(DebugToggleEvent.class, debugToggleListener);
         eventBus.subscribe(InventoryChangeEvent.class, inventoryChangeEvent);
+        eventBus.subscribe(InventoryOpenedEvent.class, openListener);
+        eventBus.subscribe(InventoryClosedEvent.class, closeListener);
     }
 
 
@@ -229,7 +232,16 @@ public class PlayScene extends Scene {
         if (engine.getInputManager().isActionJustPressed("PAUSE")) {
             if (isChatOpen) {
                 closeChat();
-            } else if (localPlayer.getInventory().isOpen()) {
+            }
+            else if (localPlayer.getOpenedInventory() != null) {
+                eventBus.publish(new de.delautrer.game.events.InventoryClosedEvent(localPlayer, localPlayer.getOpenedInventory()));
+                localPlayer.closeInventory();
+
+                engine.getWindow().disableCursor();
+                localPlayer.getCamera().resetMouseTracking();
+                uiNeedsRebuild = true;
+            }
+            else if (localPlayer.getInventory().isOpen()) {
                 localPlayer.getInventory().setOpen(false);
                 eventBus.publish(new InventoryToggleEvent(false));
                 engine.getWindow().disableCursor();
@@ -277,7 +289,7 @@ public class PlayScene extends Scene {
         localPlayer.updateLocal(engine.getInputManager(), world.getChunkManager(), deltaTime);
         localPlayer.updateCamera(engine.getWindow().getHandle(), deltaTime);
 
-        if (localPlayer.getInventory().isOpen() || debugOverlay.isVisible()) {
+        if (localPlayer.getInventory().isOpen() || localPlayer.getOpenedInventory() != null || debugOverlay.isVisible()) {
             uiNeedsRebuild = true;
         }
 

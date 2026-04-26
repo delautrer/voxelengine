@@ -4,6 +4,7 @@ import de.delautrer.engine.events.EventBus;
 import de.delautrer.engine.graphics.VulkanContext;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
+import de.delautrer.game.blocks.entities.BlockEntity;
 import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.entity.Entity;
 import de.delautrer.game.entity.ItemEntity;
@@ -19,6 +20,8 @@ import org.joml.Vector3f;
 import org.joml.Vector3i;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class World {
@@ -36,6 +39,7 @@ public class World {
     private final String worldSave;
 
     private final List<Entity> entities = new CopyOnWriteArrayList<>();
+    private final Map<Vector3i, BlockEntity> blockEntities = new ConcurrentHashMap<>();
 
     public World(VulkanContext context, LocalPlayer localPlayer, EventBus eventBus, long defaultSeed, String worldName, String worldSave) {
         this.eventBus = eventBus;
@@ -74,6 +78,10 @@ public class World {
                 if (i >= PlayerInventory.TOTAL_SIZE) break;
             }
         }
+
+        storageManager.loadBlockEntities(this);
+        storageManager.loadEntities(this);
+
 
         chunkManager.update(localPlayer.position.x, localPlayer.position.z);
     }
@@ -155,14 +163,20 @@ public class World {
         byte oldBlockId = targetChunk.getBlock(localX, y, localZ);
         if (oldBlockId == newBlockId) return;
 
+        // --- NEU: Altes BlockEntity entfernen (Items droppen) ---
+        Vector3i pos = new Vector3i(x, y, z);
+        de.delautrer.game.blocks.entities.BlockEntity oldEntity = getBlockEntity(pos);
+        if (oldEntity != null) {
+            oldEntity.onRemove();
+            setBlockEntity(pos, null);
+        }
+
         targetChunk.setBlock(localX, y, localZ, newBlockId);
 
-        // --- FIX: Licht nach dem Setzen des Blocks sofort aktualisieren ---
         targetChunk.recalculateSunlightColumn(localX, localZ, chunkManager.getLightEngine());
         chunkManager.getLightEngine().notifyBlockChanged(x, y, z);
         chunkManager.getLightEngine().processLightUpdates();
 
-        Vector3i pos = new Vector3i(x, y, z);
         eventBus.publish(new BlockChangeEvent(pos, oldBlockId, newBlockId, targetChunk));
 
         int[][] dirs = {{0,1,0}, {0,-1,0}, {1,0,0}, {-1,0,0}, {0,0,1}, {0,0,-1}};
@@ -173,7 +187,10 @@ public class World {
 
         Block placedBlock = BlockRegistry.get(newBlockId);
         if (placedBlock != null) {
-            // --- FIX: Wir fragen den ECHTEN Block darunter ab, nicht den alten gelöschten Block! ---
+            if (placedBlock.hasBlockEntity()) {
+                setBlockEntity(pos, placedBlock.createBlockEntity(this, pos));
+            }
+
             byte blockBelow = getBlockAt(x, y - 1, z);
             placedBlock.onNeighborChanged(this, x, y, z, new Vector3i(x, y - 1, z), blockBelow);
         }
@@ -196,14 +213,22 @@ public class World {
 
         if (oldBlockId == newBlockId && oldState == newState) return;
 
+        // --- NEU: Altes BlockEntity entfernen (falls da vorher z.B. eine Kiste war) ---
+        Vector3i pos = new Vector3i(x, y, z);
+        de.delautrer.game.blocks.entities.BlockEntity oldEntity = getBlockEntity(pos);
+        if (oldEntity != null) {
+            oldEntity.onRemove();
+            setBlockEntity(pos, null);
+        }
+
         targetChunk.setBlock(localX, y, localZ, newBlockId, newState);
 
-        // --- FIX: Licht nach dem Setzen des Blocks sofort aktualisieren ---
+        // Licht-Updates
         targetChunk.recalculateSunlightColumn(localX, localZ, chunkManager.getLightEngine());
         chunkManager.getLightEngine().notifyBlockChanged(x, y, z);
         chunkManager.getLightEngine().processLightUpdates();
 
-        Vector3i pos = new Vector3i(x, y, z);
+        // Events
         eventBus.publish(new BlockChangeEvent(pos, oldBlockId, newBlockId, targetChunk));
 
         int[][] dirs = {{0,1,0}, {0,-1,0}, {1,0,0}, {-1,0,0}, {0,0,1}, {0,0,-1}};
@@ -214,7 +239,10 @@ public class World {
 
         Block placedBlock = BlockRegistry.get(newBlockId);
         if (placedBlock != null) {
-            // --- FIX: Echter Block für neighbor updates ---
+            if (placedBlock.hasBlockEntity()) {
+                setBlockEntity(pos, placedBlock.createBlockEntity(this, pos));
+            }
+
             byte blockBelow = getBlockAt(x, y - 1, z);
             placedBlock.onNeighborChanged(this, x, y, z, new Vector3i(x, y - 1, z), blockBelow);
         }
@@ -265,6 +293,9 @@ public class World {
 
         storageManager.savePlayerData("lokaler-spieler", pData);
 
+        storageManager.saveBlockEntities(this.blockEntities);
+        storageManager.saveEntities(this.entities);
+
         for (Chunk c : chunkManager.getLoadedChunks()) {
             if (c.isDirty()) storageManager.queueChunkForSaving(c);
         }
@@ -305,6 +336,15 @@ public class World {
 
     public List<Entity> getEntities() {
         return entities;
+    }
+
+    public BlockEntity getBlockEntity(Vector3i pos) {
+        return blockEntities.get(pos);
+    }
+
+    public void setBlockEntity(Vector3i pos, BlockEntity entity) {
+        if (entity == null) blockEntities.remove(pos);
+        else blockEntities.put(pos, entity);
     }
 
     public long getSeed() { return seed; }

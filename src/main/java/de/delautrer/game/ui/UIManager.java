@@ -4,7 +4,11 @@ import de.delautrer.engine.graphics.VulkanFont;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.game.entity.player.GameMode;
 import de.delautrer.game.entity.player.PlayerInteraction;
+import de.delautrer.game.inventory.ChestInventory;
+import de.delautrer.game.inventory.IInventory;
 import de.delautrer.game.ui.gui.container.CreativeContainer;
+import de.delautrer.game.ui.gui.container.ChestContainer;
+import de.delautrer.game.ui.gui.screens.ChestScreen;
 import de.delautrer.game.ui.gui.screens.HUD;
 import de.delautrer.game.ui.gui.container.PlayerContainer;
 import de.delautrer.game.ui.gui.screens.CreativeInventoryScreen;
@@ -22,20 +26,43 @@ public class UIManager {
     }
 
     public void update(InputManager input, PlayerInteraction interaction) {
-        if (interaction.getInventory().isOpen()) {
-            if (currentScreen == null) {
+        IInventory externalInv = interaction.getPlayer().getOpenedInventory();
+        boolean isPlayerInvOpen = interaction.getInventory().isOpen();
+
+        // 1. Hat der Spieler eine Kiste (oder ein anderes externes Inventar) offen?
+        if (externalInv != null) {
+            // Wir prüfen, ob wir den ChestScreen neu initialisieren müssen
+            if (!(currentScreen instanceof ChestScreen)) {
+                if (externalInv instanceof ChestInventory) {
+                    currentScreen = new ChestScreen(new ChestContainer(interaction.getInventory(), (ChestInventory) externalInv));
+                }
+
+                if (lastWidth > 0 && currentScreen != null) {
+                    currentScreen.init(lastWidth, lastHeight);
+                }
+            }
+            if (currentScreen != null) {
+                currentScreen.handleInput(input);
+            }
+
+        }
+        // 2. Hat der Spieler nur sein eigenes Inventar offen?
+        else if (isPlayerInvOpen) {
+            // Prüfen, ob wir den Screen neu laden müssen (falls er vorher null oder ein ChestScreen war)
+            if (currentScreen == null || currentScreen instanceof ChestScreen) {
                 if (interaction.getPlayer().getGameMode() == GameMode.CREATIVE) {
-                    // Creative-Inventory benutzt NOCH das alte System
                     currentScreen = new CreativeInventoryScreen(new CreativeContainer(interaction.getInventory()));
                 } else {
-                    // Survival nutzt den neuen PlayerContainer!
                     currentScreen = new InventoryScreen(new PlayerContainer(interaction.getInventory()));
                 }
 
                 if (lastWidth > 0) currentScreen.init(lastWidth, lastHeight);
             }
             currentScreen.handleInput(input);
-        } else {
+
+        }
+        // 3. Gar kein Inventar offen
+        else {
             currentScreen = null;
         }
     }
