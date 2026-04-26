@@ -64,11 +64,9 @@ public class HUD {
         Block headBlock = interaction.getPlayer().getHeadBlock();
         if (interaction.getPlayer().getGameMode() != GameMode.SPECTATOR && headBlock != BlockRegistry.AIR) {
 
-            // Wir nehmen direkt das Modell des Blocks (Vorderseite)
             TextureStitcher.AtlasRegion reg = headBlock.getModel().north;
 
             if (reg != null) {
-                // --- Die Mathematik: Layer-Index in 2D UV-Koordinaten umrechnen ---
                 int gridSize = blockAtlasWidth / 16;
                 int layer = (int) reg.layer;
 
@@ -131,13 +129,45 @@ public class HUD {
             ItemStack stack = inventory.getStack(col);
             builder.drawItem(stack, slotX + 3 * pixelScale, hotbarY + 3 * pixelScale, 0.2f, selectorW - 6 * pixelScale);
 
-            // Anzahl anzeigen, wenn > 1
             if (stack != null && stack.amount > 1) {
                 builder.drawText(String.valueOf(stack.amount), slotX + selectorW - (12.0f * pixelScale), hotbarY + (2.0f * pixelScale), 0.25f, font);
             }
         }
 
-        // --- ITEM NAME POPUP ---
+        // ==========================================
+        // 4. HEALTH BAR (HERZEN)
+        // ==========================================
+        if (interaction.getPlayer().getGameMode() == GameMode.SURVIVAL) {
+            float health = interaction.getPlayer().getHealth();
+            float maxHealth = interaction.getPlayer().getMaxHealth();
+
+            int heartCount = (int) Math.ceil(maxHealth / 2.0f); // 20 Leben = 10 Herzen
+            float heartSize = 9.0f * pixelScale; // Minecraft-Größe
+            float heartSpacing = 8.0f * pixelScale; // Leicht überlappend (8 Pixel Abstand)
+
+            // Start-Position: Linksbündig mit der Hotbar, etwas drüber
+            float heartsX = hx;
+            float heartsY = hotbarY + hotbarHeight + (5.0f * pixelScale);
+
+            for (int i = 0; i < heartCount; i++) {
+                float currentHeartX = heartsX + (i * heartSpacing);
+
+                // Hintergrund: Leeres Herz zeichnen (GridX=0, GridY=2)
+                builder.addAtlasQuad(currentHeartX, heartsY, 0.05f, heartSize, heartSize, 0, 2, 1, 1, false);
+
+                float heartValue = (i + 1) * 2.0f;
+
+                if (health >= heartValue) {
+                    // Volles Herz drüberzeichnen (GridX=2, GridY=2)
+                    builder.addAtlasQuad(currentHeartX, heartsY, 0.06f, heartSize, heartSize, 2, 2, 1, 1, false);
+                } else if (health >= heartValue - 1.0f) {
+                    // Halbes Herz drüberzeichnen (GridX=1, GridY=2)
+                    builder.addAtlasQuad(currentHeartX, heartsY, 0.06f, heartSize, heartSize, 1, 2, 1, 1, false);
+                }
+            }
+        }
+
+        // --- 5. ITEM NAME POPUP ---
         long elapsed = System.currentTimeMillis() - lastSlotChangeTime;
         if (elapsed < 2000 && inventory.getStack(currentSlot) != null) {
             String rawId = ItemRegistry.getId(inventory.getStack(currentSlot).type);
@@ -145,11 +175,15 @@ public class HUD {
 
             float textScale = 0.3f;
             float textWidth = builder.getTextWidth(itemName, font);
-            float textY = hotbarY + hotbarHeight + (16.0f * pixelScale);
-            float textX = (width / 2.0f) - (textWidth / 2);
 
-            builder.drawText(itemName, textX, textY, textScale, font);
+            // NEU: Wenn wir im Survival sind, muss das Popup wegen der Herzen höher liegen
+            float popupBaseY = hotbarY + hotbarHeight + (16.0f * pixelScale);
+            if (interaction.getPlayer().getGameMode() == GameMode.SURVIVAL) {
+                popupBaseY += 12.0f * pixelScale; // Platz für Herzen machen
+            }
+
+            float textX = (width / 2.0f) - (textWidth / 2);
+            builder.drawText(itemName, textX, popupBaseY, textScale, font);
         }
     }
-
 }

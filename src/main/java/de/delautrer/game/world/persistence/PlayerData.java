@@ -6,6 +6,9 @@ public class PlayerData {
     public float x, y, z;
     public float yaw, pitch;
 
+    public float currentHealth;
+    public boolean isDead;
+
     public GameMode gamemode;
     public int selectedHotbarSlot;
     public SavedSlot[] inventory;

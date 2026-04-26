@@ -9,6 +9,7 @@ import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.entity.ItemEntity;
 import de.delautrer.game.events.HotbarSlotChangeEvent;
 import de.delautrer.game.events.InventoryToggleEvent;
+import de.delautrer.game.events.PlayerDamageEvent;
 import de.delautrer.game.events.PlayerItemDropEvent;
 import de.delautrer.game.items.ItemStack;
 import de.delautrer.game.world.ChunkManager;
@@ -29,6 +30,8 @@ public class LocalPlayer extends Player {
     private final float speed = 5.0f;
 
     private Block headBlock = BlockRegistry.AIR;
+    private float fallDistance = 0.0f;
+    private boolean wasOnGround = true;
 
     // NEU: Damit wir wissen, ob wir den GLFW-Cursor-Modus ändern müssen
     private boolean wasUIOpen = false;
@@ -44,6 +47,19 @@ public class LocalPlayer extends Player {
     }
 
     public void updateLocal(InputManager input, ChunkManager chunkManager, float deltaTime) {
+        // 1. ABSOLUTE TODES-SPERRE - Muss die allererste Zeile der Methode sein!
+        if (isDead) {
+            velocity.x = 0;
+            velocity.z = 0;
+            if (!onGround) {
+                velocity.y += gravity * deltaTime;
+            }
+            pushOutOfBlocks(chunkManager, input, deltaTime);
+            super.update(deltaTime, chunkManager);
+            return; // <-- Dieses Return blockiert ALLES andere (inklusive PlayerInteraction)!
+        }
+
+        // 2. Spectator-Check (Ab hier geht dein bisheriger Code ganz normal weiter...)
         if (gameMode == GameMode.SPECTATOR) {
             isFlying = true;
         }
@@ -132,7 +148,7 @@ public class LocalPlayer extends Player {
             }
         }
 
-        boolean isUIOpen = inventory.isOpen() || isChatOpen || getOpenedInventory() != null;
+        boolean isUIOpen = inventory.isOpen() || isChatOpen || getOpenedInventory() != null || isDead;
 
         if (input.isActionJustPressed("DROP_ITEM") && !isUIOpen) {
             ItemStack currentStack = inventory.getStack(inventory.getSelectedSlot());
@@ -342,6 +358,34 @@ public class LocalPlayer extends Player {
         }
 
         float deltaY = position.y - prevY;
+
+        // ==========================================
+        // NEU: Fallschaden Logik
+        // ==========================================
+        if (!wasOnGround && onGround) {
+            // Spieler ist gerade gelandet
+            if (fallDistance > 3.0f && gameMode == GameMode.SURVIVAL) {
+                // Minecraft-Formel: Schaden = Gefallene Blöcke - 3
+                float dmg = (float) Math.floor(fallDistance - 3.0f);
+                if (dmg > 0) {
+                    this.damage(dmg);
+                    if (eventBus != null) {
+                        eventBus.publish(new PlayerDamageEvent(this, dmg));
+                    }
+                    System.out.println("Fallschaden: " + dmg + " | Verbleibendes Leben: " + getHealth());
+                }
+            }
+            fallDistance = 0.0f; // Reset beim Landen
+        } else if (!onGround && deltaY < 0 && !isFlying && !isInWater) {
+            // Spieler fällt gerade nach unten
+            fallDistance += Math.abs(deltaY);
+        } else if (isFlying || isInWater) {
+            // Im Wasser oder beim Fliegen wird der Fallschaden resettet
+            fallDistance = 0.0f;
+        }
+        wasOnGround = onGround;
+        // ==========================================
+
         if (deltaY > 0.0f && deltaY <= stepHeight && onGround) {
             cameraVisualYOffset -= deltaY;
         }
@@ -361,7 +405,6 @@ public class LocalPlayer extends Player {
     }
 
     protected void pushOutOfBlocks(ChunkManager cm, de.delautrer.engine.input.InputManager input, float deltaTime) {
-        // ... (Dein bisheriger Kollisionscode, der bleibt absolut identisch)
         int byFeet = (int) Math.floor(position.y + 0.1f);
         int byHead = (int) Math.floor(position.y + height * 0.8f);
         boolean isStuck = false;
@@ -437,12 +480,10 @@ public class LocalPlayer extends Player {
         Vector3f smoothEyePos = new Vector3f(getEyePosition());
         smoothEyePos.y += cameraVisualYOffset;
 
-        // Prüfen, ob IRGENDEIN UI Element offen ist (Spieler-Inv, Kisten-Inv, Chat)
-        boolean isUIOpen = inventory.isOpen() || isChatOpen || getOpenedInventory() != null;
+        boolean isUIOpen = inventory.isOpen() || isChatOpen || getOpenedInventory() != null || isDead;
 
         if (isUIOpen != wasUIOpen) {
             if (isUIOpen) {
-                // Cursor sichtbar machen, Kamera stoppen
                 org.lwjgl.glfw.GLFW.glfwSetInputMode(windowHandle, org.lwjgl.glfw.GLFW.GLFW_CURSOR, org.lwjgl.glfw.GLFW.GLFW_CURSOR_NORMAL);
             } else {
                 org.lwjgl.glfw.GLFW.glfwSetInputMode(windowHandle, org.lwjgl.glfw.GLFW.GLFW_CURSOR, org.lwjgl.glfw.GLFW.GLFW_CURSOR_DISABLED);
@@ -468,4 +509,16 @@ public class LocalPlayer extends Player {
     public Camera getCamera() { return camera; }
     public PlayerInteraction getInteraction() { return interaction; }
     public Block getHeadBlock() { return headBlock; }
+
+    public void respawn(Vector3f spawnPos) {
+        this.position.set(spawnPos);
+        this.velocity.set(0, 0, 0);
+        this.currentHealth = this.maxHealth;
+        this.isDead = false;
+        this.fallDistance = 0.0f;
+
+        if (interaction != null) {
+            interaction.resetCooldown();
+        }
+    }
 }

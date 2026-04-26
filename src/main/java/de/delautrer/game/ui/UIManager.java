@@ -8,13 +8,8 @@ import de.delautrer.game.inventory.ChestInventory;
 import de.delautrer.game.inventory.IInventory;
 import de.delautrer.game.ui.gui.container.CreativeContainer;
 import de.delautrer.game.ui.gui.container.ChestContainer;
-import de.delautrer.game.ui.gui.screens.ChestScreen;
-import de.delautrer.game.ui.gui.screens.HUD;
+import de.delautrer.game.ui.gui.screens.*;
 import de.delautrer.game.ui.gui.container.PlayerContainer;
-import de.delautrer.game.ui.gui.screens.CreativeInventoryScreen;
-import de.delautrer.game.ui.gui.screens.InventoryScreen;
-import de.delautrer.game.ui.gui.screens.MenuScreen;
-import de.delautrer.game.ui.gui.screens.Screen;
 
 public class UIManager {
     private final HUD hud;
@@ -26,12 +21,14 @@ public class UIManager {
     }
 
     public void update(InputManager input, PlayerInteraction interaction) {
+        if (interaction.getPlayer().isDead()) {
+            currentScreen = null;
+            return;
+        }
         IInventory externalInv = interaction.getPlayer().getOpenedInventory();
         boolean isPlayerInvOpen = interaction.getInventory().isOpen();
 
-        // 1. Hat der Spieler eine Kiste (oder ein anderes externes Inventar) offen?
         if (externalInv != null) {
-            // Wir prüfen, ob wir den ChestScreen neu initialisieren müssen
             if (!(currentScreen instanceof ChestScreen)) {
                 if (externalInv instanceof ChestInventory) {
                     currentScreen = new ChestScreen(new ChestContainer(interaction.getInventory(), (ChestInventory) externalInv));

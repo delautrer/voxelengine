@@ -27,7 +27,6 @@ public class Window {
             throw new RuntimeException("Failed to create the GLFW window");
         }
 
-        // CRITICAL: Breite und Höhe bei Resize aktualisieren!
         GLFW.glfwSetFramebufferSizeCallback(handle, (window, w, h) -> {
             this.width = w;
             this.height = h;

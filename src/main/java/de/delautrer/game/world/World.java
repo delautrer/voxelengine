@@ -67,6 +67,9 @@ public class World {
             localPlayer.getCamera().setPitch(pData.pitch);
             localPlayer.getCamera().setYaw(pData.yaw);
             localPlayer.setGameMode(pData.gamemode);
+            System.out.println();
+            localPlayer.setDead(pData.isDead);
+            localPlayer.setCurrentHealth(pData.currentHealth);
             if (localPlayer.getInventory() != null) {
                 localPlayer.getInventory().importFromSavedData(pData.inventory);
                 localPlayer.getInventory().setSelectedSlot(pData.selectedHotbarSlot);
@@ -290,6 +293,8 @@ public class World {
         pData.selectedHotbarSlot = localPlayer.getInventory().getSelectedSlot();
         pData.inventory = localPlayer.getInventory().exportToSavedData();
         pData.gamemode = localPlayer.getGameMode();
+        pData.currentHealth = localPlayer.getCurrentHealth();
+        pData.isDead = localPlayer.isDead();
 
         storageManager.savePlayerData("lokaler-spieler", pData);
 
@@ -353,6 +358,9 @@ public class World {
     public ChunkManager getChunkManager() { return chunkManager; }
     public WorldStorageManager getStorageManager() { return storageManager; }
     public Environment getEnvironment() { return environment; }
+    public Vector3f getWorldSpawnpoint() {
+        return worldSpawnpoint;
+    }
 
     public void cleanup(LocalPlayer localPlayer) {
         if (isCleanedUp) return;

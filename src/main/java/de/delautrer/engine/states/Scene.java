@@ -14,4 +14,7 @@ public abstract class Scene {
     public abstract void render();
     public abstract void cleanup();
     public abstract void onResize();
+    public Engine getEngine() {
+        return engine;
+    }
 }

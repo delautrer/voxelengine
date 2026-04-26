@@ -45,7 +45,7 @@ public class PlayerInteraction {
     }
 
     public void update(InputManager input, float deltaTime) {
-        if (player.getInventory().isOpen() || player.isChatOpen() || player.getOpenedInventory() != null) {
+        if (player.isDead() || player.getInventory().isOpen() || player.isChatOpen() || player.getOpenedInventory() != null) {
             selectedBlockPos = null;
             adjacentBlockPos = null;
             return;
@@ -149,7 +149,7 @@ public class PlayerInteraction {
     public Vector3i getSelectedBlockPos() { return selectedBlockPos; }
     public PlayerInventory getInventory() { return player.getInventory(); }
     public void resetCooldown() {
-        this.clickCooldown = 0.2f;
+        this.clickCooldown = 0.5f;
     }
     public EventBus getEventBus() {
         return eventBus;

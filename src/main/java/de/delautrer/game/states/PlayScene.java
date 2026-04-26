@@ -12,10 +12,7 @@ import de.delautrer.game.entity.player.LocalPlayer;
 import de.delautrer.game.events.*;
 import de.delautrer.game.ui.ChatOverlay;
 import de.delautrer.game.ui.DebugOverlay;
-import de.delautrer.game.ui.gui.screens.ChatScreen;
-import de.delautrer.game.ui.gui.screens.LoadingScreen;
-import de.delautrer.game.ui.gui.screens.MenuScreen;
-import de.delautrer.game.ui.gui.screens.PauseScreen;
+import de.delautrer.game.ui.gui.screens.*;
 import de.delautrer.game.world.*;
 import org.joml.Vector3f;
 
@@ -32,7 +29,9 @@ public class PlayScene extends Scene {
     private PauseScreen pauseScreen;
     private LoadingScreen loadingScreen;
     private ChatScreen chatScreen;
+    private DeathScreen deathScreen;
 
+    private boolean wasDead = false;
     private boolean isChatOpen = false;
     private boolean isPaused = false;
     private boolean isSavingAndQuitting = false;
@@ -56,6 +55,7 @@ public class PlayScene extends Scene {
     private EventListener<InventoryChangeEvent> inventoryChangeEvent;
     private EventListener<InventoryOpenedEvent> openListener;
     private EventListener<InventoryClosedEvent> closeListener;
+    private EventListener<PlayerDamageEvent> playerDamageEventListener;
 
     public PlayScene(Engine engine, String worldName, long seed) {
         super(engine);
@@ -91,6 +91,11 @@ public class PlayScene extends Scene {
         localPlayer = new LocalPlayer(new Vector3f(8.0f, 20.0f, 8.0f));
         engine.getWindow().disableCursor();
         localPlayer.getCamera().resetMouseTracking();
+
+
+        deathScreen = new DeathScreen(localPlayer, this);
+        deathScreen.init(engine.getWindow().getWidth(), engine.getWindow().getHeight());
+        deathScreen.setFont(masterRenderer.getFont());
 
         // Mein schönie seedie : 1337l
         world = new World(engine.getVulkanContext(), localPlayer, eventBus, seed, worldName, worldSave);
@@ -190,6 +195,7 @@ public class PlayScene extends Scene {
         inventoryChangeEvent = event -> uiNeedsRebuild = true;
         openListener = event -> uiNeedsRebuild = true;
         closeListener = event -> uiNeedsRebuild = true;
+        playerDamageEventListener = event -> uiNeedsRebuild = true;
 
         eventBus.subscribe(InventoryToggleEvent.class, inventoryToggleListener);
         eventBus.subscribe(HotbarSlotChangeEvent.class, hotbarSlotChangeListener);
@@ -197,6 +203,7 @@ public class PlayScene extends Scene {
         eventBus.subscribe(InventoryChangeEvent.class, inventoryChangeEvent);
         eventBus.subscribe(InventoryOpenedEvent.class, openListener);
         eventBus.subscribe(InventoryClosedEvent.class, closeListener);
+        eventBus.subscribe(PlayerDamageEvent.class, playerDamageEventListener);
     }
 
 
@@ -228,7 +235,35 @@ public class PlayScene extends Scene {
             return;
         }
 
-        // --- 2. PAUSE LOGIK ---
+        // --- 2. TODES LOGIK ---
+        if (localPlayer.isDead()) {
+            if (!wasDead) {
+                engine.getWindow().enableCursor();
+                localPlayer.getCamera().resetMouseTracking();
+
+                if (isChatOpen) closeChat();
+                if (localPlayer.getOpenedInventory() != null) {
+                    eventBus.publish(new de.delautrer.game.events.InventoryClosedEvent(localPlayer, localPlayer.getOpenedInventory()));
+                    localPlayer.closeInventory();
+                }
+                if (localPlayer.getInventory().isOpen()) {
+                    localPlayer.getInventory().setOpen(false);
+                    eventBus.publish(new InventoryToggleEvent(false));
+                }
+
+                wasDead = true;
+            }
+
+            float uiMouseY = engine.getWindow().getHeight() - engine.getInputManager().getMouseY();
+            deathScreen.handleMenuInput(engine.getInputManager(), engine.getInputManager().getMouseX(), uiMouseY);
+
+            uiNeedsRebuild = true;
+        } else {
+            wasDead = false;
+        }
+
+
+        // --- 3. PAUSE LOGIK ---
         if (engine.getInputManager().isActionJustPressed("PAUSE")) {
             if (isChatOpen) {
                 closeChat();
@@ -261,7 +296,7 @@ public class PlayScene extends Scene {
             return;
         }
 
-        // --- 3. NORMALES SPIEL ---
+        // --- 4. NORMALES SPIEL ---
         if (!isChatOpen && engine.getInputManager().isActionJustPressed("DEBUG_MENU")) {
             debugOverlay.toggle();
             eventBus.publish(new DebugToggleEvent(debugOverlay.isVisible()));
@@ -307,13 +342,20 @@ public class PlayScene extends Scene {
 
             if (!world.getChunkManager().isInitialLoadComplete()) {
                 activeScreen = loadingScreen;
+            } else if (localPlayer.isDead()) {
+                activeScreen = deathScreen;
             } else if (isPaused || isSavingAndQuitting) {
                 activeScreen = pauseScreen;
-            } else if (isChatOpen) { // NEU
+            } else if (isChatOpen) {
                 activeScreen = chatScreen;
             }
 
-            masterRenderer.rebuildUI(localPlayer.getInteraction(), engine.getInputManager(), debugOverlay, activeScreen, chatOverlay);
+            if (localPlayer.isDead()) {
+                masterRenderer.rebuildUI(null, engine.getInputManager(), null, activeScreen, null);
+            } else {
+                masterRenderer.rebuildUI(localPlayer.getInteraction(), engine.getInputManager(), debugOverlay, activeScreen, chatOverlay);
+            }
+
             uiNeedsRebuild = false;
         }
 
@@ -327,6 +369,8 @@ public class PlayScene extends Scene {
         MenuScreen activeScreen = null;
         if (!world.getChunkManager().isInitialLoadComplete()) {
             activeScreen = loadingScreen;
+        } else if (localPlayer.isDead()) {
+            activeScreen = deathScreen;
         } else if (isPaused || isSavingAndQuitting) {
             activeScreen = pauseScreen;
         }
@@ -335,6 +379,9 @@ public class PlayScene extends Scene {
         pauseScreen.init(engine.getWindow().getWidth(), engine.getWindow().getHeight());
         loadingScreen.init(engine.getWindow().getWidth(), engine.getWindow().getHeight());
         chatScreen.init(engine.getWindow().getWidth(), engine.getWindow().getHeight());
+
+        if(deathScreen != null) deathScreen.init(engine.getWindow().getWidth(), engine.getWindow().getHeight());
+
         uiNeedsRebuild = true;
     }
 
@@ -345,7 +392,7 @@ public class PlayScene extends Scene {
             eventBus.unsubscribe(HotbarSlotChangeEvent.class, hotbarSlotChangeListener);
             eventBus.unsubscribe(DebugToggleEvent.class, debugToggleListener);
 
-            //eventBus.cleanup();
+            eventBus.cleanup();
         }
 
         if (worldEventHandler != null) {
@@ -401,4 +448,8 @@ public class PlayScene extends Scene {
         uiNeedsRebuild = true;
     }
 
+
+    public World getWorld() {
+        return world;
+    }
 }
