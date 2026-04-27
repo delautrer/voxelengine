@@ -5,6 +5,9 @@
 		},
 		{
 			"path": "src/main/resources/assets/models/item"
+		},
+		{
+			"path": "src/main/resources/assets/loot_tables"
 		}
 	],
 	"settings": {}
