@@ -29,7 +29,7 @@ public class BlockRegistry {
 
     public static final Block WATER       = register(4, "water", new WaterBlock().setHardness(-1f));
     public static final Block GLASS       = register(5, "glass", new CubeBlock(true, true).setHardness(0.25f));
-    public static final Block LEAVES      = register(6, "leaves", new LeavesBlock().setHardness(0.2f));
+    public static final Block LEAVES      = register(6, "leaves", new LeavesBlock().setHardness(0.2f).setLootTable("blocks/leaves.json"));
     public static final Block TORCH       = register(7, "torch", new TorchBlock().setLightEmission(14).setHardness(0.0001f));
     public static final Block BEDROCK     = register(8, "bedrock", new CubeBlock(true, false).setHardness(-1f));
     public static final Block GRAVEL      = register(9, "gravel", new CubeBlock(true, false).setHardness(0.6f));

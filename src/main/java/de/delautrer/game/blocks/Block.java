@@ -28,6 +28,8 @@ public abstract class Block {
     public final boolean isPassable;
     public final boolean isRaycastable;
 
+    protected String lootTable = null;
+
     private BlockState defaultState;
     private BlockState[] stateArray;
 
@@ -128,23 +130,18 @@ public abstract class Block {
     public BlockState getDefaultState() {
         return defaultState;
     }
-
-    // Wandelt das rohe Byte aus dem Chunk zurück in ein smartes Objekt
     public BlockState getStateForId(byte id) {
         if (id >= 0 && id < stateArray.length) return stateArray[id];
         return defaultState;
     }
-
     public BlockState getStateForPlacement(World world, Player player, Vector3i hitPos, Vector3i hitFace, Vector3f exactHit){
         return getDefaultState();
     }
-
     public boolean canBeReplaced(BlockState state, BlockItem item, Vector3i hitFace, Vector3f exactHit) {
         return false;
     }
-
-    public java.util.List<AABB> getBoundingBoxes(BlockState state) {
-        return java.util.List.of(new AABB(new org.joml.Vector3f(0,0,0), new org.joml.Vector3f(1,1,1)));
+    public List<AABB> getBoundingBoxes(BlockState state) {
+        return List.of(new AABB(new Vector3f(0,0,0), new Vector3f(1,1,1)));
     }
 
     // Highlighter generiert sich jetzt AUTOMATISCH aus den BoundingBoxes!
@@ -162,7 +159,6 @@ public abstract class Block {
         }
         return verts;
     }
-
     public int[] getHighlightIndices(BlockState state) {
         java.util.List<AABB> boxes = getBoundingBoxes(state);
         int[] inds = new int[boxes.size() * 24];
@@ -179,28 +175,27 @@ public abstract class Block {
         }
         return inds;
     }
-
     public boolean canWaterFlowInto() {
         return false;
     }
-
     public void setModel(BlockModelData model) {
         this.model = model;
     }
-
     public BlockModelData getModel() {
         return model;
     }
-
     public boolean hasBlockEntity() { return false; }
     public BlockEntity createBlockEntity(World world, Vector3i pos) { return null; }
-
     public float getHardness() {
         return hardness;
     }
-
     public Block setHardness(float hardness) {
         this.hardness = hardness;
         return this;
     }
+    public Block setLootTable(String path) {
+        this.lootTable = path;
+        return this;
+    }
+    public String getLootTable() { return lootTable; }
 }

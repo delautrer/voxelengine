@@ -9,13 +9,20 @@ import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.blocks.IInteractable;
 import de.delautrer.game.blocks.state.BlockState;
+import de.delautrer.game.entity.ItemEntity;
 import de.delautrer.game.events.BlockBreakEvent;
 import de.delautrer.game.inventory.PlayerInventory;
 import de.delautrer.game.items.ItemType;
+import de.delautrer.game.loot.LootTable;
+import de.delautrer.game.loot.LootTableManager;
 import de.delautrer.game.world.World;
 import de.delautrer.game.items.ItemStack;
 import de.delautrer.game.items.BlockItem;
+import org.joml.Vector3f;
 import org.joml.Vector3i;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class PlayerInteraction {
 
@@ -166,7 +173,7 @@ public class PlayerInteraction {
     private void handleSurvivalBreak(Block block, byte blockId) {
         if (selectedBlockPos == null) return;
 
-        BlockState state = world.getBlockState(selectedBlockPos.x, selectedBlockPos.y, selectedBlockPos.z);
+        de.delautrer.game.blocks.state.BlockState state = world.getBlockState(selectedBlockPos.x, selectedBlockPos.y, selectedBlockPos.z);
         de.delautrer.game.events.BlockBreakEvent breakEvent = new de.delautrer.game.events.BlockBreakEvent(player, selectedBlockPos, state);
 
         eventBus.publish(breakEvent);
@@ -174,36 +181,50 @@ public class PlayerInteraction {
         if (!breakEvent.isCancelled()) {
             world.setBlock(selectedBlockPos, (byte) 0);
 
-            // Item Drop generieren (Wir droppen das passende BlockItem)
-            /*
-            ItemType dropItemType = null;
-            for (String key : ItemRegistry.getAll().keySet()) {
-                ItemType type = ItemRegistry.get(key);
-                if (type instanceof BlockItem blockItem) {
-                    if (blockItem.getBlock().getId() == blockId) {
-                        dropItemType = type;
-                        break;
+            String lootPath = block.getLootTable();
+            List<ItemStack> drops = new ArrayList<>();
+
+            if (lootPath != null) {
+                // 1. DATA-DRIVEN LOOT: Wir laden die Drops aus der JSON
+                LootTable table = LootTableManager.load(lootPath);
+                if (table != null) {
+                    drops.addAll(table.generateLoot());
+                }
+            } else {
+                // 2. FALLBACK: Wenn keine LootTable definiert ist, droppt der Block sich selbst
+                /*
+                de.delautrer.game.items.Item dropItemType = null;
+                for (de.delautrer.game.items.Item item : de.delautrer.game.items.ItemRegistry.getAll().values()) {
+                    if (item instanceof de.delautrer.game.items.BlockItem blockItem) {
+                        if (blockItem.getBlock().getId() == blockId) {
+                            dropItemType = item;
+                            break;
+                        }
                     }
                 }
+                if (dropItemType != null) {
+                    drops.add(new ItemStack(dropItemType, 1));
+                }
+                */
             }
 
-            if (dropItemType != null) {
-                // Item in die Mitte des Blocks spawnen, mit einem kleinen "Plop" nach oben
-                org.joml.Vector3f dropPos = new org.joml.Vector3f(
+            // 3. Spawne alle berechneten Items in der Welt
+            for (ItemStack stack : drops) {
+                Vector3f dropPos = new Vector3f(
                         selectedBlockPos.x + 0.5f,
                         selectedBlockPos.y + 0.5f,
                         selectedBlockPos.z + 0.5f
                 );
-                org.joml.Vector3f dropVel = new org.joml.Vector3f(
+
+                Vector3f dropVel = new Vector3f(
                         (float)(Math.random() - 0.5) * 2.0f,
                         2.0f,
                         (float)(Math.random() - 0.5) * 2.0f
                 );
 
-                de.delautrer.game.entity.ItemEntity entity = new de.delautrer.game.entity.ItemEntity(new ItemStack(dropItemType, 1), dropPos, dropVel);
+                ItemEntity entity = new ItemEntity(stack, dropPos, dropVel);
                 world.spawnEntity(entity);
             }
-            */
         }
     }
 
