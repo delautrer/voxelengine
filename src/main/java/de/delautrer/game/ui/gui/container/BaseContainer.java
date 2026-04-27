@@ -47,7 +47,7 @@ public abstract class BaseContainer {
                     slot.putStack(new ItemStack(mouseStack.type, 1));
                     mouseStack.amount--;
                     if (mouseStack.amount <= 0) mouseStack = null;
-                } else if (clicked.type == mouseStack.type && clicked.amount < 64) {
+                } else if (clicked.type == mouseStack.type && clicked.amount < clicked.type.getMaxStackSize()) {
                     // Füge exakt 1 Item zum Stack hinzu
                     clicked.amount++;
                     mouseStack.amount--;
@@ -72,7 +72,7 @@ public abstract class BaseContainer {
                 slot.putStack(mouseStack);
                 mouseStack = null;
             } else if (clicked.type == mouseStack.type) {
-                int space = 64 - clicked.amount;
+                int space = clicked.type.getMaxStackSize() - clicked.amount;
                 int toAdd = Math.min(space, mouseStack.amount);
                 clicked.amount += toAdd;
                 mouseStack.amount -= toAdd;
@@ -94,7 +94,7 @@ public abstract class BaseContainer {
             if (isTargetRegion(clickedSlot, target)) {
                 ItemStack targetStack = target.getStack();
                 if (targetStack != null && targetStack.type == stack.type) {
-                    int space = 64 - targetStack.amount;
+                    int space = targetStack.type.getMaxStackSize() - targetStack.amount;
                     if (space > 0) {
                         int toAdd = Math.min(space, stack.amount);
                         targetStack.amount += toAdd;
@@ -117,20 +117,14 @@ public abstract class BaseContainer {
         }
     }
 
-    // Hilfsmethode, um herauszufinden, ob ein Slot auf der "anderen Seite" liegt
     private boolean isTargetRegion(Slot clicked, Slot target) {
         if (clicked == target) return false;
-
-        // Regel 1: Unterschiedliche Inventare (z.B. Kiste -> Spieler)
         if (clicked.inventory != target.inventory) return true;
-
-        // Regel 2: Gleiches Inventar, aber wir wollen zwischen Hotbar und Main-Inv wechseln
         if (clicked.inventory instanceof PlayerInventory) {
             boolean clickedInHotbar = clicked.slotIndex < PlayerInventory.HOTBAR_SIZE;
             boolean targetInHotbar = target.slotIndex < PlayerInventory.HOTBAR_SIZE;
             return clickedInHotbar != targetInHotbar;
         }
-
         return false;
     }
 
@@ -155,25 +149,19 @@ public abstract class BaseContainer {
     public void sortRegion(Slot hoveredSlot) {
         if (hoveredSlot == null || hoveredSlot.inventory == null || !hoveredSlot.inventory.isSortable()) return;
 
-        // 1. Finde alle Slots in diesem Container, die zur gleichen "Region" gehören
         List<Slot> regionSlots = new ArrayList<>();
         for (Slot s : slots) {
             if (s.inventory == hoveredSlot.inventory) {
-                // Spezialfall Spieler-Inventar: Hotbar (0-8) und Main-Grid (9-35) trennen!
                 if (hoveredSlot.inventory instanceof de.delautrer.game.inventory.PlayerInventory) {
                     boolean hoveredInHotbar = hoveredSlot.slotIndex < de.delautrer.game.inventory.PlayerInventory.HOTBAR_SIZE;
                     boolean sInHotbar = s.slotIndex < de.delautrer.game.inventory.PlayerInventory.HOTBAR_SIZE;
-                    if (hoveredInHotbar == sInHotbar) {
-                        regionSlots.add(s);
-                    }
+                    if (hoveredInHotbar == sInHotbar) regionSlots.add(s);
                 } else {
-                    // Normale Kisten/Inventare komplett nehmen
                     regionSlots.add(s);
                 }
             }
         }
 
-        // 2. Items sammeln und alphabetisch sortieren
         java.util.Map<de.delautrer.game.items.Item, Integer> counts = new java.util.TreeMap<>(
                 java.util.Comparator.comparing(item -> {
                     String id = de.delautrer.game.items.ItemRegistry.getId(item);
@@ -185,16 +173,15 @@ public abstract class BaseContainer {
             ItemStack stack = s.getStack();
             if (stack != null && stack.amount > 0) {
                 counts.put(stack.type, counts.getOrDefault(stack.type, 0) + stack.amount);
-                s.putStack(null); // Slot leeren
+                s.putStack(null);
             }
         }
 
-        // 3. Sortierte Items wieder in die identifizierte Region einfügen
         int index = 0;
         for (java.util.Map.Entry<de.delautrer.game.items.Item, Integer> entry : counts.entrySet()) {
             int amount = entry.getValue();
             while (amount > 0 && index < regionSlots.size()) {
-                int stackSize = Math.min(amount, 64);
+                int stackSize = Math.min(amount, entry.getKey().getMaxStackSize());
                 regionSlots.get(index++).putStack(new ItemStack(entry.getKey(), stackSize));
                 amount -= stackSize;
             }
@@ -202,15 +189,14 @@ public abstract class BaseContainer {
     }
 
     public void gatherItems(Slot targetSlot) {
-        if (mouseStack == null || mouseStack.amount >= 64) return;
+        if (mouseStack == null || mouseStack.amount >= mouseStack.type.getMaxStackSize()) return;
 
-        // Durchsuche alle Slots nach dem gleichen Item-Typ und sauge sie auf
         for (Slot s : slots) {
-            if (s.inventory == null) continue; // Creative-Grid Slots ignorieren
+            if (s.inventory == null) continue;
             ItemStack stack = s.getStack();
 
             if (stack != null && stack.type == mouseStack.type && s != targetSlot) {
-                int space = 64 - mouseStack.amount;
+                int space = mouseStack.type.getMaxStackSize() - mouseStack.amount;
                 if (space <= 0) break;
 
                 int take = Math.min(space, stack.amount);
@@ -225,28 +211,25 @@ public abstract class BaseContainer {
     public void applyDrag(java.util.Set<Slot> draggedSlots) {
         if (mouseStack == null || draggedSlots.isEmpty()) return;
 
-        // Wenn man nur geklickt hat ohne zu ziehen -> normaler Linksklick
         if (draggedSlots.size() == 1) {
             Slot slot = draggedSlots.iterator().next();
             clickSlot(slot, 0, ClickType.PICKUP);
             return;
         }
 
-        // Filtere ungültige Slots (nur leere oder auffüllbare Slots mit demselben Typ)
         java.util.List<Slot> validSlots = new java.util.ArrayList<>();
         for (Slot s : draggedSlots) {
-            if (s.inventory == null) continue; // Creative-Grid Slots ignorieren
+            if (s.inventory == null) continue;
             ItemStack st = s.getStack();
-            if (st == null || (st.type == mouseStack.type && st.amount < 64)) {
+            if (st == null || (st.type == mouseStack.type && st.amount < st.type.getMaxStackSize())) {
                 validSlots.add(s);
             }
         }
 
         if (validSlots.isEmpty()) return;
 
-        // Gleichmäßig aufteilen
         int amountPerSlot = mouseStack.amount / validSlots.size();
-        if (amountPerSlot == 0) return; // Zu wenig Items zum Verteilen
+        if (amountPerSlot == 0) return;
 
         for (Slot s : validSlots) {
             ItemStack st = s.getStack();

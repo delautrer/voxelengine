@@ -73,11 +73,24 @@ public class UIManager {
         }
 
         int hoveredSlot = -1;
+        boolean showCursor = false;
+        boolean isHovering = false;
+
         if (currentScreen != null) {
+            showCursor = true;
             hoveredSlot = currentScreen.getHoveredSlot(mouseX, mouseY);
-            input.setCursorHover(hoveredSlot != -1);
+            isHovering = (hoveredSlot != -1);
+
+            if (currentScreen instanceof de.delautrer.game.ui.gui.screens.ContainerScreen containerScreen) {
+                if (containerScreen.getContainer().getMouseStack() != null) {
+                    showCursor = false;
+                }
+            }
+
+            input.setUICursorState(showCursor, isHovering);
+
         } else {
-            input.setCursorHover(false);
+            input.setUICursorState(false, false);
         }
 
         hud.render(builder, width, height, interaction, hoveredSlot, debugOverlay, chatOverlay, font, blockAtlasWidth);

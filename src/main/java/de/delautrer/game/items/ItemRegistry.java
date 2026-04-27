@@ -25,7 +25,9 @@ public class ItemRegistry {
     public static final Item STONE_SLABS  = register("stone_slabs", new BlockItem("Stone Slabs", "stone_slabs", BlockRegistry.STONE_SLABS));
     public static final Item STONE_STAIRS  = register("stone_stairs", new BlockItem("Stone Stairs", "stone_stairs", BlockRegistry.STONE_STAIRS));
 
-    public static final Item WATER_BUCKET = register("water_bucket", new BlockItem("Water bucket", "water_bucket", BlockRegistry.WATER));
+    public static final Item WATER_BUCKET = register("water_bucket", new BlockItem("Water bucket", "water_bucket", BlockRegistry.WATER).setMaxStackSize(1));
+    public static final Item BUCKET = register("empty_bucket", new EmptyBucketItem("Bucket", "empty_bucket").setMaxStackSize(1));
+
     public static final Item GLASS_BLOCK  = register("glass", new BlockItem("Glass", "glass", BlockRegistry.GLASS));
     public static final Item LEAVES_BLOCK = register("leaves", new BlockItem("Leaves", "leaves", BlockRegistry.LEAVES));
     public static final Item TORCH        = register("torch", new BlockItem("Torch", "torch", BlockRegistry.TORCH));

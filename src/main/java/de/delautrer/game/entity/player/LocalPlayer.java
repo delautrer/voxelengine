@@ -236,7 +236,8 @@ public class LocalPlayer extends Player {
             if (swimProgress < 0.0f) swimProgress = 0.0f;
         }
 
-        this.height = 1.8f + (0.6f - 1.8f) * swimProgress;
+        float targetBaseHeight = isSneaking ? 1.5f : 1.8f;
+        this.height = targetBaseHeight + (0.6f - targetBaseHeight) * swimProgress;
 
         // ==========================================
         // 3. GESCHWINDIGKEIT BERECHNEN
@@ -521,4 +522,9 @@ public class LocalPlayer extends Player {
             interaction.resetCooldown();
         }
     }
+    @Override
+    public Vector3f getEyePosition() {
+        return new Vector3f(position.x, position.y + (this.height * 0.9f), position.z);
+    }
+
 }

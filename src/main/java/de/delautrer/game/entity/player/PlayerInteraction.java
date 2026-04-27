@@ -12,6 +12,7 @@ import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.entity.ItemEntity;
 import de.delautrer.game.events.BlockBreakEvent;
 import de.delautrer.game.inventory.PlayerInventory;
+import de.delautrer.game.items.ItemRegistry;
 import de.delautrer.game.items.ItemType;
 import de.delautrer.game.loot.LootTable;
 import de.delautrer.game.loot.LootTableManager;
@@ -173,8 +174,8 @@ public class PlayerInteraction {
     private void handleSurvivalBreak(Block block, byte blockId) {
         if (selectedBlockPos == null) return;
 
-        de.delautrer.game.blocks.state.BlockState state = world.getBlockState(selectedBlockPos.x, selectedBlockPos.y, selectedBlockPos.z);
-        de.delautrer.game.events.BlockBreakEvent breakEvent = new de.delautrer.game.events.BlockBreakEvent(player, selectedBlockPos, state);
+        BlockState state = world.getBlockState(selectedBlockPos.x, selectedBlockPos.y, selectedBlockPos.z);
+        BlockBreakEvent breakEvent = new BlockBreakEvent(player, selectedBlockPos, state);
 
         eventBus.publish(breakEvent);
 
@@ -256,7 +257,31 @@ public class PlayerInteraction {
             ItemStack heldStack = player.getInventory().getSelectedHotbarStack();
             if (heldStack == null || heldStack.type == null) return;
 
-            heldStack.type.onUseRightClick(world, player, selectedBlockPos, adjacentBlockPos, this);
+            // HIER DIE ÄNDERUNG: Wir speichern das Ergebnis
+            boolean success = heldStack.type.onUseRightClick(world, player, selectedBlockPos, adjacentBlockPos, this);
+
+            // NEU: Item im Survival-Modus verbrauchen ODER Eimer tauschen
+            if (success && player.getGameMode() == GameMode.SURVIVAL) {
+
+                if (heldStack.type == ItemRegistry.WATER_BUCKET) {
+                    // Voller Eimer wird ausgeleert -> Wir legen einen leeren Eimer in den Slot
+                    player.getInventory().setStack(player.getInventory().getSelectedSlot(), new ItemStack(ItemRegistry.BUCKET, 1));
+                    eventBus.publish(new de.delautrer.game.events.InventoryChangeEvent());
+
+                } else if (heldStack.type == ItemRegistry.BUCKET) {
+                    // Leerer Eimer wurde gefüllt -> Wir legen einen Wassereimer in den Slot
+                    player.getInventory().setStack(player.getInventory().getSelectedSlot(), new ItemStack(ItemRegistry.WATER_BUCKET, 1));
+                    eventBus.publish(new de.delautrer.game.events.InventoryChangeEvent());
+
+                } else {
+                    heldStack.amount -= 1;
+
+                    if (heldStack.amount <= 0) {
+                        player.getInventory().setStack(player.getInventory().getSelectedSlot(), null);
+                    }
+                    eventBus.publish(new de.delautrer.game.events.InventoryChangeEvent());
+                }
+            }
         }
     }
 

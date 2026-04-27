@@ -34,7 +34,11 @@ public abstract class BaseInventory implements IInventory {
         for (int i = 0; i < slots.length; i++) {
             ItemStack current = getStack(i);
             if (current != null && current.type == stackToAdd.type) {
-                int spaceLeft = 64 - current.amount; // 64 = Max Stack
+
+                // HIER GEÄNDERT: Statt 64 fragen wir das Item nach seiner maxStackSize
+                int maxStack = current.type.getMaxStackSize();
+                int spaceLeft = maxStack - current.amount;
+
                 if (spaceLeft > 0) {
                     int amountToAdd = Math.min(spaceLeft, stackToAdd.amount);
                     current.amount += amountToAdd;
@@ -47,8 +51,15 @@ public abstract class BaseInventory implements IInventory {
         // 2. Leeren Slot suchen
         for (int i = 0; i < slots.length; i++) {
             if (getStack(i) == null) {
-                setStack(i, new ItemStack(stackToAdd.type, stackToAdd.amount));
-                return 0;
+                // Falls wir mehr hinzufügen wollen, als in einen Stack passt,
+                // splitten wir es auf.
+                int maxStack = stackToAdd.type.getMaxStackSize();
+                int amountToAdd = Math.min(maxStack, stackToAdd.amount);
+
+                setStack(i, new ItemStack(stackToAdd.type, amountToAdd));
+                stackToAdd.amount -= amountToAdd;
+
+                if (stackToAdd.amount == 0) return 0;
             }
         }
         return stackToAdd.amount; // Rest zurückgeben
@@ -63,6 +74,7 @@ public abstract class BaseInventory implements IInventory {
 
     @Override
     public boolean isSortable() { return sortable; }
+
     @Override
     public void sort() {
         if (!sortable) return;
@@ -87,9 +99,11 @@ public abstract class BaseInventory implements IInventory {
         int index = 0;
         for (java.util.Map.Entry<de.delautrer.game.items.Item, Integer> entry : counts.entrySet()) {
             int amount = entry.getValue();
+            de.delautrer.game.items.Item item = entry.getKey();
+
             while (amount > 0 && index < slots.length) {
-                int stackSize = Math.min(amount, 64);
-                slots[index++] = new ItemStack(entry.getKey(), stackSize);
+                int stackSize = Math.min(amount, item.getMaxStackSize());
+                slots[index++] = new ItemStack(item, stackSize);
                 amount -= stackSize;
             }
         }

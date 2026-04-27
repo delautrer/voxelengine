@@ -67,6 +67,9 @@ public class Engine {
             lastFrame = currentFrameTime;
 
             if (deltaTime > 0) currentFps = (int)(1.0f / deltaTime);
+            if (deltaTime > 0.1f) {
+                deltaTime = 0.1f;
+            }
 
             window.pollEvents();
 

@@ -66,7 +66,11 @@ public abstract class ContainerScreen extends MenuScreen {
 
             // Anzahl
             if (stack != null && stack.amount > 1 && font != null) {
-                builder.drawText(String.valueOf(stack.amount), slotX + slotSize - (12.0f * pixelScale), slotY + (2.0f * pixelScale), 0.3f, font);
+                if(stack.amount > 9){
+                    builder.drawText(String.valueOf(stack.amount), slotX + slotSize - (12.0f * pixelScale), slotY + (2.0f * pixelScale), 0.3f, font);
+                } else {
+                    builder.drawText(String.valueOf(stack.amount), slotX + slotSize - (8 * pixelScale), slotY + (2.0f * pixelScale), 0.3f, font);
+                }
             }
         }
 
@@ -75,10 +79,13 @@ public abstract class ContainerScreen extends MenuScreen {
         if (mouseStack != null) {
             float itemSize = slotSize - 4 * pixelScale;
             float invertedMouseY = height - mouseY;
-            builder.drawItem(mouseStack, mouseX - itemSize / 2.0f + 3 * pixelScale, invertedMouseY - itemSize / 2.0f + 3 * pixelScale, 0.5f, itemSize);
+            builder.drawItem(mouseStack, mouseX - itemSize / 2.0f - 5 * pixelScale, invertedMouseY - itemSize / 2.0f + 3 * pixelScale, 0.5f, itemSize);
 
             if (mouseStack.amount > 1 && font != null) {
-                builder.drawText(String.valueOf(mouseStack.amount), mouseX + (itemSize / 2.0f) - (8.0f * pixelScale), invertedMouseY - (itemSize / 2.0f), 0.55f, font);
+                if(mouseStack.amount > 9)
+                    builder.drawText(String.valueOf(mouseStack.amount), mouseX + (itemSize / 2.0f) - (8.0f * pixelScale), invertedMouseY - (itemSize / 2.0f), 0.55f, font);
+                else
+                    builder.drawText(String.valueOf(mouseStack.amount), mouseX + (itemSize / 2.0f) - (4f * pixelScale), invertedMouseY - (itemSize / 2.0f), 0.55f, font);
             }
         }
 
@@ -218,4 +225,8 @@ public abstract class ContainerScreen extends MenuScreen {
     // Muss wegen der abstrakten Basisklasse leer bleiben (wird nicht mehr benutzt)
     @Override
     protected void mouseClicked(float mouseX, float mouseY, int button) {}
+
+    public BaseContainer getContainer() {
+        return container;
+    }
 }

@@ -23,11 +23,11 @@ public class BlockItem extends Item {
     }
 
     @Override
-    public void onUseRightClick(World world, LocalPlayer player, Vector3i targetBlock, Vector3i adjacentBlock, PlayerInteraction interaction) {
-        if (adjacentBlock == null) return;
+    public boolean onUseRightClick(World world, LocalPlayer player, Vector3i targetBlock, Vector3i adjacentBlock, PlayerInteraction interaction) {
+        if (adjacentBlock == null) return false;
 
         Raycaster.RaycastResult rayHit = Raycaster.raycast(world, player.getCamera().getPosition(), player.getCamera().getFront(), 6.0f);
-        if (rayHit == null) return;
+        if (rayHit == null) return false;
 
         Vector3i placePos;
         BlockState clickedState = world.getBlockState(targetBlock.x, targetBlock.y, targetBlock.z);
@@ -45,7 +45,7 @@ public class BlockItem extends Item {
             newState = block.getStateForPlacement(world, player, placePos, rayHit.hitFace, rayHit.exactHit);
         }
 
-        if (newState == null) return;
+        if (newState == null) return false;
 
         AABB pBox = player.getAABB();
         float epsilon = 0.02f;
@@ -80,8 +80,12 @@ public class BlockItem extends Item {
                 } else {
                     world.setBlockState(placePos.x, placePos.y, placePos.z, newState);
                 }
+
+                return true;
             }
         }
+
+        return false;
     }
 
     public Block getBlock() {

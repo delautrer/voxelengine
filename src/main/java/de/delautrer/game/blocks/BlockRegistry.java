@@ -76,6 +76,7 @@ public class BlockRegistry {
         byte id = (byte) idInt;
         String fullId = Constants.NAMESPACE + ":" + path;
         block.setId(id);
+        block.setLootTable("blocks/" + path + ".json");
         BLOCKS.put(fullId, block);
         BLOCKS_BY_ID[id & 0xFF] = block;
         return block;

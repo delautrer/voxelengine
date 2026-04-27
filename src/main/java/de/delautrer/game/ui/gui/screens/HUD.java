@@ -130,7 +130,8 @@ public class HUD {
             builder.drawItem(stack, slotX + 3 * pixelScale, hotbarY + 3 * pixelScale, 0.2f, selectorW - 6 * pixelScale);
 
             if (stack != null && stack.amount > 1) {
-                builder.drawText(String.valueOf(stack.amount), slotX + selectorW - (12.0f * pixelScale), hotbarY + (2.0f * pixelScale), 0.25f, font);
+                if(stack.amount > 9) builder.drawText(String.valueOf(stack.amount), slotX + selectorW - (12.0f * pixelScale), hotbarY + (2.0f * pixelScale), 0.25f, font);
+                else builder.drawText(String.valueOf(stack.amount), slotX + selectorW - (8 * pixelScale), hotbarY + (2.0f * pixelScale), 0.25f, font);
             }
         }
 

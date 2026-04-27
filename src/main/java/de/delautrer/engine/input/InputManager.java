@@ -104,8 +104,17 @@ public class InputManager {
         return copy;
     }
 
-    public void setCursorHover(boolean isHovering) {
-        GLFW.glfwSetCursor(windowHandle, isHovering ? handCursor : normalCursor);
+    public void setUICursorState(boolean showCursor, boolean isHovering) {
+        int currentMode = GLFW.glfwGetInputMode(windowHandle, GLFW.GLFW_CURSOR);
+
+        if (currentMode == GLFW.GLFW_CURSOR_DISABLED) return;
+
+        if (showCursor) {
+            GLFW.glfwSetInputMode(windowHandle, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL);
+            GLFW.glfwSetCursor(windowHandle, isHovering ? handCursor : normalCursor);
+        } else {
+            GLFW.glfwSetInputMode(windowHandle, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_HIDDEN);
+        }
     }
 
     public boolean isActionActive(String action) {
@@ -135,4 +144,5 @@ public class InputManager {
     public int getWindowWidth() { return windowWidth; }
     public int getWindowHeight() { return windowHeight; }
     public void setTypingMode(boolean typingMode) { this.typingMode = typingMode; }
+
 }
