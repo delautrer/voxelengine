@@ -13,10 +13,11 @@ public class Chunk {
     public static final int SIZE = 16;
     public static final int HEIGHT = 256;
 
-    private final Biome[][] biomeMap = new Biome[SIZE][SIZE];
-    private final byte[][][] blocks = new byte[SIZE][HEIGHT][SIZE];
-    private final byte[][][] states = new byte[SIZE][HEIGHT][SIZE];
-    private final byte[][][] lightMap = new byte[SIZE][HEIGHT][SIZE];
+    public static final int VOLUME = SIZE * HEIGHT * SIZE; // 65.536 Blöcke
+    private final Biome[] biomeMap = new Biome[SIZE * SIZE];
+    private final byte[] blocks = new byte[VOLUME];
+    private final byte[] states = new byte[VOLUME];
+    private final byte[] lightMap = new byte[VOLUME];
 
     private final int worldX, worldZ;
     private boolean isDirty = false;
@@ -100,11 +101,10 @@ public class Chunk {
     // Blocks
     public void setBlock(int x, int y, int z, byte type, byte state) {
         if (x < 0 || x >= SIZE || y < 0 || y >= HEIGHT || z < 0 || z >= SIZE) return;
-
-        if (blocks[x][y][z] != type || states[x][y][z] != state) {
-            blocks[x][y][z] = type;
-            states[x][y][z] = state;
-
+        int idx = getIndex(x, y, z);
+        if (blocks[idx] != type || states[idx] != state) {
+            blocks[idx] = type;
+            states[idx] = state;
             this.isDirty = true;
             this.needsMeshUpdate = true;
         }
@@ -114,7 +114,7 @@ public class Chunk {
     }
     public byte getBlockAt(int x, int y, int z, ChunkManager cm) {
         if (y < 0 || y >= HEIGHT) return 0;
-        if (x >= 0 && x < SIZE && z >= 0 && z < SIZE) return blocks[x][y][z];
+        if (x >= 0 && x < SIZE && z >= 0 && z < SIZE) return blocks[getIndex(x, y, z)];
         if (cm == null) return 0;
         Chunk neighbor = cm.getChunkAtBlock(worldX * SIZE + x, y, worldZ * SIZE + z);
         if (neighbor == null) return 0;
@@ -123,7 +123,7 @@ public class Chunk {
     public byte getBlock(int x, int y, int z) { return getBlockAt(x,y,z, null); }
     public byte getStateAt(int x, int y, int z, ChunkManager cm) {
         if (y < 0 || y >= HEIGHT) return 0;
-        if (x >= 0 && x < SIZE && z >= 0 && z < SIZE) return states[x][y][z];
+        if (x >= 0 && x < SIZE && z >= 0 && z < SIZE) return states[getIndex(x, y, z)];
         if (cm == null) return 0;
         Chunk neighbor = cm.getChunkAtBlock(worldX * SIZE + x, y, worldZ * SIZE + z);
         if (neighbor == null) return 0;
@@ -131,7 +131,7 @@ public class Chunk {
     }
     public byte getState(int x, int y, int z) {
         if (x < 0 || x >= SIZE || y < 0 || y >= HEIGHT || z < 0 || z >= SIZE) return 0;
-        return states[x][y][z];
+        return states[getIndex(x, y, z)];
     }
     public BlockState getBlockState(int x, int y, int z) {
         byte blockId = getBlock(x, y, z);
@@ -144,19 +144,21 @@ public class Chunk {
     // Block - Light
     public void setBlockLight(int x, int y, int z, int val) {
         if (x < 0 || x >= SIZE || y < 0 || y >= HEIGHT || z < 0 || z >= SIZE) return;
-        lightMap[x][y][z] = (byte) ((lightMap[x][y][z] & 0xF0) | (val & 0x0F));
+        int idx = getIndex(x, y, z);
+        lightMap[idx] = (byte) ((lightMap[idx] & 0xF0) | (val & 0x0F));
     }
     public void setSkyLight(int x, int y, int z, int val) {
         if (x < 0 || x >= SIZE || y < 0 || y >= HEIGHT || z < 0 || z >= SIZE) return;
-        lightMap[x][y][z] = (byte) ((lightMap[x][y][z] & 0x0F) | ((val & 0x0F) << 4));
+        int idx = getIndex(x, y, z);
+        lightMap[idx] = (byte) ((lightMap[idx] & 0x0F) | ((val & 0x0F) << 4));
     }
     public int getBlockLight(int x, int y, int z) {
         if (x < 0 || x >= SIZE || y < 0 || y >= HEIGHT || z < 0 || z >= SIZE) return 0;
-        return lightMap[x][y][z] & 0x0F;
+        return lightMap[getIndex(x, y, z)] & 0x0F;
     }
     public int getSkyLight(int x, int y, int z) {
         if (x < 0 || x >= SIZE || y < 0 || y >= HEIGHT || z < 0 || z >= SIZE) return 15;
-        return (lightMap[x][y][z] >> 4) & 0x0F;
+        return (lightMap[getIndex(x, y, z)] >> 4) & 0x0F;
     }
     public int getSkyLightAt(int x, int y, int z, ChunkManager cm) {
         if (y >= HEIGHT) return 15;
@@ -212,7 +214,7 @@ public class Chunk {
     public void recalculateSunlightColumn(int x, int z, LightEngine lightEngine) {
         int currentLight = 15;
         for (int y = HEIGHT - 1; y >= 0; y--) {
-            byte blockId = blocks[x][y][z];
+            byte blockId = blocks[getIndex(x, y, z)];
             int oldLight = getSkyLight(x, y, z);
 
             if (blockId != 0) {
@@ -252,10 +254,11 @@ public class Chunk {
 
     // Biome
     public void setBiome(int x, int z, Biome biome) {
-        this.biomeMap[x][z] = biome;
+        this.biomeMap[getBiomeIndex(x, z)] = biome;
     }
+
     public Biome getBiome(int x, int z) {
-        return this.biomeMap[x][z];
+        return this.biomeMap[getBiomeIndex(x, z)];
     }
 
     // Rendering
@@ -269,7 +272,7 @@ public class Chunk {
         for (int x = 0; x < SIZE; x++) {
             for (int y = 0; y < HEIGHT; y++) {
                 for (int z = 0; z < SIZE; z++) {
-                    byte id = blocks[x][y][z];
+                    byte id = blocks[getIndex(x, y, z)];
                     if (id != 0) {
                         Block block = BlockRegistry.get(id);
                         block.generateMesh(x, y, z, this, cm);
@@ -371,18 +374,13 @@ public class Chunk {
             dos.writeInt(worldX);
             dos.writeInt(worldZ);
 
-            for (int x = 0; x < SIZE; x++) {
-                for (int y = 0; y < HEIGHT; y++) {
-                    for (int z = 0; z < SIZE; z++) {
-                        dos.writeByte(blocks[x][y][z]);
-                        dos.writeByte(states[x][y][z]);
-                        dos.writeByte(lightMap[x][y][z]);
-                    }
-                }
-            }
+            dos.write(blocks);
+            dos.write(states);
+            dos.write(lightMap);
         }
         return baos.toByteArray();
     }
+
     public void deserialize(byte[] data) throws IOException {
         ByteArrayInputStream bais = new ByteArrayInputStream(data);
         try (GZIPInputStream gzip = new GZIPInputStream(bais);
@@ -390,25 +388,27 @@ public class Chunk {
 
             int savedX = dis.readInt();
             int savedZ = dis.readInt();
-
             if (savedX != this.worldX || savedZ != this.worldZ) {
                 throw new IOException("Chunk-Coordinates are not equal!");
             }
 
-            for (int x = 0; x < SIZE; x++) {
-                for (int y = 0; y < HEIGHT; y++) {
-                    for (int z = 0; z < SIZE; z++) {
-                        blocks[x][y][z] = dis.readByte();
-                        states[x][y][z] = dis.readByte();
-                        lightMap[x][y][z] = dis.readByte();
-                    }
-                }
-            }
+            dis.readFully(blocks);
+            dis.readFully(states);
+            dis.readFully(lightMap);
         }
         this.clearDirty();
     }
 
     // Getter & Setter
+
+    // X rückt um 12 bit nach links, Z um 8 bit, Y füllt die ersten 8 bit.
+    private int getIndex(int x, int y, int z) {
+        return (x << 12) | (z << 8) | y;
+    }
+
+    private int getBiomeIndex(int x, int z) {
+        return (x << 4) | z;
+    }
     public int getWorldX() { return worldX; }
     public int getWorldZ() { return worldZ; }
     public void markDirty() {
