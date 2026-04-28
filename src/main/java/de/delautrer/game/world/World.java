@@ -98,6 +98,11 @@ public class World {
     }
 
     public void update(float deltaTime, LocalPlayer localPlayer) {
+        chunkManager.getLightEngine().processLightUpdates();
+        for (Chunk c : chunkManager.getLightEngine().getAndClearDirtiedChunks()) {
+            c.requestMeshUpdate();
+        }
+
         chunkManager.update(localPlayer.position.x, localPlayer.position.z);
         tickScheduler.update(deltaTime);
         cloudSystem.update(deltaTime);
@@ -182,7 +187,6 @@ public class World {
 
         targetChunk.recalculateSunlightColumn(localX, localZ, chunkManager.getLightEngine());
         chunkManager.getLightEngine().notifyBlockChanged(x, y, z);
-        chunkManager.getLightEngine().processLightUpdates();
 
         eventBus.publish(new BlockChangeEvent(pos, oldBlockId, newBlockId, targetChunk));
 
@@ -233,7 +237,6 @@ public class World {
         // Licht-Updates
         targetChunk.recalculateSunlightColumn(localX, localZ, chunkManager.getLightEngine());
         chunkManager.getLightEngine().notifyBlockChanged(x, y, z);
-        chunkManager.getLightEngine().processLightUpdates();
 
         // Events
         eventBus.publish(new BlockChangeEvent(pos, oldBlockId, newBlockId, targetChunk));

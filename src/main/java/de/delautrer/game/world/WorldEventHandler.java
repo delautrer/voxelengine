@@ -2,9 +2,10 @@ package de.delautrer.game.world;
 
 import de.delautrer.engine.events.EventBus;
 import de.delautrer.engine.graphics.VulkanContext;
+import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.events.BlockChangeEvent;
-import java.util.Set;
+import de.delautrer.game.events.BlockNeighborUpdateEvent;
 
 public class WorldEventHandler {
 
@@ -19,7 +20,7 @@ public class WorldEventHandler {
 
         // EventListener registrieren
         eventBus.subscribe(BlockChangeEvent.class, this::onBlockChange);
-        eventBus.subscribe(de.delautrer.game.events.BlockNeighborUpdateEvent.class, this::onNeighborUpdate);
+        eventBus.subscribe(BlockNeighborUpdateEvent.class, this::onNeighborUpdate);
     }
 
     private void onBlockChange(BlockChangeEvent event) {
@@ -31,38 +32,38 @@ public class WorldEventHandler {
 
         LightEngine le = world.getChunkManager().getLightEngine();
 
-        // Altes Licht entfernen
-        int oldEmission = BlockRegistry.get(event.oldBlockId).getLightEmission();
-        if (oldEmission > 0) {
-            le.removeBlockLight(x, y, z, oldEmission);
+        int oldBlockLight = le.getBlockLight(x, y, z);
+        if (oldBlockLight > 0) {
+            le.removeBlockLight(x, y, z, oldBlockLight);
         }
 
-        // Neues Licht hinzufügen & Updates benachrichtigen
-        de.delautrer.game.blocks.Block newBlock = BlockRegistry.get(event.newBlockId);
+        int oldSkyLight = le.getSkyLight(x, y, z);
+        if (oldSkyLight > 0) {
+            le.setSkyLight(x, y, z, 0);
+            le.addSkyLightRemoval(x, y, z, oldSkyLight);
+        }
+
+        event.chunk.recalculateSunlightColumn(localX, localZ, le);
+
+        Block newBlock = BlockRegistry.get(event.newBlockId);
         int newEmission = newBlock.getLightEmission();
         if (newEmission > 0) {
             le.addBlockLightSource(x, y, z, newEmission);
         }
+
         le.notifyBlockChanged(x, y, z);
 
-        // Licht berechnen
-        event.chunk.recalculateSunlightColumn(localX, localZ, le);
-        le.processLightUpdates();
+        event.chunk.requestMeshUpdate();
 
-        Set<Chunk> chunksToRebuild = le.getAndClearDirtiedChunks();
-        chunksToRebuild.add(event.chunk);
+        if (localX == 0) markChunkMeshDirty(x - 1, z);
+        if (localX == Chunk.SIZE - 1) markChunkMeshDirty(x + 1, z);
+        if (localZ == 0) markChunkMeshDirty(x, z - 1);
+        if (localZ == Chunk.SIZE - 1) markChunkMeshDirty(x, z + 1);
+    }
 
-        if (localX == 0) chunksToRebuild.add(world.getChunkManager().getChunkAtBlock((event.chunk.getWorldX() - 1) * Chunk.SIZE, 0, event.chunk.getWorldZ() * Chunk.SIZE));
-        if (localX == Chunk.SIZE - 1) chunksToRebuild.add(world.getChunkManager().getChunkAtBlock((event.chunk.getWorldX() + 1) * Chunk.SIZE, 0, event.chunk.getWorldZ() * Chunk.SIZE));
-        if (localZ == 0) chunksToRebuild.add(world.getChunkManager().getChunkAtBlock(event.chunk.getWorldX() * Chunk.SIZE, 0, (event.chunk.getWorldZ() - 1) * Chunk.SIZE));
-        if (localZ == Chunk.SIZE - 1) chunksToRebuild.add(world.getChunkManager().getChunkAtBlock(event.chunk.getWorldX() * Chunk.SIZE, 0, (event.chunk.getWorldZ() + 1) * Chunk.SIZE));
-
-        chunksToRebuild.remove(null);
-
-        AsyncChunkBuilder asyncBuilder = world.getChunkManager().getAsyncBuilder();
-        for (Chunk chunkToUpdate : chunksToRebuild) {
-            asyncBuilder.queueRebuild(chunkToUpdate, world.getChunkManager());
-        }
+    private void markChunkMeshDirty(int blockX, int blockZ) {
+        Chunk c = world.getChunkManager().getChunkAtBlock(blockX, 0, blockZ);
+        if (c != null) c.requestMeshUpdate();
     }
 
     private void onNeighborUpdate(de.delautrer.game.events.BlockNeighborUpdateEvent event) {
