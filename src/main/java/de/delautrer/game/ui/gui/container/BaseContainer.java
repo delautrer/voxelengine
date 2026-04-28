@@ -283,12 +283,14 @@ public abstract class BaseContainer {
             ItemStack st = s.getStack();
             if (st == null) {
                 s.putStack(new ItemStack(mouseStack.type, amountPerSlot));
+                mouseStack.amount -= amountPerSlot;
             } else {
-                st.amount += amountPerSlot;
+                int space = st.type.getMaxStackSize() - st.amount;
+                int toAdd = Math.min(space, amountPerSlot);
+                st.amount += toAdd;
+                mouseStack.amount -= toAdd;
             }
-            mouseStack.amount -= amountPerSlot;
         }
-
         if (mouseStack.amount <= 0) mouseStack = null;
     }
 

@@ -82,8 +82,9 @@ public class CreativeContainer extends BaseContainer {
             Item item = getItemInGrid(slot.slotIndex);
             if (item != null) {
                 if (clickType == ClickType.QUICK_MOVE) {
-                    // Shift + Klick = Direkt 64 an die Maus (Max Stack)
-                    setMouseStack(new ItemStack(item, 64));
+                    // GEÄNDERT: Direkt ins Inventar schieben, statt auf die Maus!
+                    ItemStack fullStack = new ItemStack(item, item.getMaxStackSize());
+                    pushToPlayerInventory(fullStack);
                 } else if (clickType == ClickType.PICKUP || clickType == ClickType.SPLIT) {
                     // Normaler Linksklick oder Rechtsklick
                     ItemStack currentMouse = getMouseStack();

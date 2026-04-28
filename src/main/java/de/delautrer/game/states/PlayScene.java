@@ -392,13 +392,16 @@ public class PlayScene extends Scene {
             eventBus.unsubscribe(HotbarSlotChangeEvent.class, hotbarSlotChangeListener);
             eventBus.unsubscribe(DebugToggleEvent.class, debugToggleListener);
 
+            eventBus.unsubscribe(InventoryChangeEvent.class, inventoryChangeEvent);
+            eventBus.unsubscribe(InventoryOpenedEvent.class, openListener);
+            eventBus.unsubscribe(InventoryClosedEvent.class, closeListener);
+            eventBus.unsubscribe(PlayerDamageEvent.class, playerDamageEventListener);
+
             eventBus.cleanup();
         }
-
         if (worldEventHandler != null) {
             worldEventHandler.cleanup();
         }
-
         if (world != null) world.cleanup(localPlayer);
         if (masterRenderer != null) masterRenderer.cleanup();
     }

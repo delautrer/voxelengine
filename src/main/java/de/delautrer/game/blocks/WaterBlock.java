@@ -69,14 +69,16 @@ public class WaterBlock extends Block {
             BlockState blockBelowState = world.getBlockState(x, y - 1, z);
             Block blockBelow = blockBelowState.getBlock();
 
-            if (blockBelow != this || (blockBelowState.getValue(LEVEL) != 7 && blockBelowState.getValue(LEVEL) != 8)) {
+            // Wenn wir Gras/Pflanzen überspülen, droppen wir das Item
+            if (blockBelow != BlockRegistry.AIR && blockBelow != this) {
                 dropBlockAsItem(world, x, y - 1, z, blockBelowState);
-                world.setBlockState(x, y - 1, z, getDefaultState().with(LEVEL, 7));
             }
-            return;
+
+            world.setBlockState(x, y - 1, z, getDefaultState().with(LEVEL, 7));
+            return; // Fällt nach unten -> breitet sich nicht zur Seite aus
         }
 
-        // 2. Priorität: Horizontaler Fluss
+        // 2. Priorität: Horizontaler Fluss (Die clevere Wegfindung für das Land)
         if (currentLevel > 1) {
             boolean[] flowDirs = getFlowDirections(world, x, y, z);
             for (int i = 0; i < 4; i++) {
@@ -87,7 +89,9 @@ public class WaterBlock extends Block {
                     Block nBlock = nState.getBlock();
 
                     if (isWaterReplaceable(nBlock) || (nBlock == this && nState.getValue(LEVEL) < currentLevel - 1)) {
-                        dropBlockAsItem(world, nx, y, nz, nState);
+                        if (nBlock != BlockRegistry.AIR && nBlock != this) {
+                            dropBlockAsItem(world, nx, y, nz, nState);
+                        }
                         world.setBlockState(nx, y, nz, getDefaultState().with(LEVEL, currentLevel - 1));
                     }
                 }
@@ -99,6 +103,14 @@ public class WaterBlock extends Block {
         BlockState currentState = world.getBlockState(x, y, z);
         int currentLevel = currentState.getBlock() == this ? currentState.getValue(LEVEL) : 0;
 
+        // 1. Wenn wir schon eine Quelle sind, bleiben wir eine.
+        if (currentLevel == 8) return 8;
+
+        // 2. Fällt Wasser von oben auf uns herab, sind wir ein Wasserstrahl (Level 7).
+        BlockState above = world.getBlockState(x, y + 1, z);
+        if (above.getBlock() == this) return 7;
+
+        // 3. Minecraft Infinite Water Mechanic (Heilung von Seen/Ozeanen)
         int sources = 0;
         for (int[] dir : DIRS) {
             BlockState neighbor = world.getBlockState(x + dir[0], y, z + dir[1]);
@@ -107,16 +119,17 @@ public class WaterBlock extends Block {
 
         if (sources >= 2) {
             BlockState blockBelow = world.getBlockState(x, y - 1, z);
-            if (isSolid(world, x, y - 1, z) || (blockBelow.getBlock() == this && blockBelow.getValue(LEVEL) == 8)) {
+
+            // Wasser heilt, wenn darunter solide Blöcke ODER volle Wasserquellen sind!
+            boolean isSolidBelow = isSolid(world, x, y - 1, z);
+            boolean isSourceBelow = (blockBelow.getBlock() == this && blockBelow.getValue(LEVEL) == 8);
+
+            if (isSolidBelow || isSourceBelow) {
                 return 8;
             }
         }
 
-        if (currentLevel == 8) return 8;
-
-        BlockState above = world.getBlockState(x, y + 1, z);
-        if (above.getBlock() == this) return 7;
-
+        // 4. Normales Fließen berechnen
         int maxFlowLevel = 0;
         for (int i = 0; i < 4; i++) {
             int nx = x + DIRS[i][0];
@@ -191,7 +204,8 @@ public class WaterBlock extends Block {
         if (y < 0 || y >= Chunk.HEIGHT) return false;
         BlockState state = world.getBlockState(x, y, z);
         Block b = state.getBlock();
-        return isWaterReplaceable(b) || b == this;
+        // HIER WAR DER FEHLER: Wasser darf NICHT in eine volle Quelle (Level 8) fallen!
+        return isWaterReplaceable(b) || (b == this && state.getValue(LEVEL) < 8);
     }
 
     private int opposite(int dir) {
@@ -205,7 +219,7 @@ public class WaterBlock extends Block {
 
     /**
      * Zerstört den aktuellen Block und droppt sein Item basierend auf der
-     * hinterlegten Loot-Tabelle (adaptiert aus PlayerInteraction.java).
+     * hinterlegten Loot-Tabelle.
      */
     private void dropBlockAsItem(World world, int x, int y, int z, BlockState state) {
         Block block = state.getBlock();
@@ -225,7 +239,6 @@ public class WaterBlock extends Block {
                                 z + 0.5f
                         );
 
-                        // Leichtes "Ploppen" wie beim manuellen Abbauen
                         Vector3f dropVel = new Vector3f(
                                 (float)(Math.random() - 0.5) * 2.0f,
                                 2.0f,

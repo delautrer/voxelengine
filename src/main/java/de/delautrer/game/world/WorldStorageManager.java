@@ -140,15 +140,16 @@ public class WorldStorageManager {
 
     private void saveChunkToDisk(Chunk chunk) {
         try {
+            chunk.clearDirty();
+
             byte[] data = chunk.serialize();
             RegionFile region = getRegionFile(chunk.getWorldX(), chunk.getWorldZ());
             region.writeChunk(chunk.getWorldX(), chunk.getWorldZ(), data);
 
-            // WICHTIGER FIX: Ohne das speichert der Chunk jeden Frame aufs Neue!
-            chunk.clearDirty();
         } catch (IOException e) {
             System.err.println("Fehler beim Speichern von Chunk " + chunk.getWorldX() + "," + chunk.getWorldZ());
             e.printStackTrace();
+            chunk.markDirty();
         }
     }
 

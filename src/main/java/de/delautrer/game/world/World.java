@@ -19,6 +19,7 @@ import de.delautrer.game.world.persistence.WorldData;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -75,11 +76,13 @@ public class World {
                 localPlayer.getInventory().setSelectedSlot(pData.selectedHotbarSlot);
             }
         } else {
+            /*
             int i = 0;
             for (de.delautrer.game.items.Item item : ItemRegistry.getAll().values()) {
                 localPlayer.getInventory().setStack(i++, new ItemStack(item, 64));
                 if (i >= PlayerInventory.TOTAL_SIZE) break;
             }
+            */
         }
 
         storageManager.loadBlockEntities(this);
@@ -103,8 +106,9 @@ public class World {
         cloudSystem.update(deltaTime);
 
         // Entities updaten
-        for (Entity entity : entities) {
+        List<Entity> deadEntities = new ArrayList<>();
 
+        for (Entity entity : entities) {
             if (entity instanceof ItemEntity itemEntity) {
                 itemEntity.update(deltaTime, chunkManager, this);
             } else {
@@ -114,17 +118,14 @@ public class World {
             // Spezifische Item-Logik (Aufsammeln)
             if (entity instanceof ItemEntity) {
                 ItemEntity item = (ItemEntity) entity;
-
                 if (!item.isDead() && item.pickupDelay <= 0) {
                     float dist = localPlayer.position.distance(item.position);
                     if (dist < 1.5f) {
                         de.delautrer.game.events.PlayerItemPickupEvent event = new de.delautrer.game.events.PlayerItemPickupEvent(localPlayer, item.stack);
                         eventBus.publish(event);
-
                         if (!event.isCancelled()) {
                             int leftover = localPlayer.getInventory().addItem(item.stack);
                             eventBus.publish(new de.delautrer.game.events.InventoryChangeEvent());
-
                             if (leftover == 0) {
                                 item.setDead(true);
                             } else {
@@ -133,11 +134,14 @@ public class World {
                         }
                     }
                 }
-
                 if (item.isDead()) {
-                    entities.remove(item);
+                    deadEntities.add(item);
                 }
             }
+        }
+
+        if (!deadEntities.isEmpty()) {
+            entities.removeAll(deadEntities);
         }
 
         if (localPlayer.position.y < -50) {
