@@ -123,11 +123,10 @@ public class WorldStorageManager {
         writerThread.start();
     }
 
-    private synchronized RegionFile getRegionFile(int cx, int cz) {
+    private RegionFile getRegionFile(int cx, int cz) {
         int rx = cx >> 5;
         int rz = cz >> 5;
         Vector2i rPos = new Vector2i(rx, rz);
-
         return regionCache.computeIfAbsent(rPos, pos -> {
             File file = regionDir.resolve("r." + pos.x + "." + pos.y + ".dat").toFile();
             return new RegionFile(file);
