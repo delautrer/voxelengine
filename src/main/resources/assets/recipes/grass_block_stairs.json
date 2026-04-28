@@ -1,0 +1,14 @@
+{
+  "type": "shaped",
+  "pattern": [
+    "A ",
+    "AA"
+  ],
+  "keys": {
+    "A": "engine:grass_block"
+  },
+  "result": {
+    "item": "engine:grass_block_stairs",
+    "count": 4
+  }
+}

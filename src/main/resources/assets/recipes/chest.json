@@ -1,0 +1,14 @@
+{
+  "type": "shaped",
+  "pattern": [
+    "AA",
+    "BB"
+  ],
+  "keys": {
+    "A": "engine:slabs",
+    "B": "engine:stairs"
+  },
+  "result": {
+    "item": "engine:chest"
+  }
+}

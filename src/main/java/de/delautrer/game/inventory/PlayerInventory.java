@@ -1,5 +1,6 @@
 package de.delautrer.game.inventory;
 
+import de.delautrer.game.crafting.RecipeManager;
 import de.delautrer.game.items.Item;
 import de.delautrer.game.items.ItemRegistry;
 import de.delautrer.game.items.ItemStack;
@@ -16,6 +17,7 @@ public class PlayerInventory extends BaseInventory {
     public PlayerInventory() {
         super(TOTAL_SIZE);
         ItemRegistry.init();
+        RecipeManager.loadRecipes();
         this.setSortable(true);
     }
 

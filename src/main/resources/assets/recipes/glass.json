@@ -1,0 +1,10 @@
+{
+  "type": "shapeless",
+  "ingredients": [
+    "engine:sand"
+  ],
+  "result": {
+    "item": "engine:glass",
+    "count": 1
+  }
+}

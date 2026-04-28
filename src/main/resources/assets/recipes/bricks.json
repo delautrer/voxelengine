@@ -1,0 +1,10 @@
+{
+  "type": "shapeless",
+  "ingredients": [
+    "engine:gravel",
+    "engine:sand"
+  ],
+  "result": {
+    "item": "engine:bricks"
+  }
+}

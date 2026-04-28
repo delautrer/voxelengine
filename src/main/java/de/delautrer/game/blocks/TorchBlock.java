@@ -8,6 +8,10 @@ import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
 import de.delautrer.game.world.World;
 import de.delautrer.engine.physics.AABB;
+import de.delautrer.game.loot.LootTable;
+import de.delautrer.game.loot.LootTableManager;
+import de.delautrer.game.items.ItemStack;
+import de.delautrer.game.entity.ItemEntity;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
@@ -101,7 +105,39 @@ public class TorchBlock extends CubeBlock {
 
         Block wallBlock = world.getBlockState(wallPos.x, wallPos.y, wallPos.z).getBlock();
         if (!wallBlock.isSolid) {
+            dropAsItem(world, x, y, z); // NEU: Fackel droppt, bevor sie verschwindet
             world.setBlockState(x, y, z, BlockRegistry.AIR.getDefaultState());
+        }
+    }
+
+    /**
+     * Zerstört die Fackel physikalisch und spawnt ihr Item basierend auf der Loot-Tabelle.
+     */
+    private void dropAsItem(World world, int x, int y, int z) {
+        String lootPath = this.getLootTable();
+
+        if (lootPath != null) {
+            LootTable table = LootTableManager.load(lootPath);
+            if (table != null) {
+                List<ItemStack> drops = table.generateLoot();
+
+                for (ItemStack stack : drops) {
+                    Vector3f dropPos = new Vector3f(
+                            x + 0.5f,
+                            y + 0.5f,
+                            z + 0.5f
+                    );
+
+                    Vector3f dropVel = new Vector3f(
+                            (float)(Math.random() - 0.5) * 2.0f,
+                            2.0f,
+                            (float)(Math.random() - 0.5) * 2.0f
+                    );
+
+                    ItemEntity entity = new ItemEntity(stack, dropPos, dropVel);
+                    world.spawnEntity(entity);
+                }
+            }
         }
     }
 

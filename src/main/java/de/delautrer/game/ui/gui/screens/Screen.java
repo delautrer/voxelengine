@@ -16,6 +16,8 @@ public abstract class Screen {
         onInit();
     }
 
+    public void onClose() {}
+
     protected abstract void onInit();
     public abstract void render(UIMeshBuilder builder, float mouseX, float mouseY);
     public abstract int getHoveredSlot(float mouseX, float mouseY);

@@ -1,0 +1,10 @@
+{
+  "type": "shapeless",
+  "ingredients": [
+    "engine:planks"
+  ],
+  "result": {
+    "item": "engine:slabs",
+    "count": 2
+  }
+}

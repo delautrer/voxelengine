@@ -17,9 +17,7 @@ public class ItemEntity extends Entity {
     public float pickupDelay = 1.0f;
     public AABB boundingBox;
 
-    // Wir merken uns, wie lange das Item schon lebt. Ältere Items schlucken jüngere beim Stacking.
     private float age = 0.0f;
-    // Wir prüfen Kollisionen nicht jeden Frame, sondern z.B. nur alle 0.2 Sekunden (Performance)
     private float stackCheckTimer = 0.0f;
 
     public ItemEntity(ItemStack stack, Vector3f spawnPos, Vector3f initialVelocity) {

@@ -6,8 +6,14 @@ import de.delautrer.game.items.BlockItem;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
 import de.delautrer.game.world.World;
+import de.delautrer.game.loot.LootTable;
+import de.delautrer.game.loot.LootTableManager;
+import de.delautrer.game.items.ItemStack;
+import de.delautrer.game.entity.ItemEntity;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
+
+import java.util.List;
 
 public class PlantBlock extends Block {
 
@@ -55,10 +61,47 @@ public class PlantBlock extends Block {
 
     @Override
     public void onNeighborChanged(World world, int x, int y, int z, Vector3i neighborPos, byte newNeighborId) {
+        // Überprüfen, ob sich der Block direkt UNTER der Pflanze geändert hat
         if (neighborPos.x == x && neighborPos.y == y - 1 && neighborPos.z == z) {
             Block blockBelow = BlockRegistry.get(newNeighborId);
+
+            // Wenn der Block darunter nicht mehr solide ist (z.B. Luft, Wasser etc.)
             if (!blockBelow.isSolid) {
-                world.setBlock(x, y, z, BlockRegistry.AIR.getId());
+                dropAsItem(world, x, y, z); // NEU: Pflanze droppen
+                world.setBlock(x, y, z, BlockRegistry.AIR.getId()); // Dann erst den Block löschen
+            }
+        }
+    }
+
+    /**
+     * Zerstört die Pflanze physikalisch und spawnt ihr Item basierend auf der Loot-Tabelle.
+     */
+    private void dropAsItem(World world, int x, int y, int z) {
+        String lootPath = this.getLootTable();
+
+        if (lootPath != null) {
+            LootTable table = LootTableManager.load(lootPath);
+            if (table != null) {
+                List<ItemStack> drops = table.generateLoot();
+
+                for (ItemStack stack : drops) {
+                    // Position zentriert in der Mitte des Blocks
+                    Vector3f dropPos = new Vector3f(
+                            x + 0.5f,
+                            y + 0.5f,
+                            z + 0.5f
+                    );
+
+                    // Ein kleiner Schubs nach oben und zufällig zur Seite ("Plopp"-Effekt)
+                    Vector3f dropVel = new Vector3f(
+                            (float)(Math.random() - 0.5) * 2.0f,
+                            2.0f,
+                            (float)(Math.random() - 0.5) * 2.0f
+                    );
+
+                    ItemEntity entity = new ItemEntity(stack, dropPos, dropVel);
+                    world.spawnEntity(entity);
+                }
             }
         }
     }

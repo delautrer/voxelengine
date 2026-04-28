@@ -34,6 +34,14 @@ public abstract class ContainerScreen extends MenuScreen {
     protected abstract void drawBackground(UIMeshBuilder builder, float mouseX, float mouseY);
 
     @Override
+    public void onClose() {
+        super.onClose();
+        if (container != null) {
+            container.onContainerClosed();
+        }
+    }
+
+    @Override
     public void render(UIMeshBuilder builder, float mouseX, float mouseY) {
         // 1. Hintergrund zeichnen
         drawBackground(builder, mouseX, mouseY);
@@ -83,9 +91,9 @@ public abstract class ContainerScreen extends MenuScreen {
 
             if (mouseStack.amount > 1 && font != null) {
                 if(mouseStack.amount > 9)
-                    builder.drawText(String.valueOf(mouseStack.amount), mouseX + (itemSize / 2.0f) - (8.0f * pixelScale), invertedMouseY - (itemSize / 2.0f), 0.55f, font);
+                    builder.drawText(String.valueOf(mouseStack.amount), mouseX + (itemSize / 2.0f) - (14.0f * pixelScale), invertedMouseY - (itemSize / 2.0f) + (3.0f * pixelScale), 0.55f, font);
                 else
-                    builder.drawText(String.valueOf(mouseStack.amount), mouseX + (itemSize / 2.0f) - (4f * pixelScale), invertedMouseY - (itemSize / 2.0f), 0.55f, font);
+                    builder.drawText(String.valueOf(mouseStack.amount), mouseX + (itemSize / 2.0f) - (10f * pixelScale), invertedMouseY - (itemSize / 2.0f) + (3.0f * pixelScale), 0.55f, font);
             }
         }
 

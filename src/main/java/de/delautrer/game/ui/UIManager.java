@@ -22,6 +22,9 @@ public class UIManager {
 
     public void update(InputManager input, PlayerInteraction interaction) {
         if (interaction.getPlayer().isDead()) {
+            if (currentScreen != null) {
+                currentScreen.onClose();
+            }
             currentScreen = null;
             return;
         }
@@ -30,10 +33,12 @@ public class UIManager {
 
         if (externalInv != null) {
             if (!(currentScreen instanceof ChestScreen)) {
+                if (currentScreen != null) {
+                    currentScreen.onClose();
+                }
                 if (externalInv instanceof ChestInventory) {
                     currentScreen = new ChestScreen(new ChestContainer(interaction.getInventory(), (ChestInventory) externalInv));
                 }
-
                 if (lastWidth > 0 && currentScreen != null) {
                     currentScreen.init(lastWidth, lastHeight);
                 }
@@ -47,6 +52,10 @@ public class UIManager {
         else if (isPlayerInvOpen) {
             // Prüfen, ob wir den Screen neu laden müssen (falls er vorher null oder ein ChestScreen war)
             if (currentScreen == null || currentScreen instanceof ChestScreen) {
+                if (currentScreen != null) {
+                    currentScreen.onClose();
+                }
+
                 if (interaction.getPlayer().getGameMode() == GameMode.CREATIVE) {
                     currentScreen = new CreativeInventoryScreen(new CreativeContainer(interaction.getInventory()));
                 } else {
@@ -60,6 +69,9 @@ public class UIManager {
         }
         // 3. Gar kein Inventar offen
         else {
+            if (currentScreen != null) {
+                currentScreen.onClose(); // <--- WICHTIGSTES NEU: Hier wird das Inventar komplett geschlossen!
+            }
             currentScreen = null;
         }
     }

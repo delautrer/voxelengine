@@ -4,6 +4,10 @@ import de.delautrer.Constants;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.blocks.PlantBlock;
+import de.delautrer.game.entity.player.LocalPlayer;
+import de.delautrer.game.entity.player.PlayerInteraction;
+import de.delautrer.game.world.World;
+import org.joml.Vector3i;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -55,6 +59,13 @@ public class ItemRegistry {
     public static final Item MAVVINILIA    = register("mavvinilia", new BlockItem("Mavvinilia", "mavvinilia", BlockRegistry.MAVVINILIA));
 
     public static final Item CHEST         = register("chest", new BlockItem("Chest", "chest", BlockRegistry.CHEST));
+
+    public static final Item STICKS        = register("sticks", new Item("Sticks", "sticks") {
+        @Override
+        public boolean onUseRightClick(World world, LocalPlayer localPlayer, Vector3i targetBlock, Vector3i adjacentBlock, PlayerInteraction interaction) {
+            return false;
+        }
+    });
 
     public static void init() {
         System.out.println("ItemRegistry initialized. " + ITEMS.size() + " Items loaded.");

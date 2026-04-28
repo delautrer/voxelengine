@@ -1,0 +1,10 @@
+{
+  "type": "shapeless",
+  "ingredients": [
+    "engine:dirt",
+    "engine:grass"
+  ],
+  "result": {
+    "item": "engine:grass_block"
+  }
+}

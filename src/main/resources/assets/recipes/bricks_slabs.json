@@ -1,0 +1,10 @@
+{
+  "type": "shapeless",
+  "ingredients": [
+    "engine:bricks"
+  ],
+  "result": {
+    "item": "engine:bricks_slabs",
+    "count": 2
+  }
+}

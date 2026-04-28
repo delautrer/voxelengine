@@ -1,0 +1,10 @@
+{
+  "type": "shapeless",
+  "ingredients": [
+    "engine:log"
+  ],
+  "result": {
+    "item": "engine:planks",
+    "count": 4
+  }
+}

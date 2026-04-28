@@ -1,0 +1,12 @@
+{
+  "type": "shaped",
+  "pattern": [
+    "AA"
+  ],
+  "keys": {
+    "A": "engine:stone_stairs"
+  },
+  "result": {
+    "item": "engine:empty_bucket"
+  }
+}

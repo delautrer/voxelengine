@@ -1,0 +1,15 @@
+{
+  "type": "shaped",
+  "pattern": [
+    "A",
+    "B"
+  ],
+  "keys": {
+    "A": "engine:planks",
+    "B": "engine:sticks"
+  },
+  "result": {
+    "item": "engine:torch",
+    "count": 4
+  }
+}

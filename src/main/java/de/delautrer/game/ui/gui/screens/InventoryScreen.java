@@ -22,24 +22,33 @@ public class InventoryScreen extends ContainerScreen {
         guiX = (float) Math.floor((width - hotbarWidth) / 2.0f);
         guiY = height / 2.0f - hotbarHeight * 2.0f;
 
-        // Panel Bounds berechnen (nur für den Hintergrund wichtig)
         padding = 10.0f * pixelScale;
         panelW = hotbarWidth + padding * 2;
-        // Höhe: 3 Reihen à 24px + 34px Abstand + Padding
-        panelH = (34f * pixelScale + 3 * hotbarHeight) + padding * 2 + (15.0f * pixelScale);
+
+        float maxSlotY = 168.0f * pixelScale;
+        panelH = maxSlotY + padding * 2 + (20.0f * pixelScale);
+
         panelX = guiX - padding;
         panelY = guiY - padding;
     }
 
     @Override
     protected void drawBackground(UIMeshBuilder builder, float mouseX, float mouseY) {
-        // Hintergrund
+        // Hintergrund zeichnen
         builder.add9Slice(panelX, panelY, 0.0f, panelW, panelH, 4, 0, 8.0f * pixelScale);
 
-        // Titel
+        // Titel zeichnen
         if (font != null) {
-            float titleY = panelY + panelH - (18.0f * pixelScale);
-            builder.drawText("Inventory", panelX + padding, titleY, 0.1f, font);
+            // Inventar Titel (über den normalen Slots)
+            float invTitleY = guiY + (34f * pixelScale) + (3 * 24f * pixelScale) + (2.0f * pixelScale);
+            builder.drawText("Inventory", panelX + padding, invTitleY, 0.1f, font);
+
+            // Crafting Titel (ganz oben im Panel)
+            float craftTitleY = panelY + panelH - (18.0f * pixelScale);
+            builder.drawText("Crafting", panelX + padding + (120f * pixelScale), craftTitleY, 0.1f, font);
+
+            // Ein kleiner Pfeil zwischen Grid und Output (optional, sieht aber gut aus!)
+            builder.drawText("->", guiX + (172f * pixelScale), guiY + (136f * pixelScale) + (6f * pixelScale), 0.1f, font);
         }
     }
 }

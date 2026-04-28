@@ -24,9 +24,20 @@ public class Slot {
     public void putStack(ItemStack stack) {
         if (inventory == null) return;
         inventory.setStack(slotIndex, stack);
+        onSlotChanged();
     }
 
     public boolean hasItem() {
         return getStack() != null;
+    }
+
+    public boolean isItemValid(ItemStack stack) {
+        return true;
+    }
+
+    public void onTake() {
+    }
+
+    public void onSlotChanged() {
     }
 }

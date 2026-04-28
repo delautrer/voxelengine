@@ -1,5 +1,6 @@
 package de.delautrer.game.ui.gui.container;
 
+import de.delautrer.game.inventory.CraftingInventory;
 import de.delautrer.game.items.ItemStack;
 import de.delautrer.game.inventory.PlayerInventory;
 import de.delautrer.game.ui.gui.ClickType;
@@ -16,11 +17,38 @@ public abstract class BaseContainer {
         return slot;
     }
 
+    public void onContainerClosed() {
+        ItemStack mouse = getMouseStack();
+        if (mouse != null) {
+            giveItemOrDrop(mouse);
+            setMouseStack(null);
+        }
+    }
+
+    protected void giveItemOrDrop(ItemStack stack) {
+        pushToPlayerInventory(stack);
+
+        if (stack.amount > 0) {
+            System.out.println("Inventar voll! Droppe Item in die Welt: " + stack.amount + "x " + stack.type);
+        }
+    }
+
     public ItemStack getMouseStack() { return mouseStack; }
     public void setMouseStack(ItemStack stack) { this.mouseStack = stack; }
 
     public void clickSlot(Slot slot, int button, ClickType clickType) {
         if (slot == null) return;
+
+        if (clickType == ClickType.QUICK_MOVE) {
+            if (slot instanceof CraftingResultSlot) {
+                shiftClickCrafting((CraftingResultSlot) slot);
+                return;
+            }
+            ItemStack clicked = slot.getStack();
+            if (clicked != null) quickMove(slot);
+            return;
+        }
+
         ItemStack clicked = slot.getStack();
 
         // --- SHIFT-KLICK (Quick Move) ---
@@ -65,21 +93,37 @@ public abstract class BaseContainer {
         if (mouseStack == null) {
             if (clicked != null) {
                 slot.putStack(null);
+                slot.onTake();
                 mouseStack = clicked;
             }
         } else {
             if (clicked == null) {
-                slot.putStack(mouseStack);
-                mouseStack = null;
+                if (slot.isItemValid(mouseStack)) {
+                    slot.putStack(mouseStack);
+                    mouseStack = null;
+                }
             } else if (clicked.type == mouseStack.type) {
-                int space = clicked.type.getMaxStackSize() - clicked.amount;
-                int toAdd = Math.min(space, mouseStack.amount);
-                clicked.amount += toAdd;
-                mouseStack.amount -= toAdd;
-                if (mouseStack.amount == 0) mouseStack = null;
+                if (slot instanceof CraftingResultSlot) {
+                    // NEU: Mehrmaliges Klicken summiert das Item auf der Hand!
+                    int space = mouseStack.type.getMaxStackSize() - mouseStack.amount;
+                    if (space >= clicked.amount) {
+                        mouseStack.amount += clicked.amount;
+                        slot.onTake();
+                    }
+                } else if (slot.isItemValid(mouseStack)) {
+                    int space = clicked.type.getMaxStackSize() - clicked.amount;
+                    int toAdd = Math.min(space, mouseStack.amount);
+                    clicked.amount += toAdd;
+                    mouseStack.amount -= toAdd;
+                    if (mouseStack.amount == 0) mouseStack = null;
+                    slot.onSlotChanged();
+                }
             } else {
-                slot.putStack(mouseStack);
-                mouseStack = clicked;
+                if (slot.isItemValid(mouseStack)) {
+                    slot.putStack(mouseStack);
+                    slot.onTake();
+                    mouseStack = clicked;
+                }
             }
         }
     }
@@ -189,6 +233,10 @@ public abstract class BaseContainer {
     }
 
     public void gatherItems(Slot targetSlot) {
+        if( targetSlot instanceof CraftingResultSlot) {
+            craftMaxToCursor((CraftingResultSlot) targetSlot);
+            return;
+        }
         if (mouseStack == null || mouseStack.amount >= mouseStack.type.getMaxStackSize()) return;
 
         for (Slot s : slots) {
@@ -242,5 +290,86 @@ public abstract class BaseContainer {
         }
 
         if (mouseStack.amount <= 0) mouseStack = null;
+    }
+
+    protected void shiftClickCrafting(CraftingResultSlot slot) {
+        ItemStack result = slot.getStack();
+        while (result != null) {
+            ItemStack copy = new ItemStack(result.type, result.amount);
+            int initialAmount = copy.amount;
+
+            pushToPlayerInventory(copy); // Versucht, die Items ins Inventar zu schieben
+
+            if (copy.amount < initialAmount) {
+                // Wir haben erfolgreich gecraftet (ganz oder teilweise)
+                slot.onTake();
+
+                if (copy.amount > 0) {
+                    // Rest, der nicht mehr ins Inventar gepasst hat -> wandert an die Maus
+                    if (mouseStack == null) {
+                        mouseStack = copy;
+                    }
+                    break; // Inventar offensichtlich voll, stoppe Shift-Crafting
+                }
+                result = slot.getStack(); // Neues Item für nächsten Durchlauf laden
+            } else {
+                break; // Absolut kein Platz mehr im Inventar
+            }
+        }
+    }
+
+    protected void craftMaxToCursor(CraftingResultSlot slot) {
+        if (mouseStack != null && mouseStack.amount >= mouseStack.type.getMaxStackSize()) return;
+
+        ItemStack result = slot.getStack();
+        while (result != null) {
+            if (mouseStack == null) {
+                mouseStack = new ItemStack(result.type, 0);
+            } else if (mouseStack.type != result.type) {
+                break; // Falsches Item auf der Hand
+            }
+
+            int space = mouseStack.type.getMaxStackSize() - mouseStack.amount;
+            if (space >= result.amount) {
+                mouseStack.amount += result.amount;
+                slot.onTake();
+                result = slot.getStack(); // Update für nächsten Loop
+            } else {
+                break; // Nicht genug Platz auf der Hand für ein weiteres ganzes Resultat
+            }
+        }
+    }
+
+    protected boolean pushToPlayerInventory(ItemStack stack) {
+        boolean success = false;
+        // 1. In existierende Stacks füllen
+        for (Slot s : slots) {
+            if (s.inventory instanceof PlayerInventory) {
+                ItemStack target = s.getStack();
+                if (target != null && target.type == stack.type) {
+                    int space = target.type.getMaxStackSize() - target.amount;
+                    if (space > 0) {
+                        int toAdd = Math.min(space, stack.amount);
+                        target.amount += toAdd;
+                        stack.amount -= toAdd;
+                        s.onSlotChanged();
+                        success = true;
+                        if (stack.amount == 0) return true;
+                    }
+                }
+            }
+        }
+        // 2. In leere Slots füllen
+        for (Slot s : slots) {
+            if (s.inventory instanceof PlayerInventory) {
+                if (s.getStack() == null) {
+                    s.putStack(new ItemStack(stack.type, stack.amount));
+                    stack.amount = 0;
+                    s.onSlotChanged();
+                    return true;
+                }
+            }
+        }
+        return success;
     }
 }

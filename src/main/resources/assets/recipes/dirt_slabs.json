@@ -1,0 +1,10 @@
+{
+  "type": "shapeless",
+  "ingredients": [
+    "engine:dirt"
+  ],
+  "result": {
+    "item": "engine:dirt_slabs",
+    "count": 2
+  }
+}
