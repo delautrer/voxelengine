@@ -28,14 +28,14 @@ public class ItemModelManager {
                     }
                 }
             } catch (Exception e) {
-                System.err.println("Fehler beim Auslesen der Item-Textur aus: " + path);
+                System.err.println("[ItemModelManager] Error reading texture file: " + path);
             }
         }
         return textures;
     }
 
     public static void loadAllModels(TextureStitcher.AtlasResult atlas) {
-        System.out.println("Loading item json models...");
+        System.out.println("[ItemModelManager] Loading item json models...");
         TextureStitcher.AtlasRegion missingRegion = atlas.regions.values().iterator().next();
 
         for (Map.Entry<String, Item> entry : ItemRegistry.getAll().entrySet()) {
@@ -51,7 +51,7 @@ public class ItemModelManager {
                         iconRegion = atlas.regions.getOrDefault(texName, missingRegion);
                     }
                 } else {
-                    System.err.println("WARNUNG: Keine JSON gefunden für Item: " + itemName);
+                    System.err.println("[ItemModelManager] WARNING: No model found for item: " + itemName);
                 }
             } catch (Exception e) {}
 

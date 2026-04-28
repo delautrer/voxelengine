@@ -290,7 +290,7 @@ public class ChunkManager {
     public void cleanup() {
         if (isCleanedUp) return;
         isCleanedUp = true;
-        System.out.println("Stoppe Chunk-Hintergrund-Threads...");
+        System.out.println("[Thread] Stopping background chunk threads...");
         chunkExecutor.shutdown();
         try {
             if (!chunkExecutor.awaitTermination(2, java.util.concurrent.TimeUnit.SECONDS)) {
@@ -300,7 +300,7 @@ public class ChunkManager {
             chunkExecutor.shutdownNow();
             Thread.currentThread().interrupt();
         }
-        System.out.println("Räume Vulkan-Meshes auf...");
+        System.out.println("[Thread] Clearing vulkan meshes. Give GPU space to breath");
         VK10.vkDeviceWaitIdle(context.getDevice());
 
         for (ChunkMeshPair pair : meshes.values()) {

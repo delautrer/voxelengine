@@ -16,7 +16,7 @@ import java.util.Set;
 public class BlockModelManager {
 
     public static void loadAllModels(TextureStitcher.AtlasResult atlas) {
-        System.out.println("Loading BlockModels from JSONs...");
+        System.out.println("[BlockModelManager] Loading BlockModels from JSONs...");
 
         TextureStitcher.AtlasRegion missingRegion = atlas.regions.values().iterator().next();
         if (atlas.regions.containsKey("dirt")) {
@@ -42,7 +42,7 @@ public class BlockModelManager {
 
         try (InputStream is = BlockModelManager.class.getResourceAsStream(path)) {
             if (is == null) {
-                System.err.println("WARNING: No JSON found for " + blockName);
+                System.err.println("[BlockModelManager] WARNING: No model found for " + blockName);
                 model.fillMissing(missingRegion);
                 return model;
             }
@@ -91,7 +91,7 @@ public class BlockModelManager {
                 }
             }
         } catch (Exception e) {
-            System.err.println("Error while parsing path: " + path);
+            System.err.println("[BlockModelManager] Error while parsing model path: " + path);
             e.printStackTrace();
         }
 
@@ -102,7 +102,6 @@ public class BlockModelManager {
     public static Set<String> getRequiredTextures() {
         Set<String> textures = new HashSet<>();
 
-        // WICHTIG: Fallbacks und spezielle Texturen (wie die Wolken) manuell hinzufügen!
         textures.add("just_white");
 
         textures.add("destroy_stage_0");
@@ -133,7 +132,7 @@ public class BlockModelManager {
                     }
                 }
             } catch (Exception e) {
-                System.err.println("Error reading the texture: " + path);
+                System.err.println("[BlockModelManager] Error reading the texture: " + path);
             }
         }
         return textures;

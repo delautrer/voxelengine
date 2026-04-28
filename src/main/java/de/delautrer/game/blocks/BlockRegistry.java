@@ -58,7 +58,7 @@ public class BlockRegistry {
 
 
     public static void init() {
-        System.out.println("BlockRegistry initialized. " + BLOCKS.size() + " Blocks loaded.");
+        System.out.println("[BlockRegistry] " + BLOCKS.size() + " Blocks loaded.");
     }
 
     private static Block registerAir() {

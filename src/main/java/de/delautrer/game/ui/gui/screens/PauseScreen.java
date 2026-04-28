@@ -28,7 +28,7 @@ public class PauseScreen extends MenuScreen {
 
         // Button 2: Optionen (Platzhalter)
         elements.add(new UIButton(centerX, centerY, btnWidth, btnHeight, "Options", () -> {
-            System.out.println("Optionen Menü kommt später!");
+            System.out.println("[TODO] Options will be available someday...");
         }));
 
         // Button 3: Speichern & Beenden

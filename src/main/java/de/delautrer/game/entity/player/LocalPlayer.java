@@ -373,7 +373,7 @@ public class LocalPlayer extends Player {
                     if (eventBus != null) {
                         eventBus.publish(new PlayerDamageEvent(this, dmg));
                     }
-                    System.out.println("Fallschaden: " + dmg + " | Verbleibendes Leben: " + getHealth());
+                    System.out.println("[Damage] Falldamage: " + dmg + " | HP left: " + getHealth());
                 }
             }
             fallDistance = 0.0f; // Reset beim Landen

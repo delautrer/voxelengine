@@ -38,7 +38,7 @@ public class Engine {
         vulkanContext = new VulkanContext(window);
         inputManager = new InputManager(window.getHandle());
 
-        System.out.println("building block atlas...");
+        System.out.println("[Engine] Building block atlas...");
         try {
             java.util.Set<String> reqBlocks = BlockModelManager.getRequiredTextures();
             // is2DAtlas = false, Ordner = "assets/textures/block"
@@ -46,7 +46,7 @@ public class Engine {
             BlockModelManager.loadAllModels(blockAtlas);
         } catch (Exception e) { e.printStackTrace(); }
 
-        System.out.println("Building item atlas...");
+        System.out.println("[Engine] Building item atlas...");
         try {
             java.util.Set<String> reqItems = ItemModelManager.getRequiredTextures();
             // is2DAtlas = true, Ordner = "assets/textures/item"
@@ -86,7 +86,7 @@ public class Engine {
     }
 
     private void cleanup() {
-        System.out.println("--- ENGINE SHUTDOWN START ---");
+        System.out.println("[Engine] Shutting down...");
         VK10.vkDeviceWaitIdle(vulkanContext.getDevice());
 
         sceneManager.cleanup();
@@ -95,7 +95,7 @@ public class Engine {
         if (vulkanContext != null) vulkanContext.cleanup();
         if (window != null) window.cleanup();
 
-        System.out.println("--- ENGINE SHUTDOWN BEENDET ---");
+        System.out.println("[Engine] Gone. RIP lovely engine. See you soon my fren.");
     }
 
     public SceneManager getSceneManager() { return sceneManager; }

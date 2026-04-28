@@ -70,7 +70,6 @@ public class World {
             localPlayer.getCamera().setPitch(pData.pitch);
             localPlayer.getCamera().setYaw(pData.yaw);
             localPlayer.setGameMode(pData.gamemode);
-            System.out.println();
             localPlayer.setDead(pData.isDead);
             localPlayer.setCurrentHealth(pData.currentHealth);
             if (localPlayer.getInventory() != null) {

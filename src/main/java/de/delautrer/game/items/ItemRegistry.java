@@ -68,7 +68,7 @@ public class ItemRegistry {
     });
 
     public static void init() {
-        System.out.println("ItemRegistry initialized. " + ITEMS.size() + " Items loaded.");
+        System.out.println("[ItemRegistry] " + ITEMS.size() + " Items loaded.");
     }
 
     private static Item register(String path, Item item) {

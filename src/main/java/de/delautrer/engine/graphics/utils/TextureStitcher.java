@@ -1,5 +1,6 @@
 package de.delautrer.engine.graphics.utils;
 
+import de.delautrer.Constants;
 import de.delautrer.engine.utils.AssetManager;
 import org.lwjgl.stb.STBImage;
 import org.lwjgl.stb.STBImageWrite;
@@ -118,9 +119,12 @@ public class TextureStitcher {
             }
         }
 
-        if (debugOutputPath != null) {
-            try { STBImageWrite.stbi_write_png(debugOutputPath, atlasWidth, atlasHeight, 4, atlasPixels, atlasWidth * 4); } catch (Exception ignored) {}
+        if (Constants.IS_DEV) {
+            if (debugOutputPath != null) {
+                try { STBImageWrite.stbi_write_png(debugOutputPath, atlasWidth, atlasHeight, 4, atlasPixels, atlasWidth * 4); } catch (Exception ignored) {}
+            }
         }
+
 
         return new AtlasResult(atlasPixels, atlasWidth, atlasHeight, regions);
     }
