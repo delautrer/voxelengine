@@ -97,8 +97,8 @@ public class ItemEntity extends Entity {
 
                                 // Kleine visuelle "Hüpf"-Animation beim Verschmelzen
                                 this.velocity.y = 1.5f;
-
                                 if (otherItem.stack.amount <= 0) {
+                                    otherItem.stack.amount = 0;
                                     otherItem.setDead(true);
                                 }
                             }

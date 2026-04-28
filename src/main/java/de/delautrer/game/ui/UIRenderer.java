@@ -1,5 +1,6 @@
 package de.delautrer.game.ui;
 
+import de.delautrer.engine.graphics.MeshData;
 import de.delautrer.engine.graphics.VulkanContext;
 import de.delautrer.engine.graphics.VulkanFont;
 import de.delautrer.engine.graphics.VulkanMesh;
@@ -30,9 +31,8 @@ public class UIRenderer {
     }
 
     public void rebuildMesh(int width, int height, InputManager input, PlayerInteraction interaction, float mouseX, float mouseY, DebugOverlay debugOverlay, ChatOverlay chatOverlay, VulkanFont font, MenuScreen pauseScreen, int blockAtlasWidth) {
-        VK10.vkDeviceWaitIdle(context.getDevice());
-        if (combinedMesh != null) combinedMesh.cleanup();
-        combinedMesh = null;
+
+        // --- HIER WURDE AUFGERÄUMT: Kein WaitIdle und kein cleanup mehr am Anfang! ---
         drawCalls.clear();
         meshBuilder.clear();
 
@@ -61,7 +61,6 @@ public class UIRenderer {
         int currentStartIndex = 0;
         int currentIndexCount = 0;
 
-        // Durchläuft die Layer automatisch nach Z-Index sortiert (dank TreeMap)
         for (Map<UITexture, UIMeshBuilder.Batch> layer : meshBuilder.getLayers().values()) {
             for (Map.Entry<UITexture, UIMeshBuilder.Batch> entry : layer.entrySet()) {
                 UITexture tex = entry.getKey();
@@ -69,7 +68,6 @@ public class UIRenderer {
 
                 if (batch.inds.isEmpty()) continue;
 
-                // Benachbarte Draw-Calls mit gleicher Textur verschmelzen!
                 if (currentTex == tex) {
                     currentIndexCount += batch.inds.size();
                 } else {
@@ -93,8 +91,28 @@ public class UIRenderer {
             drawCalls.add(new UIDrawCall(currentTex, currentStartIndex, currentIndexCount));
         }
 
+        // --- MESH UPDATE ---
         if (!allVerts.isEmpty()) {
-            combinedMesh = new VulkanMesh(context, toArray(allVerts), toIntArray(allInds));
+            MeshData newMeshData = new MeshData(toArray(allVerts), toIntArray(allInds));
+
+            // Wir halten die GPU kurz an, damit wir die laufenden Daten SICHER aktualisieren können
+            VK10.vkDeviceWaitIdle(context.getDevice());
+
+            if (combinedMesh == null) {
+                // Nur beim allerersten Mal wird Speicher alloziiert
+                combinedMesh = new VulkanMesh(context, newMeshData);
+            } else {
+                // JETZT WIRD DAS HIER ENDLICH AUFGERUFEN!
+                // Kein Neuzuweisen von RAM, nur flüsterleises Überschreiben.
+                combinedMesh.updateMesh(newMeshData);
+            }
+        } else {
+            // Falls das UI komplett leer wird (selten)
+            if (combinedMesh != null) {
+                VK10.vkDeviceWaitIdle(context.getDevice());
+                combinedMesh.cleanup();
+                combinedMesh = null;
+            }
         }
     }
 

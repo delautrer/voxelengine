@@ -11,9 +11,6 @@ import de.delautrer.game.entity.ItemEntity;
 import de.delautrer.game.entity.player.LocalPlayer;
 import de.delautrer.game.events.BlockChangeEvent;
 import de.delautrer.game.events.BlockNeighborUpdateEvent;
-import de.delautrer.game.inventory.PlayerInventory;
-import de.delautrer.game.items.ItemRegistry;
-import de.delautrer.game.items.ItemStack;
 import de.delautrer.game.world.persistence.PlayerData;
 import de.delautrer.game.world.persistence.WorldData;
 import org.joml.Vector3f;
@@ -39,7 +36,9 @@ public class World {
     private final String worldName;
     private final String worldSave;
 
-    private final List<Entity> entities = new CopyOnWriteArrayList<>();
+    private final List<Entity> entities = new ArrayList<>();
+    private final List<Entity> entitiesToAdd = new ArrayList<>();
+    private final List<Entity> entitiesToRemove = new ArrayList<>();
     private final Map<Vector3i, BlockEntity> blockEntities = new ConcurrentHashMap<>();
 
     public World(VulkanContext context, LocalPlayer localPlayer, EventBus eventBus, long defaultSeed, String worldName, String worldSave) {
@@ -103,43 +102,48 @@ public class World {
         tickScheduler.update(deltaTime);
         cloudSystem.update(deltaTime);
 
-        // Entities updaten
-        List<Entity> deadEntities = new ArrayList<>();
+        // --- ENTITIES SYNCHRONISIEREN (Neue hinzufügen, alte löschen) ---
+        if (!entitiesToAdd.isEmpty()) {
+            entities.addAll(entitiesToAdd);
+            entitiesToAdd.clear();
+        }
+        if (!entitiesToRemove.isEmpty()) {
+            entities.removeAll(entitiesToRemove);
+            entitiesToRemove.clear();
+        }
 
+        // --- ENTITIES UPDATEN ---
         for (Entity entity : entities) {
-            if (entity instanceof ItemEntity itemEntity) {
-                itemEntity.update(deltaTime, chunkManager, this);
-            } else {
-                entity.update(deltaTime, chunkManager);
+            if (entity.isDead()) {
+                entitiesToRemove.add(entity);
+                continue;
             }
 
-            // Spezifische Item-Logik (Aufsammeln)
-            if (entity instanceof ItemEntity) {
-                ItemEntity item = (ItemEntity) entity;
-                if (!item.isDead() && item.pickupDelay <= 0) {
-                    float dist = localPlayer.position.distance(item.position);
+            if (entity instanceof ItemEntity itemEntity) {
+                itemEntity.update(deltaTime, chunkManager, this);
+
+                // Item aufsammeln
+                if (itemEntity.pickupDelay <= 0) {
+                    float dist = localPlayer.position.distance(itemEntity.position);
                     if (dist < 1.5f) {
-                        de.delautrer.game.events.PlayerItemPickupEvent event = new de.delautrer.game.events.PlayerItemPickupEvent(localPlayer, item.stack);
+                        de.delautrer.game.events.PlayerItemPickupEvent event = new de.delautrer.game.events.PlayerItemPickupEvent(localPlayer, itemEntity.stack);
                         eventBus.publish(event);
+
                         if (!event.isCancelled()) {
-                            int leftover = localPlayer.getInventory().addItem(item.stack);
+                            int leftover = localPlayer.getInventory().addItem(itemEntity.stack);
                             eventBus.publish(new de.delautrer.game.events.InventoryChangeEvent());
+
                             if (leftover == 0) {
-                                item.setDead(true);
+                                itemEntity.setDead(true);
                             } else {
-                                item.stack.amount = leftover;
+                                itemEntity.stack.amount = leftover;
                             }
                         }
                     }
                 }
-                if (item.isDead()) {
-                    deadEntities.add(item);
-                }
+            } else {
+                entity.update(deltaTime, chunkManager);
             }
-        }
-
-        if (!deadEntities.isEmpty()) {
-            entities.removeAll(deadEntities);
         }
 
         if (localPlayer.position.y < -50) {
@@ -328,11 +332,11 @@ public class World {
     }
 
     public void spawnEntity(Entity entity) {
-        entities.add(entity);
+        entitiesToAdd.add(entity);
     }
 
     public void removeEntity(Entity entity) {
-        entities.remove(entity);
+        entitiesToRemove.add(entity);
     }
 
     public List<Entity> getEntities() {
