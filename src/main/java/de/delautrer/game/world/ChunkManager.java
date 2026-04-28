@@ -22,6 +22,15 @@ public class ChunkManager {
         }
     }
 
+    private static class MeshToDelete {
+        final VulkanMesh mesh;
+        int framesToLive = 3;
+
+        MeshToDelete(VulkanMesh mesh) {
+            this.mesh = mesh;
+        }
+    }
+
     private final World world;
     private final WorldGenerator worldGenerator;
 
@@ -32,6 +41,7 @@ public class ChunkManager {
     private final ExecutorService chunkExecutor;
 
     private final ConcurrentLinkedQueue<MeshGenerationResult> meshUploadQueue = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<MeshToDelete> trashBin = new ConcurrentLinkedQueue<>();
 
     private final Set<Vector2i> chunksInPreparation = ConcurrentHashMap.newKeySet();
     private final Set<Vector2i> chunksLoading = ConcurrentHashMap.newKeySet();
@@ -89,16 +99,33 @@ public class ChunkManager {
             }
         }
 
-        // 1.5 FERTIGE CHUNKS EINFÜGEN
+        // 1.5 FERTIGE CHUNKS EINFÜGEN (JETZT GEDROSSELT!)
         Chunk loadedChunk;
-        while ((loadedChunk = newlyLoadedQueue.poll()) != null) {
+        int chunksIntegratedThisFrame = 0;
+        int maxChunksToIntegrate = initialLoadComplete ? 1 : 10;
+
+        while (chunksIntegratedThisFrame < maxChunksToIntegrate && (loadedChunk = newlyLoadedQueue.poll()) != null) {
             Vector2i pos = new Vector2i(loadedChunk.getWorldX(), loadedChunk.getWorldZ());
             chunks.put(pos, loadedChunk);
             chunksLoading.remove(pos);
+
             if (loadedChunk.isDirty()) {
                 lightEngine.initSkyLightForChunk(loadedChunk);
             }
             lightEngine.stitchChunkBorders(loadedChunk);
+            lightEngine.getAndClearDirtiedChunks();
+
+            Chunk nX1 = chunks.get(new Vector2i(pos.x + 1, pos.y));
+            Chunk nX2 = chunks.get(new Vector2i(pos.x - 1, pos.y));
+            Chunk nZ1 = chunks.get(new Vector2i(pos.x, pos.y + 1));
+            Chunk nZ2 = chunks.get(new Vector2i(pos.x, pos.y - 1));
+
+            if (nX1 != null) nX1.requestMeshUpdate();
+            if (nX2 != null) nX2.requestMeshUpdate();
+            if (nZ1 != null) nZ1.requestMeshUpdate();
+            if (nZ2 != null) nZ2.requestMeshUpdate();
+
+            chunksIntegratedThisFrame++;
         }
 
         // 2. MESHES IM HINTERGRUND BERECHNEN
@@ -131,7 +158,7 @@ public class ChunkManager {
         int uploadsThisFrame = 0;
 
         // NEU: Ein Schalter, damit wir pro Frame maximal einmal auf die GPU warten müssen
-        boolean waitIdleCalled = false;
+        // boolean waitIdleCalled = false;
 
         while (uploadsThisFrame < maxUploads) {
             MeshGenerationResult result = meshUploadQueue.poll();
@@ -141,16 +168,18 @@ public class ChunkManager {
             chunksInPreparation.remove(pos);
 
             if (chunks.containsKey(pos)) {
+                /*
                 if (meshes.containsKey(pos) && !waitIdleCalled) {
                     VK10.vkDeviceWaitIdle(context.getDevice());
                     waitIdleCalled = true;
                 }
+                */
                 updateChunkMeshes(pos, result.meshData);
                 uploadsThisFrame++;
             }
         }
 
-        // 4. ALTE MESHES ENTLADEN
+        // 4. ALTE MESHES ENTLADEN (Ohne GPU Stall!)
         int unloadMeshDistance = Constants.RENDERDISTANCE + 1;
         List<Vector2i> meshesToRemove = new ArrayList<>();
         for (Vector2i pos : meshes.keySet()) {
@@ -158,11 +187,15 @@ public class ChunkManager {
                 meshesToRemove.add(pos);
             }
         }
+
         if (!meshesToRemove.isEmpty()) {
-            VK10.vkDeviceWaitIdle(context.getDevice());
             for (Vector2i pos : meshesToRemove) {
                 ChunkMeshPair pair = meshes.remove(pos);
-                if (pair != null) pair.cleanup();
+                if (pair != null) {
+                    if (pair.opaque != null) trashBin.add(new MeshToDelete(pair.opaque));
+                    if (pair.water != null) trashBin.add(new MeshToDelete(pair.water));
+                }
+
                 Chunk c = chunks.get(pos);
                 if (c != null) c.clearMeshCache();
             }
@@ -182,6 +215,20 @@ public class ChunkManager {
         for (Vector2i pos : chunksToRemove) {
             chunks.remove(pos);
         }
+
+        // 6. MÜLLEIMER LEEREN (Verzögerte Löschung)
+        int itemsToProcess = trashBin.size();
+        for (int i = 0; i < itemsToProcess; i++) {
+            MeshToDelete item = trashBin.poll();
+            if (item != null) {
+                item.framesToLive--;
+                if (item.framesToLive <= 0) {
+                    item.mesh.cleanup(); // Jetzt ist es sicher! Die GPU nutzt es nicht mehr.
+                } else {
+                    trashBin.add(item); // Noch nicht tot genug, wieder hinten anstellen
+                }
+            }
+        }
     }
 
     /**
@@ -191,19 +238,15 @@ public class ChunkManager {
     public void updateChunkMeshes(Vector2i pos, Chunk.ChunkMeshResult result) {
         ChunkMeshPair pair = meshes.computeIfAbsent(pos, k -> new ChunkMeshPair());
 
-        // Opaque Mesh
-        if (pair.opaque == null) {
-            pair.opaque = new VulkanMesh(context, result.opaque());
-        } else {
-            pair.opaque.updateMesh(result.opaque());
+        if (pair.opaque != null) {
+            trashBin.add(new MeshToDelete(pair.opaque));
         }
+        pair.opaque = new VulkanMesh(context, result.opaque());
 
-        // Water Mesh
-        if (pair.water == null) {
-            pair.water = new VulkanMesh(context, result.water());
-        } else {
-            pair.water.updateMesh(result.water());
+        if (pair.water != null) {
+            trashBin.add(new MeshToDelete(pair.water));
         }
+        pair.water = new VulkanMesh(context, result.water());
     }
 
     // Getter & Setter

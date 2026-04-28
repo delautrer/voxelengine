@@ -220,9 +220,6 @@ public class PlayScene extends Scene {
         } else if (wasLoading) {
             wasLoading = false;
             uiNeedsRebuild = true;
-            if (isNewWorld) {
-                world.calcWorldspawnAndTeleportPlayer(localPlayer);
-            }
         }
 
         // --- 1. SPEICHERN & BEENDEN ---

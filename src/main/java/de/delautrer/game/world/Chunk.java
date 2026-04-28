@@ -23,15 +23,7 @@ public class Chunk {
     private boolean needsMeshUpdate = false;
     private long lastAccessedTime;
 
-    private float[] opaqueVertices = new float[4096];
-    private int opaqueVertexCount = 0;
-    private int[] opaqueIndices = new int[1024];
-    private int opaqueIndexCount = 0;
-
-    private float[] waterVertices = new float[4096];
-    private int waterVertexCount = 0;
-    private int[] waterIndices = new int[1024];
-    private int waterIndexCount = 0;
+    private static final ThreadLocal<MeshBuffers> MESH_BUFFER = ThreadLocal.withInitial(MeshBuffers::new);
 
     public record ChunkMeshResult(MeshData opaque, MeshData water) {}
 
@@ -42,6 +34,67 @@ public class Chunk {
         this.worldX = worldX;
         this.worldZ = worldZ;
         this.lastAccessedTime = System.currentTimeMillis();
+    }
+
+
+    private static class MeshBuffers {
+        float[] opaqueVertices = new float[131072]; // Groß genug für 99% aller Chunks (512 KB)
+        int[] opaqueIndices = new int[32768];
+        int opaqueVertexCount = 0;
+        int opaqueIndexCount = 0;
+
+        float[] waterVertices = new float[32768];
+        int[] waterIndices = new int[8192];
+        int waterVertexCount = 0;
+        int waterIndexCount = 0;
+
+        void reset() {
+            opaqueVertexCount = 0;
+            opaqueIndexCount = 0;
+            waterVertexCount = 0;
+            waterIndexCount = 0;
+        }
+
+        void ensureOpaque(int v, int i) {
+            if (opaqueVertexCount + v > opaqueVertices.length) {
+                float[] newArr = new float[Math.max(opaqueVertices.length * 2, opaqueVertexCount + v)];
+                System.arraycopy(opaqueVertices, 0, newArr, 0, opaqueVertexCount);
+                opaqueVertices = newArr;
+            }
+            if (opaqueIndexCount + i > opaqueIndices.length) {
+                int[] newArr = new int[Math.max(opaqueIndices.length * 2, opaqueIndexCount + i)];
+                System.arraycopy(opaqueIndices, 0, newArr, 0, opaqueIndexCount);
+                opaqueIndices = newArr;
+            }
+        }
+
+        void ensureWater(int v, int i) {
+            if (waterVertexCount + v > waterVertices.length) {
+                float[] newArr = new float[Math.max(waterVertices.length * 2, waterVertexCount + v)];
+                System.arraycopy(waterVertices, 0, newArr, 0, waterVertexCount);
+                waterVertices = newArr;
+            }
+            if (waterIndexCount + i > waterIndices.length) {
+                int[] newArr = new int[Math.max(waterIndices.length * 2, waterIndexCount + i)];
+                System.arraycopy(waterIndices, 0, newArr, 0, waterIndexCount);
+                waterIndices = newArr;
+            }
+        }
+
+        ChunkMeshResult createResult() {
+            // Nur hier ganz am Ende wird einmalig exakt kopiert, damit wir Vulkan den Buffer geben können.
+            float[] oVerts = new float[opaqueVertexCount];
+            System.arraycopy(opaqueVertices, 0, oVerts, 0, opaqueVertexCount);
+            int[] oInds = new int[opaqueIndexCount];
+            System.arraycopy(opaqueIndices, 0, oInds, 0, opaqueIndexCount);
+
+            float[] wVerts = new float[waterVertexCount];
+            System.arraycopy(waterVertices, 0, wVerts, 0, waterVertexCount);
+            int[] wInds = new int[waterIndexCount];
+            System.arraycopy(waterIndices, 0, wInds, 0, waterIndexCount);
+
+            return new ChunkMeshResult(new MeshData(oVerts, oInds), new MeshData(wVerts, wInds));
+        }
     }
 
     // Blocks
@@ -206,11 +259,12 @@ public class Chunk {
     }
 
     // Rendering
-    public synchronized ChunkMeshResult generateMeshData(ChunkManager cm) {
-        opaqueVertexCount = 0;
-        opaqueIndexCount = 0;
-        waterVertexCount = 0;
-        waterIndexCount = 0;
+    public void requestMeshUpdate() {
+        this.needsMeshUpdate = true;
+    }
+    public ChunkMeshResult generateMeshData(ChunkManager cm) {
+        MeshBuffers buf = MESH_BUFFER.get();
+        buf.reset();
 
         for (int x = 0; x < SIZE; x++) {
             for (int y = 0; y < HEIGHT; y++) {
@@ -218,16 +272,12 @@ public class Chunk {
                     byte id = blocks[x][y][z];
                     if (id != 0) {
                         Block block = BlockRegistry.get(id);
-                        block.generateMesh(x, y, z, this, cm); // Ruft addFace auf
+                        block.generateMesh(x, y, z, this, cm);
                     }
                 }
             }
         }
-
-        return new ChunkMeshResult(
-                new MeshData(getOpaqueVertices(), getOpaqueIndices()),
-                new MeshData(getWaterVertices(), getWaterIndices())
-        );
+        return buf.createResult();
     }
 
     public void addFace(float x0, float y0, float z0, float ao0,
@@ -239,19 +289,17 @@ public class Chunk {
                         float sl0, float sl1, float sl2, float sl3,
                         float bl0, float bl1, float bl2, float bl3) {
 
+        MeshBuffers buf = MESH_BUFFER.get();
         boolean isWater = (block == BlockRegistry.WATER);
         float ox = worldX * SIZE, oz = worldZ * SIZE;
 
         // Kapazitäten prüfen
-        if (isWater) {
-            ensureWaterCapacity(48, 6);
-        } else {
-            ensureOpaqueCapacity(48, 6);
-        }
+        if (isWater) buf.ensureWater(48, 6);
+        else buf.ensureOpaque(48, 6);
 
         // Aktuelle Daten auswählen
-        float[] targetVertices = isWater ? waterVertices : opaqueVertices;
-        int vIdx = isWater ? waterVertexCount : opaqueVertexCount;
+        float[] targetVertices = isWater ? buf.waterVertices : buf.opaqueVertices;
+        int vIdx = isWater ? buf.waterVertexCount : buf.opaqueVertexCount;
         int offset = vIdx / 12;
 
         float r = 1.0f, g = 1.0f, b = 1.0f, alpha = 1.0f;
@@ -290,11 +338,11 @@ public class Chunk {
         targetVertices[vIdx++] = sl3;     targetVertices[vIdx++] = bl3;
 
         // Zähler zurückschreiben
-        if (isWater) waterVertexCount = vIdx; else opaqueVertexCount = vIdx;
+        if (isWater) buf.waterVertexCount = vIdx; else buf.opaqueVertexCount = vIdx;
 
         // Indices befüllen
-        int[] targetIndices = isWater ? waterIndices : opaqueIndices;
-        int iIdx = isWater ? waterIndexCount : opaqueIndexCount;
+        int[] targetIndices = isWater ? buf.waterIndices : buf.opaqueIndices;
+        int iIdx = isWater ? buf.waterIndexCount : buf.opaqueIndexCount;
 
         if (ao0 + ao2 > ao1 + ao3) {
             targetIndices[iIdx++] = offset + 1; targetIndices[iIdx++] = offset + 2; targetIndices[iIdx++] = offset + 3;
@@ -304,83 +352,15 @@ public class Chunk {
             targetIndices[iIdx++] = offset + 2; targetIndices[iIdx++] = offset + 3; targetIndices[iIdx++] = offset + 0;
         }
 
-        if (isWater) waterIndexCount = iIdx; else opaqueIndexCount = iIdx;
+        if (isWater) buf.waterIndexCount = iIdx; else buf.opaqueIndexCount = iIdx;
     }
 
     public void clearMeshCache() {
-        opaqueVertexCount = 0;
-        opaqueIndexCount = 0;
 
-        opaqueVertices = new float[4096];
-        opaqueIndices = new int[1024];
+    }
 
-        waterVertexCount = 0;
-        waterIndexCount = 0;
-
-        waterVertices = new float[4096];
-        waterIndices = new int[1024];
-    }
-    public float[] getWaterVertices() {
-        float[] arr = new float[waterVertexCount];
-        System.arraycopy(waterVertices, 0, arr, 0, waterVertexCount);
-        return arr;
-    }
-    public int[] getWaterIndices() {
-        int[] arr = new int[waterIndexCount];
-        System.arraycopy(waterIndices, 0, arr, 0, waterIndexCount);
-        return arr;
-    }
-    public float[] getOpaqueVertices() {
-        float[] arr = new float[opaqueVertexCount];
-        System.arraycopy(opaqueVertices, 0, arr, 0, opaqueVertexCount);
-        return arr;
-    }
-    public int[] getOpaqueIndices() {
-        int[] arr = new int[opaqueIndexCount];
-        System.arraycopy(opaqueIndices, 0, arr, 0, opaqueIndexCount);
-        return arr;
-    }
     public static float[] getHighlightVertices() { return highlightVertices; }
     public static int[] getHighlightIndices() { return highlightIndices; }
-
-    // Rendering data holder helpers
-    private void ensureOpaqueCapacity(int v, int i) {
-        ensureOpaqueVertexCapacity(v);
-        ensureOpaqueIndexCapacity(i);
-    }
-
-    private void ensureWaterCapacity(int v, int i) {
-        ensureWaterVertexCapacity(v);
-        ensureWaterIndexCapacity(i);
-    }
-    private void ensureOpaqueVertexCapacity(int additionalSize) {
-        if (opaqueVertexCount + additionalSize > opaqueVertices.length) {
-            float[] newArr = new float[Math.max(opaqueVertices.length * 2, opaqueVertexCount + additionalSize)];
-            System.arraycopy(opaqueVertices, 0, newArr, 0, opaqueVertexCount);
-            opaqueVertices = newArr;
-        }
-    }
-    private void ensureOpaqueIndexCapacity(int additionalSize) {
-        if (opaqueIndexCount + additionalSize > opaqueIndices.length) {
-            int[] newArr = new int[Math.max(opaqueIndices.length * 2, opaqueIndexCount + additionalSize)];
-            System.arraycopy(opaqueIndices, 0, newArr, 0, opaqueIndexCount);
-            opaqueIndices = newArr;
-        }
-    }
-    private void ensureWaterVertexCapacity(int additionalSize) {
-        if (waterVertexCount + additionalSize > waterVertices.length) {
-            float[] newArr = new float[Math.max(waterVertices.length * 2, waterVertexCount + additionalSize)];
-            System.arraycopy(waterVertices, 0, newArr, 0, waterVertexCount);
-            waterVertices = newArr;
-        }
-    }
-    private void ensureWaterIndexCapacity(int additionalSize) {
-        if (waterIndexCount + additionalSize > waterIndices.length) {
-            int[] newArr = new int[Math.max(waterIndices.length * 2, waterIndexCount + additionalSize)];
-            System.arraycopy(waterIndices, 0, newArr, 0, waterIndexCount);
-            waterIndices = newArr;
-        }
-    }
 
     // Persistence
     public byte[] serialize() throws IOException {

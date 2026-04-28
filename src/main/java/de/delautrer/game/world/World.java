@@ -56,8 +56,11 @@ public class World {
             this.worldSpawnpoint = wData.worldSpawnpoint;
         } else {
             this.seed = defaultSeed;
+            this.worldSpawnpoint = WorldInitializer.findSpawnPoint(this.seed);
             saveWorldData();
         }
+
+        // ChunkManager und Threads erst DANACH starten!
         this.chunkManager = new ChunkManager(this, context);
         this.tickScheduler = new TickScheduler(this);
         this.cloudSystem = new CloudSystem();
@@ -76,6 +79,9 @@ public class World {
                 localPlayer.getInventory().setSelectedSlot(pData.selectedHotbarSlot);
             }
         } else {
+            if (this.worldSpawnpoint != null) {
+                localPlayer.position.set(this.worldSpawnpoint);
+            }
             /*
             int i = 0;
             for (de.delautrer.game.items.Item item : ItemRegistry.getAll().values()) {
@@ -93,14 +99,6 @@ public class World {
     }
 
     public void update(float deltaTime, LocalPlayer localPlayer) {
-        if(worldSpawnpoint == null) {
-            worldSpawnpoint = findSafeSpawn(0,0);
-            if (worldSpawnpoint != null) {
-                localPlayer.position.set(worldSpawnpoint);
-                saveWorldData();
-            }
-        }
-
         chunkManager.update(localPlayer.position.x, localPlayer.position.z);
         tickScheduler.update(deltaTime);
         cloudSystem.update(deltaTime);
@@ -145,10 +143,8 @@ public class World {
         }
 
         if (localPlayer.position.y < -50) {
-            Vector3f safeSpawn = worldSpawnpoint == null ? findSafeSpawn((int)localPlayer.position.x, (int)localPlayer.position.z) : worldSpawnpoint;
-
-            if (safeSpawn != null) {
-                localPlayer.position.set(safeSpawn);
+            if (worldSpawnpoint != null) {
+                localPlayer.position.set(worldSpawnpoint);
                 localPlayer.velocity.set(0);
             } else {
                 localPlayer.position.y = -49.0f;
@@ -326,12 +322,8 @@ public class World {
     }
 
     public void calcWorldspawnAndTeleportPlayer(LocalPlayer player) {
-        if (worldSpawnpoint == null) {
-            Vector3f spawn = findSafeSpawn(0, 0);
-            if (spawn != null) {
-                worldSpawnpoint = spawn;
-                player.position.set(worldSpawnpoint);
-            }
+        if (worldSpawnpoint != null) {
+            player.position.set(worldSpawnpoint);
         }
     }
 
