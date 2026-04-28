@@ -19,8 +19,6 @@ public abstract class Entity {
     protected boolean isDead = false;
     protected boolean onGround = false;
     protected float gravity = -28.0f;
-
-    // Wie hoch der Spieler automatisch steigen kann (0.6 reicht locker für 0.5f Slabs)
     protected float stepHeight = 0.6f;
 
     public Entity(Vector3f spawnPosition) {
@@ -31,27 +29,39 @@ public abstract class Entity {
     public abstract void update(float deltaTime, ChunkManager chunkManager);
 
     protected void moveAndCollide(ChunkManager chunkManager, float deltaTime, boolean avoidFall) {
+        float dx = velocity.x * deltaTime;
+        float dy = velocity.y * deltaTime;
+        float dz = velocity.z * deltaTime;
+
+        AABB currentBB = getAABB();
+        AABB searchBounds = new AABB(
+                new Vector3f(Math.min(currentBB.min.x, currentBB.min.x + dx),
+                        Math.min(currentBB.min.y, currentBB.min.y + dy) - stepHeight,
+                        Math.min(currentBB.min.z, currentBB.min.z + dz)),
+                new Vector3f(Math.max(currentBB.max.x, currentBB.max.x + dx),
+                        Math.max(currentBB.max.y, currentBB.max.y + dy) + stepHeight,
+                        Math.max(currentBB.max.z, currentBB.max.z + dz))
+        );
+
+        List<AABB> nearbyBoxes = getNearbyBoxes(chunkManager, searchBounds);
+
         // --- X-ACHSE BEWEGUNG ---
         float originalX = position.x;
-        position.x += velocity.x * deltaTime;
-
-        if (isColliding(chunkManager)) {
+        position.x += dx;
+        if (isCollidingWithList(getAABB(), nearbyBoxes)) {
             if (onGround) {
                 float originalY = position.y;
-                position.y += stepHeight; // Springe virtuell ganz nach oben
-
-                if (isColliding(chunkManager)) {
-                    // Hat nicht geklappt, Decke ist im Weg
+                position.y += stepHeight;
+                if (isCollidingWithList(getAABB(), nearbyBoxes)) {
                     position.y = originalY;
                     position.x = originalX;
                     velocity.x = 0;
                 } else {
-                    // FIX: Wir sind über der Stufe. Jetzt "snappen" wir exakt auf die Kante runter!
                     float step = stepHeight;
                     for (int i = 0; i < 10; i++) {
                         step /= 2;
                         position.y -= step;
-                        if (isColliding(chunkManager)) position.y += step; // Zu weit runter? Wieder hoch!
+                        if (isCollidingWithList(getAABB(), nearbyBoxes)) position.y += step;
                     }
                 }
             } else {
@@ -59,7 +69,11 @@ public abstract class Entity {
                 velocity.x = 0;
             }
         } else if (avoidFall && onGround) {
-            if (!wouldCollideIfMoved(chunkManager, 0, -0.05f, 0)) {
+            AABB fallCheckBB = new AABB(
+                    new Vector3f(position.x - width, position.y - 0.05f, position.z - width),
+                    new Vector3f(position.x + width, position.y + height, position.z + width)
+            );
+            if (!isCollidingWithList(fallCheckBB, nearbyBoxes)) {
                 position.x = originalX;
                 velocity.x = 0;
             }
@@ -67,24 +81,21 @@ public abstract class Entity {
 
         // --- Z-ACHSE BEWEGUNG ---
         float originalZ = position.z;
-        position.z += velocity.z * deltaTime;
-
-        if (isColliding(chunkManager)) {
+        position.z += dz;
+        if (isCollidingWithList(getAABB(), nearbyBoxes)) {
             if (onGround) {
                 float originalY = position.y;
                 position.y += stepHeight;
-
-                if (isColliding(chunkManager)) {
+                if (isCollidingWithList(getAABB(), nearbyBoxes)) {
                     position.y = originalY;
                     position.z = originalZ;
                     velocity.z = 0;
                 } else {
-                    // FIX: Auch hier auf die Kante snappen!
                     float step = stepHeight;
                     for (int i = 0; i < 10; i++) {
                         step /= 2;
                         position.y -= step;
-                        if (isColliding(chunkManager)) position.y += step;
+                        if (isCollidingWithList(getAABB(), nearbyBoxes)) position.y += step;
                     }
                 }
             } else {
@@ -92,7 +103,11 @@ public abstract class Entity {
                 velocity.z = 0;
             }
         } else if (avoidFall && onGround) {
-            if (!wouldCollideIfMoved(chunkManager, 0, -0.05f, 0)) {
+            AABB fallCheckBB = new AABB(
+                    new Vector3f(position.x - width, position.y - 0.05f, position.z - width),
+                    new Vector3f(position.x + width, position.y + height, position.z + width)
+            );
+            if (!isCollidingWithList(fallCheckBB, nearbyBoxes)) {
                 position.z = originalZ;
                 velocity.z = 0;
             }
@@ -101,65 +116,58 @@ public abstract class Entity {
         // --- Y-ACHSE BEWEGUNG (Gravitation) ---
         onGround = false;
         float originalY = position.y;
-        position.y += velocity.y * deltaTime;
-
-        if (isColliding(chunkManager)) {
+        position.y += dy;
+        if (isCollidingWithList(getAABB(), nearbyBoxes)) {
             if (velocity.y < 0) {
-                onGround = true; // Wir sind gelandet
+                onGround = true;
             }
-            // Die wichtigste Änderung für Slabs: Wir snappen exakt auf die Kante, nicht auf volle Blöcke!
-            // Ein einfacher Hack, der extrem gut funktioniert: Langsam herantasten (binary search artig)
             position.y = originalY;
-            float step = velocity.y * deltaTime;
+            float step = dy;
             for (int i = 0; i < 10; i++) {
                 step /= 2;
                 position.y += step;
-                if (isColliding(chunkManager)) position.y -= step;
+                if (isCollidingWithList(getAABB(), nearbyBoxes)) position.y -= step;
             }
             velocity.y = 0;
         }
     }
 
-    protected boolean wouldCollideIfMoved(ChunkManager chunkManager, float dx, float dy, float dz) {
-        AABB testBB = new AABB(
-                new Vector3f(position.x - width + dx, position.y + dy, position.z - width + dz),
-                new Vector3f(position.x + width + dx, position.y + height + dy, position.z + width + dz)
-        );
-        return checkCollisionWithWorld(chunkManager, testBB);
-    }
-
-    protected boolean isColliding(ChunkManager chunkManager) {
-        return checkCollisionWithWorld(chunkManager, getAABB());
-    }
-
-    private boolean checkCollisionWithWorld(ChunkManager chunkManager, AABB bb) {
-        int minX = (int)Math.floor(bb.min.x); int maxX = (int)Math.floor(bb.max.x);
-        int minY = (int)Math.floor(bb.min.y); int maxY = (int)Math.floor(bb.max.y);
-        int minZ = (int)Math.floor(bb.min.z); int maxZ = (int)Math.floor(bb.max.z);
+    private List<AABB> getNearbyBoxes(ChunkManager chunkManager, AABB bounds) {
+        List<AABB> boxes = new java.util.ArrayList<>();
+        int minX = (int)Math.floor(bounds.min.x - 1.0f); int maxX = (int)Math.floor(bounds.max.x + 1.0f);
+        int minY = (int)Math.floor(bounds.min.y - 1.0f); int maxY = (int)Math.floor(bounds.max.y + 1.0f);
+        int minZ = (int)Math.floor(bounds.min.z - 1.0f); int maxZ = (int)Math.floor(bounds.max.z + 1.0f);
 
         for (int x = minX; x <= maxX; x++) {
             for (int y = minY; y <= maxY; y++) {
                 for (int z = minZ; z <= maxZ; z++) {
                     Chunk c = chunkManager.getChunkAtBlock(x, y, z);
-                    if (c == null) return true;
-
+                    if (c == null) {
+                        boxes.add(new AABB(new Vector3f(x, y, z), new Vector3f(x + 1, y + 1, z + 1)));
+                        continue;
+                    }
                     byte blockId = c.getBlock(Math.floorMod(x, Chunk.SIZE), y, Math.floorMod(z, Chunk.SIZE));
                     if (blockId != 0 && !BlockRegistry.get(blockId).isPassable) {
-
-                        // HIER IST DIE MAGIE: Wir prüfen exakt gegen die Treppen/Slab-Hitboxen!
                         BlockState state = c.getBlockState(Math.floorMod(x, Chunk.SIZE), y, Math.floorMod(z, Chunk.SIZE));
-                        List<AABB> boxes = BlockRegistry.get(blockId).getBoundingBoxes(state);
-
-                        for (AABB box : boxes) {
-                            AABB worldBox = new AABB(
-                                    new Vector3f(box.min).add(x, y, z),
-                                    new Vector3f(box.max).add(x, y, z)
-                            );
-                            if (AABB.isColliding(bb, worldBox)) return true;
+                        List<AABB> blockBoxes = BlockRegistry.get(blockId).getBoundingBoxes(state);
+                        if (blockBoxes != null) {
+                            for (AABB box : blockBoxes) {
+                                boxes.add(new AABB(
+                                        new Vector3f(box.min).add(x, y, z),
+                                        new Vector3f(box.max).add(x, y, z)
+                                ));
+                            }
                         }
                     }
                 }
             }
+        }
+        return boxes;
+    }
+
+    private boolean isCollidingWithList(AABB bb, List<AABB> boxes) {
+        for (AABB box : boxes) {
+            if (AABB.isColliding(bb, box)) return true;
         }
         return false;
     }
