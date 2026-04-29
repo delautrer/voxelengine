@@ -22,8 +22,19 @@
 -keep class org.joml.** { *; }
 -keep class com.google.gson.** { *; }
 
-# Zwingt ProGuard dazu, Enums als echte Enums zu behandeln und
-# ihre versteckten Methoden nicht zu löschen!
+
+-keepattributes Signature,InnerClasses,EnclosingMethod
+
+# Schütze das komplette Loot-Paket vor jeglicher Umbenennung
+-keep class de.delautrer.game.loot.** { *; }
+
+# Falls GSON intern Reflection auf Klassen-Member nutzt
+-keepclassmembers class de.delautrer.game.loot.** {
+    <fields>;
+    <methods>;
+}
+-keepclassmembers class de.delautrer.game.loot.LootTable { *; }
+-keepclassmembers class de.delautrer.game.loot.LootTable$* { *; }
 -keepclassmembers enum * {
     public static **[] values();
     public static ** valueOf(java.lang.String);

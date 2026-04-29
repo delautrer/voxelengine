@@ -4,86 +4,51 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import de.delautrer.engine.utils.ResourceUtils;
 import de.delautrer.game.inventory.CraftingInventory;
 import de.delautrer.game.items.Item;
 import de.delautrer.game.items.ItemRegistry;
 import de.delautrer.game.items.ItemStack;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 public class RecipeManager {
     private static final List<IRecipe> RECIPES = new ArrayList<>();
     private static final Gson GSON = new Gson();
-    private static final String RECIPE_PATH = "assets/recipes";
+
+    // WICHTIG: Hier muss ein Slash (/) am Anfang stehen!
+    private static final String RECIPE_PATH = "/assets/recipes";
 
     public static void loadRecipes() {
         RECIPES.clear();
+        // Pfad für ResourceUtils (mit oder ohne Slash, die Utility bügelt das glatt)
+        String path = "/assets/recipes";
 
-        try {
-            // Wir suchen den "Ordner" im Classpath
-            URL url = RecipeManager.class.getResource("/" + RECIPE_PATH);
+        List<String> fileNames = ResourceUtils.listResourceFolder(path);
 
-            if (url == null) {
-                System.err.println("Recipe directory not found: " + RECIPE_PATH);
-                return;
+        for (String fileName : fileNames) {
+            if (fileName.endsWith(".json")) {
+                loadRecipe(fileName);
             }
-
-            if (url.getProtocol().equals("file")) {
-                // --- IDE MODUS (Normales Dateisystem) ---
-                File folder = new File(url.toURI());
-                File[] files = folder.listFiles((dir, name) -> name.endsWith(".json"));
-                if (files != null) {
-                    for (File f : files) {
-                        loadRecipe(f.getName());
-                    }
-                }
-            } else if (url.getProtocol().equals("jar")) {
-                // --- JAR MODUS (Innerhalb der .jar Datei) ---
-                // Der URL-Pfad sieht in einer JAR so aus: jar:file:/Pfad/zu/VoxelEngine.jar!/assets/recipes
-                String jarPath = url.getPath().substring(5, url.getPath().indexOf("!"));
-                jarPath = URLDecoder.decode(jarPath, StandardCharsets.UTF_8.name());
-
-                try (ZipInputStream zip = new ZipInputStream(new FileInputStream(jarPath))) {
-                    ZipEntry entry;
-                    while ((entry = zip.getNextEntry()) != null) {
-                        String name = entry.getName();
-                        // Wir prüfen, ob der Pfad im ZIP mit unserem Rezeptordner beginnt
-                        if (name.startsWith(RECIPE_PATH + "/") && name.endsWith(".json")) {
-                            String fileName = name.substring(RECIPE_PATH.length() + 1);
-                            // Nur Dateien im Hauptordner laden (keine Unterordner)
-                            if (!fileName.contains("/")) {
-                                loadRecipe(fileName);
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Failed to automatically load recipes from " + RECIPE_PATH);
-            e.printStackTrace();
         }
-
         System.out.println("[RecipeManager] Loaded " + RECIPES.size() + " recipes.");
     }
 
     public static void loadRecipe(String filename) {
-        try (InputStream is = RecipeManager.class.getResourceAsStream("/" + RECIPE_PATH + "/" + filename)) {
+        // InputStream holt sich die JSON direkt aus dem RAM/Archiv
+        try (InputStream is = RecipeManager.class.getResourceAsStream(RECIPE_PATH + "/" + filename)) {
             if (is == null) {
-                System.err.println("Recipe file not found: " + filename);
+                System.err.println("[RecipeManager] Recipe file not found: " + filename);
                 return;
             }
+
+            // StandardCharsets.UTF_8 ist extrem wichtig für gepackte Exe-Dateien!
             JsonObject json = GSON.fromJson(new InputStreamReader(is, StandardCharsets.UTF_8), JsonObject.class);
             String type = json.get("type").getAsString();
 
@@ -93,7 +58,7 @@ public class RecipeManager {
                 loadShapeless(json);
             }
         } catch (Exception e) {
-            System.err.println("Failed to load recipe: " + filename);
+            System.err.println("[RecipeManager] Failed to load recipe: " + filename);
             e.printStackTrace();
         }
     }
