@@ -22,9 +22,14 @@ layout(push_constant) uniform PushConstants {
     float offsetZ;
     float isCloud;
     float isUnderwater;
+    float clipY;
 } pc;
 
 void main() {
+    if (fragWorldPos.y < pc.clipY) {
+        discard;
+    }
+
     vec4 textureColor = texture(texSampler, fragTexCoord);
     float alpha = textureColor.a * fragColor.a;
 

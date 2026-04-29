@@ -94,7 +94,7 @@ public class PlayerInteraction {
             }
         }
 
-        if (!camera.isCursorCaptured()) return;
+        //if (!camera.isCursorCaptured()) return;
 
         // 2. Pick Block (Mittlere Maustaste)
         if (input.isActionJustPressed("PICK_BLOCK") && selectedBlockPos != null) {

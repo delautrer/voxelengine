@@ -6,8 +6,8 @@ import java.util.Random;
 
 public class SkyManager {
     // --- Zeit & Licht ---
-    private float timeOfDay = 0.0f;
-    private float timeSpeed = 0.02f;
+    private float timeOfDay = 9f;
+    private float timeSpeed = 0.0189f;
 
     private final Vector3f colorDay = new Vector3f(0.4f, 0.7f, 1.0f);
     private final Vector3f colorSunrise = new Vector3f(1.0f, 0.4f, 0.1f);

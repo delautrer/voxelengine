@@ -28,7 +28,7 @@ public class CloudRenderSystem implements IRenderSystem {
             Matrix4f finalMvp = new Matrix4f(packet.mvp).mul(modelMatrix);
 
             // NEU: 26 Floats
-            FloatBuffer mvpBuffer = stack.mallocFloat(27);
+            FloatBuffer mvpBuffer = stack.mallocFloat(28);
             finalMvp.get(mvpBuffer);
             mvpBuffer.put(16, packet.globalLight);
             mvpBuffer.put(17, packet.renderDistance);
@@ -41,6 +41,7 @@ public class CloudRenderSystem implements IRenderSystem {
             mvpBuffer.put(24, packet.cloudOffset.z);
             mvpBuffer.put(25, 1.0f);
             mvpBuffer.put(26, 0.0f);
+            mvpBuffer.put(27, -999.0f);
 
             VK10.vkCmdPushConstants(cmd, pipeline.getPipelineLayout(), VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, mvpBuffer);
 

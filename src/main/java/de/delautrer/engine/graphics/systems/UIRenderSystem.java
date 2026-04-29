@@ -17,6 +17,8 @@ public class UIRenderSystem implements IRenderSystem {
 
     @Override
     public void render(VkCommandBuffer cmd, RenderPacket packet) {
+        if (packet.hideUI) return;
+
         if (packet.uiCombinedMesh == null || packet.uiCombinedMesh.getIndexCount() == 0 || packet.uiDrawCalls == null || packet.uiDrawCalls.isEmpty()) {
             return;
         }

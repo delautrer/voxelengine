@@ -7,6 +7,9 @@ build/
 *.log
 
 saves/
+screenshots/
+atlas_blocks_debug.png
+atlas_items_debug.png
 
 ### IntelliJ IDEA ###
 .idea/modules.xml

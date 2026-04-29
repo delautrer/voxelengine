@@ -24,6 +24,8 @@ public class VulkanSwapchain {
         createImageViews();
     }
 
+
+
     private void createSwapchain() {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             VkSurfaceCapabilitiesKHR capabilities = VkSurfaceCapabilitiesKHR.calloc(stack);
@@ -166,6 +168,9 @@ public class VulkanSwapchain {
         return extent;
     }
 
+    public long[] getImages() {
+        return images;
+    }
     public long[] getImageViews() {
         return imageViews;
     }

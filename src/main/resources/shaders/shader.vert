@@ -24,6 +24,7 @@ layout(push_constant) uniform PushConstants {
     float offsetZ;
     float isCloud;
     float isUnderwater;
+    float clipY;
 } pc;
 
 void main() {

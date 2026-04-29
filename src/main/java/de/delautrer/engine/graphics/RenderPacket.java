@@ -28,6 +28,9 @@ public class RenderPacket {
     public float starAlpha;
     public float timeOfDay;
 
+    public boolean hideUI = false;
+    public float clipY = -999.0f;
+
     public Vector3f cameraPos;
     public float renderDistance;
 

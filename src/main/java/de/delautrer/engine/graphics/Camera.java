@@ -17,29 +17,8 @@ public class Camera {
     private double lastX = 400.0;
     private double lastY = 300.0;
 
-    private boolean escPressedLastFrame = false;
-    private boolean cursorCaptured = true;
-
     public void update(long windowHandle, float deltaTime, Vector3f playerPos) {
         this.position.set(playerPos);
-
-        /*boolean escPressed = GLFW.glfwGetKey(windowHandle, GLFW.GLFW_KEY_ESCAPE) == GLFW.GLFW_PRESS;
-
-
-        if (escPressed && !escPressedLastFrame) {
-            cursorCaptured = !cursorCaptured;
-            if (cursorCaptured) {
-                GLFW.glfwSetInputMode(windowHandle, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED);
-                firstMouse = true;
-            } else {
-                GLFW.glfwSetInputMode(windowHandle, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL);
-            }
-        }
-        escPressedLastFrame = escPressed;*/
-
-        if (!cursorCaptured) {
-            return;
-        }
 
         // --- Kamera umschauen (Maus) ---
         double[] xpos = new double[1];
@@ -103,9 +82,6 @@ public class Camera {
     }
     public void setPitch(float pitch) {
         this.pitch = pitch;
-    }
-    public boolean isCursorCaptured() {
-        return cursorCaptured;
     }
 
 }

@@ -17,7 +17,7 @@ public class TerrainRenderSystem implements IRenderSystem {
     public void render(VkCommandBuffer cmd, RenderPacket packet) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             // Push Constants für den Shader vorbereiten (26 Floats / 104 Bytes)
-            FloatBuffer pcBuffer = stack.mallocFloat(27);
+            FloatBuffer pcBuffer = stack.mallocFloat(28);
             packet.mvp.get(pcBuffer);
             pcBuffer.put(16, packet.globalLight);
             pcBuffer.put(17, packet.renderDistance);
@@ -32,6 +32,7 @@ public class TerrainRenderSystem implements IRenderSystem {
             pcBuffer.put(24, 0.0f); // offsetZ
             pcBuffer.put(25, 0.0f); // isCloud
             pcBuffer.put(26, packet.isUnderwater ? 1.0f : 0.0f);
+            pcBuffer.put(27, packet.clipY);
 
             // 1. SOLIDE BLÖCKE ZEICHNEN
             if (packet.opaqueMeshes != null && !packet.opaqueMeshes.isEmpty()) {

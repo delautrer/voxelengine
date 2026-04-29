@@ -92,7 +92,7 @@ public class MasterRenderer {
         );
     }
 
-    public boolean drawFrame(Camera camera, World world, PlayerInteraction interaction) {
+    public boolean drawFrame(Camera camera, World world, PlayerInteraction interaction, boolean hideUI, int isoFramesToWait, boolean isTakingIsometric) {
         SkyManager skyManager = world.getSkyManager();
         float aspect = (float) renderer.getWidth() / (float) renderer.getHeight();
         Matrix4f view = camera.getViewMatrix();
@@ -106,7 +106,8 @@ public class MasterRenderer {
         packet.view = view;
         packet.ortho = new Matrix4f().ortho(0.0f, renderer.getWidth(), renderer.getHeight(), 0.0f, -1.0f, 1.0f);
 
-        CullingUtils.buildVisibleLists(world.getChunkManager(), mvp, packet);
+        boolean isIsoFrame = (isTakingIsometric && isoFramesToWait == -1);
+        CullingUtils.buildVisibleLists(world.getChunkManager(), mvp, packet, isIsoFrame, interaction.getPlayer().position);
         lastVisibleChunkCount = packet.opaqueMeshes.size() + packet.waterMeshes.size();
 
         packet.cloudMesh = this.cloudMesh;
@@ -190,9 +191,38 @@ public class MasterRenderer {
         packet.skyG = skyColor.y;
         packet.skyB = skyColor.z;
 
+        packet.hideUI = hideUI; // F1 Schalter weitergeben
+
+        if (isIsoFrame) {
+            packet.hideUI = true;
+
+            // HIER GEÄNDERT: -999.0f rendert die Welt bis GANZ nach unten ins Gestein!
+            packet.clipY = Math.min(54f, interaction.getPlayer().getEyePosition().y - 15.0f );
+
+            packet.renderDistance = 10000.0f;
+            float zoom = 80.0f; // Etwas weiter rauszoomen, da das Diorama jetzt sehr groß und tief ist
+
+            packet.proj = new org.joml.Matrix4f().ortho(-zoom * aspect, zoom * aspect, -zoom, zoom, -2000.0f, 2000.0f);
+            packet.proj.m11(packet.proj.m11() * -1.0f);
+
+            org.joml.Vector3f target = interaction.getPlayer().position;
+
+            // HIER GEÄNDERT: target.y + 60.0f sorgt für einen deutlich angenehmeren, flacheren Winkel!
+            org.joml.Vector3f eye = new org.joml.Vector3f(target.x + 100.0f, target.y + 60.0f, target.z + 100.0f);
+
+            packet.view = new org.joml.Matrix4f().lookAt(eye, target, new org.joml.Vector3f(0, 1, 0));
+            packet.mvp = new org.joml.Matrix4f(packet.proj).mul(packet.view);
+        } else {
+            packet.clipY = -999.0f;
+            packet.renderDistance = Constants.RENDERDISTANCE * 16.0f;
+            packet.proj = proj;
+            packet.view = interaction.getPlayer().getCamera().getViewMatrix();
+            packet.mvp = new org.joml.Matrix4f(packet.proj).mul(packet.view);
+        }
+
+
         boolean success = renderer.render(packet);
 
-        // Nach dem Rendern müssen wir das Mesh aufräumen, da wir es jeden Frame neu bauen
         if (packet.overlayMesh != null) {
             VK10.vkDeviceWaitIdle(vulkanContext.getDevice());
             packet.overlayMesh.cleanup();
@@ -280,5 +310,11 @@ public class MasterRenderer {
 
     public VulkanFont getFont() {
         return font;
+    }
+
+    public void requestScreenshot(String path) {
+        if (this.renderer != null) {
+            this.renderer.requestScreenshot(path);
+        }
     }
 }

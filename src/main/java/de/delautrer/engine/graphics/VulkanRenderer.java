@@ -34,6 +34,7 @@ public class VulkanRenderer {
     private EntityRenderSystem entityRenderSystem;
 
     private int currentFrame = 0;
+    private String pendingScreenshotPath = null;
 
     public VulkanRenderer(VulkanContext context, Window window) {
         this.context = context;
@@ -136,6 +137,18 @@ public class VulkanRenderer {
             }
 
             currentFrame = (currentFrame + 1) % VulkanSync.MAX_FRAMES_IN_FLIGHT;
+
+            // --- SCREENSHOT---
+            if (pendingScreenshotPath != null) {
+
+                VK10.vkQueueWaitIdle(context.getPresentQueue());
+                long currentImage = swapchain.getImages()[imageIndex];
+                de.delautrer.engine.graphics.utils.ScreenshotHelper.saveScreenshot(
+                        context, commandBuffers.getCommandPool(), currentImage, swapchain.getExtent().width(), swapchain.getExtent().height(), pendingScreenshotPath
+                );
+                pendingScreenshotPath = null;
+            }
+
             return true;
         }
     }
@@ -192,6 +205,10 @@ public class VulkanRenderer {
     public void cleanup() {
         cleanupSwapchainOnly();
         renderPass.cleanup();
+    }
+
+    public void requestScreenshot(String path) {
+        this.pendingScreenshotPath = path;
     }
 
     public long getGraphicsLayout() { return terrainSystem.getDescriptorSetLayout(); }

@@ -14,6 +14,7 @@ import de.delautrer.game.ui.ChatOverlay;
 import de.delautrer.game.ui.DebugOverlay;
 import de.delautrer.game.ui.gui.screens.*;
 import de.delautrer.game.world.*;
+import de.delautrer.game.world.sky.Weather;
 import org.joml.Vector3f;
 
 public class PlayScene extends Scene {
@@ -48,7 +49,12 @@ public class PlayScene extends Scene {
     private float autosaveTimer = 0;
     private final float AUTOSAVE_INTERVAL = 300.0f;
 
-    // Gespeicherte Listener-Variablen fürs Cleanup
+    private boolean hideUI = false;
+    private float screenshotCooldown = 0.0f;
+
+    private boolean isTakingIsometric = false;
+    private int isoFramesToWait = 0;
+
     private EventListener<InventoryToggleEvent> inventoryToggleListener;
     private EventListener<HotbarSlotChangeEvent> hotbarSlotChangeListener;
     private EventListener<DebugToggleEvent> debugToggleListener;
@@ -108,11 +114,14 @@ public class PlayScene extends Scene {
         } else {
             cloudLayer = 0.0f;
         }
+        MeshData cloudData = world.getSkyManager().getCloudSystem().generateCloudMesh(world.getSeed(), cloudLayer, world.getSkyManager().getCurrentWeather());
+        masterRenderer.initClouds(cloudData);
         world.getSkyManager().setWeatherCallback(() -> {
             MeshData newCloudData = world.getSkyManager().getCloudSystem().generateCloudMesh(world.getSeed(), cloudLayer, world.getSkyManager().getCurrentWeather());
             masterRenderer.initClouds(newCloudData);
         });
         world.getSkyManager().forceWeather(world.getSkyManager().getCurrentWeather());
+
         masterRenderer.initStars(world.getSkyManager().getStarSystem().generateStarMesh());
         masterRenderer.initCelestial(world.getSkyManager().getCelestialSystem().generateCelestialMesh());
 
@@ -300,6 +309,57 @@ public class PlayScene extends Scene {
         }
 
         // --- 4. NORMALES SPIEL ---
+        // Cooldown ticken lassen
+        if (screenshotCooldown > 0) screenshotCooldown -= deltaTime;
+
+        // F1 - UI Toggle
+        if (engine.getInputManager().isActionJustPressed("TOGGLE_UI")) { // Stell sicher, dass du F1 als "TOGGLE_UI" bindest!
+            hideUI = !hideUI;
+            uiNeedsRebuild = true;
+        }
+
+        // F2 - Screenshots (Standard & Isometrisch)
+        if (engine.getInputManager().isActionJustPressed("SCREENSHOT") && screenshotCooldown <= 0) { // F2 binden!
+            String date = new java.text.SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new java.util.Date());
+
+            if (engine.getInputManager().isActionActive("MOD_ALT")) { // Alt gedrückt?
+                // Isometrisch Starten!
+                isTakingIsometric = true;
+                isoFramesToWait = 2; // Wir warten 2 Frames, damit der LoadingScreen aufpoppt!
+                //pauseGame(); // Spiel anhalten
+                uiNeedsRebuild = true;
+            } else {
+                // Normaler Screenshot
+                String path = "screenshots/" + date + ".png";
+                masterRenderer.requestScreenshot(path);
+                screenshotCooldown = 2.0f;
+                chatOverlay.getMessages().add(new ChatOverlay.ChatMessage("Saved screenshot: " + path));
+            }
+        }
+
+        // Isometrische Screenshot Warteschleife
+        if (isTakingIsometric) {
+            if (isoFramesToWait > 0) {
+                isoFramesToWait--; // Warten, bis das UI/Ladebildschirm bereit ist...
+            } else if (isoFramesToWait == 0) {
+                // JETZT den Screenshot an Vulkan in Auftrag geben
+                String date = new java.text.SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new java.util.Date());
+                String path = "screenshots/" + date + "_isometric.png";
+
+                masterRenderer.requestScreenshot(path);
+                screenshotCooldown = 2.0f;
+                chatOverlay.getMessages().add(new ChatOverlay.ChatMessage("Saved Isometric screenshot: " + path));
+
+                // HIER IST DER FIX: Wir setzen es auf -1!
+                // Dadurch weiß der Render-Loop, der gleich aufgerufen wird, dass er isometrisch rendern muss.
+                isoFramesToWait = -1;
+            } else if (isoFramesToWait == -1) {
+                // Ein Frame NACHDEM der Screenshot gezeichnet wurde, räumen wir auf
+                isTakingIsometric = false;
+                //resumeGame();
+            }
+        }
+
         if (!isChatOpen && engine.getInputManager().isActionJustPressed("DEBUG_MENU")) {
             debugOverlay.toggle();
             eventBus.publish(new DebugToggleEvent(debugOverlay.isVisible()));
@@ -362,7 +422,7 @@ public class PlayScene extends Scene {
             uiNeedsRebuild = false;
         }
 
-        if (!masterRenderer.drawFrame(localPlayer.getCamera(), world, localPlayer.getInteraction())) {
+        if (!masterRenderer.drawFrame(localPlayer.getCamera(), world, localPlayer.getInteraction(), hideUI, isoFramesToWait, isTakingIsometric)) {
             uiNeedsRebuild = true;
         }
     }

@@ -63,6 +63,8 @@ public class World {
         } else {
             this.seed = defaultSeed;
             this.worldSpawnpoint = WorldInitializer.findSpawnPoint(this.seed);
+            skyManager.setCurrentWeather(Weather.PARTLY_CLOUDY);
+            skyManager.forceWeather(skyManager.getCurrentWeather());
             saveWorldData();
         }
 

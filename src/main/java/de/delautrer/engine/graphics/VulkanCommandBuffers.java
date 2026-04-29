@@ -139,8 +139,8 @@ public class VulkanCommandBuffers {
         }
     }
 
+    public long getCommandPool() { return commandPool; }
     public VkCommandBuffer[] getCommandBuffers() { return commandBuffers; }
-
     public void cleanup() {
         VK10.vkDestroyCommandPool(context.getDevice(), commandPool, null);
     }
