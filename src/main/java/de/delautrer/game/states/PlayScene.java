@@ -109,6 +109,13 @@ public class PlayScene extends Scene {
         MeshData cloudData = world.getCloudSystem().generateCloudMesh(world.getSeed(), cloudLayer);
         masterRenderer.initClouds(cloudData);
 
+        StarSystem starSystem = new StarSystem();
+        MeshData starData = starSystem.generateStarMesh();
+        masterRenderer.initStars(starData);
+
+        CelestialSystem celestialSystem = new CelestialSystem();
+        masterRenderer.initCelestial(celestialSystem.generateCelestialMesh());
+
         setupDebugOverlay();
         setupEvents();
 
@@ -171,10 +178,9 @@ public class PlayScene extends Scene {
 
         debugOverlay.addLine("Time", () -> {
             float time = world.getEnvironment().getTimeOfDay();
-            float displayTime = (time + 12.0f) % 24.0f;
-            if (displayTime < 0) displayTime += 24.0f;
-            int hours = (int) displayTime;
-            int minutes = (int) ((displayTime - hours) * 60);
+
+            int hours = (int) time;
+            int minutes = (int) ((time - hours) * 60);
             return String.format("%02d:%02d", hours, minutes);
         });
     }

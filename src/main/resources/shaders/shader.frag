@@ -69,10 +69,12 @@ void main() {
         float fogFactor = clamp((distXZ - fogStart) / (fogEnd - fogStart), 0.0, 1.0);
         fogFactor *= pc.fogMultiplier;
 
-        vec3 skyDayColorFog = vec3(0.5, 0.7, 1.0);
-        vec3 skyNightColorFog = vec3(0.02, 0.02, 0.05);
-        vec3 fogColor = mix(skyNightColorFog, skyDayColorFog, pc.globalLight);
+        vec3 skyDayColorFog = vec3(0.4, 0.7, 1.0) * 1.5;
+        vec3 skyNightColorFog = vec3(0.01, 0.01, 0.02) * 1.5;
 
+        float timeBlend = clamp((pc.globalLight - 0.05) / 0.95, 0.0, 1.0);
+
+        vec3 fogColor = mix(skyNightColorFog, skyDayColorFog, timeBlend);
         finalColor = mix(finalColor, fogColor, fogFactor);
     }
 

@@ -25,6 +25,8 @@ public class VulkanRenderer {
     // Das neue Herzstück: Unsere Sub-Renderer Liste
     private final List<IRenderSystem> renderSystems = new ArrayList<>();
     private SkyRenderSystem skyRenderSystem;
+    private StarRenderSystem starRenderSystem;
+    private CelestialRenderSystem celestialRenderSystem;
     private TerrainRenderSystem terrainSystem;
     private CloudRenderSystem cloudSystem;
     private HighlightRenderSystem highlightSystem;
@@ -43,15 +45,18 @@ public class VulkanRenderer {
         this.commandBuffers = new VulkanCommandBuffers(context, framebuffers);
         this.sync = new VulkanSync(context, swapchain);
 
-        // Render Systeme registrieren! Die Reihenfolge (Terrain -> Highlight -> UI) bestimmt den Depth-Test/Overlap
         skyRenderSystem = new SkyRenderSystem(context, swapchain, renderPass);
+        starRenderSystem = new StarRenderSystem(context, swapchain, renderPass);
         terrainSystem = new TerrainRenderSystem(context, swapchain, renderPass);
         cloudSystem = new CloudRenderSystem(context, swapchain, renderPass);
+        celestialRenderSystem = new CelestialRenderSystem(context, swapchain, renderPass);
         highlightSystem = new HighlightRenderSystem(context, swapchain, renderPass);
         uiSystem = new UIRenderSystem(context, swapchain, renderPass);
         entityRenderSystem = new EntityRenderSystem(context, swapchain, renderPass);
 
         renderSystems.add(skyRenderSystem);
+        renderSystems.add(starRenderSystem);
+        renderSystems.add(celestialRenderSystem);
         renderSystems.add(terrainSystem);
         renderSystems.add(entityRenderSystem);
         renderSystems.add(cloudSystem);
@@ -155,13 +160,17 @@ public class VulkanRenderer {
         renderSystems.clear();
 
         skyRenderSystem = new SkyRenderSystem(context, swapchain, renderPass);
+        starRenderSystem = new StarRenderSystem(context, swapchain, renderPass);
         terrainSystem = new TerrainRenderSystem(context, swapchain, renderPass);
+        celestialRenderSystem = new CelestialRenderSystem(context, swapchain, renderPass);
         cloudSystem = new CloudRenderSystem(context, swapchain, renderPass);
         highlightSystem = new HighlightRenderSystem(context, swapchain, renderPass);
         uiSystem = new UIRenderSystem(context, swapchain, renderPass);
         entityRenderSystem = new EntityRenderSystem(context, swapchain, renderPass);
 
         renderSystems.add(skyRenderSystem);
+        renderSystems.add(starRenderSystem);
+        renderSystems.add(celestialRenderSystem);
         renderSystems.add(terrainSystem);
         renderSystems.add(entityRenderSystem);
         renderSystems.add(cloudSystem);

@@ -23,6 +23,10 @@ public class RenderPacket {
     public VulkanMesh cloudMesh;
     public Vector3f cloudOffset;
     public Vector3f sunDirection;
+    public VulkanMesh celestialMesh;
+    public VulkanMesh starMesh;
+    public float starAlpha;
+    public float timeOfDay;
 
     public Vector3f cameraPos;
     public float renderDistance;

@@ -35,7 +35,9 @@ public class MasterRenderer {
     private VulkanTexture fontTexture;
     private VulkanTexture blockUITexture;
     private VulkanMesh highlightMesh;
+    private VulkanMesh starMesh;
     private VulkanMesh cloudMesh;
+    private VulkanMesh celestialMesh;
     private VulkanMesh dynamicHighlightMesh;
     private VulkanFont font;
 
@@ -72,6 +74,15 @@ public class MasterRenderer {
     public void initClouds(MeshData data) {
         this.cloudMesh = new VulkanMesh(vulkanContext, data.vertices, data.indices);
     }
+    public void initStars(MeshData starData) {
+        if (this.starMesh != null) this.starMesh.cleanup();
+        this.starMesh = new VulkanMesh(vulkanContext, starData);
+    }
+
+    public void initCelestial(MeshData data) {
+        if (this.celestialMesh != null) this.celestialMesh.cleanup();
+        this.celestialMesh = new VulkanMesh(vulkanContext, data);
+    }
 
     public void rebuildUI(PlayerInteraction interaction, InputManager input, DebugOverlay debugOverlay, MenuScreen pauseScreen, ChatOverlay chatOverlay) {
         uiRenderer.rebuildMesh(
@@ -102,6 +113,10 @@ public class MasterRenderer {
                 camera.getPosition().x,
                 camera.getPosition().z
         );
+        packet.starMesh = this.starMesh;
+        packet.starAlpha = environment.getStarAlpha();
+        packet.timeOfDay = environment.getTimeOfDay();
+        packet.celestialMesh = this.celestialMesh;
         // ---------------------------
 
         packet.isUnderwater = interaction.getPlayer().isHeadInWater();
@@ -248,6 +263,8 @@ public class MasterRenderer {
     public int getLastVisibleChunkCount() { return lastVisibleChunkCount; }
 
     public void cleanup() {
+        if (celestialMesh != null) celestialMesh.cleanup();
+        if (starMesh != null) starMesh.cleanup();
         if (cloudMesh != null) cloudMesh.cleanup();
         if (worldTexture != null) worldTexture.cleanup();
         if (blockUITexture != null) blockUITexture.cleanup();
