@@ -7,4 +7,5 @@ public class WorldData {
     public long seed;
     public float timeOfDay;
     public Vector3f worldSpawnpoint;
+    public String weather;
 }

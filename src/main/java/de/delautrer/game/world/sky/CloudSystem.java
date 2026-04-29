@@ -1,6 +1,8 @@
-package de.delautrer.game.world;
+package de.delautrer.game.world.sky;
 
 import de.delautrer.engine.graphics.MeshData;
+import de.delautrer.game.world.NoiseGenerator;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,19 +20,18 @@ public class CloudSystem {
         offsetX -= SPEED * deltaTime;
     }
 
-    // --- NEU: Wir übergeben jetzt den texLayer als float! ---
-    public MeshData generateCloudMesh(long seed, float texLayer) {
+    public MeshData generateCloudMesh(long seed, float texLayer, Weather weather) {
         NoiseGenerator noise = new NoiseGenerator(seed * 777L);
         List<Float> verticesList = new ArrayList<>();
         List<Integer> indicesList = new ArrayList<>();
 
         int[][] cloudMap = new int[MAP_SIZE][MAP_SIZE];
-
         for (int x = 0; x < MAP_SIZE; x++) {
             for (int z = 0; z < MAP_SIZE; z++) {
                 float n = noise.getFractalNoise2D(x * 0.05f, z * 0.05f, 3, 0.5f, 2.0f);
                 int h = 0;
-                if (n > 0.15f) {
+                // --- HIER GEÄNDERT: Wir nutzen den Schwellenwert aus dem Wetter ---
+                if (n > weather.cloudThreshold) {
                     h = 1;
                 }
                 cloudMap[x][z] = h;

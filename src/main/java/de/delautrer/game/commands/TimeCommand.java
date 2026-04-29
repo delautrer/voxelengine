@@ -25,18 +25,18 @@ public class TimeCommand implements ICommand {
         }
 
         if (args[0].equalsIgnoreCase("query")) {
-            manager.sendMessageInChat("Current time: " + world.getEnvironment().getTimeOfDay());
+            manager.sendMessageInChat("Current time: " + world.getSkyManager().getTimeOfDay());
         } else if (args[0].equalsIgnoreCase("set") && args.length > 1) {
             if (args[1].equalsIgnoreCase("day")) {
-                world.getEnvironment().setTimeOfDay(0.0f); // Minecraft 0 Ticks = Sonnenaufgang/Morgen
+                world.getSkyManager().setTimeOfDay(8f); // Minecraft 0 Ticks = Sonnenaufgang/Morgen
                 manager.sendMessageInChat("Time set day");
             } else if (args[1].equalsIgnoreCase("night")) {
-                world.getEnvironment().setTimeOfDay(18.0f); // Minecraft 13000 Ticks
+                world.getSkyManager().setTimeOfDay(22f); // Minecraft 13000 Ticks
                 manager.sendMessageInChat("Time set night");
             } else {
                 try {
                     float t = Float.parseFloat(args[1]);
-                    world.getEnvironment().setTimeOfDay(t % 24.0f);
+                    world.getSkyManager().setTimeOfDay(t % 24.0f);
                     manager.sendMessageInChat("Time was set to " + t + ".");
                 } catch (NumberFormatException e) {
                     manager.sendMessageInChat("The fuck is this input bro.");

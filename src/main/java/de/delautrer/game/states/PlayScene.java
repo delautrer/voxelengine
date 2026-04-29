@@ -102,19 +102,19 @@ public class PlayScene extends Scene {
         worldEventHandler = new WorldEventHandler(world, engine.getVulkanContext(), eventBus);
         localPlayer.initInteraction(world, engine.getVulkanContext(), eventBus);
 
-        float cloudLayer = 0.0f;
+        float cloudLayer;
         if(engine.getBlockAtlas().regions.containsKey("just_white")) {
             cloudLayer = engine.getBlockAtlas().regions.get("just_white").layer;
+        } else {
+            cloudLayer = 0.0f;
         }
-        MeshData cloudData = world.getCloudSystem().generateCloudMesh(world.getSeed(), cloudLayer);
-        masterRenderer.initClouds(cloudData);
-
-        StarSystem starSystem = new StarSystem();
-        MeshData starData = starSystem.generateStarMesh();
-        masterRenderer.initStars(starData);
-
-        CelestialSystem celestialSystem = new CelestialSystem();
-        masterRenderer.initCelestial(celestialSystem.generateCelestialMesh());
+        world.getSkyManager().setWeatherCallback(() -> {
+            MeshData newCloudData = world.getSkyManager().getCloudSystem().generateCloudMesh(world.getSeed(), cloudLayer, world.getSkyManager().getCurrentWeather());
+            masterRenderer.initClouds(newCloudData);
+        });
+        world.getSkyManager().forceWeather(world.getSkyManager().getCurrentWeather());
+        masterRenderer.initStars(world.getSkyManager().getStarSystem().generateStarMesh());
+        masterRenderer.initCelestial(world.getSkyManager().getCelestialSystem().generateCelestialMesh());
 
         setupDebugOverlay();
         setupEvents();
@@ -177,7 +177,7 @@ public class PlayScene extends Scene {
         });
 
         debugOverlay.addLine("Time", () -> {
-            float time = world.getEnvironment().getTimeOfDay();
+            float time = world.getSkyManager().getTimeOfDay();
 
             int hours = (int) time;
             int minutes = (int) ((time - hours) * 60);
@@ -305,7 +305,7 @@ public class PlayScene extends Scene {
             eventBus.publish(new DebugToggleEvent(debugOverlay.isVisible()));
         }
 
-        world.getEnvironment().update(deltaTime);
+        world.getSkyManager().update(deltaTime);
         world.update(deltaTime, localPlayer);
         if (chatOverlay.update(deltaTime)) {
             uiNeedsRebuild = true;
@@ -362,7 +362,7 @@ public class PlayScene extends Scene {
             uiNeedsRebuild = false;
         }
 
-        if (!masterRenderer.drawFrame(localPlayer.getCamera(), world, world.getEnvironment(), localPlayer.getInteraction())) {
+        if (!masterRenderer.drawFrame(localPlayer.getCamera(), world, localPlayer.getInteraction())) {
             uiNeedsRebuild = true;
         }
     }

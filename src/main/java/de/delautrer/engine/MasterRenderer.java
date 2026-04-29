@@ -15,7 +15,7 @@ import de.delautrer.game.ui.DebugOverlay;
 import de.delautrer.game.ui.UIRenderer;
 import de.delautrer.game.ui.gui.screens.MenuScreen;
 import de.delautrer.game.world.Chunk;
-import de.delautrer.game.world.Environment;
+import de.delautrer.game.world.sky.SkyManager;
 import de.delautrer.game.world.World;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -92,7 +92,8 @@ public class MasterRenderer {
         );
     }
 
-    public boolean drawFrame(Camera camera, World world, Environment environment, PlayerInteraction interaction) {
+    public boolean drawFrame(Camera camera, World world, PlayerInteraction interaction) {
+        SkyManager skyManager = world.getSkyManager();
         float aspect = (float) renderer.getWidth() / (float) renderer.getHeight();
         Matrix4f view = camera.getViewMatrix();
         Matrix4f proj = new Matrix4f().perspective((float) Math.toRadians(45.0f), aspect, 0.01f, 1000.0f);
@@ -114,8 +115,8 @@ public class MasterRenderer {
                 camera.getPosition().z
         );
         packet.starMesh = this.starMesh;
-        packet.starAlpha = environment.getStarAlpha();
-        packet.timeOfDay = environment.getTimeOfDay();
+        packet.starAlpha = skyManager.getStarAlpha();
+        packet.timeOfDay = skyManager.getTimeOfDay();
         packet.celestialMesh = this.celestialMesh;
         // ---------------------------
 
@@ -123,8 +124,8 @@ public class MasterRenderer {
         packet.cameraPos = camera.getPosition();
         packet.renderDistance = Constants.RENDERDISTANCE * 16.0f;
 
-        Vector3f skyColor = environment.getCurrentSkyColor();
-        float intensity = environment.getGlobalLightIntensity();
+        Vector3f skyColor = skyManager.getCurrentSkyColor();
+        float intensity = skyManager.getGlobalLightIntensity();
         if(packet.isUnderwater)
             renderer.setClearColor(0.02f*intensity, 0.1f*intensity, 0.3f*intensity);
         else
@@ -183,8 +184,8 @@ public class MasterRenderer {
 
         packet.entities = world.getEntities();
 
-        packet.sunDirection = environment.getSunDirection();
-        packet.globalLight = environment.getGlobalLightIntensity();
+        packet.sunDirection = skyManager.getSunDirection();
+        packet.globalLight = skyManager.getGlobalLightIntensity();
         packet.skyR = skyColor.x;
         packet.skyG = skyColor.y;
         packet.skyB = skyColor.z;

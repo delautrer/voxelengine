@@ -1,4 +1,4 @@
-package de.delautrer.game.world;
+package de.delautrer.game.world.sky;
 
 import de.delautrer.engine.graphics.MeshData;
 

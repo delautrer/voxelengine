@@ -163,18 +163,36 @@ public class Chunk {
     public int getSkyLightAt(int x, int y, int z, ChunkManager cm) {
         if (y >= HEIGHT) return 15;
         if (y < 0) return 0;
+
         if (x >= 0 && x < SIZE && z >= 0 && z < SIZE) return getSkyLight(x, y, z);
-        if (cm == null) return 0;
-        Chunk neighbor = cm.getChunkAtBlock(worldX * SIZE + x, y, worldZ * SIZE + z);
-        return neighbor != null ? neighbor.getSkyLight(Math.floorMod(worldX * SIZE + x, SIZE), y, Math.floorMod(worldZ * SIZE + z, SIZE)) : 0;
+
+        if (cm != null) {
+            Chunk neighbor = cm.getChunkAtBlock(worldX * SIZE + x, y, worldZ * SIZE + z);
+            if (neighbor != null) {
+                return neighbor.getSkyLight(Math.floorMod(worldX * SIZE + x, SIZE), y, Math.floorMod(worldZ * SIZE + z, SIZE));
+            }
+        }
+
+        int clampX = Math.max(0, Math.min(SIZE - 1, x));
+        int clampZ = Math.max(0, Math.min(SIZE - 1, z));
+        return getSkyLight(clampX, y, clampZ);
     }
 
     public int getBlockLightAt(int x, int y, int z, ChunkManager cm) {
         if (y < 0 || y >= HEIGHT) return 0;
+
         if (x >= 0 && x < SIZE && z >= 0 && z < SIZE) return getBlockLight(x, y, z);
-        if (cm == null) return 0;
-        Chunk neighbor = cm.getChunkAtBlock(worldX * SIZE + x, y, worldZ * SIZE + z);
-        return neighbor != null ? neighbor.getBlockLight(Math.floorMod(worldX * SIZE + x, SIZE), y, Math.floorMod(worldZ * SIZE + z, SIZE)) : 0;
+
+        if (cm != null) {
+            Chunk neighbor = cm.getChunkAtBlock(worldX * SIZE + x, y, worldZ * SIZE + z);
+            if (neighbor != null) {
+                return neighbor.getBlockLight(Math.floorMod(worldX * SIZE + x, SIZE), y, Math.floorMod(worldZ * SIZE + z, SIZE));
+            }
+        }
+
+        int clampX = Math.max(0, Math.min(SIZE - 1, x));
+        int clampZ = Math.max(0, Math.min(SIZE - 1, z));
+        return getBlockLight(clampX, y, clampZ);
     }
     public float getSmoothSkyLight(int x, int y, int z, int dx1, int dy1, int dz1, int dx2, int dy2, int dz2, ChunkManager cm) {
         float center = lightToBrightness(getSkyLightAt(x, y, z, cm));

@@ -34,17 +34,19 @@ void main() {
 
     if (pc.isCloud > 0.5) {
         vec3 cloudColor = textureColor.rgb * fragColor.rgb;
+
+        float timeBlend = clamp((pc.globalLight - 0.05) / 0.95, 0.0, 1.0);
+
         vec3 dayColor = vec3(1.0, 1.0, 1.0);
-        vec3 nightColor = vec3(0.15, 0.20, 0.35);
-        vec3 timeColor = mix(nightColor, dayColor, pc.globalLight);
+        vec3 nightColor = vec3(0.01, 0.01, 0.02);
+
+        vec3 timeColor = mix(nightColor, dayColor, timeBlend);
         finalColor = cloudColor * timeColor;
 
         float fadeEnd = pc.renderDistance * 4.0;
         float fadeStart = fadeEnd * 0.5;
-
         float fadeFactor = clamp((fragFogDist - fadeStart) / (fadeEnd - fadeStart), 0.0, 1.0);
         alpha *= (1.0 - fadeFactor);
-
     } else {
         float skyCurve = pow(fragLight.x, 1.8) * pc.globalLight;
         float blockCurve = pow(fragLight.y, 1.5);

@@ -13,6 +13,9 @@ import de.delautrer.game.events.BlockChangeEvent;
 import de.delautrer.game.events.BlockNeighborUpdateEvent;
 import de.delautrer.game.world.persistence.PlayerData;
 import de.delautrer.game.world.persistence.WorldData;
+import de.delautrer.game.world.sky.CloudSystem;
+import de.delautrer.game.world.sky.SkyManager;
+import de.delautrer.game.world.sky.Weather;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 
@@ -20,7 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public class World {
     private final EventBus eventBus;
@@ -28,7 +30,7 @@ public class World {
     private final TickScheduler tickScheduler;
     private final CloudSystem cloudSystem;
     private final WorldStorageManager storageManager;
-    private final Environment environment;
+    private final SkyManager skyManager;
 
     private Vector3f worldSpawnpoint;
     private final long seed;
@@ -46,13 +48,18 @@ public class World {
         this.worldName = worldName;
         this.worldSave = worldSave;
         this.storageManager = new WorldStorageManager(worldSave);
-        this.environment = new Environment();
+        this.skyManager = new SkyManager();
 
         WorldData wData = storageManager.loadLevelMetadata();
         if (wData != null) {
             this.seed = wData.seed;
-            this.environment.setTimeOfDay(wData.timeOfDay);
+            this.skyManager.setTimeOfDay(wData.timeOfDay);
             this.worldSpawnpoint = wData.worldSpawnpoint;
+            try {
+                skyManager.setCurrentWeather(Weather.valueOf(wData.weather));
+            } catch (Exception e) {
+                skyManager.setCurrentWeather(Weather.PARTLY_CLOUDY);
+            }
         } else {
             this.seed = defaultSeed;
             this.worldSpawnpoint = WorldInitializer.findSpawnPoint(this.seed);
@@ -282,8 +289,9 @@ public class World {
         WorldData wData = new WorldData();
         wData.worldName = worldName;
         wData.seed = this.seed;
-        wData.timeOfDay = environment.getTimeOfDay();
+        wData.timeOfDay = skyManager.getTimeOfDay();
         wData.worldSpawnpoint = worldSpawnpoint;
+        wData.weather = skyManager.getCurrentWeather().name();
         storageManager.saveLevelMetadata(wData);
     }
 
@@ -359,7 +367,8 @@ public class World {
     public TickScheduler getTickScheduler() { return tickScheduler; }
     public ChunkManager getChunkManager() { return chunkManager; }
     public WorldStorageManager getStorageManager() { return storageManager; }
-    public Environment getEnvironment() { return environment; }
+    public SkyManager getEnvironment() { return skyManager; }
+    public SkyManager getSkyManager() { return skyManager; }
     public Vector3f getWorldSpawnpoint() {
         return worldSpawnpoint;
     }
