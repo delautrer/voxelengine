@@ -312,7 +312,7 @@ public class Chunk {
 
         MeshBuffers buf = MESH_BUFFER.get();
         boolean isWater = (block == BlockRegistry.WATER);
-        float ox = worldX * SIZE, oz = worldZ * SIZE;
+        //float ox = worldX * SIZE, oz = worldZ * SIZE;
 
         // Kapazitäten prüfen
         if (isWater) buf.ensureWater(48, 6);
@@ -335,25 +335,25 @@ public class Chunk {
         float c3 = ao3 * directionalLight;
 
         // Vertex 0
-        targetVertices[vIdx++] = x0 + ox; targetVertices[vIdx++] = y0; targetVertices[vIdx++] = z0 + oz;
+        targetVertices[vIdx++] = x0; targetVertices[vIdx++] = y0; targetVertices[vIdx++] = z0;
         targetVertices[vIdx++] = c0 * r;  targetVertices[vIdx++] = c0 * g; targetVertices[vIdx++] = c0 * b; targetVertices[vIdx++] = alpha;
         targetVertices[vIdx++] = u0;      targetVertices[vIdx++] = v1; targetVertices[vIdx++] = texLayer;
         targetVertices[vIdx++] = sl0;     targetVertices[vIdx++] = bl0;
 
         // Vertex 1
-        targetVertices[vIdx++] = x1 + ox; targetVertices[vIdx++] = y1; targetVertices[vIdx++] = z1 + oz;
+        targetVertices[vIdx++] = x1; targetVertices[vIdx++] = y1; targetVertices[vIdx++] = z1;
         targetVertices[vIdx++] = c1 * r;  targetVertices[vIdx++] = c1 * g; targetVertices[vIdx++] = c1 * b; targetVertices[vIdx++] = alpha;
         targetVertices[vIdx++] = u1;      targetVertices[vIdx++] = v1; targetVertices[vIdx++] = texLayer;
         targetVertices[vIdx++] = sl1;     targetVertices[vIdx++] = bl1;
 
         // Vertex 2
-        targetVertices[vIdx++] = x2 + ox; targetVertices[vIdx++] = y2; targetVertices[vIdx++] = z2 + oz;
+        targetVertices[vIdx++] = x2; targetVertices[vIdx++] = y2; targetVertices[vIdx++] = z2;
         targetVertices[vIdx++] = c2 * r;  targetVertices[vIdx++] = c2 * g; targetVertices[vIdx++] = c2 * b; targetVertices[vIdx++] = alpha;
         targetVertices[vIdx++] = u1;      targetVertices[vIdx++] = v0; targetVertices[vIdx++] = texLayer;
         targetVertices[vIdx++] = sl2;     targetVertices[vIdx++] = bl2;
 
         // Vertex 3
-        targetVertices[vIdx++] = x3 + ox; targetVertices[vIdx++] = y3; targetVertices[vIdx++] = z3 + oz;
+        targetVertices[vIdx++] = x3; targetVertices[vIdx++] = y3; targetVertices[vIdx++] = z3;
         targetVertices[vIdx++] = c3 * r;  targetVertices[vIdx++] = c3 * g; targetVertices[vIdx++] = c3 * b; targetVertices[vIdx++] = alpha;
         targetVertices[vIdx++] = u0;      targetVertices[vIdx++] = v0; targetVertices[vIdx++] = texLayer;
         targetVertices[vIdx++] = sl3;     targetVertices[vIdx++] = bl3;

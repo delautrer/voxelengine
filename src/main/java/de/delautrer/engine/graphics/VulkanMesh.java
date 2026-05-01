@@ -10,13 +10,14 @@ public class VulkanMesh {
     private VulkanBuffer indexBuffer;
     private int indexCount;
 
-    // Wir merken uns die maximal allokierte Größe in Bytes
     private long maxVertexBufferSize = 0;
     private long maxIndexBufferSize = 0;
+    public float chunkOffsetX = 0.0f;
+    public float chunkOffsetZ = 0.0f;
 
     public VulkanMesh(VulkanContext context, float[] vertices, int[] indices) {
         this.context = context;
-        updateMesh(vertices, indices); // Nutzt direkt die neue, smarte Logik
+        updateMesh(vertices, indices);
     }
 
     public VulkanMesh(VulkanContext context, MeshData data) {
@@ -28,7 +29,6 @@ public class VulkanMesh {
         updateMesh(data.vertices, data.indices);
     }
 
-    // Die neue, dynamische Update-Methode
     public void updateMesh(float[] vertices, int[] indices) {
         indexCount = indices.length;
         if (indexCount == 0) return;
@@ -36,11 +36,8 @@ public class VulkanMesh {
         long requiredVertexSize = (long) vertices.length * Float.BYTES;
         long requiredIndexSize = (long) indices.length * Integer.BYTES;
 
-        // 1. Vertex Buffer prüfen und updaten
         if (requiredVertexSize > maxVertexBufferSize) {
-            // Buffer zu klein: Zerstören und neu (größer) bauen
             if (vertexBuffer != null) vertexBuffer.cleanup();
-            // Wir reservieren direkt ein bisschen mehr Puffer, um nicht sofort wieder neu zu bauen (z.B. 1.5x)
             maxVertexBufferSize = (long) (requiredVertexSize * 1.5);
             vertexBuffer = new VulkanBuffer(context, maxVertexBufferSize,
                     VK10.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,

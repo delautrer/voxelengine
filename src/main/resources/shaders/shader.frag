@@ -4,6 +4,7 @@ layout(location = 1) in vec3 fragTexCoord;
 layout(location = 2) in vec2 fragLight;
 layout(location = 3) in float fragFogDist;
 layout(location = 4) in vec3 fragWorldPos;
+layout(location = 5) in vec2 fragRelXZ;
 
 layout(binding = 0) uniform sampler2DArray texSampler;
 
@@ -72,9 +73,8 @@ void main() {
         float fogEnd = pc.renderDistance;
         float fogStart = fogEnd * 0.75;
 
-        float distXZ = length(fragWorldPos.xz - vec2(pc.camX, pc.camZ));
+        float distXZ = length(fragRelXZ);
         float fogFactor = clamp((distXZ - fogStart) / (fogEnd - fogStart), 0.0, 1.0);
-        fogFactor *= pc.fogMultiplier;
 
         vec3 skyDayColorFog = vec3(0.4, 0.7, 1.0) * 1.5;
         vec3 skyNightColorFog = vec3(0.01, 0.01, 0.02) * 1.5;

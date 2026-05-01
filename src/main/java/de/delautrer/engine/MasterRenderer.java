@@ -96,18 +96,26 @@ public class MasterRenderer {
         SkyManager skyManager = world.getSkyManager();
         float aspect = (float) renderer.getWidth() / (float) renderer.getHeight();
         Matrix4f view = camera.getViewMatrix();
+
+        // --- 1. NEU: View-Matrix ohne Translation (nur Rotation) ---
+        Matrix4f viewRotOnly = new Matrix4f(view).setTranslation(0, 0, 0);
+
         Matrix4f proj = new Matrix4f().perspective((float) Math.toRadians(45.0f), aspect, 0.01f, 1000.0f);
         proj.m11(proj.m11() * -1); // Vulkan Y-Flip
-        Matrix4f mvp = new Matrix4f(proj).mul(view);
+
+        // Die Camera-Relative MVP (für den Shader ohne Ruckeln!)
+        Matrix4f mvpCameraRelative = new Matrix4f(proj).mul(viewRotOnly);
 
         RenderPacket packet = new RenderPacket();
-        packet.mvp = mvp;
+        packet.mvp = mvpCameraRelative;
         packet.proj = proj;
-        packet.view = view;
+        packet.view = viewRotOnly;
         packet.ortho = new Matrix4f().ortho(0.0f, renderer.getWidth(), renderer.getHeight(), 0.0f, -1.0f, 1.0f);
+        packet.cameraPos = camera.getPosition();
 
         boolean isIsoFrame = (isTakingIsometric && isoFramesToWait == -1);
-        CullingUtils.buildVisibleLists(world.getChunkManager(), mvp, packet, isIsoFrame, interaction.getPlayer().position);
+
+        CullingUtils.buildVisibleLists(world.getChunkManager(), mvpCameraRelative, packet, isIsoFrame, packet.cameraPos);
         lastVisibleChunkCount = packet.opaqueMeshes.size() + packet.waterMeshes.size();
 
         packet.cloudMesh = this.cloudMesh;
@@ -195,31 +203,31 @@ public class MasterRenderer {
 
         if (isIsoFrame) {
             packet.hideUI = true;
-
-            // HIER GEÄNDERT: -999.0f rendert die Welt bis GANZ nach unten ins Gestein!
             packet.clipY = Math.min(54f, interaction.getPlayer().getEyePosition().y - 15.0f );
-
             packet.renderDistance = 10000.0f;
-            float zoom = 80.0f; // Etwas weiter rauszoomen, da das Diorama jetzt sehr groß und tief ist
+            float zoom = 80.0f;
 
             packet.proj = new org.joml.Matrix4f().ortho(-zoom * aspect, zoom * aspect, -zoom, zoom, -2000.0f, 2000.0f);
             packet.proj.m11(packet.proj.m11() * -1.0f);
 
             org.joml.Vector3f target = interaction.getPlayer().position;
-
-            // HIER GEÄNDERT: target.y + 60.0f sorgt für einen deutlich angenehmeren, flacheren Winkel!
             org.joml.Vector3f eye = new org.joml.Vector3f(target.x + 100.0f, target.y + 60.0f, target.z + 100.0f);
 
             packet.view = new org.joml.Matrix4f().lookAt(eye, target, new org.joml.Vector3f(0, 1, 0));
-            packet.mvp = new org.joml.Matrix4f(packet.proj).mul(packet.view);
+
+            // --- 3. NEU: Auch Iso-Ansicht relativ machen ---
+            Matrix4f isoViewRotOnly = new Matrix4f(packet.view).setTranslation(0, 0, 0);
+            packet.mvp = new org.joml.Matrix4f(packet.proj).mul(isoViewRotOnly);
+            packet.cameraPos = eye; // Sicherstellen, dass die Kamera-Pos für die Offset-Berechnung im Shader stimmt
         } else {
             packet.clipY = -999.0f;
             packet.renderDistance = Constants.RENDERDISTANCE * 16.0f;
             packet.proj = proj;
-            packet.view = interaction.getPlayer().getCamera().getViewMatrix();
-            packet.mvp = new org.joml.Matrix4f(packet.proj).mul(packet.view);
-        }
 
+            // --- 4. NEU: Hier ebenfalls die rot-only Matrizen zuweisen ---
+            packet.view = viewRotOnly;
+            packet.mvp = mvpCameraRelative;
+        }
 
         boolean success = renderer.render(packet);
 

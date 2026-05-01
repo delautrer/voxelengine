@@ -16,7 +16,7 @@ public class TerrainRenderSystem implements IRenderSystem {
     @Override
     public void render(VkCommandBuffer cmd, RenderPacket packet) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
-            // Push Constants für den Shader vorbereiten (26 Floats / 104 Bytes)
+            // Push Constants für den Shader vorbereiten (28 Floats / 112 Bytes)
             FloatBuffer pcBuffer = stack.mallocFloat(28);
             packet.mvp.get(pcBuffer);
             pcBuffer.put(16, packet.globalLight);
@@ -38,9 +38,14 @@ public class TerrainRenderSystem implements IRenderSystem {
             if (packet.opaqueMeshes != null && !packet.opaqueMeshes.isEmpty()) {
                 VK10.vkCmdBindPipeline(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getHandle());
                 VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayout(), 0, stack.longs(packet.worldTexture.getDescriptorSet()), null);
-                VK10.vkCmdPushConstants(cmd, pipeline.getPipelineLayout(), VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, pcBuffer);
 
                 for (VulkanMesh mesh : packet.opaqueMeshes) {
+                    // NEU: Offset pro Chunk in den Buffer schreiben
+                    pcBuffer.put(22, mesh.chunkOffsetX);
+                    pcBuffer.put(24, mesh.chunkOffsetZ);
+                    // NEU: Push Constants FÜR DIESES MESH senden
+                    VK10.vkCmdPushConstants(cmd, pipeline.getPipelineLayout(), VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, pcBuffer);
+
                     drawMesh(cmd, stack, mesh);
                 }
             }
@@ -49,6 +54,11 @@ public class TerrainRenderSystem implements IRenderSystem {
             if (packet.overlayMesh != null && packet.overlayMesh.getIndexCount() > 0) {
                 VK10.vkCmdBindPipeline(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getTransparentHandle());
                 VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayout(), 0, stack.longs(packet.worldTexture.getDescriptorSet()), null);
+
+                // Das Overlay wird in MasterRenderer bereits in absoluten Weltkoordinaten gebaut,
+                // daher muss der Offset hier wieder auf 0.0f stehen.
+                pcBuffer.put(22, 0.0f);
+                pcBuffer.put(24, 0.0f);
                 VK10.vkCmdPushConstants(cmd, pipeline.getPipelineLayout(), VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, pcBuffer);
 
                 drawMesh(cmd, stack, packet.overlayMesh);
@@ -58,9 +68,14 @@ public class TerrainRenderSystem implements IRenderSystem {
             if (packet.waterMeshes != null && !packet.waterMeshes.isEmpty()) {
                 VK10.vkCmdBindPipeline(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getTransparentHandle());
                 VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayout(), 0, stack.longs(packet.worldTexture.getDescriptorSet()), null);
-                VK10.vkCmdPushConstants(cmd, pipeline.getPipelineLayout(), VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, pcBuffer);
 
                 for (VulkanMesh mesh : packet.waterMeshes) {
+                    // NEU: Offset pro Chunk in den Buffer schreiben
+                    pcBuffer.put(22, mesh.chunkOffsetX);
+                    pcBuffer.put(24, mesh.chunkOffsetZ);
+                    // NEU: Push Constants FÜR DIESES MESH senden
+                    VK10.vkCmdPushConstants(cmd, pipeline.getPipelineLayout(), VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, pcBuffer);
+
                     drawMesh(cmd, stack, mesh);
                 }
             }

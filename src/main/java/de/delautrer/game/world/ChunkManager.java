@@ -242,11 +242,15 @@ public class ChunkManager {
             trashBin.add(new MeshToDelete(pair.opaque));
         }
         pair.opaque = new VulkanMesh(context, result.opaque());
+        pair.opaque.chunkOffsetX = pos.x * Chunk.SIZE;
+        pair.opaque.chunkOffsetZ = pos.y * Chunk.SIZE;
 
         if (pair.water != null) {
             trashBin.add(new MeshToDelete(pair.water));
         }
         pair.water = new VulkanMesh(context, result.water());
+        pair.water.chunkOffsetX = pos.x * Chunk.SIZE;
+        pair.water.chunkOffsetZ = pos.y * Chunk.SIZE;
     }
 
     // Getter & Setter

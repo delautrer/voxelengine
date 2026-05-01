@@ -11,15 +11,18 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public class CullingUtils {
-    // NEU: Nimmt jetzt die playerPos entgegen!
-    public static void buildVisibleLists(ChunkManager chunkManager, Matrix4f mvp, RenderPacket packet, boolean isIsoFrame, Vector3f playerPos) {
-        FrustumIntersection frustum = new FrustumIntersection(mvp);
+    public static void buildVisibleLists(ChunkManager chunkManager, Matrix4f mvpCameraRelative, RenderPacket packet, boolean isIsoFrame, Vector3f cameraPos) {
+        FrustumIntersection frustum = new FrustumIntersection(mvpCameraRelative);
         packet.opaqueMeshes = new ArrayList<>();
         packet.waterMeshes = new ArrayList<>();
 
-        // Berechne den Chunk, in dem der Spieler steht
-        int playerChunkX = playerPos != null ? (int) Math.floor(playerPos.x / Chunk.SIZE) : 0;
-        int playerChunkZ = playerPos != null ? (int) Math.floor(playerPos.z / Chunk.SIZE) : 0;
+        // Wir nutzen double, damit bei der Subtraktion weit draußen kein Bit verloren geht!
+        double camX = cameraPos != null ? cameraPos.x : 0.0;
+        double camY = cameraPos != null ? cameraPos.y : 0.0;
+        double camZ = cameraPos != null ? cameraPos.z : 0.0;
+
+        int playerChunkX = (int) Math.floor(camX / Chunk.SIZE);
+        int playerChunkZ = (int) Math.floor(camZ / Chunk.SIZE);
 
         int dioramaRadius = Constants.RENDERDISTANCE;
 
@@ -30,14 +33,24 @@ public class CullingUtils {
             boolean isVisible = false;
 
             if (isIsoFrame) {
-                // DIORAMA MODUS: Wir zwingen die Engine, ein perfektes Quadrat zu zeichnen!
                 if (cx >= playerChunkX - dioramaRadius && cx <= playerChunkX + dioramaRadius &&
                         cz >= playerChunkZ - dioramaRadius && cz <= playerChunkZ + dioramaRadius) {
                     isVisible = true;
                 }
             } else {
-                // NORMALES CULLING
-                if (frustum.testAab(cx * Chunk.SIZE, 0, cz * Chunk.SIZE, (cx + 1) * Chunk.SIZE, Chunk.HEIGHT, (cz + 1) * Chunk.SIZE)) {
+                // Präzise Berechnung in Double, das Ergebnis der Subtraktion ist dann eine kleine Zahl!
+                double chunkWorldX = cx * (double) Chunk.SIZE;
+                double chunkWorldZ = cz * (double) Chunk.SIZE;
+
+                float startX = (float) (chunkWorldX - camX);
+                float startY = (float) (0.0 - camY);
+                float startZ = (float) (chunkWorldZ - camZ);
+
+                float endX = (float) ((chunkWorldX + Chunk.SIZE) - camX);
+                float endY = (float) (Chunk.HEIGHT - camY);
+                float endZ = (float) ((chunkWorldZ + Chunk.SIZE) - camZ);
+
+                if (frustum.testAab(startX, startY, startZ, endX, endY, endZ)) {
                     isVisible = true;
                 }
             }
