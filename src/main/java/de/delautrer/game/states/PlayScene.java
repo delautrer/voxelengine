@@ -15,6 +15,7 @@ import de.delautrer.game.ui.DebugOverlay;
 import de.delautrer.game.ui.gui.screens.*;
 import de.delautrer.game.world.*;
 import de.delautrer.game.world.sky.Weather;
+import org.joml.Vector3d;
 import org.joml.Vector3f;
 
 public class PlayScene extends Scene {
@@ -94,7 +95,7 @@ public class PlayScene extends Scene {
         loadingScreen.init(engine.getWindow().getWidth(), engine.getWindow().getHeight());
         loadingScreen.setFont(masterRenderer.getFont());
 
-        localPlayer = new LocalPlayer(new Vector3f(8.0f, 20.0f, 8.0f));
+        localPlayer = new LocalPlayer(new Vector3d(8.0, 20.0, 8.0));
         engine.getWindow().disableCursor();
         localPlayer.getCamera().resetMouseTracking();
 

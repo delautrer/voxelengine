@@ -22,10 +22,15 @@ public class HighlightRenderSystem implements IRenderSystem {
         VK10.vkCmdBindPipeline(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getHandle());
 
         try (MemoryStack stack = MemoryStack.stackPush()) {
+            // Die Model-Matrix muss jetzt auch relativ zur Kamera sein, wie beim EntityRenderSystem
             Matrix4f highlightModel = new Matrix4f().identity()
-                    .translate(packet.selectedBlockPos.x - 0.001f, packet.selectedBlockPos.y - 0.001f, packet.selectedBlockPos.z - 0.001f)
+                    .translate((float) (packet.selectedBlockPos.x - packet.cameraPos.x) - 0.001f, 
+                               (float) (packet.selectedBlockPos.y - packet.cameraPos.y) - 0.001f, 
+                               (float) (packet.selectedBlockPos.z - packet.cameraPos.z) - 0.001f)
                     .scale(1.002f);
-            Matrix4f highlightMvp = new Matrix4f(packet.proj).mul(packet.view).mul(highlightModel);
+            
+            // WICHTIG: Nutze packet.mvp (welche die Rotation beinhaltet), wie bei den Entities
+            Matrix4f highlightMvp = new Matrix4f(packet.mvp).mul(highlightModel);
 
             FloatBuffer highlightMvpBuffer = stack.mallocFloat(16);
             highlightMvp.get(highlightMvpBuffer);

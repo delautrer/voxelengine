@@ -65,7 +65,7 @@ public class ChunkManager {
     }
 
     // Core Logic
-    public void update(float playerX, float playerZ) {
+    public void update(double playerX, double playerZ) {
         int pX = Math.floorDiv((int) Math.floor(playerX), Chunk.SIZE);
         int pZ = Math.floorDiv((int) Math.floor(playerZ), Chunk.SIZE);
 
@@ -270,7 +270,7 @@ public class ChunkManager {
     // Die Meshes Map gibt jetzt die Paare zurück
     public Map<Vector2i, ChunkMeshPair> getMeshes() { return meshes; }
 
-    public float getLoadingProgress(float playerX, float playerZ) {
+    public float getLoadingProgress(double playerX, double playerZ) {
         if (initialLoadComplete) return 1.0f;
         int pX = Math.floorDiv((int) Math.floor(playerX), Chunk.SIZE);
         int pZ = Math.floorDiv((int) Math.floor(playerZ), Chunk.SIZE);

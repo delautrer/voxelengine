@@ -3,6 +3,7 @@ package de.delautrer.engine.graphics;
 import de.delautrer.game.entity.Entity;
 import de.delautrer.game.ui.elements.UIDrawCall;
 import org.joml.Matrix4f;
+import org.joml.Vector3d;
 import org.joml.Vector3i;
 import org.joml.Vector3f;
 import java.util.List;
@@ -31,7 +32,7 @@ public class RenderPacket {
     public boolean hideUI = false;
     public float clipY = -999.0f;
 
-    public Vector3f cameraPos;
+    public Vector3d cameraPos;
     public float renderDistance;
 
     public boolean isUnderwater;

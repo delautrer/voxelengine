@@ -7,6 +7,7 @@ import de.delautrer.game.ui.UIMeshBuilder;
 import de.delautrer.game.ui.elements.UIDrawCall;
 import de.delautrer.game.ui.elements.UITexture;
 import org.joml.Matrix4f;
+import org.joml.Vector3d;
 import org.joml.Vector3f;
 import org.lwjgl.vulkan.VK10;
 
@@ -118,7 +119,7 @@ public class MenuRenderer {
         packet.mvp = new Matrix4f(); packet.proj = new Matrix4f(); packet.view = new Matrix4f();
 
         // --- FIX FÜR NPE ---
-        packet.cameraPos = new Vector3f(0, 0, 0); // Dummy-Position für das Menü
+        packet.cameraPos = new Vector3d(0, 0, 0); // Dummy-Position für das Menü
         packet.renderDistance = 128.0f;           // Dummy-Sichtweite
         packet.opaqueMeshes = new ArrayList<>();   // Leere Liste statt null
         packet.waterMeshes = new ArrayList<>();    // Leere Liste statt null

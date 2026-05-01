@@ -5,12 +5,13 @@ import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
+import org.joml.Vector3d;
 import org.joml.Vector3f;
 
 import java.util.List;
 
 public abstract class Entity {
-    public Vector3f position;
+    public Vector3d position;
     public Vector3f velocity;
 
     protected float width = 0.3f;
@@ -21,8 +22,8 @@ public abstract class Entity {
     protected float gravity = -28.0f;
     protected float stepHeight = 0.6f;
 
-    public Entity(Vector3f spawnPosition) {
-        this.position = new Vector3f(spawnPosition);
+    public Entity(Vector3d spawnPosition) {
+        this.position = new Vector3d(spawnPosition);
         this.velocity = new Vector3f(0, 0, 0);
     }
 
@@ -35,22 +36,22 @@ public abstract class Entity {
 
         AABB currentBB = getAABB();
         AABB searchBounds = new AABB(
-                new Vector3f(Math.min(currentBB.min.x, currentBB.min.x + dx),
-                        Math.min(currentBB.min.y, currentBB.min.y + dy) - stepHeight,
-                        Math.min(currentBB.min.z, currentBB.min.z + dz)),
-                new Vector3f(Math.max(currentBB.max.x, currentBB.max.x + dx),
-                        Math.max(currentBB.max.y, currentBB.max.y + dy) + stepHeight,
-                        Math.max(currentBB.max.z, currentBB.max.z + dz))
+                new Vector3f((float) (Math.min(currentBB.min.x, currentBB.min.x + dx)),
+                        (float) (Math.min(currentBB.min.y, currentBB.min.y + dy) - stepHeight),
+                        (float) (Math.min(currentBB.min.z, currentBB.min.z + dz))),
+                new Vector3f((float) (Math.max(currentBB.max.x, currentBB.max.x + dx)),
+                        (float) (Math.max(currentBB.max.y, currentBB.max.y + dy) + stepHeight),
+                        (float) (Math.max(currentBB.max.z, currentBB.max.z + dz)))
         );
 
         List<AABB> nearbyBoxes = getNearbyBoxes(chunkManager, searchBounds);
 
         // --- X-ACHSE BEWEGUNG ---
-        float originalX = position.x;
+        double originalX = position.x;
         position.x += dx;
         if (isCollidingWithList(getAABB(), nearbyBoxes)) {
             if (onGround) {
-                float originalY = position.y;
+                double originalY = position.y;
                 position.y += stepHeight;
                 if (isCollidingWithList(getAABB(), nearbyBoxes)) {
                     position.y = originalY;
@@ -70,8 +71,8 @@ public abstract class Entity {
             }
         } else if (avoidFall && onGround) {
             AABB fallCheckBB = new AABB(
-                    new Vector3f(position.x - width, position.y - 0.05f, position.z - width),
-                    new Vector3f(position.x + width, position.y + height, position.z + width)
+                    new Vector3f((float)position.x - width, (float)position.y - 0.05f, (float)position.z - width),
+                    new Vector3f((float)position.x + width, (float)position.y + height, (float)position.z + width)
             );
             if (!isCollidingWithList(fallCheckBB, nearbyBoxes)) {
                 position.x = originalX;
@@ -80,11 +81,11 @@ public abstract class Entity {
         }
 
         // --- Z-ACHSE BEWEGUNG ---
-        float originalZ = position.z;
+        double originalZ = position.z;
         position.z += dz;
         if (isCollidingWithList(getAABB(), nearbyBoxes)) {
             if (onGround) {
-                float originalY = position.y;
+                double originalY = position.y;
                 position.y += stepHeight;
                 if (isCollidingWithList(getAABB(), nearbyBoxes)) {
                     position.y = originalY;
@@ -104,8 +105,8 @@ public abstract class Entity {
             }
         } else if (avoidFall && onGround) {
             AABB fallCheckBB = new AABB(
-                    new Vector3f(position.x - width, position.y - 0.05f, position.z - width),
-                    new Vector3f(position.x + width, position.y + height, position.z + width)
+                    new Vector3f((float)position.x - width, (float)position.y - 0.05f, (float)position.z - width),
+                    new Vector3f((float)position.x + width, (float)position.y + height, (float)position.z + width)
             );
             if (!isCollidingWithList(fallCheckBB, nearbyBoxes)) {
                 position.z = originalZ;
@@ -115,7 +116,7 @@ public abstract class Entity {
 
         // --- Y-ACHSE BEWEGUNG (Gravitation) ---
         onGround = false;
-        float originalY = position.y;
+        double originalY = position.y;
         position.y += dy;
         if (isCollidingWithList(getAABB(), nearbyBoxes)) {
             if (velocity.y < 0) {
@@ -174,8 +175,8 @@ public abstract class Entity {
 
     public AABB getAABB() {
         return new AABB(
-                new Vector3f(position.x - width, position.y, position.z - width),
-                new Vector3f(position.x + width, position.y + height, position.z + width)
+                new Vector3f((float)position.x - width, (float)position.y, (float)position.z - width),
+                new Vector3f((float)position.x + width, (float)position.y + height, (float)position.z + width)
         );
     }
 

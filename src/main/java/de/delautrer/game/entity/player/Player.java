@@ -4,6 +4,7 @@ import de.delautrer.game.entity.Entity;
 import de.delautrer.game.inventory.IInventory;
 import de.delautrer.game.inventory.PlayerInventory;
 import de.delautrer.game.world.ChunkManager;
+import org.joml.Vector3d;
 import org.joml.Vector3f;
 
 public class Player extends Entity {
@@ -26,7 +27,7 @@ public class Player extends Entity {
 
     protected float swimProgress = 0.0f;
 
-    public Player(Vector3f spawnPosition) {
+    public Player(Vector3d spawnPosition) {
         super(spawnPosition);
         this.inventory = new PlayerInventory();
     }
@@ -41,9 +42,9 @@ public class Player extends Entity {
     public PlayerInventory getInventory() {
         return inventory;
     }
-    public Vector3f getEyePosition() {
+    public Vector3d getEyePosition() {
         float currentEyeHeight = 1.62f + (0.4f - 1.62f) * swimProgress;
-        return new Vector3f(position.x, position.y + currentEyeHeight, position.z);
+        return new Vector3d(position.x, position.y + currentEyeHeight, position.z);
     }
     public boolean isHeadInWater() {
         return isHeadInWater;

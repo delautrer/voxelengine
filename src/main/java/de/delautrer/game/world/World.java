@@ -16,6 +16,7 @@ import de.delautrer.game.world.persistence.WorldData;
 import de.delautrer.game.world.sky.CloudSystem;
 import de.delautrer.game.world.sky.SkyManager;
 import de.delautrer.game.world.sky.Weather;
+import org.joml.Vector3d;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 
@@ -32,7 +33,7 @@ public class World {
     private final WorldStorageManager storageManager;
     private final SkyManager skyManager;
 
-    private Vector3f worldSpawnpoint;
+    private Vector3d worldSpawnpoint;
     private final long seed;
     private boolean isCleanedUp = false;
     private final String worldName;
@@ -54,7 +55,9 @@ public class World {
         if (wData != null) {
             this.seed = wData.seed;
             this.skyManager.setTimeOfDay(wData.timeOfDay);
-            this.worldSpawnpoint = wData.worldSpawnpoint;
+            if (wData.worldSpawnpoint != null) {
+                this.worldSpawnpoint = new Vector3d(wData.worldSpawnpoint);
+            }
             try {
                 skyManager.setCurrentWeather(Weather.valueOf(wData.weather));
             } catch (Exception e) {
@@ -62,7 +65,8 @@ public class World {
             }
         } else {
             this.seed = defaultSeed;
-            this.worldSpawnpoint = WorldInitializer.findSpawnPoint(this.seed);
+            Vector3f sp = WorldInitializer.findSpawnPoint(this.seed);
+            if (sp != null) this.worldSpawnpoint = new Vector3d(sp);
             skyManager.setCurrentWeather(Weather.PARTLY_CLOUDY);
             skyManager.forceWeather(skyManager.getCurrentWeather());
             saveWorldData();
@@ -137,8 +141,8 @@ public class World {
 
                 // Item aufsammeln
                 if (itemEntity.pickupDelay <= 0) {
-                    float dist = localPlayer.position.distance(itemEntity.position);
-                    if (dist < 1.5f) {
+                    double dist = localPlayer.position.distance(itemEntity.position);
+                    if (dist < 1.5) {
                         de.delautrer.game.events.PlayerItemPickupEvent event = new de.delautrer.game.events.PlayerItemPickupEvent(localPlayer, itemEntity.stack);
                         eventBus.publish(event);
 
@@ -164,7 +168,7 @@ public class World {
                 localPlayer.position.set(worldSpawnpoint);
                 localPlayer.velocity.set(0);
             } else {
-                localPlayer.position.y = -49.0f;
+                localPlayer.position.y = -49.0;
                 localPlayer.velocity.y = 0.0f;
             }
         }
@@ -292,7 +296,9 @@ public class World {
         wData.worldName = worldName;
         wData.seed = this.seed;
         wData.timeOfDay = skyManager.getTimeOfDay();
-        wData.worldSpawnpoint = worldSpawnpoint;
+        if (worldSpawnpoint != null) {
+            wData.worldSpawnpoint = new Vector3f((float)worldSpawnpoint.x, (float)worldSpawnpoint.y, (float)worldSpawnpoint.z);
+        }
         wData.weather = skyManager.getCurrentWeather().name();
         storageManager.saveLevelMetadata(wData);
     }
@@ -301,9 +307,9 @@ public class World {
         saveWorldData();
 
         PlayerData pData = new PlayerData();
-        pData.x = localPlayer.position.x;
-        pData.y = localPlayer.position.y;
-        pData.z = localPlayer.position.z;
+        pData.x = (float)localPlayer.position.x;
+        pData.y = (float)localPlayer.position.y;
+        pData.z = (float)localPlayer.position.z;
         pData.yaw = localPlayer.getCamera().getYaw();
         pData.pitch = localPlayer.getCamera().getPitch();
         pData.selectedHotbarSlot = localPlayer.getInventory().getSelectedSlot();
@@ -371,7 +377,7 @@ public class World {
     public WorldStorageManager getStorageManager() { return storageManager; }
     public SkyManager getEnvironment() { return skyManager; }
     public SkyManager getSkyManager() { return skyManager; }
-    public Vector3f getWorldSpawnpoint() {
+    public Vector3d getWorldSpawnpoint() {
         return worldSpawnpoint;
     }
 

@@ -19,6 +19,7 @@ import de.delautrer.game.loot.LootTableManager;
 import de.delautrer.game.world.World;
 import de.delautrer.game.items.ItemStack;
 import de.delautrer.game.items.BlockItem;
+import org.joml.Vector3d;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 
@@ -73,7 +74,7 @@ public class PlayerInteraction {
 
         // 1. Raycast (Kopf steckt fest oder normal)
         if (headBlock != BlockRegistry.AIR) {
-            org.joml.Vector3f eyePos = player.getEyePosition();
+            org.joml.Vector3d eyePos = player.getEyePosition();
 
             selectedBlockPos = new org.joml.Vector3i(
                     (int) Math.floor(eyePos.x),
@@ -84,7 +85,7 @@ public class PlayerInteraction {
             // hitFace = de.delautrer.game.blocks.state.BlockProperties.BlockFace.UP;
         } else {
             // 1.2 Sonst normaler raycast
-            Raycaster.RaycastResult result = Raycaster.raycast(world, camera.getPosition(), camera.getFront(), 6.0f);
+            Raycaster.RaycastResult result = Raycaster.raycast(world, new Vector3f((float)camera.getPosition().x, (float)camera.getPosition().y, (float)camera.getPosition().z), camera.getFront(), 6.0f);
             if (result != null) {
                 selectedBlockPos = result.hitPos;
                 adjacentBlockPos = result.adjacentPos;
@@ -211,10 +212,10 @@ public class PlayerInteraction {
 
             // 3. Spawne alle berechneten Items in der Welt
             for (ItemStack stack : drops) {
-                Vector3f dropPos = new Vector3f(
-                        selectedBlockPos.x + 0.5f,
-                        selectedBlockPos.y + 0.5f,
-                        selectedBlockPos.z + 0.5f
+                Vector3d dropPos = new Vector3d(
+                        selectedBlockPos.x + 0.5,
+                        selectedBlockPos.y + 0.5,
+                        selectedBlockPos.z + 0.5
                 );
 
                 Vector3f dropVel = new Vector3f(

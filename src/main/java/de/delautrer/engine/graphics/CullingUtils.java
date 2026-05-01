@@ -6,12 +6,13 @@ import de.delautrer.game.world.ChunkManager;
 import org.joml.FrustumIntersection;
 import org.joml.Matrix4f;
 import org.joml.Vector2i;
+import org.joml.Vector3d;
 import org.joml.Vector3f;
 import java.util.ArrayList;
 import java.util.Map;
 
 public class CullingUtils {
-    public static void buildVisibleLists(ChunkManager chunkManager, Matrix4f mvpCameraRelative, RenderPacket packet, boolean isIsoFrame, Vector3f cameraPos) {
+    public static void buildVisibleLists(ChunkManager chunkManager, Matrix4f mvpCameraRelative, RenderPacket packet, boolean isIsoFrame, Vector3d cameraPos) {
         FrustumIntersection frustum = new FrustumIntersection(mvpCameraRelative);
         packet.opaqueMeshes = new ArrayList<>();
         packet.waterMeshes = new ArrayList<>();

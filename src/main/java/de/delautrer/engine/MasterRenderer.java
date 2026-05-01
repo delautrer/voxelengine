@@ -18,6 +18,7 @@ import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.sky.SkyManager;
 import de.delautrer.game.world.World;
 import org.joml.Matrix4f;
+import org.joml.Vector3d;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 import org.lwjgl.vulkan.VK10;
@@ -120,8 +121,8 @@ public class MasterRenderer {
 
         packet.cloudMesh = this.cloudMesh;
         packet.cloudOffset = world.getCloudSystem().getRenderOffset(
-                camera.getPosition().x,
-                camera.getPosition().z
+                (float) camera.getPosition().x,
+                (float) camera.getPosition().z
         );
         packet.starMesh = this.starMesh;
         packet.starAlpha = skyManager.getStarAlpha();
@@ -203,17 +204,17 @@ public class MasterRenderer {
 
         if (isIsoFrame) {
             packet.hideUI = true;
-            packet.clipY = Math.min(54f, interaction.getPlayer().getEyePosition().y - 15.0f );
+            packet.clipY = (float) Math.min(54f, interaction.getPlayer().getEyePosition().y - 15.0f );
             packet.renderDistance = 10000.0f;
             float zoom = 80.0f;
 
             packet.proj = new org.joml.Matrix4f().ortho(-zoom * aspect, zoom * aspect, -zoom, zoom, -2000.0f, 2000.0f);
             packet.proj.m11(packet.proj.m11() * -1.0f);
 
-            org.joml.Vector3f target = interaction.getPlayer().position;
-            org.joml.Vector3f eye = new org.joml.Vector3f(target.x + 100.0f, target.y + 60.0f, target.z + 100.0f);
+            org.joml.Vector3d target = interaction.getPlayer().position;
+            org.joml.Vector3d eye = new org.joml.Vector3d(target.x + 100.0, target.y + 60.0, target.z + 100.0);
 
-            packet.view = new org.joml.Matrix4f().lookAt(eye, target, new org.joml.Vector3f(0, 1, 0));
+            packet.view = new org.joml.Matrix4f().lookAt(new Vector3f((float)eye.x, (float)eye.y, (float)eye.z), new Vector3f((float)target.x, (float)target.y, (float)target.z), new org.joml.Vector3f(0, 1, 0));
 
             // --- 3. NEU: Auch Iso-Ansicht relativ machen ---
             Matrix4f isoViewRotOnly = new Matrix4f(packet.view).setTranslation(0, 0, 0);

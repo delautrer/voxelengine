@@ -9,6 +9,7 @@ import de.delautrer.game.events.BlockPlaceEvent;
 import de.delautrer.game.world.World;
 import de.delautrer.engine.physics.AABB;
 import de.delautrer.game.entity.player.PlayerInteraction;
+import org.joml.Vector3d;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 
@@ -26,7 +27,8 @@ public class BlockItem extends Item {
     public boolean onUseRightClick(World world, LocalPlayer player, Vector3i targetBlock, Vector3i adjacentBlock, PlayerInteraction interaction) {
         if (adjacentBlock == null) return false;
 
-        Raycaster.RaycastResult rayHit = Raycaster.raycast(world, player.getCamera().getPosition(), player.getCamera().getFront(), 6.0f);
+        Vector3d camPos = player.getCamera().getPosition();
+        Raycaster.RaycastResult rayHit = Raycaster.raycast(world, new Vector3f((float)camPos.x, (float)camPos.y, (float)camPos.z), player.getCamera().getFront(), 6.0f);
         if (rayHit == null) return false;
 
         Vector3i placePos;

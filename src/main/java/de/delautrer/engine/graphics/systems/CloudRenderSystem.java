@@ -33,9 +33,9 @@ public class CloudRenderSystem implements IRenderSystem {
             mvpBuffer.put(16, packet.globalLight);
             mvpBuffer.put(17, packet.renderDistance);
             mvpBuffer.put(18, 0.0f);
-            mvpBuffer.put(19, packet.cameraPos.x);
-            mvpBuffer.put(20, packet.cameraPos.y);
-            mvpBuffer.put(21, packet.cameraPos.z);
+            mvpBuffer.put(19, (float)packet.cameraPos.x);
+            mvpBuffer.put(20, (float)packet.cameraPos.y);
+            mvpBuffer.put(21, (float)packet.cameraPos.z);
             mvpBuffer.put(22, packet.cloudOffset.x);
             mvpBuffer.put(23, packet.cloudOffset.y);
             mvpBuffer.put(24, packet.cloudOffset.z);

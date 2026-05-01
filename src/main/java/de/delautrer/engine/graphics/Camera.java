@@ -1,12 +1,13 @@
 package de.delautrer.engine.graphics;
 
 import org.joml.Matrix4f;
+import org.joml.Vector3d;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
 
 public class Camera {
 
-    private final Vector3f position = new Vector3f(8.0f, 20.0f, 30.0f);
+    private final Vector3d position = new Vector3d(8.0, 20.0, 30.0);
     private final Vector3f front = new Vector3f(0.0f, -0.5f, -1.0f).normalize();
     private final Vector3f up = new Vector3f(0.0f, 1.0f, 0.0f);
 
@@ -17,7 +18,7 @@ public class Camera {
     private double lastX = 400.0;
     private double lastY = 300.0;
 
-    public void update(long windowHandle, float deltaTime, Vector3f playerPos) {
+    public void update(long windowHandle, float deltaTime, Vector3d playerPos) {
         this.position.set(playerPos);
 
         // --- Kamera umschauen (Maus) ---
@@ -60,12 +61,12 @@ public class Camera {
         this.firstMouse = true;
     }
     public Matrix4f getViewMatrix() {
-        return new Matrix4f().lookAt(position, new Vector3f(position).add(front), up);
+        return new Matrix4f().lookAt(new Vector3f(0, 0, 0), front, up);
     }
-    public void setPosition(Vector3f position) {
+    public void setPosition(Vector3d position) {
         this.position.set(position);
     }
-    public Vector3f getPosition() {
+    public Vector3d getPosition() {
         return position;
     }
     public Vector3f getFront() {

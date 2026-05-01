@@ -73,8 +73,12 @@ public class EntityRenderSystem implements IRenderSystem {
                 float pileOffsetY = v * 0.04f;
                 float pileOffsetZ = v * -0.04f;
 
+                // WICHTIG: Die Model-Matrix muss in Welt-Koordinaten (aber relativ zur Kamera) sein,
+                // damit der Vertex Shader korrekt funktioniert.
                 Matrix4f modelMat = new Matrix4f()
-                        .translate(e.position.x + pileOffsetX, e.position.y + hoverY + pileOffsetY, e.position.z + pileOffsetZ)
+                        .translate((float) (e.position.x - packet.cameraPos.x) + pileOffsetX,
+                                   (float) (e.position.y - packet.cameraPos.y) + hoverY + pileOffsetY,
+                                   (float) (e.position.z - packet.cameraPos.z) + pileOffsetZ)
                         .rotateY((float)(t * 1.5));
 
                 if (itemType instanceof BlockItem blockItem && blockItem.getBlock() instanceof CubeBlock cubeBlock && !(cubeBlock instanceof TorchBlock)) {
@@ -125,10 +129,30 @@ public class EntityRenderSystem implements IRenderSystem {
 
     private void bindAndDraw(VkCommandBuffer cmd, RenderPacket packet, long pipelineLayout, VulkanMesh mesh, long descriptorSet) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
-            Matrix4f mvp = new Matrix4f(packet.proj).mul(packet.view);
-            FloatBuffer buf = stack.mallocFloat(16);
+            // WICHTIG: Die ModelMatrix wird auf die Vertices VOR der GPU angewandt
+            // Hier nutzen wir packet.mvp (ohne Translation) -> Camera relative rendering
+            Matrix4f mvp = new Matrix4f(packet.mvp); 
+            
+            // Push Constants für den Shader vorbereiten (28 Floats / 112 Bytes)
+            FloatBuffer buf = stack.mallocFloat(28);
             mvp.get(buf);
-            VK10.vkCmdPushConstants(cmd, pipelineLayout, VK10.VK_SHADER_STAGE_VERTEX_BIT, 0, buf);
+            buf.put(16, packet.globalLight);
+            buf.put(17, packet.renderDistance);
+            buf.put(18, 1.0f); // fogMultiplier
+            buf.put(19, (float)packet.cameraPos.x);
+            buf.put(20, (float)packet.cameraPos.y);
+            buf.put(21, (float)packet.cameraPos.z);
+
+            // Da die ModelMatrix der Vertices berechnet wird als: Position - CameraPos,
+            // Sind die Offsets hier 0!
+            buf.put(22, 0.0f); // offsetX
+            buf.put(23, 0.0f); // offsetY
+            buf.put(24, 0.0f); // offsetZ
+            buf.put(25, 0.0f); // isCloud
+            buf.put(26, packet.isUnderwater ? 1.0f : 0.0f);
+            buf.put(27, packet.clipY);
+
+            VK10.vkCmdPushConstants(cmd, pipelineLayout, VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, buf);
 
             VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, stack.longs(descriptorSet), null);
             VK10.vkCmdBindVertexBuffers(cmd, 0, stack.longs(mesh.getVertexBuffer()), stack.longs(0));

@@ -30,7 +30,7 @@ layout(push_constant) uniform PushConstants {
 
 void main() {
     // 1. Berechne die Position RELATIV zur Kamera exakt im Shader
-    vec3 relPos = inPosition + vec3(pc.offsetX - pc.camX, pc.offsetY - pc.camY, pc.offsetZ - pc.camZ);
+    vec3 relPos = inPosition + vec3(pc.offsetX, pc.offsetY, pc.offsetZ);
 
     // 2. Nutze die neue mvp (welche keine Translation mehr hat!)
     vec4 clipPos = pc.mvp * vec4(relPos, 1.0);
@@ -42,7 +42,7 @@ void main() {
     fragFogDist = clipPos.w;
 
     // Absolute Weltposition für das clipY wiederherstellen (Y ist klein genug)
-    fragWorldPos = inPosition + vec3(pc.offsetX, pc.offsetY, pc.offsetZ);
+    fragWorldPos = relPos + vec3(pc.camX, pc.camY, pc.camZ);
 
     // Die präzise XZ-Distanz zur Kamera für den Nebel weitergeben
     fragRelXZ = relPos.xz;

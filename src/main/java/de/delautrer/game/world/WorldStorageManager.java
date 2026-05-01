@@ -1,6 +1,7 @@
 package de.delautrer.game.world;
 
 import org.joml.Vector2i;
+import org.joml.Vector3d;
 import org.joml.Vector3i;
 import org.joml.Vector3f;
 import com.google.gson.Gson;
@@ -218,8 +219,8 @@ public class WorldStorageManager {
 
             out.writeInt(items.size());
             for (ItemEntity item : items) {
-                out.writeFloat(item.position.x); out.writeFloat(item.position.y); out.writeFloat(item.position.z);
-                out.writeFloat(item.velocity.x); out.writeFloat(item.velocity.y); out.writeFloat(item.velocity.z);
+                out.writeFloat((float)item.position.x); out.writeFloat((float)item.position.y); out.writeFloat((float)item.position.z);
+                out.writeFloat((float)item.velocity.x); out.writeFloat((float)item.velocity.y); out.writeFloat((float)item.velocity.z);
                 saveItemStack(out, item.stack);
             }
         } catch (IOException e) { e.printStackTrace(); }
@@ -232,7 +233,7 @@ public class WorldStorageManager {
         try (DataInputStream in = new DataInputStream(Files.newInputStream(file))) {
             int count = in.readInt();
             for (int i = 0; i < count; i++) {
-                Vector3f pos = new Vector3f(in.readFloat(), in.readFloat(), in.readFloat());
+                Vector3d pos = new Vector3d(in.readFloat(), in.readFloat(), in.readFloat());
                 Vector3f vel = new Vector3f(in.readFloat(), in.readFloat(), in.readFloat());
                 ItemStack stack = loadItemStack(in);
                 if (stack != null) {

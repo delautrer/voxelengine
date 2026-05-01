@@ -23,9 +23,9 @@ public class TerrainRenderSystem implements IRenderSystem {
             pcBuffer.put(17, packet.renderDistance);
             pcBuffer.put(18, 1.0f); // fogMultiplier
 
-            pcBuffer.put(19, packet.cameraPos.x);
-            pcBuffer.put(20, packet.cameraPos.y);
-            pcBuffer.put(21, packet.cameraPos.z);
+            pcBuffer.put(19, (float)packet.cameraPos.x);
+            pcBuffer.put(20, (float)packet.cameraPos.y);
+            pcBuffer.put(21, (float)packet.cameraPos.z);
 
             pcBuffer.put(22, 0.0f); // offsetX
             pcBuffer.put(23, 0.0f); // offsetY
@@ -41,8 +41,12 @@ public class TerrainRenderSystem implements IRenderSystem {
 
                 for (VulkanMesh mesh : packet.opaqueMeshes) {
                     // NEU: Offset pro Chunk in den Buffer schreiben
-                    pcBuffer.put(22, mesh.chunkOffsetX);
-                    pcBuffer.put(24, mesh.chunkOffsetZ);
+                    float relX = (float) ((double) mesh.chunkOffsetX - packet.cameraPos.x);
+                    float relY = (float) (0.0 - packet.cameraPos.y); // Chunks starten absolut bei Y=0
+                    float relZ = (float) ((double) mesh.chunkOffsetZ - packet.cameraPos.z);
+                    pcBuffer.put(22, relX);
+                    pcBuffer.put(23, relY);
+                    pcBuffer.put(24, relZ);
                     // NEU: Push Constants FÜR DIESES MESH senden
                     VK10.vkCmdPushConstants(cmd, pipeline.getPipelineLayout(), VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, pcBuffer);
 
@@ -56,9 +60,10 @@ public class TerrainRenderSystem implements IRenderSystem {
                 VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayout(), 0, stack.longs(packet.worldTexture.getDescriptorSet()), null);
 
                 // Das Overlay wird in MasterRenderer bereits in absoluten Weltkoordinaten gebaut,
-                // daher muss der Offset hier wieder auf 0.0f stehen.
-                pcBuffer.put(22, 0.0f);
-                pcBuffer.put(24, 0.0f);
+                // daher muss der Offset hier wieder auf 0.0f stehen (plus Kamera offset)
+                pcBuffer.put(22, (float) -packet.cameraPos.x);
+                pcBuffer.put(23, (float) -packet.cameraPos.y);
+                pcBuffer.put(24, (float) -packet.cameraPos.z);
                 VK10.vkCmdPushConstants(cmd, pipeline.getPipelineLayout(), VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, pcBuffer);
 
                 drawMesh(cmd, stack, packet.overlayMesh);
@@ -71,8 +76,12 @@ public class TerrainRenderSystem implements IRenderSystem {
 
                 for (VulkanMesh mesh : packet.waterMeshes) {
                     // NEU: Offset pro Chunk in den Buffer schreiben
-                    pcBuffer.put(22, mesh.chunkOffsetX);
-                    pcBuffer.put(24, mesh.chunkOffsetZ);
+                    float relX = (float) ((double) mesh.chunkOffsetX - packet.cameraPos.x);
+                    float relY = (float) (0.0 - packet.cameraPos.y); // Chunks starten absolut bei Y=0
+                    float relZ = (float) ((double) mesh.chunkOffsetZ - packet.cameraPos.z);
+                    pcBuffer.put(22, relX);
+                    pcBuffer.put(23, relY);
+                    pcBuffer.put(24, relZ);
                     // NEU: Push Constants FÜR DIESES MESH senden
                     VK10.vkCmdPushConstants(cmd, pipeline.getPipelineLayout(), VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, pcBuffer);
 

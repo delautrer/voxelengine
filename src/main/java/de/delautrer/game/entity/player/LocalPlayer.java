@@ -14,6 +14,7 @@ import de.delautrer.game.events.PlayerItemDropEvent;
 import de.delautrer.game.items.ItemStack;
 import de.delautrer.game.world.ChunkManager;
 import de.delautrer.game.world.World;
+import org.joml.Vector3d;
 import org.joml.Vector3f;
 
 public class LocalPlayer extends Player {
@@ -25,18 +26,18 @@ public class LocalPlayer extends Player {
     private GameMode gameMode = GameMode.SURVIVAL;
     private boolean isChatOpen = false;
     private float lastSpacePressTime = 0.0f;
-    private float cameraVisualYOffset = 0.0f;
+    private double cameraVisualYOffset = 0.0;
     private final float jumpForce = 9.0f;
     private final float speed = 5.0f;
 
     private Block headBlock = BlockRegistry.AIR;
-    private float fallDistance = 0.0f;
+    private double fallDistance = 0.0;
     private boolean wasOnGround = true;
 
     // NEU: Damit wir wissen, ob wir den GLFW-Cursor-Modus ändern müssen
     private boolean wasUIOpen = false;
 
-    public LocalPlayer(Vector3f spawnPosition) {
+    public LocalPlayer(Vector3d spawnPosition) {
         super(spawnPosition);
         this.camera = new Camera();
     }
@@ -162,7 +163,7 @@ public class LocalPlayer extends Player {
 
                 eventBus.publish(new de.delautrer.game.events.InventoryChangeEvent());
 
-                Vector3f spawnPos = new Vector3f(this.position).add(0, 1.5f, 0);
+                Vector3d spawnPos = new Vector3d(this.position).add(0, 1.5, 0);
 
                 float yawRad = (float) Math.toRadians(this.getCamera().getYaw());
                 float pitchRad = (float) Math.toRadians(this.getCamera().getPitch());
@@ -350,7 +351,7 @@ public class LocalPlayer extends Player {
             pushOutOfBlocks(chunkManager, input, deltaTime);
         }
 
-        float prevY = position.y;
+        double prevY = position.y;
 
         if (gameMode == GameMode.SPECTATOR) {
             position.add(velocity.x * deltaTime, velocity.y * deltaTime, velocity.z * deltaTime);
@@ -358,7 +359,7 @@ public class LocalPlayer extends Player {
             super.update(deltaTime, chunkManager);
         }
 
-        float deltaY = position.y - prevY;
+        double deltaY = position.y - prevY;
 
         // ==========================================
         // NEU: Fallschaden Logik
@@ -448,10 +449,10 @@ public class LocalPlayer extends Player {
         boolean frontFree = !BlockRegistry.get(cm.getWorld().getBlockAt(bx, byFeet, bz + 1)).isSolid &&
                 !BlockRegistry.get(cm.getWorld().getBlockAt(bx, byHead, bz + 1)).isSolid;
 
-        float distLeft  = position.x - bx;
-        float distRight = (bx + 1.0f) - position.x;
-        float distBack  = position.z - bz;
-        float distFront = (bz + 1.0f) - position.z;
+        double distLeft  = position.x - bx;
+        double distRight = (bx + 1.0) - position.x;
+        double distBack  = position.z - bz;
+        double distFront = (bz + 1.0) - position.z;
 
         float intentBonus = 10.0f;
         if (velocity.x < -0.1f) distLeft -= intentBonus;
@@ -459,7 +460,7 @@ public class LocalPlayer extends Player {
         if (velocity.z < -0.1f) distBack -= intentBonus;
         if (velocity.z > 0.1f) distFront -= intentBonus;
 
-        float minScore = 999.0f;
+        double minScore = 999.0;
         int escapeDir = -1;
 
         if (leftFree && distLeft < minScore) { minScore = distLeft; escapeDir = 0; }
@@ -478,7 +479,7 @@ public class LocalPlayer extends Player {
     }
 
     public void updateCamera(long windowHandle, float deltaTime) {
-        Vector3f smoothEyePos = new Vector3f(getEyePosition());
+        Vector3d smoothEyePos = new Vector3d(getEyePosition());
         smoothEyePos.y += cameraVisualYOffset;
 
         boolean isUIOpen = inventory.isOpen() || isChatOpen || getOpenedInventory() != null || isDead;
@@ -511,7 +512,7 @@ public class LocalPlayer extends Player {
     public PlayerInteraction getInteraction() { return interaction; }
     public Block getHeadBlock() { return headBlock; }
 
-    public void respawn(Vector3f spawnPos) {
+    public void respawn(Vector3d spawnPos) {
         this.position.set(spawnPos);
         this.velocity.set(0, 0, 0);
         this.currentHealth = this.maxHealth;
@@ -523,8 +524,8 @@ public class LocalPlayer extends Player {
         }
     }
     @Override
-    public Vector3f getEyePosition() {
-        return new Vector3f(position.x, position.y + (this.height * 0.9f), position.z);
+    public Vector3d getEyePosition() {
+        return new Vector3d(position.x, position.y + (this.height * 0.9f), position.z);
     }
 
 }

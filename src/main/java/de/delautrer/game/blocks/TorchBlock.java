@@ -13,6 +13,7 @@ import de.delautrer.game.loot.LootTableManager;
 import de.delautrer.game.items.ItemStack;
 import de.delautrer.game.entity.ItemEntity;
 import org.joml.Matrix4f;
+import org.joml.Vector3d;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 
@@ -122,10 +123,10 @@ public class TorchBlock extends CubeBlock {
                 List<ItemStack> drops = table.generateLoot();
 
                 for (ItemStack stack : drops) {
-                    Vector3f dropPos = new Vector3f(
-                            x + 0.5f,
-                            y + 0.5f,
-                            z + 0.5f
+                    Vector3d dropPos = new Vector3d(
+                            x + 0.5,
+                            y + 0.5,
+                            z + 0.5
                     );
 
                     Vector3f dropVel = new Vector3f(

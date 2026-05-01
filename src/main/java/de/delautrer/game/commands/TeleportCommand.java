@@ -13,12 +13,12 @@ public class TeleportCommand implements ICommand {
     public String getUsage() { return "/tp <x> <y> <z>"; }
 
     // Hilfsmethode für das Rechnen mit ~
-    private float parseCoordinate(String arg, float currentPos) throws NumberFormatException {
+    private double parseCoordinate(String arg, double currentPos) throws NumberFormatException {
         if (arg.startsWith("~")) {
             if (arg.length() == 1) return currentPos; // Nur "~" -> aktuelle Position
-            return currentPos + Float.parseFloat(arg.substring(1)); // "~-10" -> Pos - 10
+            return currentPos + Double.parseDouble(arg.substring(1)); // "~-10" -> Pos - 10
         }
-        return Float.parseFloat(arg);
+        return Double.parseDouble(arg);
     }
 
     @Override
@@ -28,9 +28,9 @@ public class TeleportCommand implements ICommand {
             return;
         }
         try {
-            float x = parseCoordinate(args[0], player.position.x);
-            float y = parseCoordinate(args[1], player.position.y);
-            float z = parseCoordinate(args[2], player.position.z);
+            double x = parseCoordinate(args[0], player.position.x);
+            double y = parseCoordinate(args[1], player.position.y);
+            double z = parseCoordinate(args[2], player.position.z);
 
             player.position.set(x, y, z);
             player.velocity.set(0);

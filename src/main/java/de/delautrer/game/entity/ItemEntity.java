@@ -7,6 +7,7 @@ import de.delautrer.game.items.ItemStack;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
 import de.delautrer.game.world.World;
+import org.joml.Vector3d;
 import org.joml.Vector3f;
 
 import java.util.Objects;
@@ -20,7 +21,7 @@ public class ItemEntity extends Entity {
     private float age = 0.0f;
     private float stackCheckTimer = 0.0f;
 
-    public ItemEntity(ItemStack stack, Vector3f spawnPos, Vector3f initialVelocity) {
+    public ItemEntity(ItemStack stack, Vector3d spawnPos, Vector3f initialVelocity) {
         super(spawnPos);
         this.stack = stack;
         this.velocity = new Vector3f(initialVelocity);
@@ -44,15 +45,15 @@ public class ItemEntity extends Entity {
         // 1. SCHWERKRAFT & KOLLISION
         velocity.y -= 20.0f * deltaTime;
 
-        float nextX = position.x + velocity.x * deltaTime;
-        float nextY = position.y + velocity.y * deltaTime;
-        float nextZ = position.z + velocity.z * deltaTime;
+        double nextX = position.x + velocity.x * deltaTime;
+        double nextY = position.y + velocity.y * deltaTime;
+        double nextZ = position.z + velocity.z * deltaTime;
 
         Chunk c = cm.getChunkAtBlock((int) Math.floor(nextX), (int) Math.floor(nextY), (int) Math.floor(nextZ));
         if (c != null) {
             byte blockBelow = c.getBlock(Math.floorMod((int) Math.floor(nextX), Chunk.SIZE), (int) Math.floor(nextY), Math.floorMod((int) Math.floor(nextZ), Chunk.SIZE));
             if (BlockRegistry.get(blockBelow).isSolid) {
-                nextY = (float) Math.floor(nextY) + 1.001f;
+                nextY = Math.floor(nextY) + 1.001f;
                 velocity.y = 0;
                 velocity.x *= 0.5f;
                 velocity.z *= 0.5f;
@@ -72,7 +73,7 @@ public class ItemEntity extends Entity {
         // Wenn wir schon voll sind, brauchen wir nicht suchen
         if (stack.amount >= stack.type.getMaxStackSize()) return;
 
-        float mergeRadius = 1.2f; // Wie nah Items beieinander liegen müssen
+        double mergeRadius = 1.2; // Wie nah Items beieinander liegen müssen
 
         for (Entity e : world.getEntities()) {
             if (e == this || e.isDead()) continue;
@@ -80,7 +81,7 @@ public class ItemEntity extends Entity {
             if (e instanceof ItemEntity otherItem) {
 
                 if (ItemRegistry.getId(this.stack.type).equals(ItemRegistry.getId(otherItem.stack.type))) {
-                    float dist = this.position.distance(otherItem.position);
+                    double dist = this.position.distance(otherItem.position);
                     if (dist < mergeRadius) {
 
                         // Derjenige mit mehr Items (oder der Ältere) überlebt und zieht die Items an sich
