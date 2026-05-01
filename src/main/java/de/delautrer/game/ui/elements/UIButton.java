@@ -4,7 +4,7 @@ import de.delautrer.engine.graphics.VulkanFont;
 import de.delautrer.game.ui.UIMeshBuilder;
 
 public class UIButton extends UIElement {
-    private final String text;
+    private String text;
     private final Runnable onClick;
 
     private static final int GRID_X_NORMAL = 0;
@@ -37,6 +37,10 @@ public class UIButton extends UIElement {
 
             builder.drawText(text, textX, textY, 0.3f, font);
         }
+    }
+
+    public void setText(String text) {
+        this.text = text;
     }
 
     public void click() {

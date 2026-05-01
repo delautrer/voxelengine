@@ -1,6 +1,7 @@
 package de.delautrer.game.ui.gui.screens;
 
 import de.delautrer.engine.Engine;
+import de.delautrer.engine.utils.GamePaths;
 import de.delautrer.game.states.PlayScene;
 import de.delautrer.game.ui.UIMeshBuilder;
 import de.delautrer.game.ui.elements.UIButton;
@@ -58,7 +59,7 @@ public class WorldSelectScreen extends MenuScreen {
         UIScrollableList worldList = new UIScrollableList(centerX - (listWidth / 2.0f), listY, listWidth, listHeight);
         float itemY = listY + listHeight - 60.0f;
 
-        File savesDir = new File("saves");
+        File savesDir = GamePaths.SAVES_DIR.toFile();
         if (!savesDir.exists()) savesDir.mkdirs();
 
         File[] saveFiles = savesDir.listFiles(File::isDirectory);

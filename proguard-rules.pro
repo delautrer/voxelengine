@@ -22,6 +22,9 @@
 -keep class org.joml.** { *; }
 -keep class com.google.gson.** { *; }
 
+# Erlaube GSON, Felder in den Settings zu lesen und schütze sie vor Umbenennung
+-keepclassmembers class de.delautrer.game.settings.** { *; }
+-keep class de.delautrer.game.settings.** { *; }
 
 -keepattributes Signature,InnerClasses,EnclosingMethod
 

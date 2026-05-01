@@ -1,6 +1,7 @@
 package de.delautrer.engine.graphics;
 
 import de.delautrer.Constants;
+import de.delautrer.game.settings.SettingsManager;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
 import org.joml.FrustumIntersection;
@@ -25,7 +26,7 @@ public class CullingUtils {
         int playerChunkX = (int) Math.floor(camX / Chunk.SIZE);
         int playerChunkZ = (int) Math.floor(camZ / Chunk.SIZE);
 
-        int dioramaRadius = Constants.RENDERDISTANCE;
+        int dioramaRadius = SettingsManager.get().renderDistance;
 
         for (Map.Entry<Vector2i, ChunkManager.ChunkMeshPair> entry : chunkManager.getChunkMeshes().entrySet()) {
             int cx = entry.getKey().x;

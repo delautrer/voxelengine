@@ -7,6 +7,7 @@ import de.delautrer.engine.events.EventListener;
 import de.delautrer.engine.graphics.MeshData;
 import de.delautrer.engine.states.Scene;
 import de.delautrer.engine.Engine;
+import de.delautrer.engine.utils.GamePaths;
 import de.delautrer.game.commands.CommandManager;
 import de.delautrer.game.entity.player.LocalPlayer;
 import de.delautrer.game.events.*;
@@ -17,6 +18,9 @@ import de.delautrer.game.world.*;
 import de.delautrer.game.world.sky.Weather;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class PlayScene extends Scene {
 
@@ -321,7 +325,7 @@ public class PlayScene extends Scene {
 
         // F2 - Screenshots (Standard & Isometrisch)
         if (engine.getInputManager().isActionJustPressed("SCREENSHOT") && screenshotCooldown <= 0) { // F2 binden!
-            String date = new java.text.SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new java.util.Date());
+            String date = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date());
 
             if (engine.getInputManager().isActionActive("MOD_ALT")) { // Alt gedrückt?
                 // Isometrisch Starten!
@@ -331,7 +335,7 @@ public class PlayScene extends Scene {
                 uiNeedsRebuild = true;
             } else {
                 // Normaler Screenshot
-                String path = "screenshots/" + date + ".png";
+                String path = GamePaths.SCREENSHOTS_DIR.resolve(date + ".png").toString();
                 masterRenderer.requestScreenshot(path);
                 screenshotCooldown = 2.0f;
                 chatOverlay.getMessages().add(new ChatOverlay.ChatMessage("Saved screenshot: " + path));
@@ -344,18 +348,15 @@ public class PlayScene extends Scene {
                 isoFramesToWait--; // Warten, bis das UI/Ladebildschirm bereit ist...
             } else if (isoFramesToWait == 0) {
                 // JETZT den Screenshot an Vulkan in Auftrag geben
-                String date = new java.text.SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new java.util.Date());
-                String path = "screenshots/" + date + "_isometric.png";
+                String date = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date());
+                String path = GamePaths.SCREENSHOTS_DIR.resolve(date + "_isometric.png").toString();
 
                 masterRenderer.requestScreenshot(path);
                 screenshotCooldown = 2.0f;
                 chatOverlay.getMessages().add(new ChatOverlay.ChatMessage("Saved Isometric screenshot: " + path));
 
-                // HIER IST DER FIX: Wir setzen es auf -1!
-                // Dadurch weiß der Render-Loop, der gleich aufgerufen wird, dass er isometrisch rendern muss.
                 isoFramesToWait = -1;
             } else if (isoFramesToWait == -1) {
-                // Ein Frame NACHDEM der Screenshot gezeichnet wurde, räumen wir auf
                 isTakingIsometric = false;
                 //resumeGame();
             }

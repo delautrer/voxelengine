@@ -28,6 +28,8 @@ public class InventoryScreen extends ContainerScreen {
         float maxSlotY = 168.0f * pixelScale;
         panelH = maxSlotY + padding * 2 + (20.0f * pixelScale);
 
+        guiY = height / 2.0f - panelH / 2.0f + hotbarHeight;
+
         panelX = guiX - padding;
         panelY = guiY - padding;
     }

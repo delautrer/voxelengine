@@ -1,5 +1,6 @@
 package de.delautrer.engine.graphics;
 
+import de.delautrer.game.settings.SettingsManager;
 import org.joml.Matrix4f;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
@@ -37,12 +38,17 @@ public class Camera {
         lastX = xpos[0];
         lastY = ypos[0];
 
-        float sensitivity = 0.1f;
+        float sensitivity = SettingsManager.get().mouseSensitivity;
         xoffset *= sensitivity;
         yoffset *= sensitivity;
 
         yaw += (float) xoffset;
-        pitch += (float) yoffset;
+
+        if (SettingsManager.get().invertY) {
+            pitch -= (float) yoffset;
+        } else {
+            pitch += (float) yoffset;
+        }
 
         yaw %= 360.0f;
         if (yaw < 0.0f) yaw += 360.0f;

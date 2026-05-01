@@ -12,11 +12,29 @@ public class UIScrollableList extends UIElement {
     private float scrollOffset = 0.0f;
     private boolean isDragging = false;
 
-    private final int bgGridX = 3;
-    private final int bgGridY = 0;
+    private final int bgGridX;
+    private final int bgGridY;
 
     public UIScrollableList(float x, float y, float width, float height) {
+        this(x, y, width, height, 3);
+    }
+
+    public UIScrollableList(float x, float y, float width, float height, int style) {
         super(x, y, width, height);
+        switch (style) {
+            case 1:
+                this.bgGridX = 4;
+                this.bgGridY = 0;
+                break;
+            case 2:
+                this.bgGridX = 8;
+                this.bgGridY = 0;
+                break;
+            default:
+                bgGridX = 3;
+                bgGridY = 0;
+                break;
+        }
     }
 
     public void addItem(UIElement item) {
@@ -33,10 +51,34 @@ public class UIScrollableList extends UIElement {
         float maxY = -999999f;
         float minY = 999999f;
         for (UIElement item : items) {
-            if (item.y + item.height > maxY) maxY = item.y + item.height;
-            if (item.y < minY) minY = item.y;
+            // Getter verwenden, um Felder nicht zu umgehen
+            if (item.getY() + item.getHeight() > maxY) maxY = item.getY() + item.getHeight();
+            if (item.getY() < minY) minY = item.getY();
         }
         return (maxY - minY) + 40.0f;
+    }
+
+    // --- NEU: Rekursiver Input für Layout-Container ---
+    private void handleItemInput(UIElement item, InputManager input, float uiMouseX, float uiMouseY, boolean mouseJustPressed, boolean overScrollbar) {
+        if (item instanceof UILayout) {
+            // Wenn es eine Box ist, schick den Input an alle Kinder in der Box weiter
+            for (UIElement child : ((UILayout) item).getChildren()) {
+                handleItemInput(child, input, uiMouseX, uiMouseY, mouseJustPressed, overScrollbar);
+            }
+        } else {
+            // Wenn es ein direktes Element ist, werte den Input aus
+            if (item instanceof UISlider) {
+                ((UISlider) item).handleInput(input, uiMouseX, uiMouseY);
+            } else if (item instanceof UIKeybindButton) {
+                ((UIKeybindButton) item).handleInput(input, uiMouseX, uiMouseY);
+            }
+
+            if (mouseJustPressed && !overScrollbar && item.isHovered(uiMouseX, uiMouseY)) {
+                if (item instanceof UIButton) ((UIButton) item).click();
+                else if (item instanceof UIConfirmButton) ((UIConfirmButton) item).click();
+                else if (item instanceof UIToggleButton) ((UIToggleButton) item).click();
+            }
+        }
     }
 
     public void handleInput(InputManager input, float uiMouseX, float uiMouseY) {
@@ -54,19 +96,15 @@ public class UIScrollableList extends UIElement {
             }
         }
 
-        // --- 2. BALKEN ZIEHEN (Mit Padding!) ---
-        float scrollPadding = 15.0f; // Abstand oben und unten für den Balken
-        float trackHeight = height - (scrollPadding * 2); // Die nutzbare Spur
-
+        // --- 2. BALKEN ZIEHEN ---
+        float scrollPadding = 15.0f;
+        float trackHeight = height - (scrollPadding * 2);
         float viewRatio = height / Math.max(1.0f, totalContentHeight);
-        float scrollbarHeight = Math.max(20.0f, trackHeight * viewRatio); // Relativ zur neuen Spurhöhe!
-
+        float scrollbarHeight = Math.max(20.0f, trackHeight * viewRatio);
         float scrollPercent = (maxScroll != 0) ? scrollOffset / maxScroll : 0;
 
-        // Die extremen Y-Grenzen des Balkens
         float minY = y + scrollPadding;
         float maxY = y + height - scrollPadding - scrollbarHeight;
-
         float scrollbarY = minY + (maxY - minY) * (1.0f - scrollPercent);
 
         boolean mousePressed = input.isActionActive("INTERACT_BREAK");
@@ -85,7 +123,6 @@ public class UIScrollableList extends UIElement {
 
         if (isDragging) {
             float dragY = uiMouseY - (scrollbarHeight / 2.0f);
-
             if (dragY < minY) dragY = minY;
             if (dragY > maxY) dragY = maxY;
 
@@ -93,29 +130,25 @@ public class UIScrollableList extends UIElement {
             scrollOffset = percent * maxScroll;
         }
 
-        // --- 3. CLAMPING ---
         if (scrollOffset < 0) scrollOffset = 0;
         if (scrollOffset > maxScroll) scrollOffset = maxScroll;
 
-        // --- 4. KLICKS ---
-        if (mouseJustPressed && !overScrollbar) {
-            float clipPadding = 15.0f;
-            float clipMinY = this.y + clipPadding;
-            float clipMaxY = this.y + this.height - clipPadding;
+        // --- 3. INPUT AN KINDER WEITERLEITEN ---
+        float clipPadding = 15.0f;
+        float clipMinY = this.getY() + clipPadding;
+        float clipMaxY = this.getY() + this.getHeight() - clipPadding;
 
-            for (UIElement item : items) {
-                float tempY = item.y + scrollOffset;
+        for (UIElement item : items) {
+            float tempY = item.getY() + scrollOffset;
 
-                if (tempY + item.height > clipMinY && tempY < clipMaxY) {
-                    float oldY = item.y;
-                    item.y = tempY;
+            if (tempY + item.getHeight() > clipMinY && tempY < clipMaxY) {
+                float oldY = item.getY();
+                // setPosition löst UILayout.pack() aus, dadurch ziehen Kind-Elemente mit!
+                item.setPosition(item.getX(), tempY);
 
-                    if (item.isHovered(uiMouseX, uiMouseY)) {
-                        if (item instanceof UIButton) ((UIButton) item).click();
-                        else if (item instanceof UIConfirmButton) ((UIConfirmButton) item).click();
-                    }
-                    item.y = oldY;
-                }
+                handleItemInput(item, input, uiMouseX, uiMouseY, mouseJustPressed, overScrollbar);
+
+                item.setPosition(item.getX(), oldY);
             }
         }
     }
@@ -124,20 +157,15 @@ public class UIScrollableList extends UIElement {
     public void render(UIMeshBuilder builder, VulkanFont font, float mouseX, float mouseY) {
         if (!isVisible) return;
 
-        // 1. Panel-Hintergrund
         builder.add9Slice(x, y, 0.05f, width, height, bgGridX, bgGridY, 12.0f);
 
-        // 2. Scrollbalken (Mit Padding!)
         float totalContentHeight = getContentHeight();
         if (totalContentHeight > height) {
             float maxScroll = totalContentHeight - height;
-
             float scrollPadding = 20.0f;
             float trackHeight = height - (scrollPadding * 2);
-
             float viewRatio = height / totalContentHeight;
             float scrollbarHeight = Math.max(20.0f, trackHeight * viewRatio);
-
             float scrollPercent = scrollOffset / maxScroll;
 
             float minY = y + scrollPadding;
@@ -147,7 +175,6 @@ public class UIScrollableList extends UIElement {
             builder.add9Slice(x + width - 15.0f, scrollbarY, 0.15f, 10.0f, scrollbarHeight, 15, 0, 4.0f);
         }
 
-        // 3. Schere an!
         float clipPadding = 15.0f;
         builder.setClipRect(x, y + clipPadding, width, height - (clipPadding * 2));
 
@@ -155,17 +182,18 @@ public class UIScrollableList extends UIElement {
         float clipMaxY = this.y + this.height - clipPadding;
 
         for (UIElement item : items) {
-            float originalY = item.y;
-            item.y = originalY + scrollOffset;
+            float originalY = item.getY();
+            // Verschiebt das Layout (und alle seine Kinder) in Render-Position
+            item.setPosition(item.getX(), originalY + scrollOffset);
 
-            if (item.y + item.height > clipMinY && item.y < clipMaxY) {
+            if (item.getY() + item.getHeight() > clipMinY && item.getY() < clipMaxY) {
                 item.render(builder, font, mouseX, mouseY);
             }
 
-            item.y = originalY;
+            // Stellt die originale Position wieder her
+            item.setPosition(item.getX(), originalY);
         }
 
-        // 4. Schere aus!
         builder.clearClipRect();
     }
 }

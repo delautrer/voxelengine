@@ -1,5 +1,6 @@
 package de.delautrer.game.world;
 
+import de.delautrer.engine.utils.GamePaths;
 import org.joml.Vector2i;
 import org.joml.Vector3d;
 import org.joml.Vector3i;
@@ -43,7 +44,7 @@ public class WorldStorageManager {
 
     // Der Parameter "folderName" ist hier jetzt der sichere Ordnername (z.B. "Neue_Welt-1")
     public WorldStorageManager(String folderName) {
-        this.worldDir = Paths.get("saves", folderName);
+        this.worldDir = GamePaths.SAVES_DIR.resolve(folderName);
         this.regionDir = worldDir.resolve("regions");
         this.playerDataDir = worldDir.resolve("playerdata");
 
@@ -70,7 +71,7 @@ public class WorldStorageManager {
             safeName = "World";
         }
 
-        Path savesDir = Paths.get("saves");
+        Path savesDir = GamePaths.SAVES_DIR;
         if (!Files.exists(savesDir)) {
             try { Files.createDirectories(savesDir); } catch (IOException ignored) {}
         }

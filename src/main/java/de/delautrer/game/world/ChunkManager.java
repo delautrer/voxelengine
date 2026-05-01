@@ -3,6 +3,7 @@ package de.delautrer.game.world;
 import de.delautrer.Constants;
 import de.delautrer.engine.graphics.VulkanContext;
 import de.delautrer.engine.graphics.VulkanMesh;
+import de.delautrer.game.settings.SettingsManager;
 import org.joml.Vector2i;
 import org.lwjgl.vulkan.VK10;
 
@@ -70,7 +71,7 @@ public class ChunkManager {
         int pZ = Math.floorDiv((int) Math.floor(playerZ), Chunk.SIZE);
 
         // 1. CHUNKS ASYNCHRON LADEN UND GENERIEREN
-        int dataDistance = Constants.RENDERDISTANCE + 2;
+        int dataDistance = SettingsManager.get().renderDistance + 2;
         for (int x = pX - dataDistance; x <= pX + dataDistance; x++) {
             for (int z = pZ - dataDistance; z <= pZ + dataDistance; z++) {
                 Vector2i pos = new Vector2i(x, z);
@@ -129,8 +130,8 @@ public class ChunkManager {
         }
 
         // 2. MESHES IM HINTERGRUND BERECHNEN
-        for (int x = pX - Constants.RENDERDISTANCE; x <= pX + Constants.RENDERDISTANCE; x++) {
-            for (int z = pZ - Constants.RENDERDISTANCE; z <= pZ + Constants.RENDERDISTANCE; z++) {
+        for (int x = pX - SettingsManager.get().renderDistance; x <= pX + SettingsManager.get().renderDistance; x++) {
+            for (int z = pZ - SettingsManager.get().renderDistance; z <= pZ + SettingsManager.get().renderDistance; z++) {
                 Vector2i pos = new Vector2i(x, z);
                 Chunk c = chunks.get(pos);
 
@@ -180,7 +181,7 @@ public class ChunkManager {
         }
 
         // 4. ALTE MESHES ENTLADEN (Ohne GPU Stall!)
-        int unloadMeshDistance = Constants.RENDERDISTANCE + 1;
+        int unloadMeshDistance = SettingsManager.get().renderDistance + 1;
         List<Vector2i> meshesToRemove = new ArrayList<>();
         for (Vector2i pos : meshes.keySet()) {
             if (Math.abs(pos.x - pX) > unloadMeshDistance || Math.abs(pos.y - pZ) > unloadMeshDistance) {
@@ -202,7 +203,7 @@ public class ChunkManager {
         }
 
         // 5. ALTE CHUNK-DATEN ENTLADEN
-        int unloadDataDistance = Constants.RENDERDISTANCE + 3;
+        int unloadDataDistance = SettingsManager.get().renderDistance + 3;
         List<Vector2i> chunksToRemove = new ArrayList<>();
         for (Map.Entry<Vector2i, Chunk> entry : chunks.entrySet()) {
             Vector2i pos = entry.getKey();

@@ -1,6 +1,7 @@
 package de.delautrer.engine.input;
 
 import org.lwjgl.glfw.GLFW;
+import de.delautrer.game.settings.SettingsManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,6 +18,7 @@ public class InputManager {
     private final Map<String, Integer> mouseBindings = new HashMap<>();
     private final Map<String, Boolean> previousActionStates = new HashMap<>();
 
+    private int lastKeyPressed = -1;
     private double scrollY = 0;
     private float mouseX, mouseY;
     private int windowWidth, windowHeight;
@@ -30,44 +32,8 @@ public class InputManager {
         this.normalCursor = GLFW.glfwCreateStandardCursor(GLFW.GLFW_ARROW_CURSOR);
         this.handCursor = GLFW.glfwCreateStandardCursor(GLFW.GLFW_HAND_CURSOR);
 
-        setupDefaultBindings();
-    }
-
-    private void setupDefaultBindings() {
-        keyBindings.put("UI_BACKSPACE", GLFW.GLFW_KEY_BACKSPACE);
-
-        keyBindings.put("MOVE_FORWARD", GLFW.GLFW_KEY_W);
-        keyBindings.put("MOVE_BACKWARD", GLFW.GLFW_KEY_S);
-        keyBindings.put("MOVE_LEFT", GLFW.GLFW_KEY_A);
-        keyBindings.put("MOVE_RIGHT", GLFW.GLFW_KEY_D);
-        keyBindings.put("JUMP", GLFW.GLFW_KEY_SPACE);
-        keyBindings.put("SNEAK", GLFW.GLFW_KEY_LEFT_SHIFT);
-        keyBindings.put("SPRINT", GLFW.GLFW_KEY_LEFT_CONTROL);
-        keyBindings.put("DROP_ITEM", GLFW.GLFW_KEY_Q);
-
-        keyBindings.put("INVENTORY", GLFW.GLFW_KEY_E);
-
-        keyBindings.put("TOGGLE_UI", GLFW.GLFW_KEY_F1);
-        keyBindings.put("SCREENSHOT", GLFW.GLFW_KEY_F2);
-        keyBindings.put("DEBUG_MENU", GLFW.GLFW_KEY_F3);
-        keyBindings.put("PAUSE", GLFW.GLFW_KEY_ESCAPE);
-        keyBindings.put("MOD_ALT", GLFW.GLFW_KEY_LEFT_ALT);
-
-        for (int i = 0; i < 9; i++) {
-            keyBindings.put("SLOT_" + (i + 1), GLFW.GLFW_KEY_1 + i);
-        }
-
-        keyBindings.put("CHAT_SEND", GLFW.GLFW_KEY_ENTER);
-        keyBindings.put("CHAT_OPEN_T", GLFW.GLFW_KEY_T);
-        keyBindings.put("CHAT_OPEN_SLASH", GLFW.GLFW_KEY_SLASH);
-        keyBindings.put("UI_UP", GLFW.GLFW_KEY_UP);
-        keyBindings.put("UI_DOWN", GLFW.GLFW_KEY_DOWN);
-        keyBindings.put("UI_TAB", GLFW.GLFW_KEY_TAB);
-
-        mouseBindings.put("INTERACT_BREAK", GLFW.GLFW_MOUSE_BUTTON_LEFT);
-        mouseBindings.put("INTERACT_PLACE", GLFW.GLFW_MOUSE_BUTTON_RIGHT);
-        mouseBindings.put("PICK_BLOCK", GLFW.GLFW_MOUSE_BUTTON_MIDDLE);
-
+        // Wir rufen direkt am Start unsere dynamische Lade-Funktion auf
+        reloadBindings();
 
         GLFW.glfwSetScrollCallback(windowHandle, (window, xoffset, yoffset) -> {
             scrollY = yoffset;
@@ -76,6 +42,46 @@ public class InputManager {
         GLFW.glfwSetCharCallback(windowHandle, (window, codepoint) -> {
             typedChars.add((char) codepoint);
         });
+
+        GLFW.glfwSetKeyCallback(windowHandle, (window, key, scancode, action, mods) -> {
+            if (action == GLFW.GLFW_PRESS) {
+                lastKeyPressed = key;
+            }
+        });
+    }
+
+    public void reloadBindings() {
+        keyBindings.clear();
+        mouseBindings.clear();
+
+        // 1. Feste System- & UI-Tasten (Können später natürlich auch ins Menü wandern)
+        keyBindings.put("UI_BACKSPACE", GLFW.GLFW_KEY_BACKSPACE);
+        keyBindings.put("DROP_ITEM", GLFW.GLFW_KEY_Q);
+        keyBindings.put("TOGGLE_UI", GLFW.GLFW_KEY_F1);
+        keyBindings.put("SCREENSHOT", GLFW.GLFW_KEY_F2);
+        keyBindings.put("DEBUG_MENU", GLFW.GLFW_KEY_F3);
+        keyBindings.put("MOD_ALT", GLFW.GLFW_KEY_LEFT_ALT);
+        keyBindings.put("CHAT_SEND", GLFW.GLFW_KEY_ENTER);
+        keyBindings.put("CHAT_OPEN_T", GLFW.GLFW_KEY_T);
+        keyBindings.put("CHAT_OPEN_SLASH", GLFW.GLFW_KEY_SLASH);
+        keyBindings.put("UI_UP", GLFW.GLFW_KEY_UP);
+        keyBindings.put("UI_DOWN", GLFW.GLFW_KEY_DOWN);
+        keyBindings.put("UI_TAB", GLFW.GLFW_KEY_TAB);
+
+        for (int i = 0; i < 9; i++) {
+            keyBindings.put("SLOT_" + (i + 1), GLFW.GLFW_KEY_1 + i);
+        }
+
+        // 2. DYNAMISCHE TASTEN: Wir holen uns die Config aus den Settings!
+        Map<String, Integer> userBinds = SettingsManager.get().keyBinds;
+        for (Map.Entry<String, Integer> entry : userBinds.entrySet()) {
+            keyBindings.put(entry.getKey(), entry.getValue());
+        }
+
+        // 3. Maus-Bindings
+        mouseBindings.put("INTERACT_BREAK", GLFW.GLFW_MOUSE_BUTTON_LEFT);
+        mouseBindings.put("INTERACT_PLACE", GLFW.GLFW_MOUSE_BUTTON_RIGHT);
+        mouseBindings.put("PICK_BLOCK", GLFW.GLFW_MOUSE_BUTTON_MIDDLE);
     }
 
     public void update() {
@@ -95,6 +101,11 @@ public class InputManager {
         windowHeight = h[0];
     }
 
+    public int consumeLastKey() {
+        int key = lastKeyPressed;
+        lastKeyPressed = -1;
+        return key;
+    }
     public double consumeScroll() {
         double temp = scrollY;
         scrollY = 0;
@@ -147,5 +158,4 @@ public class InputManager {
     public int getWindowWidth() { return windowWidth; }
     public int getWindowHeight() { return windowHeight; }
     public void setTypingMode(boolean typingMode) { this.typingMode = typingMode; }
-
 }

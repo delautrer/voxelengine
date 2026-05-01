@@ -25,11 +25,17 @@ public abstract class MenuScreen extends Screen {
     }
 
     public void handleMenuInput(InputManager input, float uiMouseX, float uiMouseY) {
-        List<UIElement> elementsCopy = new ArrayList<>(elements);
+        List<UIElement> elementsCopy = getFlattenedElements();
 
         for (UIElement element : elementsCopy) {
             if (element instanceof UIScrollableList) {
                 ((UIScrollableList) element).handleInput(input, uiMouseX, uiMouseY);
+            }
+            if (element instanceof UISlider) {
+                ((UISlider) element).handleInput(input, uiMouseX, uiMouseY);
+            }
+            if (element instanceof UIKeybindButton) {
+                ((UIKeybindButton) element).handleInput(input, uiMouseX, uiMouseY);
             }
         }
 
@@ -79,6 +85,22 @@ public abstract class MenuScreen extends Screen {
             }
         } else {
             input.consumeTypedChars();
+        }
+    }
+
+    private List<UIElement> getFlattenedElements() {
+        List<UIElement> flatList = new ArrayList<>();
+        flattenRecursive(elements, flatList);
+        return flatList;
+    }
+
+    private void flattenRecursive(List<UIElement> source, List<UIElement> target) {
+        for (UIElement el : source) {
+            if (el instanceof UILayout) {
+                flattenRecursive(((UILayout) el).getChildren(), target);
+            } else {
+                target.add(el);
+            }
         }
     }
 

@@ -4,6 +4,7 @@ import de.delautrer.game.entity.player.LocalPlayer;
 import de.delautrer.game.states.PlayScene;
 import de.delautrer.game.ui.elements.UIButton;
 import de.delautrer.game.ui.elements.UIElement;
+import de.delautrer.game.ui.elements.UIVBox;
 import de.delautrer.game.ui.UIMeshBuilder;
 import org.joml.Vector3f;
 
@@ -22,13 +23,11 @@ public class DeathScreen extends MenuScreen {
         elements.clear();
         float btnWidth = 320;
         float btnHeight = 40;
-        float centerX = (width - btnWidth) / 2.0f;
-        float centerY = height / 2.0f;
 
-        // Respawn Button
-        elements.add(new UIButton(centerX, centerY - 20, btnWidth, btnHeight, "Respawn", () -> {
+        UIVBox menuBox = new UIVBox(0, 0, 20.0f);
+
+        menuBox.addChild(new UIButton(0, 0, btnWidth, btnHeight, "Respawn", () -> {
             player.respawn(playScene.getWorld().getWorldSpawnpoint());
-            // Danach Maus wieder fangen!
             org.lwjgl.glfw.GLFW.glfwSetInputMode(
                     playScene.getEngine().getWindow().getHandle(),
                     org.lwjgl.glfw.GLFW.GLFW_CURSOR,
@@ -37,17 +36,19 @@ public class DeathScreen extends MenuScreen {
             player.getCamera().resetMouseTracking();
         }));
 
-        // Main Menu Button
-        elements.add(new UIButton(centerX, centerY - 80, btnWidth, btnHeight, "Main Menu", () -> {
+        menuBox.addChild(new UIButton(0, 0, btnWidth, btnHeight, "Main Menu", () -> {
             isSaving = true;
             elements.clear();
             playScene.saveAndQuit();
         }));
+
+        // Leicht nach unten verschoben, um Platz für den Text zu machen
+        menuBox.setPosition((width - menuBox.getWidth()) / 2.0f, (height - menuBox.getHeight()) / 2.0f - 40.0f);
+        elements.add(menuBox);
     }
 
     @Override
     public void render(UIMeshBuilder builder, float mouseX, float mouseY) {
-        // Optional: Roter Tint über den Bildschirm
         builder.addAtlasQuad(0, 0, 0, width, height, 6, 0, 1, 1, false);
 
         if (isSaving) {

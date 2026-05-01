@@ -14,7 +14,7 @@ public class GameLogger {
             PrintStream fileOut = null;
 
             if (!isDev) {
-                File logDir = new File("logs");
+                File logDir = GamePaths.LOGS_DIR.toFile();
                 if (!logDir.exists()) logDir.mkdirs();
 
                 String dateStr = new SimpleDateFormat("yyyy-MM-dd").format(new Date());

@@ -10,6 +10,7 @@ import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.entity.player.PlayerInteraction;
+import de.delautrer.game.settings.SettingsManager;
 import de.delautrer.game.ui.ChatOverlay;
 import de.delautrer.game.ui.DebugOverlay;
 import de.delautrer.game.ui.UIRenderer;
@@ -98,13 +99,12 @@ public class MasterRenderer {
         float aspect = (float) renderer.getWidth() / (float) renderer.getHeight();
         Matrix4f view = camera.getViewMatrix();
 
-        // --- 1. NEU: View-Matrix ohne Translation (nur Rotation) ---
         Matrix4f viewRotOnly = new Matrix4f(view).setTranslation(0, 0, 0);
 
-        Matrix4f proj = new Matrix4f().perspective((float) Math.toRadians(45.0f), aspect, 0.01f, 1000.0f);
+        float fov = SettingsManager.get().fov;
+        Matrix4f proj = new Matrix4f().perspective((float) Math.toRadians(fov), aspect, 0.01f, 1000.0f);
         proj.m11(proj.m11() * -1); // Vulkan Y-Flip
 
-        // Die Camera-Relative MVP (für den Shader ohne Ruckeln!)
         Matrix4f mvpCameraRelative = new Matrix4f(proj).mul(viewRotOnly);
 
         RenderPacket packet = new RenderPacket();
@@ -132,7 +132,7 @@ public class MasterRenderer {
 
         packet.isUnderwater = interaction.getPlayer().isHeadInWater();
         packet.cameraPos = camera.getPosition();
-        packet.renderDistance = Constants.RENDERDISTANCE * 16.0f;
+        packet.renderDistance = SettingsManager.get().renderDistance * 16.0f;
 
         Vector3f skyColor = skyManager.getCurrentSkyColor();
         float intensity = skyManager.getGlobalLightIntensity();
@@ -222,7 +222,7 @@ public class MasterRenderer {
             packet.cameraPos = eye; // Sicherstellen, dass die Kamera-Pos für die Offset-Berechnung im Shader stimmt
         } else {
             packet.clipY = -999.0f;
-            packet.renderDistance = Constants.RENDERDISTANCE * 16.0f;
+            packet.renderDistance = SettingsManager.get().renderDistance * 16.0f;
             packet.proj = proj;
 
             // --- 4. NEU: Hier ebenfalls die rot-only Matrizen zuweisen ---
