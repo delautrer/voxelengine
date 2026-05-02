@@ -154,23 +154,31 @@ public class MasterRenderer {
         packet.selectedBlockPos = selectedBlockPos;
 
         // --- HIGHLIGHT & CRACKING MESH LÖSCHEN ---
-        if (dynamicHighlightMesh != null) {
+        /*if (dynamicHighlightMesh != null) {
             VK10.vkDeviceWaitIdle(vulkanContext.getDevice());
             dynamicHighlightMesh.cleanup();
             dynamicHighlightMesh = null;
-        }
+        }*/
+
+        /*
         if (packet.overlayMesh != null) {
             VK10.vkDeviceWaitIdle(vulkanContext.getDevice());
             packet.overlayMesh.cleanup();
             packet.overlayMesh = null;
         }
+        */
 
         if(selectedBlockPos != null) {
             byte selectedBlockId = world.getBlockAt(selectedBlockPos);
             Block block = BlockRegistry.get(selectedBlockId);
             BlockState state = world.getBlockState(selectedBlockPos);
 
-            dynamicHighlightMesh = new VulkanMesh(vulkanContext, block.getHighlightVertices(state), block.getHighlightIndices(state));
+            // Einfach nur updaten statt löschen und blockieren!
+            if (dynamicHighlightMesh == null) {
+                dynamicHighlightMesh = new VulkanMesh(vulkanContext, block.getHighlightVertices(state), block.getHighlightIndices(state));
+            } else {
+                dynamicHighlightMesh.updateMesh(block.getHighlightVertices(state), block.getHighlightIndices(state));
+            }
             packet.highlightMesh = dynamicHighlightMesh;
 
             // ==========================================
