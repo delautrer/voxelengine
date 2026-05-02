@@ -40,7 +40,11 @@ public class MasterRenderer {
     private VulkanMesh starMesh;
     private VulkanMesh cloudMesh;
     private VulkanMesh celestialMesh;
+
+    // --- NEU: Beide dynamischen Meshes werden dauerhaft gespeichert ---
     private VulkanMesh dynamicHighlightMesh;
+    private VulkanMesh dynamicOverlayMesh;
+
     private VulkanFont font;
 
     private final TextureStitcher.AtlasResult blockAtlas;
@@ -128,7 +132,6 @@ public class MasterRenderer {
         packet.starAlpha = skyManager.getStarAlpha();
         packet.timeOfDay = skyManager.getTimeOfDay();
         packet.celestialMesh = this.celestialMesh;
-        // ---------------------------
 
         packet.isUnderwater = interaction.getPlayer().isHeadInWater();
         packet.cameraPos = camera.getPosition();
@@ -153,27 +156,12 @@ public class MasterRenderer {
         Vector3i selectedBlockPos = interaction.getSelectedBlockPos();
         packet.selectedBlockPos = selectedBlockPos;
 
-        // --- HIGHLIGHT & CRACKING MESH LÖSCHEN ---
-        /*if (dynamicHighlightMesh != null) {
-            VK10.vkDeviceWaitIdle(vulkanContext.getDevice());
-            dynamicHighlightMesh.cleanup();
-            dynamicHighlightMesh = null;
-        }*/
-
-        /*
-        if (packet.overlayMesh != null) {
-            VK10.vkDeviceWaitIdle(vulkanContext.getDevice());
-            packet.overlayMesh.cleanup();
-            packet.overlayMesh = null;
-        }
-        */
-
         if(selectedBlockPos != null) {
             byte selectedBlockId = world.getBlockAt(selectedBlockPos);
             Block block = BlockRegistry.get(selectedBlockId);
             BlockState state = world.getBlockState(selectedBlockPos);
 
-            // Einfach nur updaten statt löschen und blockieren!
+            // HIGHLIGHT MESH UPDATE
             if (dynamicHighlightMesh == null) {
                 dynamicHighlightMesh = new VulkanMesh(vulkanContext, block.getHighlightVertices(state), block.getHighlightIndices(state));
             } else {
@@ -181,19 +169,16 @@ public class MasterRenderer {
             }
             packet.highlightMesh = dynamicHighlightMesh;
 
-            // ==========================================
-            // NEU: MINING CRACKING OVERLAY BERECHNEN
-            // ==========================================
+            // OVERLAY MESH UPDATE (Cracking)
             float miningProgress = interaction.getMiningProgressPercent();
             if (miningProgress > 0.0f) {
-                // Berechne Stage 0 bis 9
                 int stage = (int) Math.min(9, Math.floor(miningProgress * 10.0f));
                 String textureName = "destroy_stage_" + stage;
 
-                // Prüfen, ob die Textur im Atlas ist
                 if (blockAtlas.regions.containsKey(textureName)) {
                     float layer = blockAtlas.regions.get(textureName).layer;
-                    packet.overlayMesh = buildCrackingMesh(selectedBlockPos, layer);
+                    updateCrackingMesh(selectedBlockPos, layer);
+                    packet.overlayMesh = dynamicOverlayMesh;
                 }
             }
         } else {
@@ -208,7 +193,7 @@ public class MasterRenderer {
         packet.skyG = skyColor.y;
         packet.skyB = skyColor.z;
 
-        packet.hideUI = hideUI; // F1 Schalter weitergeben
+        packet.hideUI = hideUI;
 
         if (isIsoFrame) {
             packet.hideUI = true;
@@ -224,39 +209,34 @@ public class MasterRenderer {
 
             packet.view = new org.joml.Matrix4f().lookAt(new Vector3f((float)eye.x, (float)eye.y, (float)eye.z), new Vector3f((float)target.x, (float)target.y, (float)target.z), new org.joml.Vector3f(0, 1, 0));
 
-            // --- 3. NEU: Auch Iso-Ansicht relativ machen ---
             Matrix4f isoViewRotOnly = new Matrix4f(packet.view).setTranslation(0, 0, 0);
             packet.mvp = new org.joml.Matrix4f(packet.proj).mul(isoViewRotOnly);
-            packet.cameraPos = eye; // Sicherstellen, dass die Kamera-Pos für die Offset-Berechnung im Shader stimmt
+            packet.cameraPos = eye;
         } else {
             packet.clipY = -999.0f;
             packet.renderDistance = SettingsManager.get().renderDistance * 16.0f;
             packet.proj = proj;
 
-            // --- 4. NEU: Hier ebenfalls die rot-only Matrizen zuweisen ---
             packet.view = viewRotOnly;
             packet.mvp = mvpCameraRelative;
         }
 
+        // Der Draw-Call wird ausgeführt...
         boolean success = renderer.render(packet);
 
-        if (packet.overlayMesh != null) {
-            VK10.vkDeviceWaitIdle(vulkanContext.getDevice());
-            packet.overlayMesh.cleanup();
-        }
-
+        // ... und wir räumen NICHTS mehr auf! Das Cleanup am Ende des Frames entfällt komplett,
+        // da sich die Meshes im nächsten Frame von selbst überschreiben.
         return success;
     }
 
-    // Hilfsmethode, um den Crack-Würfel zu bauen
-    private VulkanMesh buildCrackingMesh(Vector3i pos, float layer) {
+    // --- NEU: Diese Methode baut keine neuen Meshes mehr, sondern updatet unser gespeichertes Mesh ---
+    private void updateCrackingMesh(Vector3i pos, float layer) {
         float x = pos.x, y = pos.y, z = pos.z;
-        float e = -0.005f; // Epsilon (leicht ausdehnen, damit es nicht z-fightet)
-        float s = 1.0f + 0.005f; // Size
+        float e = -0.005f;
+        float s = 1.0f + 0.005f;
 
-        // Format: x, y, z, r, g, b, a, u, v, layer, skyLight, blockLight (12 Floats)
-        float r = 1.0f, g = 1.0f, b = 1.0f, a = 1.0f; // Keine Verdunkelung
-        float sl = 1.0f, bl = 1.0f; // Volles Licht auf den Rissen
+        float r = 1.0f, g = 1.0f, b = 1.0f, a = 1.0f;
+        float sl = 1.0f, bl = 1.0f;
 
         float[] verts = {
                 // Front (-Z)
@@ -300,7 +280,11 @@ public class MasterRenderer {
                 22,23,20, 20,21,22  // Bottom
         };
 
-        return new VulkanMesh(vulkanContext, verts, inds);
+        if (dynamicOverlayMesh == null) {
+            dynamicOverlayMesh = new VulkanMesh(vulkanContext, verts, inds);
+        } else {
+            dynamicOverlayMesh.updateMesh(verts, inds);
+        }
     }
 
     public void recreate(PlayerInteraction interaction, InputManager input, DebugOverlay debugOverlay, MenuScreen pauseScreen, ChatOverlay chatOverlay) {
@@ -321,6 +305,8 @@ public class MasterRenderer {
         if (fontTexture != null) fontTexture.cleanup();
         if (uiRenderer != null) uiRenderer.cleanup();
         if (highlightMesh != null) highlightMesh.cleanup();
+        if (dynamicHighlightMesh != null) dynamicHighlightMesh.cleanup();
+        if (dynamicOverlayMesh != null) dynamicOverlayMesh.cleanup();
         if (font != null) font.cleanup();
         if (renderer != null) renderer.cleanup();
     }
