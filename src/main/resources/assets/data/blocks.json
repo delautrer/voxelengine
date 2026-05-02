@@ -1,0 +1,42 @@
+[
+  { "id": 1, "name": "grass_block", "type": "cube", "hardness": 0.6, "soundMaterial": "grass"},
+  { "id": 24, "name": "grass_block_slabs", "type": "slab", "hardness": 0.6, "soundMaterial": "grass" },
+  { "id": 25, "name": "grass_block_stairs", "type": "stair", "hardness": 0.6, "soundMaterial": "grass" },
+
+  { "id": 2, "name": "dirt", "type": "cube", "hardness": 0.5 },
+  { "id": 26, "name": "dirt_slabs", "type": "slab", "hardness": 0.5 },
+  { "id": 27, "name": "dirt_stairs", "type": "stair", "hardness": 0.5 },
+
+  { "id": 3, "name": "stone", "type": "cube", "hardness": 1.5, "soundMaterial": "rock" },
+  { "id": 28, "name": "stone_slabs", "type": "slab", "hardness": 1.5, "soundMaterial": "rock" },
+  { "id": 29, "name": "stone_stairs", "type": "stair", "hardness": 1.5, "soundMaterial": "rock" },
+
+  { "id": 4, "name": "water", "type": "water", "hardness": -1.0, "soundMaterial": "water" },
+  { "id": 5, "name": "glass", "type": "cube", "isTransparent": true, "hardness": 0.25 },
+  { "id": 6, "name": "leaves", "type": "leaves", "hardness": 0.2, "soundMaterial": "leaves" },
+  { "id": 7, "name": "torch", "type": "torch", "hardness": 0.0001, "lightEmission": 14 },
+  { "id": 8, "name": "bedrock", "type": "cube", "hardness": -1.0, "soundMaterial": "rock" },
+  { "id": 9, "name": "gravel", "type": "cube", "hardness": 0.6},
+  { "id": 10, "name": "sand", "type": "cube", "hardness": 0.5 },
+  { "id": 11, "name": "log", "type": "log", "hardness": 2.0, "soundMaterial": "wood" },
+
+  { "id": 12, "name": "grass", "type": "plant", "hardness": 0.0001, "soundMaterial": "leaves" },
+  { "id": 13, "name": "sandy_grass", "type": "plant", "hardness": 0.0001, "soundMaterial": "leaves" },
+  { "id": 14, "name": "poppy", "type": "plant", "hardness": 0.0001, "soundMaterial": "leaves" },
+  { "id": 15, "name": "dandelion", "type": "plant", "hardness": 0.0001, "soundMaterial": "leaves" },
+  { "id": 16, "name": "dotty", "type": "plant", "hardness": 0.0001, "soundMaterial": "leaves" },
+  { "id": 17, "name": "fairy_bell", "type": "plant", "hardness": 0.0001, "soundMaterial": "leaves" },
+  { "id": 18, "name": "red_tulip", "type": "plant", "hardness": 0.0001, "soundMaterial": "leaves" },
+  { "id": 19, "name": "purple_tulip", "type": "plant", "hardness": 0.0001, "soundMaterial": "leaves" },
+  { "id": 23, "name": "mavvinilia", "type": "plant", "hardness": 0.0001, "soundMaterial": "leaves" },
+
+  { "id": 20, "name": "planks", "type": "cube", "hardness": 2.0, "soundMaterial": "wood" },
+  { "id": 21, "name": "stairs", "type": "stair", "hardness": 2.0, "soundMaterial": "wood" },
+  { "id": 22, "name": "slabs", "type": "slab", "hardness": 2.0, "soundMaterial": "wood" },
+
+  { "id": 30, "name": "bricks", "type": "cube", "hardness": 2.0 },
+  { "id": 31, "name": "bricks_stairs", "type": "stair", "hardness": 2.0 },
+  { "id": 32, "name": "bricks_slabs", "type": "slab", "hardness": 2.0 },
+
+  { "id": 33, "name": "chest", "type": "chest", "hardness": 1.42, "soundMaterial": "wood" }
+]

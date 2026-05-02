@@ -2,6 +2,7 @@ package de.delautrer.game.states;
 
 import de.delautrer.Constants;
 import de.delautrer.engine.MasterRenderer;
+import de.delautrer.engine.audio.AudioEngine;
 import de.delautrer.engine.events.EventBus;
 import de.delautrer.engine.events.EventListener;
 import de.delautrer.engine.graphics.MeshData;
@@ -516,6 +517,8 @@ public class PlayScene extends Scene {
         uiNeedsRebuild = true;
     }
 
+
+    public AudioEngine getAudioEngine() { return this.engine.getAudioEngine(); }
 
     public World getWorld() {
         return world;

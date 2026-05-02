@@ -1,0 +1,63 @@
+{
+  "materialName": "sand",
+  "actions": {
+    "jump_land": [
+      "/assets/sounds/footsteps/sand/jump/land01.ogg",
+      "/assets/sounds/footsteps/sand/jump/land02.ogg",
+      "/assets/sounds/footsteps/sand/jump/land03.ogg",
+      "/assets/sounds/footsteps/sand/jump/land04.ogg",
+      "/assets/sounds/footsteps/sand/jump/land05.ogg"
+    ],
+    "jump_start": [
+      "/assets/sounds/footsteps/sand/jump/start01.ogg",
+      "/assets/sounds/footsteps/sand/jump/start02.ogg",
+      "/assets/sounds/footsteps/sand/jump/start03.ogg",
+      "/assets/sounds/footsteps/sand/jump/start04.ogg",
+      "/assets/sounds/footsteps/sand/jump/start05.ogg"
+    ],
+    "run": [
+      "/assets/sounds/footsteps/sand/run/run01.ogg",
+      "/assets/sounds/footsteps/sand/run/run02.ogg",
+      "/assets/sounds/footsteps/sand/run/run03.ogg",
+      "/assets/sounds/footsteps/sand/run/run04.ogg",
+      "/assets/sounds/footsteps/sand/run/run05.ogg",
+      "/assets/sounds/footsteps/sand/run/run06.ogg",
+      "/assets/sounds/footsteps/sand/run/run07.ogg",
+      "/assets/sounds/footsteps/sand/run/run08.ogg",
+      "/assets/sounds/footsteps/sand/run/run09.ogg",
+      "/assets/sounds/footsteps/sand/run/run10.ogg",
+      "/assets/sounds/footsteps/sand/run/run11.ogg",
+      "/assets/sounds/footsteps/sand/run/run12.ogg",
+      "/assets/sounds/footsteps/sand/run/run13.ogg",
+      "/assets/sounds/footsteps/sand/run/run14.ogg",
+      "/assets/sounds/footsteps/sand/run/run15.ogg",
+      "/assets/sounds/footsteps/sand/run/run16.ogg",
+      "/assets/sounds/footsteps/sand/run/run17.ogg",
+      "/assets/sounds/footsteps/sand/run/run18.ogg",
+      "/assets/sounds/footsteps/sand/run/run19.ogg",
+      "/assets/sounds/footsteps/sand/run/run20.ogg"
+    ],
+    "walk": [
+      "/assets/sounds/footsteps/sand/walk/walk01.ogg",
+      "/assets/sounds/footsteps/sand/walk/walk02.ogg",
+      "/assets/sounds/footsteps/sand/walk/walk03.ogg",
+      "/assets/sounds/footsteps/sand/walk/walk04.ogg",
+      "/assets/sounds/footsteps/sand/walk/walk05.ogg",
+      "/assets/sounds/footsteps/sand/walk/walk06.ogg",
+      "/assets/sounds/footsteps/sand/walk/walk07.ogg",
+      "/assets/sounds/footsteps/sand/walk/walk08.ogg",
+      "/assets/sounds/footsteps/sand/walk/walk09.ogg",
+      "/assets/sounds/footsteps/sand/walk/walk10.ogg",
+      "/assets/sounds/footsteps/sand/walk/walk11.ogg",
+      "/assets/sounds/footsteps/sand/walk/walk12.ogg",
+      "/assets/sounds/footsteps/sand/walk/walk13.ogg",
+      "/assets/sounds/footsteps/sand/walk/walk14.ogg",
+      "/assets/sounds/footsteps/sand/walk/walk15.ogg",
+      "/assets/sounds/footsteps/sand/walk/walk16.ogg",
+      "/assets/sounds/footsteps/sand/walk/walk17.ogg",
+      "/assets/sounds/footsteps/sand/walk/walk18.ogg",
+      "/assets/sounds/footsteps/sand/walk/walk19.ogg",
+      "/assets/sounds/footsteps/sand/walk/walk20.ogg"
+    ]
+  }
+}

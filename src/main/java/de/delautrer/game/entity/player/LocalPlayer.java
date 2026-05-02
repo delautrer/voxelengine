@@ -1,5 +1,8 @@
 package de.delautrer.game.entity.player;
 
+import de.delautrer.engine.audio.SoundAction;
+import de.delautrer.engine.audio.SoundManager;
+import de.delautrer.engine.audio.SoundMaterial;
 import de.delautrer.engine.events.EventBus;
 import de.delautrer.engine.graphics.Camera;
 import de.delautrer.engine.graphics.VulkanContext;
@@ -29,6 +32,8 @@ public class LocalPlayer extends Player {
     private double cameraVisualYOffset = 0.0;
     private final float jumpForce = 9.0f;
     private final float speed = 5.0f;
+
+    private float distanceWalked = 0.0f;
 
     private Block headBlock = BlockRegistry.AIR;
     private double fallDistance = 0.0;
@@ -180,6 +185,12 @@ public class LocalPlayer extends Player {
                 chunkManager.getWorld().spawnEntity(itemEntity);
 
                 eventBus.publish(new PlayerItemDropEvent(this, dropStack));
+
+                // TODO: DROP SOUNDS
+                /*
+                float randomPitch = 0.9f + (float) (Math.random() * 0.2f);
+                SoundLibrary.playSound(SoundAction.DROP, SoundMaterial.NONE, randomPitch);
+                 */
             }
         }
 
@@ -336,6 +347,7 @@ public class LocalPlayer extends Player {
                 } else if (onGround && input.isActionActive("JUMP")) {
                     velocity.y = jumpForce;
                     onGround = false;
+                    playMovementSound(chunkManager, "jump_start", 0.6f);
                 }
             }
         } else {
@@ -362,12 +374,21 @@ public class LocalPlayer extends Player {
         double deltaY = position.y - prevY;
 
         // ==========================================
-        // NEU: Fallschaden Logik
+        // Fallschaden & Eintauch-Logik
         // ==========================================
-        if (!wasOnGround && onGround) {
-            // Spieler ist gerade gelandet
+
+        // --- NEU: Eintauchen in Wasser (oder Laub/Blumen) erkennen ---
+        if (!wasInWater && isInWater && !onGround) {
+            // Wir sind ins Wasser gefallen!
+            playMovementSound(chunkManager, "jump_land", 0.8f);
+            fallDistance = 0.0f; // Wasser fängt den Sturz ab
+        }
+
+        // --- Normale harte Landung auf Boden ---
+        if (!wasOnGround && onGround && !isInWater) {
+            playMovementSound(chunkManager, "jump_land", 0.7f);
+
             if (fallDistance > 3.0f && gameMode == GameMode.SURVIVAL) {
-                // Minecraft-Formel: Schaden = Gefallene Blöcke - 3
                 float dmg = (float) Math.floor(fallDistance - 3.0f);
                 if (dmg > 0) {
                     this.damage(dmg);
@@ -377,15 +398,53 @@ public class LocalPlayer extends Player {
                     System.out.println("[Damage] Falldamage: " + dmg + " | HP left: " + getHealth());
                 }
             }
-            fallDistance = 0.0f; // Reset beim Landen
+            fallDistance = 0.0f;
         } else if (!onGround && deltaY < 0 && !isFlying && !isInWater) {
-            // Spieler fällt gerade nach unten
+            // Wir fallen durch die Luft
             fallDistance += Math.abs(deltaY);
         } else if (isFlying || isInWater) {
-            // Im Wasser oder beim Fliegen wird der Fallschaden resettet
+            // Im Wasser oder beim Fliegen gibt es keinen Fallschaden
             fallDistance = 0.0f;
         }
+
+        // Status für den nächsten Frame merken
         wasOnGround = onGround;
+        wasInWater = isInWater; // NEU
+        // ==========================================
+
+        // ==========================================
+        // Laufgeräusche (Schritte & Durchlaufen)
+        // ==========================================
+        // Wir erlauben Sounds jetzt auch im Wasser! (!isFlying statt onGround erzwingen)
+        if (!isFlying && (Math.abs(velocity.x) > 0.1f || Math.abs(velocity.z) > 0.1f || (isInWater && Math.abs(velocity.y) > 0.1f))) {
+
+            // Reale Bewegungsgeschwindigkeit berechnen (im Wasser auch hoch/runter beachten)
+            float moveSpeed = (float) Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
+            if (isInWater) moveSpeed += Math.abs(velocity.y);
+
+            distanceWalked += moveSpeed * deltaTime;
+
+            // Schwellenwert: Wann kommt der nächste Sound?
+            float stepThreshold = isSprinting ? 1.4f : 1.2f;
+            if (isInWater)
+                if (isSwimming) stepThreshold = 5.4f;
+                else            stepThreshold = 1.5f;
+
+
+            if (distanceWalked > stepThreshold) {
+                distanceWalked = 0.0f; // Reset
+
+                // Ob Sprinten oder Gehen entscheiden
+                String action = isSprinting ? "run" : "walk";
+
+                // Sound abspielen!
+                playMovementSound(chunkManager, action, 0.4f);
+            }
+        } else {
+            // Wenn wir ruhig stehen oder fliegen, Schritte zurücksetzen
+            distanceWalked = 0.0f;
+        }
+
         // ==========================================
 
         if (deltaY > 0.0f && deltaY <= stepHeight && onGround) {
@@ -528,4 +587,27 @@ public class LocalPlayer extends Player {
         return new Vector3d(position.x, position.y + (this.height * 0.9f), position.z);
     }
 
+    private void playMovementSound(ChunkManager chunkManager, String action, float volume) {
+        int bx = (int) Math.floor(position.x);
+        int byFeet = (int) Math.floor(position.y + 0.1f); // Exakt auf Fußhöhe
+        int bz = (int) Math.floor(position.z);
+
+        // 1. PRIORITÄT: Stehen wir IN einem Block? (Wasser, hohes Gras, Blumen)
+        byte blockInsideId = chunkManager.getWorld().getBlockAt(bx, byFeet, bz);
+        Block blockInside = BlockRegistry.get(blockInsideId);
+
+        if (blockInsideId != 0 && (!blockInside.isSolid || blockInside == BlockRegistry.WATER)) {
+            SoundManager.playEvent(blockInside.getSoundMaterialName(), action, volume);
+            return; // Sound abgespielt -> Wir brechen hier ab!
+        }
+
+        // 2. PRIORITÄT: Worauf stehen wir? (Fester Boden)
+        int footY = (int) Math.floor(position.y - 0.2f);
+        byte groundBlockId = chunkManager.getWorld().getBlockAt(bx, footY, bz);
+
+        if (groundBlockId != 0) {
+            Block groundBlock = BlockRegistry.get(groundBlockId);
+            SoundManager.playEvent(groundBlock.getSoundMaterialName(), action, volume);
+        }
+    }
 }

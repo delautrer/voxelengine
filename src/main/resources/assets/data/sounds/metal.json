@@ -1,0 +1,51 @@
+{
+  "materialName": "metal",
+  "actions": {
+    "jump_land": [
+      "/assets/sounds/footsteps/metal/jump/land01.ogg",
+      "/assets/sounds/footsteps/metal/jump/land02.ogg",
+      "/assets/sounds/footsteps/metal/jump/land03.ogg",
+      "/assets/sounds/footsteps/metal/jump/land04.ogg"
+    ],
+    "jump_start": [
+      "/assets/sounds/footsteps/metal/jump/start01.ogg",
+      "/assets/sounds/footsteps/metal/jump/start02.ogg",
+      "/assets/sounds/footsteps/metal/jump/start03.ogg",
+      "/assets/sounds/footsteps/metal/jump/start04.ogg"
+    ],
+    "run": [
+      "/assets/sounds/footsteps/metal/run/run01.ogg",
+      "/assets/sounds/footsteps/metal/run/run02.ogg",
+      "/assets/sounds/footsteps/metal/run/run03.ogg",
+      "/assets/sounds/footsteps/metal/run/run04.ogg",
+      "/assets/sounds/footsteps/metal/run/run05.ogg",
+      "/assets/sounds/footsteps/metal/run/run06.ogg",
+      "/assets/sounds/footsteps/metal/run/run07.ogg",
+      "/assets/sounds/footsteps/metal/run/run08.ogg",
+      "/assets/sounds/footsteps/metal/run/run09.ogg",
+      "/assets/sounds/footsteps/metal/run/run10.ogg",
+      "/assets/sounds/footsteps/metal/run/run11.ogg",
+      "/assets/sounds/footsteps/metal/run/run12.ogg",
+      "/assets/sounds/footsteps/metal/run/run13.ogg",
+      "/assets/sounds/footsteps/metal/run/run14.ogg",
+      "/assets/sounds/footsteps/metal/run/run15.ogg"
+    ],
+    "walk": [
+      "/assets/sounds/footsteps/metal/walk/walk01.ogg",
+      "/assets/sounds/footsteps/metal/walk/walk02.ogg",
+      "/assets/sounds/footsteps/metal/walk/walk03.ogg",
+      "/assets/sounds/footsteps/metal/walk/walk04.ogg",
+      "/assets/sounds/footsteps/metal/walk/walk05.ogg",
+      "/assets/sounds/footsteps/metal/walk/walk06.ogg",
+      "/assets/sounds/footsteps/metal/walk/walk07.ogg",
+      "/assets/sounds/footsteps/metal/walk/walk08.ogg",
+      "/assets/sounds/footsteps/metal/walk/walk09.ogg",
+      "/assets/sounds/footsteps/metal/walk/walk10.ogg",
+      "/assets/sounds/footsteps/metal/walk/walk11.ogg",
+      "/assets/sounds/footsteps/metal/walk/walk12.ogg",
+      "/assets/sounds/footsteps/metal/walk/walk13.ogg",
+      "/assets/sounds/footsteps/metal/walk/walk14.ogg",
+      "/assets/sounds/footsteps/metal/walk/walk15.ogg"
+    ]
+  }
+}

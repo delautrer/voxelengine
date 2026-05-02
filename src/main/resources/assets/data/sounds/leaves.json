@@ -1,0 +1,29 @@
+{
+  "materialName": "leaves",
+  "actions": {
+    "jump_land": [
+      "/assets/sounds/footsteps/leaves/jump/land01.ogg",
+      "/assets/sounds/footsteps/leaves/jump/land02.ogg"
+    ],
+    "jump_start": [
+      "/assets/sounds/footsteps/leaves/jump/start01.ogg",
+      "/assets/sounds/footsteps/leaves/jump/start02.ogg"
+    ],
+    "run": [
+      "/assets/sounds/footsteps/leaves/run/run01.ogg",
+      "/assets/sounds/footsteps/leaves/run/run02.ogg",
+      "/assets/sounds/footsteps/leaves/run/run03.ogg",
+      "/assets/sounds/footsteps/leaves/run/run04.ogg",
+      "/assets/sounds/footsteps/leaves/run/run05.ogg",
+      "/assets/sounds/footsteps/leaves/run/run06.ogg"
+    ],
+    "walk": [
+      "/assets/sounds/footsteps/leaves/walk/walk01.ogg",
+      "/assets/sounds/footsteps/leaves/walk/walk02.ogg",
+      "/assets/sounds/footsteps/leaves/walk/walk03.ogg",
+      "/assets/sounds/footsteps/leaves/walk/walk04.ogg",
+      "/assets/sounds/footsteps/leaves/walk/walk05.ogg",
+      "/assets/sounds/footsteps/leaves/walk/walk06.ogg"
+    ]
+  }
+}

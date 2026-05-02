@@ -1,0 +1,37 @@
+{
+  "materialName": "water",
+  "actions": {
+    "jump_land": [
+      "/assets/sounds/footsteps/water/jump/big01.ogg",
+      "/assets/sounds/footsteps/water/jump/big02.ogg",
+      "/assets/sounds/footsteps/water/jump/big03.ogg"
+    ],
+    "jump_start": [
+      "/assets/sounds/footsteps/water/jump/light01.ogg",
+      "/assets/sounds/footsteps/water/jump/light02.ogg",
+      "/assets/sounds/footsteps/water/jump/light03.ogg",
+      "/assets/sounds/footsteps/water/jump/light04.ogg",
+      "/assets/sounds/footsteps/water/jump/light05.ogg",
+      "/assets/sounds/footsteps/water/jump/light06.ogg"
+    ],
+    "run": [
+      "/assets/sounds/footsteps/water/run/run01.ogg",
+      "/assets/sounds/footsteps/water/run/run02.ogg",
+      "/assets/sounds/footsteps/water/run/run03.ogg",
+      "/assets/sounds/footsteps/water/run/run04.ogg",
+      "/assets/sounds/footsteps/water/run/run05.ogg"
+    ],
+    "walk": [
+      "/assets/sounds/footsteps/water/walk/walk01.ogg",
+      "/assets/sounds/footsteps/water/walk/walk02.ogg",
+      "/assets/sounds/footsteps/water/walk/walk03.ogg",
+      "/assets/sounds/footsteps/water/walk/walk04.ogg",
+      "/assets/sounds/footsteps/water/walk/walk05.ogg",
+      "/assets/sounds/footsteps/water/walk/walk06.ogg",
+      "/assets/sounds/footsteps/water/walk/walk07.ogg",
+      "/assets/sounds/footsteps/water/walk/walk08.ogg",
+      "/assets/sounds/footsteps/water/walk/walk09.ogg",
+      "/assets/sounds/footsteps/water/walk/walk10.ogg"
+    ]
+  }
+}

@@ -1,5 +1,6 @@
 package de.delautrer.game.blocks;
 
+import de.delautrer.engine.audio.SoundMaterial;
 import de.delautrer.engine.physics.AABB;
 import de.delautrer.game.blocks.entities.BlockEntity;
 import de.delautrer.game.blocks.models.BlockModelData;
@@ -32,6 +33,8 @@ public abstract class Block {
 
     private BlockState defaultState;
     private BlockState[] stateArray;
+
+    private String soundMaterialName;
 
     public Block(boolean isSolid, boolean isTransparent) {
         this(isSolid, isTransparent, false, true);
@@ -198,4 +201,14 @@ public abstract class Block {
         return this;
     }
     public String getLootTable() { return lootTable; }
+
+    public Block setSoundMaterialName(String soundMaterialName) {
+        if (this.soundMaterialName != null) return this;
+        this.soundMaterialName = soundMaterialName;
+        return this;
+    }
+
+    public String getSoundMaterialName() {
+        return soundMaterialName;
+    }
 }

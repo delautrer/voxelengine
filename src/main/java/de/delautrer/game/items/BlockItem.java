@@ -1,5 +1,7 @@
 package de.delautrer.game.items;
 
+import de.delautrer.engine.audio.SoundAction;
+import de.delautrer.engine.audio.SoundManager;
 import de.delautrer.engine.physics.Raycaster;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
@@ -82,6 +84,9 @@ public class BlockItem extends Item {
                 } else {
                     world.setBlockState(placePos.x, placePos.y, placePos.z, newState);
                 }
+
+                SoundManager.playEvent(this.block.getSoundMaterialName(), "walk", 0.4f);
+
 
                 return true;
             }

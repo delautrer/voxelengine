@@ -1,13 +1,7 @@
 {
 	"folders": [
 		{
-			"path": "src/main/resources/assets/models/block"
-		},
-		{
-			"path": "src/main/resources/assets/models/item"
-		},
-		{
-			"path": "src/main/resources/assets/loot_tables"
+			"path": "src/main/resources/assets"
 		}
 	],
 	"settings": {}

@@ -1,5 +1,7 @@
 package de.delautrer.game.entity.player;
 
+import de.delautrer.engine.audio.SoundAction;
+import de.delautrer.engine.audio.SoundManager;
 import de.delautrer.engine.events.EventBus;
 import de.delautrer.engine.graphics.VulkanContext;
 import de.delautrer.engine.input.InputManager;
@@ -117,10 +119,23 @@ public class PlayerInteraction {
 
         if (input.isActionActive("INTERACT_BREAK")) {
             if (player.getGameMode() == GameMode.CREATIVE) {
-                // Im Creative Mode bleibt es Instant-Break
                 miningProgress = 0.0f;
                 currentlyMiningPos = null;
+
                 if (interactTimer <= 0) {
+                    if (selectedBlockPos != null) {
+                        // 1. Block-Info holen, SOLANGE ER NOCH DA IST
+                        byte blockId = world.getBlockAt(selectedBlockPos);
+                        Block targetBlock = BlockRegistry.get(blockId);
+
+                        // 2. Sound abspielen (bevor er gelöscht wird)
+                        if (targetBlock != null && blockId != 0) {
+                            // Wir nutzen "walk" als Platzhalter für den Break-Sound
+                            SoundManager.playEvent(targetBlock.getSoundMaterialName(), "walk", 0.4f);
+                        }
+                    }
+
+                    // 3. Erst jetzt den Block löschen
                     handleMouseClick(true);
                     interactTimer = INTERACT_COOLDOWN;
                 }
@@ -144,6 +159,10 @@ public class PlayerInteraction {
                         float requiredTime = targetBlock.getHardness() * 1.5f;
 
                         if (miningProgress >= requiredTime) {
+
+                            if (targetBlock != null && blockId != 0) {
+                                SoundManager.playEvent(targetBlock.getSoundMaterialName(), "walk", 0.4f);
+                            }
                             handleSurvivalBreak(targetBlock, blockId);
                             miningProgress = 0.0f;
                             currentlyMiningPos = null;

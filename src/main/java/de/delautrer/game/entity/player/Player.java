@@ -24,6 +24,7 @@ public class Player extends Entity {
     protected boolean isSwimming = false;
     protected boolean isInWater = false;
     protected boolean isHeadInWater = false;
+    protected boolean wasInWater = false;
 
     protected float swimProgress = 0.0f;
 

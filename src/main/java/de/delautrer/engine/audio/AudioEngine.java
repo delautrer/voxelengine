@@ -1,0 +1,138 @@
+package de.delautrer.engine.audio;
+
+import de.delautrer.engine.utils.AssetManager;
+import de.delautrer.game.settings.SettingsManager;
+import org.lwjgl.openal.AL;
+import org.lwjgl.openal.AL10;
+import org.lwjgl.openal.ALC;
+import org.lwjgl.openal.ALC10;
+import org.lwjgl.openal.ALCCapabilities;
+import org.lwjgl.stb.STBVorbis;
+import org.lwjgl.system.MemoryStack;
+
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.nio.ShortBuffer;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
+public class AudioEngine {
+    private long device;
+    private long context;
+
+    private final Map<String, Integer> soundBuffers = new HashMap<>();
+    private final Random random = new Random();
+
+    // --- NEU: Das Performance-Wunder (Source Pool) ---
+    private static final int MAX_SOURCES = 32; // 32 Gleichzeitige Sounds reichen für 99% aller Situationen
+    private final int[] sourcePool = new int[MAX_SOURCES];
+    private int nextSourceIndex = 0; // Für Round-Robin (noch schnelleres Finden freier Kanäle)
+
+    public void init() {
+        device = ALC10.alcOpenDevice((ByteBuffer) null);
+        ALCCapabilities deviceCaps = ALC.createCapabilities(device);
+        context = ALC10.alcCreateContext(device, (int[]) null);
+        ALC10.alcMakeContextCurrent(context);
+        AL.createCapabilities(deviceCaps);
+        updateListener();
+
+        // --- NEU: Wir generieren die Hardware-Kanäle EINZIGES MAL beim Start! ---
+        for (int i = 0; i < MAX_SOURCES; i++) {
+            sourcePool[i] = AL10.alGenSources();
+        }
+        System.out.println("[AudioEngine] Initialized with " + MAX_SOURCES + " pooled audio sources.");
+    }
+
+    public void updateListener() {
+        float masterVolume = SettingsManager.get().masterVolume;
+        AL10.alListenerf(AL10.AL_GAIN, masterVolume);
+        AL10.alListener3f(AL10.AL_POSITION, 0, 0, 0);
+    }
+
+    public void loadSound(String filepath) {
+        if (soundBuffers.containsKey(filepath)) return;
+
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            IntBuffer channelsBuffer = stack.mallocInt(1);
+            IntBuffer sampleRateBuffer = stack.mallocInt(1);
+
+            ByteBuffer fileBuffer = AssetManager.loadResource(filepath);
+            ShortBuffer pcm = STBVorbis.stb_vorbis_decode_memory(fileBuffer, channelsBuffer, sampleRateBuffer);
+
+            if (pcm == null) {
+                System.err.println("[AudioEngine] Warnung: Sound defekt oder nicht lesbar: " + filepath);
+                return;
+            }
+
+            int format = (channelsBuffer.get(0) == 1) ? AL10.AL_FORMAT_MONO16 : AL10.AL_FORMAT_STEREO16;
+            int bufferId = AL10.alGenBuffers();
+            AL10.alBufferData(bufferId, format, pcm, sampleRateBuffer.get(0));
+
+            org.lwjgl.system.libc.LibCStdlib.free(pcm);
+            soundBuffers.put(filepath, bufferId);
+        } catch (Exception e) {
+            System.err.println("[AudioEngine] Fehler beim Laden von: " + filepath);
+            e.printStackTrace();
+        }
+    }
+
+    private void playBuffer(int bufferId, float volume, float pitch) {
+        float sfxVolume = SettingsManager.get().sfxVolume;
+        if (sfxVolume <= 0.01f) return;
+
+        // --- NEU: Freien Kanal im Pool suchen (Round-Robin Methode) ---
+        int chosenSource = -1;
+
+        for (int i = 0; i < MAX_SOURCES; i++) {
+            int sourceId = sourcePool[nextSourceIndex];
+
+            // Zeiger weiterschieben
+            nextSourceIndex = (nextSourceIndex + 1) % MAX_SOURCES;
+
+            // Prüfen, ob der Kanal gerade schweigt
+            int state = AL10.alGetSourcei(sourceId, AL10.AL_SOURCE_STATE);
+            if (state != AL10.AL_PLAYING) {
+                chosenSource = sourceId;
+                break; // Gefunden! Schleife sofort abbrechen
+            }
+        }
+
+        // Wenn wir extrem viele Sounds abspielen (mehr als 32), wird der 33. Sound einfach ignoriert,
+        // anstatt das Spiel zum Absturz zu bringen.
+        if (chosenSource == -1) return;
+
+        // Sound auf den freien Kanal legen und abfeuern
+        AL10.alSourcei(chosenSource, AL10.AL_BUFFER, bufferId);
+        AL10.alSourcef(chosenSource, AL10.AL_GAIN, sfxVolume * volume);
+        AL10.alSourcef(chosenSource, AL10.AL_PITCH, pitch);
+        AL10.alSourcePlay(chosenSource);
+    }
+
+    public void playRandomFromList(List<String> filepaths, float volumeMult) {
+        if (filepaths == null || filepaths.isEmpty()) return;
+
+        String chosenPath = filepaths.get(random.nextInt(filepaths.size()));
+
+        Integer bufferId = soundBuffers.get(chosenPath);
+        if (bufferId != null) {
+            float randomPitch = 0.9f + (random.nextFloat() * 0.2f);
+            playBuffer(bufferId, volumeMult, randomPitch);
+        } else {
+            loadSound(chosenPath);
+            bufferId = soundBuffers.get(chosenPath);
+            if (bufferId != null) playBuffer(bufferId, volumeMult, 1.0f);
+        }
+    }
+
+    public void cleanup() {
+        for (int i = 0; i < MAX_SOURCES; i++) {
+            AL10.alSourceStop(sourcePool[i]);
+            AL10.alDeleteSources(sourcePool[i]);
+        }
+        for (int buffer : soundBuffers.values()) AL10.alDeleteBuffers(buffer);
+        if (context != 0) ALC10.alcDestroyContext(context);
+        if (device != 0) ALC10.alcCloseDevice(device);
+    }
+}

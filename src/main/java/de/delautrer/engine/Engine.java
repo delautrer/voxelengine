@@ -1,6 +1,8 @@
 package de.delautrer.engine;
 
 import de.delautrer.Constants;
+import de.delautrer.engine.audio.AudioEngine;
+import de.delautrer.engine.audio.SoundManager;
 import de.delautrer.engine.graphics.VulkanContext;
 import de.delautrer.engine.graphics.utils.TextureStitcher;
 import de.delautrer.engine.input.InputManager;
@@ -17,6 +19,7 @@ public class Engine {
     private Window window;
     private VulkanContext vulkanContext;
     private InputManager inputManager;
+    private AudioEngine audioEngine;
 
     private SceneManager sceneManager;
 
@@ -35,6 +38,11 @@ public class Engine {
     private void init() {
         window = new Window(1280, 720, "Voxel Engine - " + Constants.VERSION);
         window.disableCursor();
+
+        audioEngine = new AudioEngine();
+        audioEngine.init();
+        SoundManager.init(audioEngine);
+
         vulkanContext = new VulkanContext(window);
         inputManager = new InputManager(window.getHandle());
 
@@ -89,6 +97,7 @@ public class Engine {
         System.out.println("[Engine] Shutting down...");
         VK10.vkDeviceWaitIdle(vulkanContext.getDevice());
 
+        if (audioEngine != null) audioEngine.cleanup();
         sceneManager.cleanup();
         if (blockAtlas != null) blockAtlas.cleanup();
         if (itemAtlas != null) itemAtlas.cleanup();
@@ -98,6 +107,7 @@ public class Engine {
         System.out.println("[Engine] Gone. RIP lovely engine. See you soon my fren.");
     }
 
+    public AudioEngine getAudioEngine() { return audioEngine; }
     public SceneManager getSceneManager() { return sceneManager; }
     public Window getWindow() { return window; }
     public VulkanContext getVulkanContext() { return vulkanContext; }

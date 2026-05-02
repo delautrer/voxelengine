@@ -6,6 +6,7 @@ build/
 .kotlin
 *.log
 
+game_data/
 saves/
 screenshots/
 *_debug.png
