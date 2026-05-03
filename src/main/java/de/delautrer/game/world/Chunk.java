@@ -1,5 +1,6 @@
 package de.delautrer.game.world;
 
+import de.delautrer.Constants;
 import de.delautrer.engine.graphics.MeshData;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
@@ -36,7 +37,6 @@ public class Chunk {
         this.worldZ = worldZ;
         this.lastAccessedTime = System.currentTimeMillis();
     }
-
 
     private static class MeshBuffers {
         float[] opaqueVertices = new float[131072]; // Groß genug für 99% aller Chunks (512 KB)
@@ -83,7 +83,6 @@ public class Chunk {
         }
 
         ChunkMeshResult createResult() {
-            // Nur hier ganz am Ende wird einmalig exakt kopiert, damit wir Vulkan den Buffer geben können.
             float[] oVerts = new float[opaqueVertexCount];
             System.arraycopy(opaqueVertices, 0, oVerts, 0, opaqueVertexCount);
             int[] oInds = new int[opaqueIndexCount];
@@ -135,7 +134,7 @@ public class Chunk {
     }
     public BlockState getBlockState(int x, int y, int z) {
         byte blockId = getBlock(x, y, z);
-        if (blockId == 0) return BlockRegistry.AIR.getDefaultState();
+        if (blockId == 0) return BlockRegistry.get((byte)0).getDefaultState();
 
         byte stateId = getState(x, y, z);
         return BlockRegistry.get(blockId).getStateForId(stateId);
@@ -215,7 +214,7 @@ public class Chunk {
         boolean side2 = !BlockRegistry.get(getBlockAt(x + dx2, y + dy2, z + dz2, cm)).isTransparent;
         boolean corner = !BlockRegistry.get(getBlockAt(x + dx1 + dx2, y + dy1 + dy2, z + dz1 + dz2, cm)).isTransparent;
 
-        if (side1 && side2) return 0.75f; // Vorher: 0.5f
+        if (side1 && side2) return 0.75f;
 
         int count = (side1 ? 1 : 0) + (side2 ? 1 : 0) + (corner ? 1 : 0);
         return switch (count) {
@@ -238,7 +237,7 @@ public class Chunk {
             if (blockId != 0) {
                 Block block = BlockRegistry.get(blockId);
                 if (block != null && block.isTransparent) {
-                    if (block.getId() == BlockRegistry.WATER.getId()) {
+                    if (block.getId() == BlockRegistry.get(Constants.NAMESPACE + ":water").getId()) {
                         currentLight = Math.max(0, currentLight - 2);
                     }
                 } else {
@@ -272,11 +271,17 @@ public class Chunk {
 
     // Biome
     public void setBiome(int x, int z, Biome biome) {
+        if (x < 0 || x >= SIZE || z < 0 || z >= SIZE) return;
         this.biomeMap[getBiomeIndex(x, z)] = biome;
     }
 
     public Biome getBiome(int x, int z) {
-        return this.biomeMap[getBiomeIndex(x, z)];
+        // Sicherstellen, dass die Koordinaten lokal sind, um IndexOutOfBounds zu vermeiden
+        if (x < 0 || x >= SIZE || z < 0 || z >= SIZE) {
+            return Biome.PLAINS;
+        }
+        Biome b = this.biomeMap[getBiomeIndex(x, z)];
+        return b != null ? b : Biome.PLAINS;
     }
 
     // Rendering
@@ -311,8 +316,7 @@ public class Chunk {
                         float bl0, float bl1, float bl2, float bl3) {
 
         MeshBuffers buf = MESH_BUFFER.get();
-        boolean isWater = (block == BlockRegistry.WATER);
-        //float ox = worldX * SIZE, oz = worldZ * SIZE;
+        boolean isWater = (block == BlockRegistry.get(Constants.NAMESPACE + ":water"));
 
         // Kapazitäten prüfen
         if (isWater) buf.ensureWater(48, 6);
@@ -376,9 +380,7 @@ public class Chunk {
         if (isWater) buf.waterIndexCount = iIdx; else buf.opaqueIndexCount = iIdx;
     }
 
-    public void clearMeshCache() {
-
-    }
+    public void clearMeshCache() {}
 
     public static float[] getHighlightVertices() { return highlightVertices; }
     public static int[] getHighlightIndices() { return highlightIndices; }
@@ -395,6 +397,13 @@ public class Chunk {
             dos.write(blocks);
             dos.write(states);
             dos.write(lightMap);
+
+            // Neu: Biome-Map mitspeichern (als Bytes)
+            byte[] biomeBytes = new byte[SIZE * SIZE];
+            for (int i = 0; i < biomeMap.length; i++) {
+                biomeBytes[i] = biomeMap[i] != null ? (byte) biomeMap[i].ordinal() : 0;
+            }
+            dos.write(biomeBytes);
         }
         return baos.toByteArray();
     }
@@ -413,13 +422,31 @@ public class Chunk {
             dis.readFully(blocks);
             dis.readFully(states);
             dis.readFully(lightMap);
+
+            // Neu: Biome-Map wieder laden, falls in der Datei vorhanden
+            try {
+                byte[] biomeBytes = new byte[SIZE * SIZE];
+                dis.readFully(biomeBytes);
+                Biome[] biomeValues = Biome.values();
+                for (int i = 0; i < biomeBytes.length; i++) {
+                    int ordinal = biomeBytes[i] & 0xFF;
+                    if (ordinal >= 0 && ordinal < biomeValues.length) {
+                        biomeMap[i] = biomeValues[ordinal];
+                    } else {
+                        biomeMap[i] = Biome.PLAINS;
+                    }
+                }
+            } catch (EOFException e) {
+                // Rückwärtskompatibilität: Falls ein alter Chunk ohne Biome geladen wird
+                for (int i = 0; i < biomeMap.length; i++) {
+                    biomeMap[i] = Biome.PLAINS;
+                }
+            }
         }
         this.clearDirty();
     }
 
     // Getter & Setter
-
-    // X rückt um 12 bit nach links, Z um 8 bit, Y füllt die ersten 8 bit.
     private int getIndex(int x, int y, int z) {
         return (x << 12) | (z << 8) | y;
     }
@@ -433,18 +460,10 @@ public class Chunk {
         this.isDirty = true;
         this.needsMeshUpdate = true;
     }
-    public boolean isDirty() {
-        return isDirty;
-    }
-    public void clearDirty() {
-        this.isDirty = false;
-    }
+    public boolean isDirty() { return isDirty; }
+    public void clearDirty() { this.isDirty = false; }
     public boolean needsMeshUpdate() { return needsMeshUpdate; }
     public void clearMeshUpdate() { this.needsMeshUpdate = false; }
-    public void access() {
-        this.lastAccessedTime = System.currentTimeMillis();
-    }
-    public long getLastAccessedTime() {
-        return lastAccessedTime;
-    }
+    public void access() { this.lastAccessedTime = System.currentTimeMillis(); }
+    public long getLastAccessedTime() { return lastAccessedTime; }
 }

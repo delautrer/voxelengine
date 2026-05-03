@@ -1,5 +1,6 @@
 package de.delautrer.game.world.generation;
 
+import de.delautrer.Constants;
 import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.world.Biome;
@@ -10,12 +11,12 @@ public class SurfacePass implements IGenerationPass {
 
     private NoiseGenerator detailNoise;
 
-    private final BlockState stone = BlockRegistry.STONE.getDefaultState();
-    private final BlockState air = BlockRegistry.AIR.getDefaultState();
-    private final BlockState water = BlockRegistry.WATER.getDefaultState();
-    private final BlockState dirt = BlockRegistry.DIRT.getDefaultState();
-    private final BlockState sand = BlockRegistry.SAND.getDefaultState();
-    private final BlockState gravel = BlockRegistry.GRAVEL.getDefaultState();
+    private final BlockState stone = BlockRegistry.get(Constants.NAMESPACE + ":stone").getDefaultState();
+    private final BlockState air = BlockRegistry.get(Constants.NAMESPACE + ":air").getDefaultState();
+    private final BlockState water = BlockRegistry.get(Constants.NAMESPACE + ":water").getDefaultState();
+    private final BlockState dirt = BlockRegistry.get(Constants.NAMESPACE + ":dirt").getDefaultState();
+    private final BlockState sand = BlockRegistry.get(Constants.NAMESPACE + ":sand").getDefaultState();
+    private final BlockState gravel = BlockRegistry.get(Constants.NAMESPACE + ":gravel").getDefaultState();
 
     private static final int WATER_LEVEL = 60;
 
@@ -47,17 +48,24 @@ public class SurfacePass implements IGenerationPass {
 
                         if (soilDepth == 0) {
                             Biome b = chunk.getBiome(x, z);
+
+                            // 1. Ozeanboden & Strände
                             if (b == Biome.OCEAN && y < WATER_LEVEL) {
                                 topMaterial = gravel; subMaterial = gravel;
                             } else if (isBeach) {
                                 topMaterial = sand; subMaterial = sand;
-                            } else if (y < WATER_LEVEL - 2) {
+                            }
+                            // 2. Unterwasser-Struktur
+                            else if (y < WATER_LEVEL - 2) {
                                 float floorDetail = detailNoise.getNoise(realX * 0.1f, realZ * 0.1f);
                                 if (floorDetail > 0.2f) { topMaterial = gravel; subMaterial = gravel; }
                                 else if (floorDetail < -0.2f) { topMaterial = sand; subMaterial = sand; }
                                 else { topMaterial = dirt; subMaterial = dirt; }
-                            } else {
-                                topMaterial = b.surfaceBlock; subMaterial = b.subSurfaceBlock;
+                            }
+                            // 3. Biome-spezifische Oberfläche (Nutzt nun die Getter!)
+                            else {
+                                topMaterial = b.getSurfaceBlock();
+                                subMaterial = b.getSubSurfaceBlock();
                             }
                             chunk.setBlock(x, y, z, topMaterial.getBlock().getId(), topMaterial.getStateId());
                         } else if (soilDepth < 4) {

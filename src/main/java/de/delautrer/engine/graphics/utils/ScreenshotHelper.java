@@ -79,9 +79,6 @@ public class ScreenshotHelper {
 
             // 5. ASYNCHRON SPEICHERN (Verhindert den Lag!)
             new Thread(() -> {
-                File dir = new File("screenshots");
-                if (!dir.exists()) dir.mkdirs();
-
                 STBImageWrite.stbi_write_png(filepath, width, height, 4, ramData, width * 4);
                 System.out.println("[Screenshot] Saved: " + filepath);
 

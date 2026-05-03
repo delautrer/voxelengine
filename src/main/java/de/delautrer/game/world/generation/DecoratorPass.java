@@ -1,5 +1,6 @@
 package de.delautrer.game.world.generation;
 
+import de.delautrer.Constants;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.blocks.state.BlockProperties;
@@ -14,21 +15,21 @@ public class DecoratorPass implements IGenerationPass {
 
     private NoiseGenerator grassNoise;
 
-    private final BlockState air = BlockRegistry.AIR.getDefaultState();
-    private final BlockState grass_block = BlockRegistry.GRASS_BLOCK.getDefaultState();
-    private final BlockState sand = BlockRegistry.SAND.getDefaultState();
-    private final BlockState grass = BlockRegistry.GRASS.getDefaultState();
-    private final BlockState sandyGrass = BlockRegistry.SANDY_GRASS.getDefaultState();
-    private final BlockState poppy = BlockRegistry.POPPY.getDefaultState();
-    private final BlockState dandelion = BlockRegistry.DANDELION.getDefaultState();
-    private final BlockState dotty = BlockRegistry.DOTTY.getDefaultState();
-    private final BlockState fairy_bell = BlockRegistry.FAIRY_BELL.getDefaultState();
-    private final BlockState red_tulip = BlockRegistry.RED_TULIP.getDefaultState();
-    private final BlockState purple_tulip = BlockRegistry.PURPLE_TULIP.getDefaultState();
-    private final BlockState mavvinilia = BlockRegistry.MAVVINILIA.getDefaultState();
+    private final BlockState air = BlockRegistry.get(Constants.NAMESPACE + ":air").getDefaultState();
+    private final BlockState grass_block = BlockRegistry.get(Constants.NAMESPACE + ":grass_block").getDefaultState();
+    private final BlockState sand = BlockRegistry.get(Constants.NAMESPACE + ":sand").getDefaultState();
+    private final BlockState grass = BlockRegistry.get(Constants.NAMESPACE + ":grass").getDefaultState();
+    private final BlockState sandyGrass = BlockRegistry.get(Constants.NAMESPACE + ":sandy_grass").getDefaultState();
+    private final BlockState poppy = BlockRegistry.get(Constants.NAMESPACE + ":poppy").getDefaultState();
+    private final BlockState dandelion = BlockRegistry.get(Constants.NAMESPACE + ":dandelion").getDefaultState();
+    private final BlockState dotty = BlockRegistry.get(Constants.NAMESPACE + ":dotty").getDefaultState();
+    private final BlockState fairy_bell = BlockRegistry.get(Constants.NAMESPACE + ":fairy_bell").getDefaultState();
+    private final BlockState red_tulip = BlockRegistry.get(Constants.NAMESPACE + ":red_tulip").getDefaultState();
+    private final BlockState purple_tulip = BlockRegistry.get(Constants.NAMESPACE + ":purple_tulip").getDefaultState();
+    private final BlockState mavvinilia = BlockRegistry.get(Constants.NAMESPACE + ":mavvinilia").getDefaultState();
 
-    private final BlockState uprightLog = BlockRegistry.LOG.getDefaultState().with(de.delautrer.game.blocks.LogBlock.AXIS, BlockProperties.Axis.Y);
-    private final BlockState leaves = BlockRegistry.LEAVES.getDefaultState();
+    private final BlockState uprightLog = BlockRegistry.get(Constants.NAMESPACE + ":log").getDefaultState().with(de.delautrer.game.blocks.LogBlock.AXIS, BlockProperties.Axis.Y);
+    private final BlockState leaves = BlockRegistry.get(Constants.NAMESPACE + ":leaves").getDefaultState();
 
     private static final int WATER_LEVEL = 60;
 
@@ -41,16 +42,30 @@ public class DecoratorPass implements IGenerationPass {
         int worldX = chunk.getWorldX();
         int worldZ = chunk.getWorldZ();
 
-        // --- 1. BÄUME ---
+        // --- 1. BÄUME GENERIEREN ---
         long treeSeed = seed ^ ((long)worldX * 8934571L + (long)worldZ * 4392871L);
         Random treeRandom = new Random(treeSeed);
 
-        int numTrees = 0;
+        // Wir prüfen das Biome in der Mitte des Chunks für die grobe Baumdichte
         Biome centerBiome = chunk.getBiome(Chunk.SIZE / 2, Chunk.SIZE / 2);
+        int numTrees = 0;
 
-        if (centerBiome == Biome.HILLS) numTrees = treeRandom.nextInt(5);
-        else if (centerBiome == Biome.PLAINS) numTrees = treeRandom.nextInt(2);
-        else if (centerBiome == Biome.MOUNTAINS && treeRandom.nextInt(3) == 0) numTrees = 1;
+        switch (centerBiome) {
+            case FOREST:
+                numTrees = treeRandom.nextInt(6) + 2; // 2 bis 7 Bäume pro Chunk (Dichter Wald)
+                break;
+            case PLAINS:
+            case HILLS:
+                numTrees = treeRandom.nextInt(2); // 0 bis 1 Baum (Offene Ebene)
+                break;
+            case MOUNTAINS:
+                if (treeRandom.nextInt(4) == 0) numTrees = 1; // Sehr selten ein Baum
+                break;
+            case DESERT:
+            case OCEAN:
+                numTrees = 0; // Keine Bäume in der Wüste oder im Ozean
+                break;
+        }
 
         for (int i = 0; i < numTrees; i++) {
             int tx = treeRandom.nextInt(Chunk.SIZE - 4) + 2;
@@ -68,11 +83,13 @@ public class DecoratorPass implements IGenerationPass {
             }
         }
 
-        // --- 2. FLORA ---
+        // --- 2. FLORA GENERIEREN ---
         for (int x = 0; x < Chunk.SIZE; x++) {
             for (int z = 0; z < Chunk.SIZE; z++) {
                 float realX = (worldX * Chunk.SIZE + x);
                 float realZ = (worldZ * Chunk.SIZE + z);
+
+                Biome localBiome = chunk.getBiome(x, z);
 
                 for (int y = Chunk.HEIGHT - 2; y >= WATER_LEVEL; y--) {
                     byte blockAtPos = chunk.getBlock(x, y, z);
@@ -80,9 +97,12 @@ public class DecoratorPass implements IGenerationPass {
                     if (blockAtPos == air.getBlock().getId() || blockAtPos == leaves.getBlock().getId() || blockAtPos == uprightLog.getBlock().getId()) continue;
                     if (chunk.getBlock(x, y + 1, z) != air.getBlock().getId()) break;
 
+                    // GRAS & BLUMEN (Nur in Plains, Forest, Hills)
                     if (blockAtPos == grass_block.getBlock().getId()) {
                         float patchNoise = grassNoise.getNoise(realX * 0.15f, realZ * 0.15f);
-                        float spawnChance = (patchNoise > 0.0f) ? 0.85f : 0.02f;
+
+                        // In Plains spawnen deutlich mehr Blumen als im Wald
+                        float spawnChance = (patchNoise > 0.0f) ? (localBiome == Biome.PLAINS ? 0.95f : 0.85f) : 0.02f;
 
                         if (treeRandom.nextFloat() < spawnChance) {
                             float plantType = treeRandom.nextFloat();
@@ -100,9 +120,11 @@ public class DecoratorPass implements IGenerationPass {
                             chunk.setBlock(x, y + 1, z, plantToPlace.getBlock().getId(), plantToPlace.getStateId());
                         }
                         break;
-                    } else if (blockAtPos == sand.getBlock().getId()) {
+                    }
+                    // WÜSTEN-VEGETATION
+                    else if (blockAtPos == sand.getBlock().getId() && localBiome == Biome.DESERT) {
                         float sandPatchNoise = grassNoise.getNoise(realX * 0.25f, realZ * 0.25f);
-                        float spawnChance = (sandPatchNoise > 0.2f) ? 0.25f : 0.005f;
+                        float spawnChance = (sandPatchNoise > 0.2f) ? 0.05f : 0.001f;
 
                         if (treeRandom.nextFloat() < spawnChance) {
                             chunk.setBlock(x, y + 1, z, sandyGrass.getBlock().getId(), sandyGrass.getStateId());
