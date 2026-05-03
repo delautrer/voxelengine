@@ -55,14 +55,10 @@ public class InputManager {
         mouseBindings.clear();
 
         // 1. Feste System- & UI-Tasten (Können später natürlich auch ins Menü wandern)
+        keyBindings.put("PAUSE", GLFW.GLFW_KEY_ESCAPE);
         keyBindings.put("UI_BACKSPACE", GLFW.GLFW_KEY_BACKSPACE);
-        keyBindings.put("DROP_ITEM", GLFW.GLFW_KEY_Q);
-        keyBindings.put("TOGGLE_UI", GLFW.GLFW_KEY_F1);
-        keyBindings.put("SCREENSHOT", GLFW.GLFW_KEY_F2);
-        keyBindings.put("DEBUG_MENU", GLFW.GLFW_KEY_F3);
         keyBindings.put("MOD_ALT", GLFW.GLFW_KEY_LEFT_ALT);
         keyBindings.put("CHAT_SEND", GLFW.GLFW_KEY_ENTER);
-        keyBindings.put("CHAT_OPEN_T", GLFW.GLFW_KEY_T);
         keyBindings.put("CHAT_OPEN_SLASH", GLFW.GLFW_KEY_SLASH);
         keyBindings.put("UI_UP", GLFW.GLFW_KEY_UP);
         keyBindings.put("UI_DOWN", GLFW.GLFW_KEY_DOWN);

@@ -4,6 +4,7 @@ import de.delautrer.game.settings.GameSettings;
 import de.delautrer.game.settings.SettingsManager;
 import de.delautrer.game.ui.UIMeshBuilder;
 import de.delautrer.game.ui.elements.*;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.Map;
 
@@ -83,6 +84,10 @@ public class OptionsScreen extends MenuScreen {
 
         for (Map.Entry<String, Integer> bind : tempSettings.keyBinds.entrySet()) {
             contentBox.addChild(new UIKeybindButton(fullWidth, btnHeight, bind.getKey(), bind.getValue(), newKey -> {
+                if (newKey == GLFW.GLFW_KEY_ESCAPE) {
+                    tempSettings.keyBinds.put(bind.getKey(), -1);
+                    return;
+                }
                 tempSettings.keyBinds.put(bind.getKey(), newKey);
             }));
         }

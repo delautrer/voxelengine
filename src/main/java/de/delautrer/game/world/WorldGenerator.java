@@ -14,10 +14,10 @@ public class WorldGenerator {
         this.seed = seed;
 
         // Hier definieren wir die exakte Reihenfolge der Weltgenerierung!
-        passes.add(new TerrainPass());
+        passes.add(new TerrainPass(seed));
         passes.add(new CavePass());
-        passes.add(new SurfacePass());
-        passes.add(new DecoratorPass());
+        passes.add(new SurfacePass(seed));
+        passes.add(new DecoratorPass(seed));
     }
 
     public void generate(Chunk chunk) {

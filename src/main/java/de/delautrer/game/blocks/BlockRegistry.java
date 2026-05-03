@@ -183,6 +183,8 @@ public class BlockRegistry {
     }
 
     public static Block get(byte internalId) { return BLOCKS_BY_ID[internalId & 0xFF] != null ? BLOCKS_BY_ID[internalId & 0xFF] : AIR; }
-    public static Block get(String fullId) { return BLOCKS.getOrDefault(fullId, AIR); }
+    public static Block get(String fullId) {
+        return BLOCKS.getOrDefault(fullId.startsWith(Constants.NAMESPACE + ":") ? fullId : Constants.NAMESPACE + ":" + fullId, AIR);
+    }
     public static Map<String, Block> getAll() { return BLOCKS; }
 }

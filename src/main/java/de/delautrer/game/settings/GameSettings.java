@@ -59,7 +59,11 @@ public class GameSettings {
         keyBinds.put("SNEAK", GLFW.GLFW_KEY_LEFT_SHIFT);
         keyBinds.put("SPRINT", GLFW.GLFW_KEY_LEFT_CONTROL);
         keyBinds.put("INVENTORY", GLFW.GLFW_KEY_E);
-        keyBinds.put("PAUSE", GLFW.GLFW_KEY_ESCAPE);
+        keyBinds.put("DROP_ITEM", GLFW.GLFW_KEY_Q);
+        keyBinds.put("TOGGLE_UI", GLFW.GLFW_KEY_F1);
+        keyBinds.put("SCREENSHOT", GLFW.GLFW_KEY_F2);
+        keyBinds.put("DEBUG_MENU", GLFW.GLFW_KEY_F3);
+        keyBinds.put("CHAT_OPEN_T", GLFW.GLFW_KEY_T);
     }
 
     public void validate() {

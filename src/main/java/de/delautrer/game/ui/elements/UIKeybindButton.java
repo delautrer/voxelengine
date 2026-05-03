@@ -63,10 +63,38 @@ public class UIKeybindButton extends UIElement {
     }
 
     private String getKeyName(int keycode) {
+        if (keycode < 0) return "UNBOUND";
         if (keycode == GLFW.GLFW_KEY_SPACE) return "SPACE";
         if (keycode == GLFW.GLFW_KEY_LEFT_SHIFT) return "L-SHIFT";
         if (keycode == GLFW.GLFW_KEY_LEFT_CONTROL) return "L-CTRL";
         if (keycode == GLFW.GLFW_KEY_LEFT_ALT) return "L-ALT";
+
+        if (keycode == GLFW.GLFW_KEY_F1) return "F1";
+        if (keycode == GLFW.GLFW_KEY_F2) return "F2";
+        if (keycode == GLFW.GLFW_KEY_F3) return "F3";
+        if (keycode == GLFW.GLFW_KEY_F4) return "F4";
+        if (keycode == GLFW.GLFW_KEY_F5) return "F5";
+        if (keycode == GLFW.GLFW_KEY_F6) return "F6";
+        if (keycode == GLFW.GLFW_KEY_F7) return "F7";
+        if (keycode == GLFW.GLFW_KEY_F8) return "F8";
+        if (keycode == GLFW.GLFW_KEY_F9) return "F9";
+        if (keycode == GLFW.GLFW_KEY_F10) return "F10";
+        if (keycode == GLFW.GLFW_KEY_F11) return "F11";
+        if (keycode == GLFW.GLFW_KEY_F12) return "F12";
+        if (keycode == GLFW.GLFW_KEY_F13) return "F13";
+        if (keycode == GLFW.GLFW_KEY_F14) return "F14";
+        if (keycode == GLFW.GLFW_KEY_F15) return "F15";
+        if (keycode == GLFW.GLFW_KEY_F16) return "F16";
+        if (keycode == GLFW.GLFW_KEY_F17) return "F17";
+        if (keycode == GLFW.GLFW_KEY_F18) return "F18";
+        if (keycode == GLFW.GLFW_KEY_F19) return "F19";
+        if (keycode == GLFW.GLFW_KEY_F20) return "F20";
+        if (keycode == GLFW.GLFW_KEY_F21) return "F21";
+        if (keycode == GLFW.GLFW_KEY_F22) return "F22";
+        if (keycode == GLFW.GLFW_KEY_F23) return "F23";
+        if (keycode == GLFW.GLFW_KEY_F24) return "F24";
+        if (keycode == GLFW.GLFW_KEY_F25) return "F25";
+
         String name = GLFW.glfwGetKeyName(keycode, 0);
         return name != null ? name.toUpperCase() : "KEY_" + keycode;
     }
