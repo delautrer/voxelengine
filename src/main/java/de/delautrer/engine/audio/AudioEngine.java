@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-
 public class AudioEngine {
     private long device;
     private long context;
@@ -73,8 +72,7 @@ public class AudioEngine {
             org.lwjgl.system.libc.LibCStdlib.free(pcm);
             soundBuffers.put(filepath, bufferId);
         } catch (Exception e) {
-            System.err.println("[AudioEngine] Fehler beim Laden von: " + filepath);
-            e.printStackTrace();
+            System.err.println("[AudioEngine] Error loading sound " + filepath + ": " + e.getMessage());
         }
     }
 

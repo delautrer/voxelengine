@@ -1,18 +1,12 @@
 package de.delautrer.engine.graphics.vulkan.core;
+
 import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
-import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
 import de.delautrer.engine.window.Window;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
 import org.lwjgl.glfw.GLFWVulkan;
 import java.nio.LongBuffer;
-
-
 
 public class VulkanContext implements IGraphicsContext {
 
@@ -67,18 +61,45 @@ public class VulkanContext implements IGraphicsContext {
         }
     }
 
+    public VkInstance getInstance() {
+        return instance;
+    }
 
+    public long getSurface() {
+        return surface;
+    }
 
-    public VkInstance getInstance() { return instance; }
-    public long getSurface() { return surface; }
-    public VulkanDeviceManager getDeviceManager() { return deviceManager; }
-    public VkPhysicalDevice getPhysicalDevice() { return deviceManager.getPhysicalDevice(); }
-    public VkDevice getDevice() { return deviceManager.getDevice(); }
-    public VkQueue getGraphicsQueue() { return deviceManager.getGraphicsQueue(); }
-    public VkQueue getPresentQueue() { return deviceManager.getPresentQueue(); }
-    public int getGraphicsQueueFamily() { return deviceManager.getGraphicsQueueFamily(); }
-    public int getTransferQueueFamily() { return deviceManager.getTransferQueueFamily(); }
-    public Window getWindow() { return window; }
+    public VulkanDeviceManager getDeviceManager() {
+        return deviceManager;
+    }
+
+    public VkPhysicalDevice getPhysicalDevice() {
+        return deviceManager.getPhysicalDevice();
+    }
+
+    public VkDevice getDevice() {
+        return deviceManager.getDevice();
+    }
+
+    public VkQueue getGraphicsQueue() {
+        return deviceManager.getGraphicsQueue();
+    }
+
+    public VkQueue getPresentQueue() {
+        return deviceManager.getPresentQueue();
+    }
+
+    public int getGraphicsQueueFamily() {
+        return deviceManager.getGraphicsQueueFamily();
+    }
+
+    public int getTransferQueueFamily() {
+        return deviceManager.getTransferQueueFamily();
+    }
+
+    public Window getWindow() {
+        return window;
+    }
 
     public int findMemoryType(int typeFilter, int properties) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
@@ -86,7 +107,8 @@ public class VulkanContext implements IGraphicsContext {
             VK10.vkGetPhysicalDeviceMemoryProperties(deviceManager.getPhysicalDevice(), memProperties);
 
             for (int i = 0; i < memProperties.memoryTypeCount(); i++) {
-                if ((typeFilter & (1 << i)) != 0 && (memProperties.memoryTypes(i).propertyFlags() & properties) == properties) {
+                if ((typeFilter & (1 << i)) != 0
+                        && (memProperties.memoryTypes(i).propertyFlags() & properties) == properties) {
                     return i;
                 }
             }
@@ -101,9 +123,22 @@ public class VulkanContext implements IGraphicsContext {
         }
     }
 
+    /**
+     * The VulkanContext itself doesn't own a factory — the factory requires
+     * command buffers and pipeline layouts that are created later by
+     * VulkanRenderer.
+     * Use Engine.getGraphicsFactory() instead, which returns the MasterRenderer's
+     * factory.
+     */
+    @Override
+    public IGraphicsFactory getGraphicsFactory() {
+        return null; // See Engine.getGraphicsFactory()
+    }
+
     @Override
     public void cleanup() {
-        if (deviceManager != null) deviceManager.cleanup();
+        if (deviceManager != null)
+            deviceManager.cleanup();
         KHRSurface.vkDestroySurfaceKHR(instance, surface, null);
         VK10.vkDestroyInstance(instance, null);
     }

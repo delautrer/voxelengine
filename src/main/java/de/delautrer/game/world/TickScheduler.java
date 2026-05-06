@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.PriorityQueue;
 import java.util.Set;
 
-
 public class TickScheduler {
 
     private static class ScheduledTick implements Comparable<ScheduledTick> {

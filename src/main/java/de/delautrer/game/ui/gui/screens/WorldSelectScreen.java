@@ -12,7 +12,6 @@ import de.delautrer.game.world.WorldStorageManager;
 import de.delautrer.game.world.persistence.WorldData;
 import java.io.File;
 
-
 public class WorldSelectScreen extends MenuScreen {
     private final Engine engine;
     private final Runnable onBackAction;

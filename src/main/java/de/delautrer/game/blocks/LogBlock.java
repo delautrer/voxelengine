@@ -1,10 +1,5 @@
 package de.delautrer.game.blocks;
 import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
-import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
 import de.delautrer.engine.graphics.utils.TextureStitcher.AtlasRegion;
 import de.delautrer.game.blocks.models.BlockModelData;
 import de.delautrer.game.blocks.state.BlockProperties.*;
@@ -16,8 +11,6 @@ import de.delautrer.game.world.World;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 import java.util.List;
-
-
 
 public class LogBlock extends CubeBlock {
     public static final EnumProperty<Axis> AXIS = EnumProperty.create("axis", Axis.class);

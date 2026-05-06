@@ -29,7 +29,6 @@ import java.util.regex.Pattern;
 
 // NEUE IMPORTS FÜR KISTEN UND ITEMS
 
-
 public class WorldStorageManager {
 
     private static final Pattern ILLEGAL_FILENAME_CHARS = Pattern.compile("[\\\\/:*?\"<>|]");
@@ -57,8 +56,7 @@ public class WorldStorageManager {
             Files.createDirectories(regionDir);
             Files.createDirectories(playerDataDir);
         } catch (IOException e) {
-            System.err.println("Kritischer Fehler: Konnte Save-Ordner nicht erstellen!");
-            e.printStackTrace();
+            System.err.println("[WorldStorageManager] Critical error: Could not create save directories: " + e.getMessage());
         }
 
         startWriterThread();
@@ -101,7 +99,6 @@ public class WorldStorageManager {
             return null;
         }
     }
-
 
     // ==========================================
     // THREADING & CHUNK IO
@@ -191,7 +188,9 @@ public class WorldStorageManager {
                     out.writeUTF("UNKNOWN");
                 }
             }
-        } catch (IOException e) { e.printStackTrace(); }
+        } catch (IOException e) {
+            System.err.println("[WorldStorageManager] Error saving block entities: " + e.getMessage());
+        }
     }
 
     public void loadBlockEntities(World world) {
@@ -209,7 +208,9 @@ public class WorldStorageManager {
                     world.setBlockEntity(pos, chest);
                 }
             }
-        } catch (IOException e) { e.printStackTrace(); }
+        } catch (IOException e) {
+            System.err.println("[WorldStorageManager] Error loading block entities: " + e.getMessage());
+        }
     }
 
     public void saveEntities(List<Entity> entities) {
@@ -227,7 +228,9 @@ public class WorldStorageManager {
                 out.writeFloat((float)item.velocity.x); out.writeFloat((float)item.velocity.y); out.writeFloat((float)item.velocity.z);
                 saveItemStack(out, item.stack);
             }
-        } catch (IOException e) { e.printStackTrace(); }
+        } catch (IOException e) {
+            System.err.println("[WorldStorageManager] Error saving entities: " + e.getMessage());
+        }
     }
 
     public void loadEntities(World world) {
@@ -244,7 +247,9 @@ public class WorldStorageManager {
                     world.spawnEntity(new ItemEntity(stack, pos, vel));
                 }
             }
-        } catch (IOException e) { e.printStackTrace(); }
+        } catch (IOException e) {
+            System.err.println("[WorldStorageManager] Error loading entities: " + e.getMessage());
+        }
     }
 
     // Hilfsmethoden für ItemStacks
@@ -348,7 +353,7 @@ public class WorldStorageManager {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("[WorldStorageManager] Error during shutdown: " + e.getMessage());
         }
     }
 }

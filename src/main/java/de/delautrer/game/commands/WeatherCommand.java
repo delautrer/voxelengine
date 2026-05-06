@@ -6,7 +6,6 @@ import de.delautrer.game.world.sky.Weather;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class WeatherCommand implements ICommand {
 
     @Override

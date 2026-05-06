@@ -5,7 +5,6 @@ import java.util.Map;
 import com.google.gson.annotations.SerializedName;
 import org.lwjgl.glfw.GLFW;
 
-
 public class GameSettings {
 
     // --- NEU: Konstante Limits (Gson ignoriert statische Felder) ---

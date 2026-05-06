@@ -1,16 +1,9 @@
 package de.delautrer.game.world.sky;
 import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
-import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
 import de.delautrer.engine.graphics.MeshData;
 import de.delautrer.game.world.NoiseGenerator;
 import java.util.ArrayList;
 import java.util.List;
-
-
 
 public class CloudSystem {
 

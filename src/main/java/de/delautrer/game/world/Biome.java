@@ -5,7 +5,6 @@ import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.blocks.state.BlockState;
 import java.util.Map;
 
-
 public enum Biome {
     //                                Surface        Sub-Surface    Beach    Deep Material  BaseH  Var.   Tree  Patch   Dens.  Flora Weights                                    Underground Blobs                          UW-Scale   Underwater Blobs
     OCEAN(                           "gravel",      "gravel",      "gravel", "stone",       35.0f, 10.0f, 0.0f,  1.0f,   0.0f,  Map.of(),                                        Map.of("dirt", 0.05f),                     0.05f,     Map.of("sand", 0.7f, "gravel", 0.3f)),

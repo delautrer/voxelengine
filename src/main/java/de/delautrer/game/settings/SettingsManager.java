@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 
-
 public class SettingsManager {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static GameSettings currentSettings;

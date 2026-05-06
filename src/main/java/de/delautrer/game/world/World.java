@@ -1,10 +1,5 @@
 package de.delautrer.game.world;
 import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
-import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
 import de.delautrer.engine.events.EventBus;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
@@ -33,8 +28,6 @@ import de.delautrer.game.world.systems.WeatherSystem;
 import de.delautrer.Constants;
 import de.delautrer.game.items.Item;
 import de.delautrer.game.registry.Registries;
-
-
 
 public class World {
     private final EventBus eventBus;
@@ -122,7 +115,6 @@ public class World {
 
         storageManager.loadBlockEntities(this);
         storageManager.loadEntities(this);
-
 
         chunkManager.update(localPlayer.position.x, localPlayer.position.z);
     }

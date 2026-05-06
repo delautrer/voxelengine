@@ -1,19 +1,12 @@
 package de.delautrer.game.world;
+
 import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
-import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
 import de.delautrer.engine.graphics.vulkan.buffer.VulkanMesh;
 import de.delautrer.game.settings.SettingsManager;
 import org.joml.Vector2i;
-import org.lwjgl.vulkan.VK10;
 import java.util.*;
 import java.util.concurrent.*;
 import de.delautrer.engine.graphics.ChunkMesher;
-
-
 
 public class ChunkManager {
 
@@ -23,8 +16,10 @@ public class ChunkManager {
         public IMesh water;
 
         public void cleanup() {
-            if (opaque != null) opaque.cleanup();
-            if (water != null) water.cleanup();
+            if (opaque != null)
+                opaque.cleanup();
+            if (water != null)
+                water.cleanup();
         }
     }
 
@@ -75,34 +70,42 @@ public class ChunkManager {
         int pX = Math.floorDiv((int) Math.floor(playerX), Chunk.SIZE);
         int pZ = Math.floorDiv((int) Math.floor(playerZ), Chunk.SIZE);
 
-        // 1. CHUNKS ASYNCHRON LADEN UND GENERIEREN
+        // 1. CHUNKS ASYNCHRON LADEN UND GENERIEREN (Mit Priorisierung!)
+        List<Vector2i> chunksToLoad = new ArrayList<>();
         int dataDistance = SettingsManager.get().renderDistance + 2;
         for (int x = pX - dataDistance; x <= pX + dataDistance; x++) {
             for (int z = pZ - dataDistance; z <= pZ + dataDistance; z++) {
                 Vector2i pos = new Vector2i(x, z);
                 if (!chunks.containsKey(pos) && !chunksLoading.contains(pos)) {
-                    chunksLoading.add(pos);
-                    int finalX = x;
-                    int finalZ = z;
-                    chunkExecutor.submit(() -> {
-                        try {
-                            Chunk newChunk = new Chunk(finalX, finalZ);
-                            boolean isLoaded = world.getStorageManager().loadChunkFromDisk(newChunk);
-                            if (!isLoaded) {
-                                worldGenerator.generate(newChunk);
-                                newChunk.calculateSunlight();
-                                newChunk.markDirty();
-                            } else {
-                                newChunk.clearDirty();
-                            }
-                            newlyLoadedQueue.add(newChunk);
-                        } catch (Exception e) {
-                            System.err.println("Fehler beim Chunk-Laden: " + e.getMessage());
-                            chunksLoading.remove(pos);
-                        }
-                    });
+                    chunksToLoad.add(pos);
                 }
             }
+        }
+
+        // Sortieren: Nächste Chunks zuerst
+        chunksToLoad.sort(Comparator.comparingDouble(pos -> pos.distanceSquared(pX, pZ)));
+
+        for (Vector2i pos : chunksToLoad) {
+            chunksLoading.add(pos);
+            int finalX = pos.x;
+            int finalZ = pos.y;
+            chunkExecutor.submit(() -> {
+                try {
+                    Chunk newChunk = new Chunk(finalX, finalZ);
+                    boolean isLoaded = world.getStorageManager().loadChunkFromDisk(newChunk);
+                    if (!isLoaded) {
+                        worldGenerator.generate(newChunk);
+                        newChunk.calculateSunlight();
+                        newChunk.markDirty();
+                    } else {
+                        newChunk.clearDirty();
+                    }
+                    newlyLoadedQueue.add(newChunk);
+                } catch (Exception e) {
+                    System.err.println("Fehler beim Chunk-Laden: " + e.getMessage());
+                    chunksLoading.remove(pos);
+                }
+            });
         }
 
         // 1.5 FERTIGE CHUNKS EINFÜGEN (JETZT GEDROSSELT!)
@@ -126,60 +129,75 @@ public class ChunkManager {
             Chunk nZ1 = chunks.get(new Vector2i(pos.x, pos.y + 1));
             Chunk nZ2 = chunks.get(new Vector2i(pos.x, pos.y - 1));
 
-            if (nX1 != null) nX1.requestMeshUpdate();
-            if (nX2 != null) nX2.requestMeshUpdate();
-            if (nZ1 != null) nZ1.requestMeshUpdate();
-            if (nZ2 != null) nZ2.requestMeshUpdate();
+            if (nX1 != null)
+                nX1.requestMeshUpdate();
+            if (nX2 != null)
+                nX2.requestMeshUpdate();
+            if (nZ1 != null)
+                nZ1.requestMeshUpdate();
+            if (nZ2 != null)
+                nZ2.requestMeshUpdate();
 
             chunksIntegratedThisFrame++;
         }
 
-        // 2. MESHES IM HINTERGRUND BERECHNEN
-        for (int x = pX - SettingsManager.get().renderDistance; x <= pX + SettingsManager.get().renderDistance; x++) {
-            for (int z = pZ - SettingsManager.get().renderDistance; z <= pZ + SettingsManager.get().renderDistance; z++) {
+        // 2. MESHES IM HINTERGRUND BERECHNEN (Mit Priorisierung!)
+        List<Vector2i> chunksToUpdate = new ArrayList<>();
+        int renderDistance = SettingsManager.get().renderDistance;
+        
+        for (int x = pX - renderDistance; x <= pX + renderDistance; x++) {
+            for (int z = pZ - renderDistance; z <= pZ + renderDistance; z++) {
                 Vector2i pos = new Vector2i(x, z);
                 Chunk c = chunks.get(pos);
-
                 if (c != null && !chunksInPreparation.contains(pos)) {
                     if (!meshes.containsKey(pos) || c.needsMeshUpdate()) {
-                        c.clearMeshUpdate();
-
-                        chunksInPreparation.add(pos);
-                        chunkExecutor.submit(() -> {
-                            try {
-                                ChunkMesher.ChunkMeshResult result = c.generateMeshData(this);
-                                meshUploadQueue.add(new MeshGenerationResult(c, result));
-                            } catch (Exception e) {
-                                System.err.println("Fehler beim Chunk-Meshing: " + e.getMessage());
-                                chunksInPreparation.remove(pos);
-                            }
-                        });
+                        chunksToUpdate.add(pos);
                     }
                 }
             }
+        }
+
+        // Sortieren: Nächste Chunks zuerst
+        chunksToUpdate.sort(Comparator.comparingDouble(pos -> pos.distanceSquared(pX, pZ)));
+
+        for (Vector2i pos : chunksToUpdate) {
+            Chunk c = chunks.get(pos);
+            c.clearMeshUpdate();
+            chunksInPreparation.add(pos);
+            chunkExecutor.submit(() -> {
+                try {
+                    ChunkMesher.ChunkMeshResult result = c.generateMeshData(this);
+                    meshUploadQueue.add(new MeshGenerationResult(c, result));
+                } catch (Exception e) {
+                    System.err.println("Fehler beim Chunk-Meshing: " + e.getMessage());
+                    chunksInPreparation.remove(pos);
+                }
+            });
         }
 
         // 3. FERTIGE MESHES AN VULKAN SENDEN
         int maxUploads = initialLoadComplete ? 2 : 20;
         int uploadsThisFrame = 0;
 
-        // NEU: Ein Schalter, damit wir pro Frame maximal einmal auf die GPU warten müssen
+        // NEU: Ein Schalter, damit wir pro Frame maximal einmal auf die GPU warten
+        // müssen
         // boolean waitIdleCalled = false;
 
         while (uploadsThisFrame < maxUploads) {
             MeshGenerationResult result = meshUploadQueue.poll();
-            if (result == null) break;
+            if (result == null)
+                break;
 
             Vector2i pos = new Vector2i(result.chunk.getWorldX(), result.chunk.getWorldZ());
             chunksInPreparation.remove(pos);
 
             if (chunks.containsKey(pos)) {
                 /*
-                if (meshes.containsKey(pos) && !waitIdleCalled) {
-                    VK10.vkDeviceWaitIdle(context.getDevice());
-                    waitIdleCalled = true;
-                }
-                */
+                 * if (meshes.containsKey(pos) && !waitIdleCalled) {
+                 * VK10.vkDeviceWaitIdle(context.getDevice());
+                 * waitIdleCalled = true;
+                 * }
+                 */
                 updateChunkMeshes(pos, result.meshData);
                 uploadsThisFrame++;
             }
@@ -198,12 +216,15 @@ public class ChunkManager {
             for (Vector2i pos : meshesToRemove) {
                 ChunkMeshPair pair = meshes.remove(pos);
                 if (pair != null) {
-                    if (pair.opaque != null) trashBin.add(new MeshToDelete(pair.opaque));
-                    if (pair.water != null) trashBin.add(new MeshToDelete(pair.water));
+                    if (pair.opaque != null)
+                        trashBin.add(new MeshToDelete(pair.opaque));
+                    if (pair.water != null)
+                        trashBin.add(new MeshToDelete(pair.water));
                 }
 
                 Chunk c = chunks.get(pos);
-                if (c != null) c.clearMeshCache();
+                if (c != null)
+                    c.clearMeshCache();
             }
         }
 
@@ -238,7 +259,8 @@ public class ChunkManager {
     }
 
     /**
-     * Zentrale Methode, um die Meshes eines Chunks zu aktualisieren oder neu zu erstellen.
+     * Zentrale Methode, um die Meshes eines Chunks zu aktualisieren oder neu zu
+     * erstellen.
      * Wird sowohl vom ChunkManager-Update als auch vom AsyncChunkBuilder genutzt.
      */
     public void updateChunkMeshes(Vector2i pos, ChunkMesher.ChunkMeshResult result) {
@@ -268,20 +290,35 @@ public class ChunkManager {
         int cx = Math.floorDiv(worldX, Chunk.SIZE);
         int cz = Math.floorDiv(worldZ, Chunk.SIZE);
         Chunk c = chunks.get(new Vector2i(cx, cz));
-        if (c != null) c.access();
+        if (c != null)
+            c.access();
         return c;
     }
 
-    public AsyncChunkBuilder getAsyncBuilder() { return asyncBuilder; }
-    public IGraphicsFactory getGraphicsFactory() { return graphicsFactory; }
-    public Collection<Chunk> getLoadedChunks() { return chunks.values(); }
-    public LightEngine getLightEngine() { return lightEngine; }
+    public AsyncChunkBuilder getAsyncBuilder() {
+        return asyncBuilder;
+    }
+
+    public IGraphicsFactory getGraphicsFactory() {
+        return graphicsFactory;
+    }
+
+    public Collection<Chunk> getLoadedChunks() {
+        return chunks.values();
+    }
+
+    public LightEngine getLightEngine() {
+        return lightEngine;
+    }
 
     // Die Meshes Map gibt jetzt die Paare zurück
-    public Map<Vector2i, ChunkMeshPair> getMeshes() { return meshes; }
+    public Map<Vector2i, ChunkMeshPair> getMeshes() {
+        return meshes;
+    }
 
     public float getLoadingProgress(double playerX, double playerZ) {
-        if (initialLoadComplete) return 1.0f;
+        if (initialLoadComplete)
+            return 1.0f;
         int pX = Math.floorDiv((int) Math.floor(playerX), Chunk.SIZE);
         int pZ = Math.floorDiv((int) Math.floor(playerZ), Chunk.SIZE);
         int requiredChunks = (requiredInitialRadius * 2 + 1) * (requiredInitialRadius * 2 + 1);
@@ -290,19 +327,25 @@ public class ChunkManager {
         for (int x = pX - requiredInitialRadius; x <= pX + requiredInitialRadius; x++) {
             for (int z = pZ - requiredInitialRadius; z <= pZ + requiredInitialRadius; z++) {
                 Vector2i pos = new Vector2i(x, z);
-                if (chunks.containsKey(pos)) completedTasks++;
-                if (meshes.containsKey(pos)) completedTasks++;
+                if (chunks.containsKey(pos))
+                    completedTasks++;
+                if (meshes.containsKey(pos))
+                    completedTasks++;
             }
         }
         float progress = (float) completedTasks / totalTasks;
-        if (progress >= 1.0f) initialLoadComplete = true;
+        if (progress >= 1.0f)
+            initialLoadComplete = true;
         return progress;
     }
 
-    public boolean isInitialLoadComplete() { return initialLoadComplete; }
+    public boolean isInitialLoadComplete() {
+        return initialLoadComplete;
+    }
 
     public void cleanup() {
-        if (isCleanedUp) return;
+        if (isCleanedUp)
+            return;
         isCleanedUp = true;
         System.out.println("[Thread] Stopping background chunk threads...");
         chunkExecutor.shutdown();
@@ -315,17 +358,18 @@ public class ChunkManager {
             Thread.currentThread().interrupt();
         }
         System.out.println("[Thread] Clearing vulkan meshes. Give GPU space to breath");
-        // VK10.vkDeviceWaitIdle(context.getDevice()); 
-        // Wir können IGraphicsContext verwenden, aber das Cleanup kümmert sich später drum.
-        
+
         for (ChunkMeshPair pair : meshes.values()) {
             pair.cleanup();
         }
 
-        if (asyncBuilder != null) asyncBuilder.cleanup();
+        if (asyncBuilder != null)
+            asyncBuilder.cleanup();
     }
 
-    public World getWorld() { return world; }
+    public World getWorld() {
+        return world;
+    }
 
     // Kleine Hilfsklasse für die Upload-Queue
     private static class MeshGenerationResult {

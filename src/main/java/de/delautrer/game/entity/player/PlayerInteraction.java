@@ -1,10 +1,5 @@
 package de.delautrer.game.entity.player;
-import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
-import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
+
 import de.delautrer.engine.audio.SoundManager;
 import de.delautrer.engine.events.EventBus;
 import de.delautrer.engine.input.InputManager;
@@ -17,7 +12,6 @@ import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.entity.ItemEntity;
 import de.delautrer.game.events.BlockBreakEvent;
 import de.delautrer.game.inventory.PlayerInventory;
-import de.delautrer.game.items.ItemRegistry;
 import de.delautrer.game.loot.LootTable;
 import de.delautrer.game.loot.LootTableManager;
 import de.delautrer.game.world.World;
@@ -29,13 +23,9 @@ import org.joml.Vector3i;
 import java.util.ArrayList;
 import java.util.List;
 import de.delautrer.Constants;
-import de.delautrer.game.blocks.state.BlockProperties;
 import de.delautrer.game.events.HotbarSlotChangeEvent;
 import de.delautrer.game.events.InventoryChangeEvent;
-import de.delautrer.game.items.Item;
 import de.delautrer.game.registry.Registries;
-
-
 
 public class PlayerInteraction {
 
@@ -66,7 +56,8 @@ public class PlayerInteraction {
     }
 
     public void update(InputManager input, float deltaTime) {
-        if (player.isDead() || player.getInventory().isOpen() || player.isChatOpen() || player.getOpenedInventory() != null) {
+        if (player.isDead() || player.getInventory().isOpen() || player.isChatOpen()
+                || player.getOpenedInventory() != null) {
             selectedBlockPos = null;
             adjacentBlockPos = null;
             return;
@@ -77,7 +68,8 @@ public class PlayerInteraction {
             return;
         }
 
-        if (player.getGameMode() == GameMode.SPECTATOR) return;
+        if (player.getGameMode() == GameMode.SPECTATOR)
+            return;
 
         Block headBlock = player.getHeadBlock();
 
@@ -88,13 +80,13 @@ public class PlayerInteraction {
             selectedBlockPos = new org.joml.Vector3i(
                     (int) Math.floor(eyePos.x),
                     (int) Math.floor(eyePos.y),
-                    (int) Math.floor(eyePos.z)
-            );
+                    (int) Math.floor(eyePos.z));
 
             // hitFace = BlockProperties.BlockFace.UP;
         } else {
             // 1.2 Sonst normaler raycast
-            Raycaster.RaycastResult result = Raycaster.raycast(world, new Vector3f((float)camera.getPosition().x, (float)camera.getPosition().y, (float)camera.getPosition().z), camera.getFront(), 6.0f);
+            Raycaster.RaycastResult result = Raycaster.raycast(world, new Vector3f((float) camera.getPosition().x,
+                    (float) camera.getPosition().y, (float) camera.getPosition().z), camera.getFront(), 6.0f);
             if (result != null) {
                 selectedBlockPos = result.hitPos;
                 adjacentBlockPos = result.adjacentPos;
@@ -104,7 +96,7 @@ public class PlayerInteraction {
             }
         }
 
-        //if (!camera.isCursorCaptured()) return;
+        // if (!camera.isCursorCaptured()) return;
 
         // 2. Pick Block (Mittlere Maustaste)
         if (input.isActionJustPressed("PICK_BLOCK") && selectedBlockPos != null) {
@@ -112,7 +104,7 @@ public class PlayerInteraction {
             for (int i = 0; i < 9; i++) {
                 ItemStack stack = player.getInventory().getStack(i);
                 if (stack != null && stack.type instanceof BlockItem) {
-                    if (((BlockItem)stack.type).block.getId() == targetId) {
+                    if (((BlockItem) stack.type).block.getId() == targetId) {
                         player.getInventory().setSelectedSlot(i);
                         eventBus.publish(new HotbarSlotChangeEvent(i));
                         break;
@@ -122,7 +114,8 @@ public class PlayerInteraction {
         }
 
         // 3. Interaktion (Abbauen / Bauen)
-        if (interactTimer > 0) interactTimer -= deltaTime;
+        if (interactTimer > 0)
+            interactTimer -= deltaTime;
 
         if (input.isActionActive("INTERACT_BREAK")) {
             if (player.getGameMode() == GameMode.CREATIVE) {
@@ -158,11 +151,13 @@ public class PlayerInteraction {
                     byte blockId = world.getBlockAt(selectedBlockPos);
                     Block targetBlock = BlockRegistry.get(blockId);
 
-                    if (targetBlock != Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air") && targetBlock.getHardness() >= 0) {
+                    if (targetBlock != Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air")
+                            && targetBlock.getHardness() >= 0) {
                         miningProgress += deltaTime;
 
                         // Formel: Wie lange dauert der Abbau? (Base-Härte * 1.5 Sekunden als Richtwert)
-                        // Später kannst du hier Werkzeuge einberechnen (z.B. miningProgress += deltaTime * toolMultiplier)
+                        // Später kannst du hier Werkzeuge einberechnen (z.B. miningProgress +=
+                        // deltaTime * toolMultiplier)
                         float requiredTime = targetBlock.getHardness() * 1.5f;
 
                         if (miningProgress >= requiredTime) {
@@ -199,7 +194,8 @@ public class PlayerInteraction {
     }
 
     private void handleSurvivalBreak(Block block, byte blockId) {
-        if (selectedBlockPos == null) return;
+        if (selectedBlockPos == null)
+            return;
 
         BlockState state = world.getBlockState(selectedBlockPos.x, selectedBlockPos.y, selectedBlockPos.z);
         BlockBreakEvent breakEvent = new BlockBreakEvent(player, selectedBlockPos, state);
@@ -219,21 +215,7 @@ public class PlayerInteraction {
                     drops.addAll(table.generateLoot());
                 }
             } else {
-                // 2. FALLBACK: Wenn keine LootTable definiert ist, droppt der Block sich selbst
-                /*
-                Item dropItemType = null;
-                for (Item item : ItemRegistry.getAll().values()) {
-                    if (item instanceof BlockItem blockItem) {
-                        if (blockItem.getBlock().getId() == blockId) {
-                            dropItemType = item;
-                            break;
-                        }
-                    }
-                }
-                if (dropItemType != null) {
-                    drops.add(new ItemStack(dropItemType, 1));
-                }
-                */
+                // Kein LootTable definiert — Block droppt nichts.
             }
 
             // 3. Spawne alle berechneten Items in der Welt
@@ -241,14 +223,12 @@ public class PlayerInteraction {
                 Vector3d dropPos = new Vector3d(
                         selectedBlockPos.x + 0.5,
                         selectedBlockPos.y + 0.5,
-                        selectedBlockPos.z + 0.5
-                );
+                        selectedBlockPos.z + 0.5);
 
                 Vector3f dropVel = new Vector3f(
-                        (float)(Math.random() - 0.5) * 2.0f,
+                        (float) (Math.random() - 0.5) * 2.0f,
                         2.0f,
-                        (float)(Math.random() - 0.5) * 2.0f
-                );
+                        (float) (Math.random() - 0.5) * 2.0f);
 
                 ItemEntity entity = new ItemEntity(stack, dropPos, dropVel);
                 world.spawnEntity(entity);
@@ -257,7 +237,8 @@ public class PlayerInteraction {
     }
 
     private void handleMouseClick(boolean isBreak) {
-        if (selectedBlockPos == null) return;
+        if (selectedBlockPos == null)
+            return;
 
         if (isBreak) {
             BlockState state = world.getBlockState(selectedBlockPos.x, selectedBlockPos.y, selectedBlockPos.z);
@@ -269,20 +250,23 @@ public class PlayerInteraction {
                 world.setBlock(selectedBlockPos, (byte) 0);
             }
         } else {
-            if (adjacentBlockPos == null) return;
+            if (adjacentBlockPos == null)
+                return;
 
             if (!player.isSneaking) {
                 Block clickedBlock = BlockRegistry.get(world.getBlockAt(selectedBlockPos));
 
                 if (clickedBlock instanceof IInteractable interactable) {
                     boolean handled = interactable.onInteract(world, selectedBlockPos, player);
-                    if (handled) return;
+                    if (handled)
+                        return;
                 }
             }
 
             // --- 2. BLOCK ODER ITEM VERWENDEN ---
             ItemStack heldStack = player.getInventory().getSelectedHotbarStack();
-            if (heldStack == null || heldStack.type == null) return;
+            if (heldStack == null || heldStack.type == null)
+                return;
 
             // HIER DIE ÄNDERUNG: Wir speichern das Ergebnis
             boolean success = heldStack.type.onUseRightClick(world, player, selectedBlockPos, adjacentBlockPos, this);
@@ -292,12 +276,14 @@ public class PlayerInteraction {
 
                 if (heldStack.type == Registries.ITEMS.get(Constants.NAMESPACE + ":" + "water_bucket")) {
                     // Voller Eimer wird ausgeleert -> Wir legen einen leeren Eimer in den Slot
-                    player.getInventory().setStack(player.getInventory().getSelectedSlot(), new ItemStack(Registries.ITEMS.get(Constants.NAMESPACE + ":" + "bucket"), 1));
+                    player.getInventory().setStack(player.getInventory().getSelectedSlot(),
+                            new ItemStack(Registries.ITEMS.get(Constants.NAMESPACE + ":" + "bucket"), 1));
                     eventBus.publish(new InventoryChangeEvent());
 
                 } else if (heldStack.type == Registries.ITEMS.get(Constants.NAMESPACE + ":" + "bucket")) {
                     // Leerer Eimer wurde gefüllt -> Wir legen einen Wassereimer in den Slot
-                    player.getInventory().setStack(player.getInventory().getSelectedSlot(), new ItemStack(Registries.ITEMS.get(Constants.NAMESPACE + ":" + "water_bucket"), 1));
+                    player.getInventory().setStack(player.getInventory().getSelectedSlot(),
+                            new ItemStack(Registries.ITEMS.get(Constants.NAMESPACE + ":" + "water_bucket"), 1));
                     eventBus.publish(new InventoryChangeEvent());
 
                 } else {
@@ -328,11 +314,18 @@ public class PlayerInteraction {
         return Math.min(1.0f, miningProgress / requiredTime);
     }
 
-    public Vector3i getSelectedBlockPos() { return selectedBlockPos; }
-    public PlayerInventory getInventory() { return player.getInventory(); }
+    public Vector3i getSelectedBlockPos() {
+        return selectedBlockPos;
+    }
+
+    public PlayerInventory getInventory() {
+        return player.getInventory();
+    }
+
     public void resetCooldown() {
         this.clickCooldown = 0.5f;
     }
+
     public EventBus getEventBus() {
         return eventBus;
     }

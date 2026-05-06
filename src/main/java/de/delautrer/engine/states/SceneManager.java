@@ -2,7 +2,6 @@ package de.delautrer.engine.states;
 
 import de.delautrer.engine.Engine;
 
-
 public class SceneManager {
     private Scene currentScene;
     private Scene nextScene;

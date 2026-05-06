@@ -16,7 +16,6 @@ import java.util.List;
 import de.delautrer.Constants;
 import de.delautrer.game.registry.Registries;
 
-
 public class BlockItem extends Item {
     public final Block block;
 
@@ -86,7 +85,6 @@ public class BlockItem extends Item {
                 }
 
                 SoundManager.playEvent(this.block.getSoundMaterialName(), "walk", 0.4f);
-
 
                 return true;
             }

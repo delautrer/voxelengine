@@ -1,10 +1,9 @@
 package de.delautrer.engine;
+
 import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
-import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
+import de.delautrer.engine.graphics.vulkan.VulkanRenderer;
+import de.delautrer.engine.graphics.vulkan.core.VulkanContext;
+import de.delautrer.engine.graphics.vulkan.core.VulkanGraphicsFactory;
 import de.delautrer.engine.graphics.utils.TextureStitcher;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.engine.graphics.Camera;
@@ -24,7 +23,6 @@ import de.delautrer.game.world.World;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
-
 
 public class MasterRenderer {
     private final VulkanContext vulkanContext;
@@ -56,14 +54,17 @@ public class MasterRenderer {
 
     private int lastVisibleChunkCount = 0;
 
-    public MasterRenderer(VulkanContext vulkanContext, Window window, TextureStitcher.AtlasResult blockAtlas, TextureStitcher.AtlasResult itemAtlas) {
-        this.vulkanContext = vulkanContext;
+    public MasterRenderer(IGraphicsContext graphicsContext, Window window, TextureStitcher.AtlasResult blockAtlas,
+            TextureStitcher.AtlasResult itemAtlas) {
+        this.vulkanContext = (VulkanContext) graphicsContext;
         this.window = window;
         this.blockAtlas = blockAtlas;
         this.itemAtlas = itemAtlas;
         this.renderer = new VulkanRenderer(vulkanContext, window);
-        this.graphicsFactory = new de.delautrer.engine.graphics.vulkan.core.VulkanGraphicsFactory(vulkanContext, renderer.getCommandBuffers(), renderer.getGraphicsLayout(), renderer.getUiLayout());
-        this.uiRenderer = new UIRenderer(graphicsFactory, vulkanContext);
+        this.graphicsFactory = new VulkanGraphicsFactory(vulkanContext, renderer.getCommandBuffers(),
+                renderer.getGraphicsLayout(), renderer.getUiLayout());
+        Engine.get().setGraphicsFactory(graphicsFactory);
+        this.uiRenderer = new UIRenderer(graphicsFactory, graphicsContext);
 
         initResources();
     }
@@ -76,7 +77,8 @@ public class MasterRenderer {
 
         font = graphicsFactory.createFont("MinecraftRegular-Bmg3.otf", 24.0f);
         if (font.getRgbaPixels() != null) {
-            fontTexture = graphicsFactory.createTexture(font.getRgbaPixels(), font.getBitmapSize(), font.getBitmapSize());
+            fontTexture = graphicsFactory.createTexture(font.getRgbaPixels(), font.getBitmapSize(),
+                    font.getBitmapSize());
         }
 
         highlightMesh = graphicsFactory.createMesh(Chunk.getHighlightVertices(), Chunk.getHighlightIndices());
@@ -85,25 +87,29 @@ public class MasterRenderer {
     public void initClouds(MeshData data) {
         this.cloudMesh = graphicsFactory.createMesh(data);
     }
+
     public void initStars(MeshData starData) {
-        if (this.starMesh != null) this.starMesh.cleanup();
+        if (this.starMesh != null)
+            this.starMesh.cleanup();
         this.starMesh = graphicsFactory.createMesh(starData);
     }
 
     public void initCelestial(MeshData data) {
-        if (this.celestialMesh != null) this.celestialMesh.cleanup();
+        if (this.celestialMesh != null)
+            this.celestialMesh.cleanup();
         this.celestialMesh = graphicsFactory.createMesh(data);
     }
 
-    public void rebuildUI(PlayerInteraction interaction, InputManager input, DebugOverlay debugOverlay, MenuScreen pauseScreen, ChatOverlay chatOverlay) {
+    public void rebuildUI(PlayerInteraction interaction, InputManager input, DebugOverlay debugOverlay,
+            MenuScreen pauseScreen, ChatOverlay chatOverlay) {
         uiRenderer.rebuildMesh(
                 renderer.getWidth(), renderer.getHeight(),
                 input, interaction, input.getMouseX(), input.getMouseY(),
-                debugOverlay, chatOverlay, font, pauseScreen, blockAtlas.atlasWidth
-        );
+                debugOverlay, chatOverlay, font, pauseScreen, blockAtlas.atlasWidth);
     }
 
-    public boolean drawFrame(Camera camera, World world, PlayerInteraction interaction, boolean hideUI, int isoFramesToWait, boolean isTakingIsometric) {
+    public boolean drawFrame(Camera camera, World world, PlayerInteraction interaction, boolean hideUI,
+            int isoFramesToWait, boolean isTakingIsometric) {
         SkyManager skyManager = world.getSkyManager();
         float aspect = (float) renderer.getWidth() / (float) renderer.getHeight();
         Matrix4f view = camera.getViewMatrix();
@@ -125,14 +131,14 @@ public class MasterRenderer {
 
         boolean isIsoFrame = (isTakingIsometric && isoFramesToWait == -1);
 
-        CullingUtils.buildVisibleLists(world.getChunkManager(), mvpCameraRelative, packet, isIsoFrame, packet.cameraPos);
+        CullingUtils.buildVisibleLists(world.getChunkManager(), mvpCameraRelative, packet, isIsoFrame,
+                packet.cameraPos);
         lastVisibleChunkCount = packet.opaqueMeshes.size() + packet.waterMeshes.size();
 
         packet.cloudMesh = this.cloudMesh;
         packet.cloudOffset = world.getCloudSystem().getRenderOffset(
                 (float) camera.getPosition().x,
-                (float) camera.getPosition().z
-        );
+                (float) camera.getPosition().z);
         packet.starMesh = this.starMesh;
         packet.starAlpha = skyManager.getStarAlpha();
         packet.timeOfDay = skyManager.getTimeOfDay();
@@ -144,8 +150,8 @@ public class MasterRenderer {
 
         Vector3f skyColor = skyManager.getCurrentSkyColor();
         float intensity = skyManager.getGlobalLightIntensity();
-        if(packet.isUnderwater)
-            renderer.setClearColor(0.02f*intensity, 0.1f*intensity, 0.3f*intensity);
+        if (packet.isUnderwater)
+            renderer.setClearColor(0.02f * intensity, 0.1f * intensity, 0.3f * intensity);
         else
             renderer.setClearColor(skyColor.x, skyColor.y, skyColor.z);
 
@@ -161,14 +167,15 @@ public class MasterRenderer {
         Vector3i selectedBlockPos = interaction.getSelectedBlockPos();
         packet.selectedBlockPos = selectedBlockPos;
 
-        if(selectedBlockPos != null) {
+        if (selectedBlockPos != null) {
             byte selectedBlockId = world.getBlockAt(selectedBlockPos);
             Block block = BlockRegistry.get(selectedBlockId);
             BlockState state = world.getBlockState(selectedBlockPos);
 
             // HIGHLIGHT MESH UPDATE
             if (dynamicHighlightMesh == null) {
-                dynamicHighlightMesh = graphicsFactory.createMesh(block.getHighlightVertices(state), block.getHighlightIndices(state));
+                dynamicHighlightMesh = graphicsFactory.createMesh(block.getHighlightVertices(state),
+                        block.getHighlightIndices(state));
             } else {
                 dynamicHighlightMesh.updateMesh(block.getHighlightVertices(state), block.getHighlightIndices(state));
             }
@@ -190,7 +197,8 @@ public class MasterRenderer {
             packet.highlightMesh = highlightMesh;
         }
 
-        packet.entities = world.getEntities();
+        // Entity population is now handled by CullingUtils.buildVisibleLists
+        // packet.entities = world.getEntities();
 
         packet.sunDirection = skyManager.getSunDirection();
         packet.globalLight = skyManager.getGlobalLightIntensity();
@@ -202,7 +210,7 @@ public class MasterRenderer {
 
         if (isIsoFrame) {
             packet.hideUI = true;
-            packet.clipY = (float) Math.min(54f, interaction.getPlayer().getEyePosition().y - 15.0f );
+            packet.clipY = (float) Math.min(54f, interaction.getPlayer().getEyePosition().y - 15.0f);
             packet.renderDistance = 10000.0f;
             float zoom = 80.0f;
 
@@ -212,7 +220,8 @@ public class MasterRenderer {
             org.joml.Vector3d target = interaction.getPlayer().position;
             org.joml.Vector3d eye = new org.joml.Vector3d(target.x + 100.0, target.y + 60.0, target.z + 100.0);
 
-            packet.view = new org.joml.Matrix4f().lookAt(new Vector3f((float)eye.x, (float)eye.y, (float)eye.z), new Vector3f((float)target.x, (float)target.y, (float)target.z), new org.joml.Vector3f(0, 1, 0));
+            packet.view = new org.joml.Matrix4f().lookAt(new Vector3f((float) eye.x, (float) eye.y, (float) eye.z),
+                    new Vector3f((float) target.x, (float) target.y, (float) target.z), new org.joml.Vector3f(0, 1, 0));
 
             Matrix4f isoViewRotOnly = new Matrix4f(packet.view).setTranslation(0, 0, 0);
             packet.mvp = new org.joml.Matrix4f(packet.proj).mul(isoViewRotOnly);
@@ -229,12 +238,14 @@ public class MasterRenderer {
         // Der Draw-Call wird ausgeführt...
         boolean success = renderer.render(packet);
 
-        // ... und wir räumen NICHTS mehr auf! Das Cleanup am Ende des Frames entfällt komplett,
+        // ... und wir räumen NICHTS mehr auf! Das Cleanup am Ende des Frames entfällt
+        // komplett,
         // da sich die Meshes im nächsten Frame von selbst überschreiben.
         return success;
     }
 
-    // --- NEU: Diese Methode baut keine neuen Meshes mehr, sondern updatet unser gespeichertes Mesh ---
+    // --- NEU: Diese Methode baut keine neuen Meshes mehr, sondern updatet unser
+    // gespeichertes Mesh ---
     private void updateCrackingMesh(Vector3i pos, float layer) {
         float x = pos.x, y = pos.y, z = pos.z;
         float e = -0.005f;
@@ -245,44 +256,44 @@ public class MasterRenderer {
 
         float[] verts = {
                 // Front (-Z)
-                x+e, y+e, z+e, r,g,b,a, 0,1, layer, sl,bl,
-                x+s, y+e, z+e, r,g,b,a, 1,1, layer, sl,bl,
-                x+s, y+s, z+e, r,g,b,a, 1,0, layer, sl,bl,
-                x+e, y+s, z+e, r,g,b,a, 0,0, layer, sl,bl,
+                x + e, y + e, z + e, r, g, b, a, 0, 1, layer, sl, bl,
+                x + s, y + e, z + e, r, g, b, a, 1, 1, layer, sl, bl,
+                x + s, y + s, z + e, r, g, b, a, 1, 0, layer, sl, bl,
+                x + e, y + s, z + e, r, g, b, a, 0, 0, layer, sl, bl,
                 // Back (+Z)
-                x+e, y+e, z+s, r,g,b,a, 1,1, layer, sl,bl,
-                x+s, y+e, z+s, r,g,b,a, 0,1, layer, sl,bl,
-                x+s, y+s, z+s, r,g,b,a, 0,0, layer, sl,bl,
-                x+e, y+s, z+s, r,g,b,a, 1,0, layer, sl,bl,
+                x + e, y + e, z + s, r, g, b, a, 1, 1, layer, sl, bl,
+                x + s, y + e, z + s, r, g, b, a, 0, 1, layer, sl, bl,
+                x + s, y + s, z + s, r, g, b, a, 0, 0, layer, sl, bl,
+                x + e, y + s, z + s, r, g, b, a, 1, 0, layer, sl, bl,
                 // Left (-X)
-                x+e, y+e, z+e, r,g,b,a, 1,1, layer, sl,bl,
-                x+e, y+e, z+s, r,g,b,a, 0,1, layer, sl,bl,
-                x+e, y+s, z+s, r,g,b,a, 0,0, layer, sl,bl,
-                x+e, y+s, z+e, r,g,b,a, 1,0, layer, sl,bl,
+                x + e, y + e, z + e, r, g, b, a, 1, 1, layer, sl, bl,
+                x + e, y + e, z + s, r, g, b, a, 0, 1, layer, sl, bl,
+                x + e, y + s, z + s, r, g, b, a, 0, 0, layer, sl, bl,
+                x + e, y + s, z + e, r, g, b, a, 1, 0, layer, sl, bl,
                 // Right (+X)
-                x+s, y+e, z+e, r,g,b,a, 0,1, layer, sl,bl,
-                x+s, y+e, z+s, r,g,b,a, 1,1, layer, sl,bl,
-                x+s, y+s, z+s, r,g,b,a, 1,0, layer, sl,bl,
-                x+s, y+s, z+e, r,g,b,a, 0,0, layer, sl,bl,
+                x + s, y + e, z + e, r, g, b, a, 0, 1, layer, sl, bl,
+                x + s, y + e, z + s, r, g, b, a, 1, 1, layer, sl, bl,
+                x + s, y + s, z + s, r, g, b, a, 1, 0, layer, sl, bl,
+                x + s, y + s, z + e, r, g, b, a, 0, 0, layer, sl, bl,
                 // Top (+Y)
-                x+e, y+s, z+e, r,g,b,a, 0,1, layer, sl,bl,
-                x+s, y+s, z+e, r,g,b,a, 1,1, layer, sl,bl,
-                x+s, y+s, z+s, r,g,b,a, 1,0, layer, sl,bl,
-                x+e, y+s, z+s, r,g,b,a, 0,0, layer, sl,bl,
+                x + e, y + s, z + e, r, g, b, a, 0, 1, layer, sl, bl,
+                x + s, y + s, z + e, r, g, b, a, 1, 1, layer, sl, bl,
+                x + s, y + s, z + s, r, g, b, a, 1, 0, layer, sl, bl,
+                x + e, y + s, z + s, r, g, b, a, 0, 0, layer, sl, bl,
                 // Bottom (-Y)
-                x+e, y+e, z+e, r,g,b,a, 0,0, layer, sl,bl,
-                x+s, y+e, z+e, r,g,b,a, 1,0, layer, sl,bl,
-                x+s, y+e, z+s, r,g,b,a, 1,1, layer, sl,bl,
-                x+e, y+e, z+s, r,g,b,a, 0,1, layer, sl,bl,
+                x + e, y + e, z + e, r, g, b, a, 0, 0, layer, sl, bl,
+                x + s, y + e, z + e, r, g, b, a, 1, 0, layer, sl, bl,
+                x + s, y + e, z + s, r, g, b, a, 1, 1, layer, sl, bl,
+                x + e, y + e, z + s, r, g, b, a, 0, 1, layer, sl, bl,
         };
 
         int[] inds = {
-                2,1,0, 0,3,2,       // Front
-                6,7,4, 4,5,6,       // Back
-                10,11,8, 8,9,10,    // Left
-                14,13,12, 12,15,14, // Right
-                18,17,16, 16,19,18, // Top
-                22,23,20, 20,21,22  // Bottom
+                2, 1, 0, 0, 3, 2, // Front
+                6, 7, 4, 4, 5, 6, // Back
+                10, 11, 8, 8, 9, 10, // Left
+                14, 13, 12, 12, 15, 14, // Right
+                18, 17, 16, 16, 19, 18, // Top
+                22, 23, 20, 20, 21, 22 // Bottom
         };
 
         if (dynamicOverlayMesh == null) {
@@ -292,28 +303,45 @@ public class MasterRenderer {
         }
     }
 
-    public void recreate(PlayerInteraction interaction, InputManager input, DebugOverlay debugOverlay, MenuScreen pauseScreen, ChatOverlay chatOverlay) {
+    public void recreate(PlayerInteraction interaction, InputManager input, DebugOverlay debugOverlay,
+            MenuScreen pauseScreen, ChatOverlay chatOverlay) {
         renderer.recreate(window);
         rebuildUI(interaction, input, debugOverlay, pauseScreen, chatOverlay);
     }
 
-    public int getLastVisibleChunkCount() { return lastVisibleChunkCount; }
+    public int getLastVisibleChunkCount() {
+        return lastVisibleChunkCount;
+    }
 
     public void cleanup() {
-        if (celestialMesh != null) celestialMesh.cleanup();
-        if (starMesh != null) starMesh.cleanup();
-        if (cloudMesh != null) cloudMesh.cleanup();
-        if (worldTexture != null) worldTexture.cleanup();
-        if (blockUITexture != null) blockUITexture.cleanup();
-        if (uiTexture != null) uiTexture.cleanup();
-        if (itemTexture != null) itemTexture.cleanup();
-        if (fontTexture != null) fontTexture.cleanup();
-        if (uiRenderer != null) uiRenderer.cleanup();
-        if (highlightMesh != null) highlightMesh.cleanup();
-        if (dynamicHighlightMesh != null) dynamicHighlightMesh.cleanup();
-        if (dynamicOverlayMesh != null) dynamicOverlayMesh.cleanup();
-        if (font != null) font.cleanup();
-        if (renderer != null) renderer.cleanup();
+        if (celestialMesh != null)
+            celestialMesh.cleanup();
+        if (starMesh != null)
+            starMesh.cleanup();
+        if (cloudMesh != null)
+            cloudMesh.cleanup();
+        if (worldTexture != null)
+            worldTexture.cleanup();
+        if (blockUITexture != null)
+            blockUITexture.cleanup();
+        if (uiTexture != null)
+            uiTexture.cleanup();
+        if (itemTexture != null)
+            itemTexture.cleanup();
+        if (fontTexture != null)
+            fontTexture.cleanup();
+        if (uiRenderer != null)
+            uiRenderer.cleanup();
+        if (highlightMesh != null)
+            highlightMesh.cleanup();
+        if (dynamicHighlightMesh != null)
+            dynamicHighlightMesh.cleanup();
+        if (dynamicOverlayMesh != null)
+            dynamicOverlayMesh.cleanup();
+        if (font != null)
+            font.cleanup();
+        if (renderer != null)
+            renderer.cleanup();
     }
 
     public IFont getFont() {

@@ -1,10 +1,11 @@
 package de.delautrer.engine.graphics.systems;
-import de.delautrer.engine.graphics.*;
 import de.delautrer.engine.graphics.vulkan.*;
 import de.delautrer.engine.graphics.vulkan.core.*;
 import de.delautrer.engine.graphics.vulkan.pipeline.*;
 import de.delautrer.engine.graphics.vulkan.buffer.*;
 import de.delautrer.engine.graphics.vulkan.texture.*;
+
+import de.delautrer.engine.graphics.*;
 import de.delautrer.engine.graphics.utils.TextureStitcher.AtlasRegion;
 import de.delautrer.game.blocks.CubeBlock;
 import de.delautrer.game.blocks.TorchBlock;
@@ -24,8 +25,6 @@ import java.util.List;
 import de.delautrer.engine.physics.AABB;
 import de.delautrer.game.blocks.state.BlockState;
 
-
-
 public class EntityRenderSystem implements IRenderSystem {
     private final VulkanContext context;
     private final VulkanGraphicsPipeline blockPipeline;
@@ -41,7 +40,6 @@ public class EntityRenderSystem implements IRenderSystem {
     @Override
     public void render(VkCommandBuffer cmd, RenderPacket packet) {
         if (packet.entities == null || packet.entities.isEmpty()) {
-            cleanupMeshes();
             return;
         }
 
@@ -59,28 +57,20 @@ public class EntityRenderSystem implements IRenderSystem {
             if (!(e instanceof ItemEntity itemEntity) || itemEntity.isDead()) continue;
 
             Item itemType = itemEntity.stack.type;
-
-            // NEU: Wir lesen den Count aus dem Stack aus (falls deine Variable anders heißt, hier anpassen)
             int count = itemEntity.stack.amount;
 
-            // Berechnen, wie viele Meshes wir für den "Haufen" zeichnen
             int visualCount = 1;
-            if (count > 1)  visualCount = 2; // Der 2er Haufen
-            if (count > 15) visualCount = 3; // Der 3er Haufen
-            if (count > 31) visualCount = 4; // Der 4er Haufen
+            if (count > 1)  visualCount = 2;
+            if (count > 15) visualCount = 3;
+            if (count > 31) visualCount = 4;
 
             float hoverY = (float) Math.sin(t * 3.0) * 0.1f + 0.15f;
 
-            // NEU: Wir iterieren über den visualCount und zeichnen das Item mehrfach versetzt
             for (int v = 0; v < visualCount; v++) {
-
-                // Leichter 3D-Versatz für jedes weitere Item im Haufen (Minecraft-Style)
                 float pileOffsetX = v * 0.04f;
                 float pileOffsetY = v * 0.04f;
                 float pileOffsetZ = v * -0.04f;
 
-                // WICHTIG: Die Model-Matrix muss in Welt-Koordinaten (aber relativ zur Kamera) sein,
-                // damit der Vertex Shader korrekt funktioniert.
                 Matrix4f modelMat = new Matrix4f()
                         .translate((float) (e.position.x - packet.cameraPos.x) + pileOffsetX,
                                    (float) (e.position.y - packet.cameraPos.y) + hoverY + pileOffsetY,
@@ -96,7 +86,7 @@ public class EntityRenderSystem implements IRenderSystem {
                     if (reg != null) {
                         modelMat.scale(0.5f);
                         buildThickItem(itemVerts, itemInds, itemOffset, modelMat, reg);
-                        itemOffset += 24;
+                        itemOffset = itemVerts.size() / 12;
                     }
                 }
             }
@@ -112,10 +102,6 @@ public class EntityRenderSystem implements IRenderSystem {
             }
             VK10.vkCmdBindPipeline(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, blockPipeline.getHandle());
             bindAndDraw(cmd, packet, blockPipeline.getPipelineLayout(), blockMesh, ((VulkanTextureArray)packet.worldTexture).getDescriptorSet());
-        } else if (blockMesh != null) {
-            VK10.vkDeviceWaitIdle(context.getDevice());
-            blockMesh.cleanup();
-            blockMesh = null;
         }
 
         if (!itemVerts.isEmpty()) {
@@ -126,35 +112,25 @@ public class EntityRenderSystem implements IRenderSystem {
             }
             VK10.vkCmdBindPipeline(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, blockPipeline.getHandle());
             bindAndDraw(cmd, packet, blockPipeline.getPipelineLayout(), itemMesh, ((VulkanTexture)packet.itemTexture).getDescriptorSet());
-        } else if (itemMesh != null) {
-            VK10.vkDeviceWaitIdle(context.getDevice());
-            itemMesh.cleanup();
-            itemMesh = null;
         }
     }
 
     private void bindAndDraw(VkCommandBuffer cmd, RenderPacket packet, long pipelineLayout, VulkanMesh mesh, long descriptorSet) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
-            // WICHTIG: Die ModelMatrix wird auf die Vertices VOR der GPU angewandt
-            // Hier nutzen wir packet.mvp (ohne Translation) -> Camera relative rendering
             Matrix4f mvp = new Matrix4f(packet.mvp); 
             
-            // Push Constants für den Shader vorbereiten (28 Floats / 112 Bytes)
             FloatBuffer buf = stack.mallocFloat(28);
             mvp.get(buf);
             buf.put(16, packet.globalLight);
             buf.put(17, packet.renderDistance);
-            buf.put(18, 1.0f); // fogMultiplier
+            buf.put(18, 1.0f);
             buf.put(19, (float)packet.cameraPos.x);
             buf.put(20, (float)packet.cameraPos.y);
             buf.put(21, (float)packet.cameraPos.z);
-
-            // Da die ModelMatrix der Vertices berechnet wird als: Position - CameraPos,
-            // Sind die Offsets hier 0!
-            buf.put(22, 0.0f); // offsetX
-            buf.put(23, 0.0f); // offsetY
-            buf.put(24, 0.0f); // offsetZ
-            buf.put(25, 0.0f); // isCloud
+            buf.put(22, 0.0f);
+            buf.put(23, 0.0f);
+            buf.put(24, 0.0f);
+            buf.put(25, 0.0f);
             buf.put(26, packet.isUnderwater ? 1.0f : 0.0f);
             buf.put(27, packet.clipY);
 
@@ -169,7 +145,6 @@ public class EntityRenderSystem implements IRenderSystem {
 
     private void buildThickItem(List<Float> verts, List<Integer> inds, int offset, Matrix4f transform, AtlasRegion reg) {
         float thickness = 0.03f;
-
         Vector3f[] posUp = {
                 new Vector3f(-0.5f, thickness, -0.5f), new Vector3f( 0.5f, thickness, -0.5f),
                 new Vector3f( 0.5f, thickness,  0.5f), new Vector3f(-0.5f, thickness,  0.5f)
@@ -216,20 +191,17 @@ public class EntityRenderSystem implements IRenderSystem {
     private void build3DBlock(List<Float> verts, List<Integer> inds, int offset, Matrix4f transform, CubeBlock block) {
         BlockFace[] faces = {BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST, BlockFace.UP, BlockFace.DOWN};
         float[] shades = {0.8f, 0.8f, 0.65f, 0.65f, 1.0f, 0.4f};
-
         List<AABB> boxes = block.getBoundingBoxes(block.getDefaultState());
 
         for (AABB box : boxes) {
             float bx0 = box.min.x; float by0 = box.min.y; float bz0 = box.min.z;
             float bx1 = box.max.x; float by1 = box.max.y; float bz1 = box.max.z;
-
             float minX = bx0 - 0.5f; float minY = by0 - 0.5f; float minZ = bz0 - 0.5f;
             float maxX = bx1 - 0.5f; float maxY = by1 - 0.5f; float maxZ = bz1 - 0.5f;
 
             float sideV0, sideV1;
             if (block.getModel() != null && block.getModel().directional_textures) {
-                sideV0 = 1.0f - by1;
-                sideV1 = 1.0f - by0;
+                sideV0 = 1.0f - by1; sideV1 = 1.0f - by0;
             } else {
                 if (bx1 - bx0 > 0.99f && by1 - by0 > 0.99f && bz1 - bz0 > 0.99f) {
                     sideV0 = 0.0f; sideV1 = 1.0f;
@@ -240,45 +212,27 @@ public class EntityRenderSystem implements IRenderSystem {
             }
 
             Vector3f[][] coords = {
-                    {new Vector3f(maxX, minY, minZ), new Vector3f(minX, minY, minZ), new Vector3f(minX, maxY, minZ), new Vector3f(maxX, maxY, minZ)}, // North
-                    {new Vector3f(minX, minY, maxZ), new Vector3f(maxX, minY, maxZ), new Vector3f(maxX, maxY, maxZ), new Vector3f(minX, maxY, maxZ)}, // South
-                    {new Vector3f(maxX, minY, maxZ), new Vector3f(maxX, minY, minZ), new Vector3f(maxX, maxY, minZ), new Vector3f(maxX, maxY, maxZ)}, // East
-                    {new Vector3f(minX, minY, minZ), new Vector3f(minX, minY, maxZ), new Vector3f(minX, maxY, maxZ), new Vector3f(minX, maxY, minZ)}, // West
-                    {new Vector3f(minX, maxY, minZ), new Vector3f(minX, maxY, maxZ), new Vector3f(maxX, maxY, maxZ), new Vector3f(maxX, maxY, minZ)}, // Up
-                    {new Vector3f(minX, minY, maxZ), new Vector3f(minX, minY, minZ), new Vector3f(maxX, minY, minZ), new Vector3f(maxX, minY, maxZ)}  // Down
+                    {new Vector3f(maxX, minY, minZ), new Vector3f(minX, minY, minZ), new Vector3f(minX, maxY, minZ), new Vector3f(maxX, maxY, minZ)},
+                    {new Vector3f(minX, minY, maxZ), new Vector3f(maxX, minY, maxZ), new Vector3f(maxX, maxY, maxZ), new Vector3f(minX, maxY, maxZ)},
+                    {new Vector3f(maxX, minY, maxZ), new Vector3f(maxX, minY, minZ), new Vector3f(maxX, maxY, minZ), new Vector3f(maxX, maxY, maxZ)},
+                    {new Vector3f(minX, minY, minZ), new Vector3f(minX, minY, maxZ), new Vector3f(minX, maxY, maxZ), new Vector3f(minX, maxY, minZ)},
+                    {new Vector3f(minX, maxY, minZ), new Vector3f(minX, maxY, maxZ), new Vector3f(maxX, maxY, maxZ), new Vector3f(maxX, maxY, minZ)},
+                    {new Vector3f(minX, minY, maxZ), new Vector3f(minX, minY, minZ), new Vector3f(maxX, minY, minZ), new Vector3f(maxX, minY, maxZ)}
             };
 
             float[][] u_faces = {
-                    {1.0f-bx1, 1.0f-bx0, 1.0f-bx0, 1.0f-bx1}, // North
-                    {bx0, bx1, bx1, bx0},                     // South
-                    {1.0f-bz1, 1.0f-bz0, 1.0f-bz0, 1.0f-bz1}, // East
-                    {bz0, bz1, bz1, bz0},                     // West
-                    {bx0, bx1, bx1, bx0},                     // Up
-                    {bx0, bx1, bx1, bx0}                      // Down
+                    {1.0f-bx1, 1.0f-bx0, 1.0f-bx0, 1.0f-bx1}, {bx0, bx1, bx1, bx0},
+                    {1.0f-bz1, 1.0f-bz0, 1.0f-bz0, 1.0f-bz1}, {bz0, bz1, bz1, bz0},
+                    {bx0, bx1, bx1, bx0}, {bx0, bx1, bx1, bx0}
             };
             float[][] v_faces = {
-                    {sideV1, sideV1, sideV0, sideV0}, // North
-                    {sideV1, sideV1, sideV0, sideV0}, // South
-                    {sideV1, sideV1, sideV0, sideV0}, // East
-                    {sideV1, sideV1, sideV0, sideV0}, // West
-                    {bz1, bz1, bz0, bz0},             // Up
-                    {bz1, bz1, bz0, bz0}              // Down
+                    {sideV1, sideV1, sideV0, sideV0}, {sideV1, sideV1, sideV0, sideV0},
+                    {sideV1, sideV1, sideV0, sideV0}, {sideV1, sideV1, sideV0, sideV0},
+                    {bz1, bz1, bz0, bz0}, {bz1, bz1, bz0, bz0}
             };
 
             for (int i = 0; i < 6; i++) {
-                AtlasRegion reg = null;
-
-                if (block instanceof CubeBlock cb) {
-                    reg = cb.getTextureForFace(cb.getDefaultState(), faces[i]);
-                } else {
-                    try {
-                        java.lang.reflect.Method m = block.getClass().getMethod("getTextureForFace", BlockState.class, BlockFace.class);
-                        reg = (AtlasRegion) m.invoke(block, block.getDefaultState(), faces[i]);
-                    } catch (Exception e) {
-                        if (block.getModel() != null) reg = block.getModel().top;
-                    }
-                }
-
+                AtlasRegion reg = block.getTextureForFace(block.getDefaultState(), faces[i]);
                 if (reg == null) continue;
 
                 Vector3f[] p = coords[i];
@@ -290,7 +244,6 @@ public class EntityRenderSystem implements IRenderSystem {
                     Vector3f tv = new Vector3f(p[j]).mulPosition(transform);
                     float finalU = reg.u0 + (u[j] * (reg.u1 - reg.u0));
                     float finalV = reg.v0 + (v[j] * (reg.v1 - reg.v0));
-
                     addVertex(verts, tv.x, tv.y, tv.z, s, s, s, 1.0f, finalU, finalV, (float)reg.layer, 1.0f, 0.0f);
                 }
                 addIndices(inds, offset);
@@ -320,5 +273,9 @@ public class EntityRenderSystem implements IRenderSystem {
         if (itemMesh != null) { itemMesh.cleanup(); itemMesh = null; }
     }
 
-    @Override public void cleanup() { cleanupMeshes(); blockPipeline.cleanup(); }
+    @Override
+    public void cleanup() {
+        cleanupMeshes();
+        blockPipeline.cleanup();
+    }
 }

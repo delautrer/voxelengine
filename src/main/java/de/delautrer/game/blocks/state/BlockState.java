@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-
 public class BlockState {
     private final Block block;
     private final byte stateId; // Das ist das byte, das im Chunk-Array landet!

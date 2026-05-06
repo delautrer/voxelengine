@@ -6,7 +6,6 @@ import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.events.BlockChangeEvent;
 import de.delautrer.game.events.BlockNeighborUpdateEvent;
 
-
 public class WorldEventHandler {
 
     private final World world;
@@ -75,7 +74,6 @@ public class WorldEventHandler {
             receiverBlock.onNeighborChanged(world, event.pos.x, event.pos.y, event.pos.z, event.neighborPos, event.changedNeighborId);
         }
     }
-
 
     public void cleanup() {
         if (eventBus != null) {

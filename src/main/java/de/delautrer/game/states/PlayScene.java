@@ -1,10 +1,5 @@
 package de.delautrer.game.states;
-import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
-import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
+
 import de.delautrer.Constants;
 import de.delautrer.engine.MasterRenderer;
 import de.delautrer.engine.audio.AudioEngine;
@@ -13,7 +8,6 @@ import de.delautrer.engine.events.EventListener;
 import de.delautrer.engine.graphics.MeshData;
 import de.delautrer.engine.states.Scene;
 import de.delautrer.engine.Engine;
-import de.delautrer.engine.graphics.vulkan.core.VulkanContext;
 import de.delautrer.engine.utils.GamePaths;
 import de.delautrer.game.commands.CommandManager;
 import de.delautrer.game.entity.player.LocalPlayer;
@@ -27,8 +21,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.events.InventoryClosedEvent;
-
-
 
 public class PlayScene extends Scene {
 
@@ -95,7 +87,8 @@ public class PlayScene extends Scene {
     @Override
     public void init() {
         eventBus = new EventBus();
-        masterRenderer = new MasterRenderer((VulkanContext)engine.getGraphicsContext(), engine.getWindow(), engine.getBlockAtlas(), engine.getItemAtlas());
+        masterRenderer = new MasterRenderer(engine.getGraphicsContext(), engine.getWindow(), engine.getBlockAtlas(),
+                engine.getItemAtlas());
         debugOverlay = new DebugOverlay();
         chatOverlay = new ChatOverlay(eventBus);
 
@@ -111,7 +104,6 @@ public class PlayScene extends Scene {
         engine.getWindow().disableCursor();
         localPlayer.getCamera().resetMouseTracking();
 
-
         deathScreen = new DeathScreen(localPlayer, this);
         deathScreen.init(engine.getWindow().getWidth(), engine.getWindow().getHeight());
         deathScreen.setFont(masterRenderer.getFont());
@@ -122,15 +114,17 @@ public class PlayScene extends Scene {
         localPlayer.initInteraction(world, eventBus);
 
         float cloudLayer;
-        if(engine.getBlockAtlas().regions.containsKey("just_white")) {
+        if (engine.getBlockAtlas().regions.containsKey("just_white")) {
             cloudLayer = engine.getBlockAtlas().regions.get("just_white").layer;
         } else {
             cloudLayer = 0.0f;
         }
-        MeshData cloudData = world.getSkyManager().getCloudSystem().generateCloudMesh(world.getSeed(), cloudLayer, world.getSkyManager().getCurrentWeather());
+        MeshData cloudData = world.getSkyManager().getCloudSystem().generateCloudMesh(world.getSeed(), cloudLayer,
+                world.getSkyManager().getCurrentWeather());
         masterRenderer.initClouds(cloudData);
         world.getSkyManager().setWeatherCallback(() -> {
-            MeshData newCloudData = world.getSkyManager().getCloudSystem().generateCloudMesh(world.getSeed(), cloudLayer, world.getSkyManager().getCurrentWeather());
+            MeshData newCloudData = world.getSkyManager().getCloudSystem().generateCloudMesh(world.getSeed(),
+                    cloudLayer, world.getSkyManager().getCurrentWeather());
             masterRenderer.initClouds(newCloudData);
         });
         world.getSkyManager().forceWeather(world.getSkyManager().getCurrentWeather());
@@ -150,16 +144,15 @@ public class PlayScene extends Scene {
     private void setupDebugOverlay() {
         debugOverlay.addLine("Version", () -> Constants.VERSION);
         debugOverlay.addLine("FPS", () -> String.format("%d", engine.getCurrentFps()));
-        debugOverlay.addLine("Chunks (Loaded/Visible)", () ->
-                world.getChunkManager().getMeshes().size() + " / " + masterRenderer.getLastVisibleChunkCount()
-        );
+        debugOverlay.addLine("Chunks (Loaded/Visible)",
+                () -> world.getChunkManager().getMeshes().size() + " / " + masterRenderer.getLastVisibleChunkCount());
         debugOverlay.addLine("Player XYZ", () -> String.format("%.2f / %.2f / %.2f",
                 localPlayer.position.x, localPlayer.position.y, localPlayer.position.z));
         debugOverlay.addLine("Player Yaw/Pitch", () -> String.format("%.1f / %.1f",
                 localPlayer.getCamera().getYaw(), localPlayer.getCamera().getPitch()));
         debugOverlay.addLine("Chunk Pos", () -> String.format("%d / %d",
-                (int)Math.floor(localPlayer.position.x / Chunk.SIZE),
-                (int)Math.floor(localPlayer.position.z / Chunk.SIZE)));
+                (int) Math.floor(localPlayer.position.x / Chunk.SIZE),
+                (int) Math.floor(localPlayer.position.z / Chunk.SIZE)));
 
         debugOverlay.addLine("Biome", () -> {
             int px = (int) Math.floor(localPlayer.position.x);
@@ -210,7 +203,8 @@ public class PlayScene extends Scene {
     private void setupEvents() {
         inventoryToggleListener = event -> {
             uiNeedsRebuild = true;
-            if (event.isOpen) engine.getWindow().enableCursor();
+            if (event.isOpen)
+                engine.getWindow().enableCursor();
             else {
                 engine.getWindow().disableCursor();
                 localPlayer.getCamera().resetMouseTracking();
@@ -233,7 +227,6 @@ public class PlayScene extends Scene {
         eventBus.subscribe(InventoryClosedEvent.class, closeListener);
         eventBus.subscribe(PlayerDamageEvent.class, playerDamageEventListener);
     }
-
 
     @Override
     public void update(float deltaTime) {
@@ -266,7 +259,8 @@ public class PlayScene extends Scene {
                 engine.getWindow().enableCursor();
                 localPlayer.getCamera().resetMouseTracking();
 
-                if (isChatOpen) closeChat();
+                if (isChatOpen)
+                    closeChat();
                 if (localPlayer.getOpenedInventory() != null) {
                     eventBus.publish(new InventoryClosedEvent(localPlayer, localPlayer.getOpenedInventory()));
                     localPlayer.closeInventory();
@@ -287,21 +281,18 @@ public class PlayScene extends Scene {
             wasDead = false;
         }
 
-
         // --- 3. PAUSE LOGIK ---
         if (engine.getInputManager().isActionJustPressed("PAUSE")) {
             if (isChatOpen) {
                 closeChat();
-            }
-            else if (localPlayer.getOpenedInventory() != null) {
+            } else if (localPlayer.getOpenedInventory() != null) {
                 eventBus.publish(new InventoryClosedEvent(localPlayer, localPlayer.getOpenedInventory()));
                 localPlayer.closeInventory();
 
                 engine.getWindow().disableCursor();
                 localPlayer.getCamera().resetMouseTracking();
                 uiNeedsRebuild = true;
-            }
-            else if (localPlayer.getInventory().isOpen()) {
+            } else if (localPlayer.getInventory().isOpen()) {
                 localPlayer.getInventory().setOpen(false);
                 eventBus.publish(new InventoryToggleEvent(false));
                 engine.getWindow().disableCursor();
@@ -323,10 +314,12 @@ public class PlayScene extends Scene {
 
         // --- 4. NORMALES SPIEL ---
         // Cooldown ticken lassen
-        if (screenshotCooldown > 0) screenshotCooldown -= deltaTime;
+        if (screenshotCooldown > 0)
+            screenshotCooldown -= deltaTime;
 
         // F1 - UI Toggle
-        if (engine.getInputManager().isActionJustPressed("TOGGLE_UI")) { // Stell sicher, dass du F1 als "TOGGLE_UI" bindest!
+        if (engine.getInputManager().isActionJustPressed("TOGGLE_UI")) { // Stell sicher, dass du F1 als "TOGGLE_UI"
+                                                                         // bindest!
             hideUI = !hideUI;
             uiNeedsRebuild = true;
         }
@@ -339,7 +332,7 @@ public class PlayScene extends Scene {
                 // Isometrisch Starten!
                 isTakingIsometric = true;
                 isoFramesToWait = 2; // Wir warten 2 Frames, damit der LoadingScreen aufpoppt!
-                //pauseGame(); // Spiel anhalten
+                // pauseGame(); // Spiel anhalten
                 uiNeedsRebuild = true;
             } else {
                 // Normaler Screenshot
@@ -366,7 +359,7 @@ public class PlayScene extends Scene {
                 isoFramesToWait = -1;
             } else if (isoFramesToWait == -1) {
                 isTakingIsometric = false;
-                //resumeGame();
+                // resumeGame();
             }
         }
 
@@ -390,14 +383,16 @@ public class PlayScene extends Scene {
         }
 
         if (isChatOpen) {
-            chatScreen.handleMenuInput(engine.getInputManager(), engine.getInputManager().getMouseX(), engine.getInputManager().getMouseY());
+            chatScreen.handleMenuInput(engine.getInputManager(), engine.getInputManager().getMouseX(),
+                    engine.getInputManager().getMouseY());
             uiNeedsRebuild = true;
         }
 
         localPlayer.updateLocal(engine.getInputManager(), world.getChunkManager(), deltaTime);
         localPlayer.updateCamera(engine.getWindow().getHandle(), deltaTime);
 
-        if (localPlayer.getInventory().isOpen() || localPlayer.getOpenedInventory() != null || debugOverlay.isVisible()) {
+        if (localPlayer.getInventory().isOpen() || localPlayer.getOpenedInventory() != null
+                || debugOverlay.isVisible()) {
             uiNeedsRebuild = true;
         }
 
@@ -426,13 +421,15 @@ public class PlayScene extends Scene {
             if (localPlayer.isDead()) {
                 masterRenderer.rebuildUI(null, engine.getInputManager(), null, activeScreen, null);
             } else {
-                masterRenderer.rebuildUI(localPlayer.getInteraction(), engine.getInputManager(), debugOverlay, activeScreen, chatOverlay);
+                masterRenderer.rebuildUI(localPlayer.getInteraction(), engine.getInputManager(), debugOverlay,
+                        activeScreen, chatOverlay);
             }
 
             uiNeedsRebuild = false;
         }
 
-        if (!masterRenderer.drawFrame(localPlayer.getCamera(), world, localPlayer.getInteraction(), hideUI, isoFramesToWait, isTakingIsometric)) {
+        if (!masterRenderer.drawFrame(localPlayer.getCamera(), world, localPlayer.getInteraction(), hideUI,
+                isoFramesToWait, isTakingIsometric)) {
             uiNeedsRebuild = true;
         }
     }
@@ -448,12 +445,14 @@ public class PlayScene extends Scene {
             activeScreen = pauseScreen;
         }
 
-        masterRenderer.recreate(localPlayer.getInteraction(), engine.getInputManager(), debugOverlay, activeScreen, chatOverlay);
+        masterRenderer.recreate(localPlayer.getInteraction(), engine.getInputManager(), debugOverlay, activeScreen,
+                chatOverlay);
         pauseScreen.init(engine.getWindow().getWidth(), engine.getWindow().getHeight());
         loadingScreen.init(engine.getWindow().getWidth(), engine.getWindow().getHeight());
         chatScreen.init(engine.getWindow().getWidth(), engine.getWindow().getHeight());
 
-        if(deathScreen != null) deathScreen.init(engine.getWindow().getWidth(), engine.getWindow().getHeight());
+        if (deathScreen != null)
+            deathScreen.init(engine.getWindow().getWidth(), engine.getWindow().getHeight());
 
         uiNeedsRebuild = true;
     }
@@ -475,8 +474,10 @@ public class PlayScene extends Scene {
         if (worldEventHandler != null) {
             worldEventHandler.cleanup();
         }
-        if (world != null) world.cleanup(localPlayer);
-        if (masterRenderer != null) masterRenderer.cleanup();
+        if (world != null)
+            world.cleanup(localPlayer);
+        if (masterRenderer != null)
+            masterRenderer.cleanup();
     }
 
     public void pauseGame() {
@@ -524,8 +525,9 @@ public class PlayScene extends Scene {
         uiNeedsRebuild = true;
     }
 
-
-    public AudioEngine getAudioEngine() { return this.engine.getAudioEngine(); }
+    public AudioEngine getAudioEngine() {
+        return this.engine.getAudioEngine();
+    }
 
     public World getWorld() {
         return world;

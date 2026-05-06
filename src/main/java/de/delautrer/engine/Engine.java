@@ -1,10 +1,5 @@
 package de.delautrer.engine;
-import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
-import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
+
 import de.delautrer.Constants;
 import de.delautrer.engine.audio.AudioEngine;
 import de.delautrer.engine.audio.SoundManager;
@@ -19,10 +14,14 @@ import de.delautrer.game.states.MainMenuScene;
 import org.lwjgl.glfw.GLFW;
 import de.delautrer.engine.graphics.IGraphicsContext;
 
+import de.delautrer.engine.graphics.IGraphicsFactory;
+
 public class Engine {
+    private static Engine instance;
 
     private Window window;
     private IGraphicsContext graphicsContext;
+    private IGraphicsFactory graphicsFactory;
     private InputManager inputManager;
     private AudioEngine audioEngine;
 
@@ -33,6 +32,14 @@ public class Engine {
 
     private float lastFrame = 0.0f;
     private int currentFps = 0;
+
+    public Engine() {
+        instance = this;
+    }
+
+    public static Engine get() {
+        return instance;
+    }
 
     public void run() {
         init();
@@ -54,18 +61,21 @@ public class Engine {
         System.out.println("[Engine] Building block atlas...");
         try {
             java.util.Set<String> reqBlocks = BlockModelManager.getRequiredTextures();
-            // is2DAtlas = false, Ordner = "assets/textures/block"
-            blockAtlas = TextureStitcher.buildAtlas(reqBlocks, "atlas_blocks_debug.png", "assets/textures/block", false);
+            blockAtlas = TextureStitcher.buildAtlas(reqBlocks, "atlas_blocks_debug.png", "assets/textures/block",
+                    false);
             BlockModelManager.loadAllModels(blockAtlas);
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            System.err.println("[Engine] Error while creating block atlas: " + e.getMessage());
+        }
 
         System.out.println("[Engine] Building item atlas...");
         try {
             java.util.Set<String> reqItems = ItemModelManager.getRequiredTextures();
-            // is2DAtlas = true, Ordner = "assets/textures/item"
             itemAtlas = TextureStitcher.buildAtlas(reqItems, "atlas_items_debug.png", "assets/textures/item", true);
             ItemModelManager.loadAllModels(itemAtlas);
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            System.err.println("[Engine] Error while creating item atlas: " + e.getMessage());
+        }
 
         BlockModelManager.loadAllModels(blockAtlas);
 
@@ -79,7 +89,8 @@ public class Engine {
             float deltaTime = currentFrameTime - lastFrame;
             lastFrame = currentFrameTime;
 
-            if (deltaTime > 0) currentFps = (int)(1.0f / deltaTime);
+            if (deltaTime > 0)
+                currentFps = (int) (1.0f / deltaTime);
             if (deltaTime > 0.1f) {
                 deltaTime = 0.1f;
             }
@@ -102,24 +113,58 @@ public class Engine {
         System.out.println("[Engine] Shutting down...");
         graphicsContext.waitIdle();
 
-        if (audioEngine != null) audioEngine.cleanup();
+        if (audioEngine != null)
+            audioEngine.cleanup();
         sceneManager.cleanup();
-        if (blockAtlas != null) blockAtlas.cleanup();
-        if (itemAtlas != null) itemAtlas.cleanup();
-        if (graphicsContext != null) graphicsContext.cleanup();
-        if (window != null) window.cleanup();
+        if (blockAtlas != null)
+            blockAtlas.cleanup();
+        if (itemAtlas != null)
+            itemAtlas.cleanup();
+        if (graphicsContext != null)
+            graphicsContext.cleanup();
+        if (window != null)
+            window.cleanup();
 
         System.out.println("[Engine] Gone. RIP lovely engine. See you soon my fren.");
     }
 
-    public AudioEngine getAudioEngine() { return audioEngine; }
-    public SceneManager getSceneManager() { return sceneManager; }
-    public Window getWindow() { return window; }
-    public IGraphicsContext getGraphicsContext() { return graphicsContext; }
-    public InputManager getInputManager() { return inputManager; }
-    public int getCurrentFps() { return currentFps; }
-    public TextureStitcher.AtlasResult getBlockAtlas() { return blockAtlas; }
+    public AudioEngine getAudioEngine() {
+        return audioEngine;
+    }
+
+    public SceneManager getSceneManager() {
+        return sceneManager;
+    }
+
+    public Window getWindow() {
+        return window;
+    }
+
+    public IGraphicsContext getGraphicsContext() {
+        return graphicsContext;
+    }
+
+    public InputManager getInputManager() {
+        return inputManager;
+    }
+
+    public int getCurrentFps() {
+        return currentFps;
+    }
+
+    public TextureStitcher.AtlasResult getBlockAtlas() {
+        return blockAtlas;
+    }
+
     public TextureStitcher.AtlasResult getItemAtlas() {
         return itemAtlas;
+    }
+
+    public IGraphicsFactory getGraphicsFactory() {
+        return graphicsFactory;
+    }
+
+    public void setGraphicsFactory(IGraphicsFactory factory) {
+        this.graphicsFactory = factory;
     }
 }

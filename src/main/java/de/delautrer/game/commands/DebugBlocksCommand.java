@@ -9,7 +9,6 @@ import java.util.List;
 import de.delautrer.Constants;
 import de.delautrer.game.registry.Registries;
 
-
 public class DebugBlocksCommand implements ICommand {
     @Override
     public String getName() {

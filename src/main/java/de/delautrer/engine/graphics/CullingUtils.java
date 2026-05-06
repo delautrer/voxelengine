@@ -1,10 +1,5 @@
 package de.delautrer.engine.graphics;
 import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
-import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
 import de.delautrer.game.settings.SettingsManager;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
@@ -14,7 +9,6 @@ import org.joml.Vector2i;
 import org.joml.Vector3d;
 import java.util.ArrayList;
 import java.util.Map;
-
 
 public class CullingUtils {
     public static void buildVisibleLists(ChunkManager chunkManager, Matrix4f mvpCameraRelative, RenderPacket packet, boolean isIsoFrame, Vector3d cameraPos) {
@@ -65,6 +59,31 @@ public class CullingUtils {
                 ChunkManager.ChunkMeshPair pair = entry.getValue();
                 if (pair.opaque != null && pair.opaque.getIndexCount() > 0) packet.opaqueMeshes.add(pair.opaque);
                 if (pair.water != null && pair.water.getIndexCount() > 0) packet.waterMeshes.add(pair.water);
+            }
+        }
+
+        // --- 2. ENTITY CULLING ---
+        packet.entities = new ArrayList<>();
+        float cullRadius = (SettingsManager.get().renderDistance + 1) * 16.0f;
+        float entityCullDistSq = cullRadius * cullRadius;
+        
+        for (de.delautrer.game.entity.Entity entity : chunkManager.getWorld().getEntities()) {
+            double ex = entity.position.x;
+            double ey = entity.position.y;
+            double ez = entity.position.z;
+
+            // 1. Distance Culling
+            double dx = ex - camX;
+            double dy = ey - camY;
+            double dz = ez - camZ;
+            if (dx*dx + dy*dy + dz*dz > entityCullDistSq) continue;
+
+            // 2. Frustum Culling (Jetzt mit kleiner AABB für mehr Robustheit)
+            float r = 0.5f;
+            float h = 2.0f;
+            if (frustum.testAab((float)(dx - r), (float)(dy), (float)(dz - r),
+                                (float)(dx + r), (float)(dy + h), (float)(dz + r))) {
+                packet.entities.add(entity);
             }
         }
     }

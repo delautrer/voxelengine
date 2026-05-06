@@ -8,7 +8,6 @@ import java.util.List;
 import de.delautrer.game.items.Item;
 import de.delautrer.game.items.ItemRegistry;
 
-
 public abstract class BaseContainer {
     public final List<Slot> slots = new ArrayList<>();
     private ItemStack mouseStack = null;

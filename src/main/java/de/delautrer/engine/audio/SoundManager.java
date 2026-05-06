@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 public class SoundManager {
 
     private static AudioEngine audioEngine;
@@ -57,8 +56,7 @@ public class SoundManager {
                     //System.out.println("[SoundManager] Geladen: " + def.materialName);
                 }
             } catch (Exception e) {
-                System.err.println("[SoundManager] Error while parsing: " + fileName);
-                e.printStackTrace();
+                System.err.println("[SoundManager] Error while parsing: " + fileName + ": " + e.getMessage());
             }
         }
     }

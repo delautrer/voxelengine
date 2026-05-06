@@ -10,7 +10,6 @@ import de.delautrer.game.world.NoiseGenerator;
 import java.util.*;
 import de.delautrer.game.blocks.LogBlock;
 
-
 public class DecoratorPass implements IGenerationPass {
 
     private final NoiseGenerator floraNoise;

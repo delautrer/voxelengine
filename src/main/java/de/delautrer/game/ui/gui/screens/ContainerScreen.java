@@ -1,10 +1,5 @@
 package de.delautrer.game.ui.gui.screens;
 import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
-import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
 import de.delautrer.engine.graphics.IFont;
 import de.delautrer.game.items.ItemStack;
 import de.delautrer.game.ui.UIUtils;
@@ -16,8 +11,6 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.game.items.ItemRegistry;
-
-
 
 public abstract class ContainerScreen extends MenuScreen {
     protected final BaseContainer container;

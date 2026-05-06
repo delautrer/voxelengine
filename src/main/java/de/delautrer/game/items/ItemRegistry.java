@@ -13,11 +13,8 @@ import java.util.HashSet;
 import java.util.stream.Collectors;
 import de.delautrer.game.registry.Registries;
 
-
-
 public class ItemRegistry {
     public static final Registry<Item> REGISTRY = new Registry<>();
-
 
     private static boolean isInitialized = false;
 

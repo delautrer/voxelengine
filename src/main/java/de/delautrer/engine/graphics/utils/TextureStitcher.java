@@ -1,10 +1,5 @@
 package de.delautrer.engine.graphics.utils;
 import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
-import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
 import de.delautrer.Constants;
 import de.delautrer.engine.utils.AssetManager;
 import org.lwjgl.stb.STBImage;
@@ -16,8 +11,6 @@ import java.nio.IntBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
-
 
 public class TextureStitcher {
 
@@ -129,7 +122,6 @@ public class TextureStitcher {
                 try { STBImageWrite.stbi_write_png(debugOutputPath, atlasWidth, atlasHeight, 4, atlasPixels, atlasWidth * 4); } catch (Exception ignored) {}
             }
         }
-
 
         return new AtlasResult(atlasPixels, atlasWidth, atlasHeight, regions);
     }

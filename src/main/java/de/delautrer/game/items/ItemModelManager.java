@@ -1,10 +1,5 @@
 package de.delautrer.game.items;
 import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
-import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import de.delautrer.Constants;
@@ -14,8 +9,6 @@ import java.io.InputStreamReader;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-
 
 public class ItemModelManager {
 

@@ -7,15 +7,14 @@ import de.delautrer.game.world.World;
 import de.delautrer.game.world.ChunkManager;
 import de.delautrer.game.events.PlayerItemPickupEvent;
 import de.delautrer.game.events.InventoryChangeEvent;
-import java.util.ArrayList;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.List;
-
 
 public class EntitySystem implements WorldSystem {
 
-    private final List<Entity> entities = new ArrayList<>();
-    private final List<Entity> entitiesToAdd = new ArrayList<>();
-    private final List<Entity> entitiesToRemove = new ArrayList<>();
+    private final List<Entity> entities = new CopyOnWriteArrayList<>();
+    private final List<Entity> entitiesToAdd = new CopyOnWriteArrayList<>();
+    private final List<Entity> entitiesToRemove = new CopyOnWriteArrayList<>();
 
     @Override
     public void update(World world, float deltaTime, LocalPlayer localPlayer) {

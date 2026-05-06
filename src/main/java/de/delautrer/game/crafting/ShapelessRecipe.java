@@ -6,7 +6,6 @@ import de.delautrer.game.items.ItemStack;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class ShapelessRecipe implements IRecipe {
     private final List<Item> ingredients;
     private final ItemStack result;

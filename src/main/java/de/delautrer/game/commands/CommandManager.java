@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 public class CommandManager implements EventListener<CommandExecutedEvent> {
 
     private final EventBus eventBus;

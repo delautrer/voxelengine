@@ -6,7 +6,6 @@ import java.util.Random;
 import de.delautrer.Constants;
 import de.delautrer.game.registry.Registries;
 
-
 public class CavePass implements IGenerationPass {
 
     private final BlockState stone = Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "stone").getDefaultState();

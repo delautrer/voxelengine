@@ -6,7 +6,6 @@ import de.delautrer.game.events.ChatMessageEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class ChatOverlay implements EventListener<ChatMessageEvent> {
 
     // Neues Objekt speichert Nachricht + Timer

@@ -9,7 +9,6 @@ import org.joml.Vector3d;
 import org.joml.Vector3f;
 import java.util.List;
 
-
 public abstract class Entity {
     public Vector3d position;
     public Vector3f velocity;

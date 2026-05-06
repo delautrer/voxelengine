@@ -1,10 +1,5 @@
 package de.delautrer.game.states;
 import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
-import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
 import de.delautrer.engine.Engine;
 import de.delautrer.engine.MenuRenderer;
 import de.delautrer.engine.input.InputManager;
@@ -15,7 +10,6 @@ import de.delautrer.game.ui.elements.UIVBox;
 import de.delautrer.game.ui.gui.screens.OptionsScreen;
 import de.delautrer.game.ui.gui.screens.WorldSelectScreen;
 import org.lwjgl.glfw.GLFW;
-
 
 public class MainMenuScene extends Scene {
 

@@ -1,16 +1,10 @@
 package de.delautrer.engine.graphics;
 import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
-import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
 import de.delautrer.game.settings.SettingsManager;
 import org.joml.Matrix4f;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
-
 
 public class Camera {
 

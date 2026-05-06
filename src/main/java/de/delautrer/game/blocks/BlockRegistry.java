@@ -19,8 +19,6 @@ import java.util.stream.Collectors;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
 
-
-
 public class BlockRegistry {
     public static final Registry<Block> REGISTRY = new Registry<>();
     private static final Block[] BLOCKS_BY_ID = new Block[256];

@@ -6,7 +6,6 @@ import de.delautrer.game.world.World;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class ClearCommand implements ICommand {
     @Override
     public String getName() {

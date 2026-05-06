@@ -17,7 +17,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 public class RecipeManager {
     private static final List<IRecipe> RECIPES = new ArrayList<>();
     private static final Gson GSON = new Gson();

@@ -1,10 +1,5 @@
 package de.delautrer.game.entity.player;
 import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
-import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
 import de.delautrer.engine.audio.SoundManager;
 import de.delautrer.engine.events.EventBus;
 import de.delautrer.engine.graphics.Camera;
@@ -28,7 +23,6 @@ import de.delautrer.game.events.InventoryClosedEvent;
 import de.delautrer.game.events.InventoryOpenedEvent;
 import de.delautrer.game.items.BlockItem;
 import de.delautrer.game.registry.Registries;
-
 
 public class LocalPlayer extends Player {
 
@@ -428,7 +422,6 @@ public class LocalPlayer extends Player {
             if (isInWater)
                 if (isSwimming) stepThreshold = 5.4f;
                 else            stepThreshold = 1.5f;
-
 
             if (distanceWalked > stepThreshold) {
                 distanceWalked = 0.0f;

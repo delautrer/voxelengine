@@ -1,10 +1,8 @@
 package de.delautrer.engine;
 import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
-import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
+import de.delautrer.engine.graphics.vulkan.VulkanRenderer;
+import de.delautrer.engine.graphics.vulkan.core.VulkanContext;
+import de.delautrer.engine.graphics.vulkan.core.VulkanGraphicsFactory;
 import de.delautrer.engine.window.Window;
 import de.delautrer.game.ui.gui.screens.MenuScreen;
 import de.delautrer.game.ui.UIMeshBuilder;
@@ -16,8 +14,6 @@ import org.joml.Vector3f;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-
 
 public class MenuRenderer {
     private final IGraphicsContext graphicsContext;
@@ -43,6 +39,7 @@ public class MenuRenderer {
         this.renderer = new VulkanRenderer(context, window);
         this.meshBuilder = new UIMeshBuilder();
         this.factory = new VulkanGraphicsFactory(context, renderer.getCommandBuffers(), renderer.getGraphicsLayout(), renderer.getUiLayout());
+        Engine.get().setGraphicsFactory(this.factory);
         initResources();
     }
 
