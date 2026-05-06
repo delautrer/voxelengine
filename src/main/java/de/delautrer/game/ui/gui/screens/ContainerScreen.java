@@ -1,6 +1,12 @@
 package de.delautrer.game.ui.gui.screens;
+import de.delautrer.engine.graphics.*;
+import de.delautrer.engine.graphics.vulkan.*;
+import de.delautrer.engine.graphics.vulkan.core.*;
+import de.delautrer.engine.graphics.vulkan.pipeline.*;
+import de.delautrer.engine.graphics.vulkan.buffer.*;
+import de.delautrer.engine.graphics.vulkan.texture.*;
 
-import de.delautrer.engine.graphics.VulkanFont;
+import de.delautrer.engine.graphics.vulkan.texture.VulkanFont;
 import de.delautrer.game.items.ItemStack;
 import de.delautrer.game.ui.UIUtils;
 import de.delautrer.game.ui.gui.container.BaseContainer;

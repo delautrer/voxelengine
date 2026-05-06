@@ -1,9 +1,15 @@
 package de.delautrer.game.ui;
+import de.delautrer.engine.graphics.*;
+import de.delautrer.engine.graphics.vulkan.*;
+import de.delautrer.engine.graphics.vulkan.core.*;
+import de.delautrer.engine.graphics.vulkan.pipeline.*;
+import de.delautrer.engine.graphics.vulkan.buffer.*;
+import de.delautrer.engine.graphics.vulkan.texture.*;
 
 import de.delautrer.engine.graphics.MeshData;
-import de.delautrer.engine.graphics.VulkanContext;
-import de.delautrer.engine.graphics.VulkanFont;
-import de.delautrer.engine.graphics.VulkanMesh;
+import de.delautrer.engine.graphics.vulkan.core.VulkanContext;
+import de.delautrer.engine.graphics.vulkan.texture.VulkanFont;
+import de.delautrer.engine.graphics.vulkan.buffer.VulkanMesh;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.game.entity.player.PlayerInteraction;
 import de.delautrer.game.ui.elements.UIDrawCall;

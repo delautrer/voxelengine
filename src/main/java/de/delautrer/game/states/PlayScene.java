@@ -1,4 +1,10 @@
 package de.delautrer.game.states;
+import de.delautrer.engine.graphics.*;
+import de.delautrer.engine.graphics.vulkan.*;
+import de.delautrer.engine.graphics.vulkan.core.*;
+import de.delautrer.engine.graphics.vulkan.pipeline.*;
+import de.delautrer.engine.graphics.vulkan.buffer.*;
+import de.delautrer.engine.graphics.vulkan.texture.*;
 
 import de.delautrer.Constants;
 import de.delautrer.engine.MasterRenderer;
@@ -8,7 +14,7 @@ import de.delautrer.engine.events.EventListener;
 import de.delautrer.engine.graphics.MeshData;
 import de.delautrer.engine.states.Scene;
 import de.delautrer.engine.Engine;
-import de.delautrer.engine.graphics.VulkanContext;
+import de.delautrer.engine.graphics.vulkan.core.VulkanContext;
 import de.delautrer.engine.utils.GamePaths;
 import de.delautrer.game.commands.CommandManager;
 import de.delautrer.game.entity.player.LocalPlayer;
