@@ -13,6 +13,7 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.delautrer.engine.graphics.utils.ScreenshotHelper;
 public class VulkanRenderer {
     private final VulkanContext context;
     private VulkanSwapchain swapchain;
@@ -143,7 +144,7 @@ public class VulkanRenderer {
 
                 VK10.vkQueueWaitIdle(context.getPresentQueue());
                 long currentImage = swapchain.getImages()[imageIndex];
-                de.delautrer.engine.graphics.utils.ScreenshotHelper.saveScreenshot(
+                ScreenshotHelper.saveScreenshot(
                         context, commandBuffers.getCommandPool(), currentImage, swapchain.getExtent().width(), swapchain.getExtent().height(), pendingScreenshotPath
                 );
                 pendingScreenshotPath = null;

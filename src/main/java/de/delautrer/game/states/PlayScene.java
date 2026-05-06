@@ -8,6 +8,7 @@ import de.delautrer.engine.events.EventListener;
 import de.delautrer.engine.graphics.MeshData;
 import de.delautrer.engine.states.Scene;
 import de.delautrer.engine.Engine;
+import de.delautrer.engine.graphics.VulkanContext;
 import de.delautrer.engine.utils.GamePaths;
 import de.delautrer.game.commands.CommandManager;
 import de.delautrer.game.entity.player.LocalPlayer;
@@ -23,6 +24,8 @@ import org.joml.Vector3f;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import de.delautrer.game.blocks.state.BlockState;
+import de.delautrer.game.events.InventoryClosedEvent;
 public class PlayScene extends Scene {
 
     private MasterRenderer masterRenderer;
@@ -88,7 +91,7 @@ public class PlayScene extends Scene {
     @Override
     public void init() {
         eventBus = new EventBus();
-        masterRenderer = new MasterRenderer(engine.getVulkanContext(), engine.getWindow(), engine.getBlockAtlas(), engine.getItemAtlas());
+        masterRenderer = new MasterRenderer((VulkanContext)engine.getGraphicsContext(), engine.getWindow(), engine.getBlockAtlas(), engine.getItemAtlas());
         debugOverlay = new DebugOverlay();
         chatOverlay = new ChatOverlay(eventBus);
 
@@ -110,9 +113,9 @@ public class PlayScene extends Scene {
         deathScreen.setFont(masterRenderer.getFont());
 
         // Mein schönie seedie : 1337l
-        world = new World(engine.getVulkanContext(), localPlayer, eventBus, seed, worldName, worldSave);
-        worldEventHandler = new WorldEventHandler(world, engine.getVulkanContext(), eventBus);
-        localPlayer.initInteraction(world, engine.getVulkanContext(), eventBus);
+        world = new World((VulkanContext)engine.getGraphicsContext(), localPlayer, eventBus, seed, worldName, worldSave);
+        worldEventHandler = new WorldEventHandler(world, (VulkanContext)engine.getGraphicsContext(), eventBus);
+        localPlayer.initInteraction(world, (VulkanContext)engine.getGraphicsContext(), eventBus);
 
         float cloudLayer;
         if(engine.getBlockAtlas().regions.containsKey("just_white")) {
@@ -169,7 +172,7 @@ public class PlayScene extends Scene {
             org.joml.Vector3i target = localPlayer.getInteraction().getSelectedBlockPos();
             if (target != null) {
                 byte blockId = world.getBlockAt(target);
-                de.delautrer.game.blocks.state.BlockState state = world.getBlockState(target.x, target.y, target.z);
+                BlockState state = world.getBlockState(target.x, target.y, target.z);
                 return String.format("[%d %d %d] ID: %d, State: %d",
                         target.x, target.y, target.z, blockId, state.getStateId());
             }
@@ -261,7 +264,7 @@ public class PlayScene extends Scene {
 
                 if (isChatOpen) closeChat();
                 if (localPlayer.getOpenedInventory() != null) {
-                    eventBus.publish(new de.delautrer.game.events.InventoryClosedEvent(localPlayer, localPlayer.getOpenedInventory()));
+                    eventBus.publish(new InventoryClosedEvent(localPlayer, localPlayer.getOpenedInventory()));
                     localPlayer.closeInventory();
                 }
                 if (localPlayer.getInventory().isOpen()) {
@@ -287,7 +290,7 @@ public class PlayScene extends Scene {
                 closeChat();
             }
             else if (localPlayer.getOpenedInventory() != null) {
-                eventBus.publish(new de.delautrer.game.events.InventoryClosedEvent(localPlayer, localPlayer.getOpenedInventory()));
+                eventBus.publish(new InventoryClosedEvent(localPlayer, localPlayer.getOpenedInventory()));
                 localPlayer.closeInventory();
 
                 engine.getWindow().disableCursor();

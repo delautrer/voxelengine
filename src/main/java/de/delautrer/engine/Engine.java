@@ -12,12 +12,11 @@ import de.delautrer.game.blocks.models.BlockModelManager;
 import de.delautrer.game.items.ItemModelManager;
 import de.delautrer.game.states.MainMenuScene;
 import org.lwjgl.glfw.GLFW;
-import org.lwjgl.vulkan.VK10;
-
+import de.delautrer.engine.graphics.IGraphicsContext;
 public class Engine {
 
     private Window window;
-    private VulkanContext vulkanContext;
+    private IGraphicsContext graphicsContext;
     private InputManager inputManager;
     private AudioEngine audioEngine;
 
@@ -43,7 +42,7 @@ public class Engine {
         audioEngine.init();
         SoundManager.init(audioEngine);
 
-        vulkanContext = new VulkanContext(window);
+        graphicsContext = new VulkanContext(window);
         inputManager = new InputManager(window.getHandle());
 
         System.out.println("[Engine] Building block atlas...");
@@ -90,18 +89,18 @@ public class Engine {
             sceneManager.render();
             inputManager.update();
         }
-        VK10.vkDeviceWaitIdle(vulkanContext.getDevice());
+        graphicsContext.waitIdle();
     }
 
     private void cleanup() {
         System.out.println("[Engine] Shutting down...");
-        VK10.vkDeviceWaitIdle(vulkanContext.getDevice());
+        graphicsContext.waitIdle();
 
         if (audioEngine != null) audioEngine.cleanup();
         sceneManager.cleanup();
         if (blockAtlas != null) blockAtlas.cleanup();
         if (itemAtlas != null) itemAtlas.cleanup();
-        if (vulkanContext != null) vulkanContext.cleanup();
+        if (graphicsContext != null) graphicsContext.cleanup();
         if (window != null) window.cleanup();
 
         System.out.println("[Engine] Gone. RIP lovely engine. See you soon my fren.");
@@ -110,7 +109,7 @@ public class Engine {
     public AudioEngine getAudioEngine() { return audioEngine; }
     public SceneManager getSceneManager() { return sceneManager; }
     public Window getWindow() { return window; }
-    public VulkanContext getVulkanContext() { return vulkanContext; }
+    public IGraphicsContext getGraphicsContext() { return graphicsContext; }
     public InputManager getInputManager() { return inputManager; }
     public int getCurrentFps() { return currentFps; }
     public TextureStitcher.AtlasResult getBlockAtlas() { return blockAtlas; }

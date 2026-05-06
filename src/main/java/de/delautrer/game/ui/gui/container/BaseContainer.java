@@ -8,6 +8,8 @@ import de.delautrer.game.ui.gui.ClickType;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.delautrer.game.items.Item;
+import de.delautrer.game.items.ItemRegistry;
 public abstract class BaseContainer {
     public final List<Slot> slots = new ArrayList<>();
     private ItemStack mouseStack = null;
@@ -196,9 +198,9 @@ public abstract class BaseContainer {
         List<Slot> regionSlots = new ArrayList<>();
         for (Slot s : slots) {
             if (s.inventory == hoveredSlot.inventory) {
-                if (hoveredSlot.inventory instanceof de.delautrer.game.inventory.PlayerInventory) {
-                    boolean hoveredInHotbar = hoveredSlot.slotIndex < de.delautrer.game.inventory.PlayerInventory.HOTBAR_SIZE;
-                    boolean sInHotbar = s.slotIndex < de.delautrer.game.inventory.PlayerInventory.HOTBAR_SIZE;
+                if (hoveredSlot.inventory instanceof PlayerInventory) {
+                    boolean hoveredInHotbar = hoveredSlot.slotIndex < PlayerInventory.HOTBAR_SIZE;
+                    boolean sInHotbar = s.slotIndex < PlayerInventory.HOTBAR_SIZE;
                     if (hoveredInHotbar == sInHotbar) regionSlots.add(s);
                 } else {
                     regionSlots.add(s);
@@ -206,9 +208,9 @@ public abstract class BaseContainer {
             }
         }
 
-        java.util.Map<de.delautrer.game.items.Item, Integer> counts = new java.util.TreeMap<>(
+        java.util.Map<Item, Integer> counts = new java.util.TreeMap<>(
                 java.util.Comparator.comparing(item -> {
-                    String id = de.delautrer.game.items.ItemRegistry.getId(item);
+                    String id = ItemRegistry.getId(item);
                     return id != null ? id : "";
                 })
         );
@@ -222,7 +224,7 @@ public abstract class BaseContainer {
         }
 
         int index = 0;
-        for (java.util.Map.Entry<de.delautrer.game.items.Item, Integer> entry : counts.entrySet()) {
+        for (java.util.Map.Entry<Item, Integer> entry : counts.entrySet()) {
             int amount = entry.getValue();
             while (amount > 0 && index < regionSlots.size()) {
                 int stackSize = Math.min(amount, entry.getKey().getMaxStackSize());

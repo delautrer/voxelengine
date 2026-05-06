@@ -13,7 +13,7 @@ public class Container {
 
     public PlayerInventory getInventory() { return inventory; }
     public ItemStack getMouseStack() { return mouseStack; }
-    public void setMouseStack(de.delautrer.game.items.ItemStack stack) {
+    public void setMouseStack(ItemStack stack) {
         this.mouseStack = stack;
     }
 

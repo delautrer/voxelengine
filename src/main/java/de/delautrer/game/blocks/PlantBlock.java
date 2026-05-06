@@ -16,6 +16,9 @@ import org.joml.Vector3i;
 
 import java.util.List;
 
+import de.delautrer.Constants;
+import de.delautrer.engine.graphics.utils.TextureStitcher;
+import de.delautrer.game.registry.Registries;
 public class PlantBlock extends Block {
 
     public PlantBlock() {
@@ -24,7 +27,7 @@ public class PlantBlock extends Block {
 
     @Override
     public void generateMesh(int x, int y, int z, Chunk chunk, ChunkManager cm) {
-        de.delautrer.engine.graphics.utils.TextureStitcher.AtlasRegion reg = getModel().top;
+        TextureStitcher.AtlasRegion reg = getModel().top;
         if (reg == null) return;
 
         float light = 1.0f;
@@ -69,7 +72,7 @@ public class PlantBlock extends Block {
             // Wenn der Block darunter nicht mehr solide ist (z.B. Luft, Wasser etc.)
             if (!blockBelow.isSolid) {
                 dropAsItem(world, x, y, z); // NEU: Pflanze droppen
-                world.setBlock(x, y, z, BlockRegistry.AIR.getId()); // Dann erst den Block löschen
+                world.setBlock(x, y, z, Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air").getId()); // Dann erst den Block löschen
             }
         }
     }

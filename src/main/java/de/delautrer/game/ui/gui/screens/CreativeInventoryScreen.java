@@ -7,6 +7,9 @@ import de.delautrer.game.ui.elements.UIInputField;
 import de.delautrer.game.ui.gui.container.CreativeContainer;
 import de.delautrer.game.ui.gui.container.Slot;
 
+import de.delautrer.engine.input.InputManager;
+import de.delautrer.game.items.ItemRegistry;
+import de.delautrer.game.ui.UIUtils;
 public class CreativeInventoryScreen extends ContainerScreen {
 
     private float panelX, panelY, panelW, panelH;
@@ -38,7 +41,7 @@ public class CreativeInventoryScreen extends ContainerScreen {
     }
 
     @Override
-    public void handleInput(de.delautrer.engine.input.InputManager input) {
+    public void handleInput(InputManager input) {
         // 1. Klick in oder außerhalb der Suchleiste
         if (input.isActionJustPressed("INTERACT_BREAK")) {
             float invertedY = height - input.getMouseY();
@@ -113,7 +116,7 @@ public class CreativeInventoryScreen extends ContainerScreen {
         if (hoveredSlot != null && hoveredSlot.inventory == null && container.getMouseStack() == null && font != null) {
             Item item = cc.getItemInGrid(hoveredSlot.slotIndex);
             if (item != null) {
-                String name = de.delautrer.game.ui.UIUtils.formatItemName(de.delautrer.game.items.ItemRegistry.getId(item));
+                String name = UIUtils.formatItemName(ItemRegistry.getId(item));
                 drawTooltip(builder, name, mouseX, mouseY);
             }
         }

@@ -18,6 +18,8 @@ import org.joml.Vector3i;
 
 import java.util.List;
 
+import de.delautrer.Constants;
+import de.delautrer.game.registry.Registries;
 public class WaterBlock extends Block {
 
     private static final int[][] DIRS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
@@ -34,7 +36,7 @@ public class WaterBlock extends Block {
     }
 
     private boolean isWaterReplaceable(Block b) {
-        return b == BlockRegistry.AIR || b.canWaterFlowInto();
+        return b == Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air") || b.canWaterFlowInto();
     }
 
     @Override
@@ -51,7 +53,7 @@ public class WaterBlock extends Block {
         int expectedLevel = calculateExpectedState(world, x, y, z);
 
         if (expectedLevel == 0) {
-            world.setBlockState(x, y, z, BlockRegistry.AIR.getDefaultState());
+            world.setBlockState(x, y, z, Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air").getDefaultState());
             return;
         } else if (expectedLevel != currentLevel) {
             BlockState newState = getDefaultState().with(LEVEL, expectedLevel);
@@ -71,7 +73,7 @@ public class WaterBlock extends Block {
             Block blockBelow = blockBelowState.getBlock();
 
             // Wenn wir Gras/Pflanzen überspülen, droppen wir das Item
-            if (blockBelow != BlockRegistry.AIR && blockBelow != this) {
+            if (blockBelow != Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air") && blockBelow != this) {
                 dropBlockAsItem(world, x, y - 1, z, blockBelowState);
             }
 
@@ -90,7 +92,7 @@ public class WaterBlock extends Block {
                     Block nBlock = nState.getBlock();
 
                     if (isWaterReplaceable(nBlock) || (nBlock == this && nState.getValue(LEVEL) < currentLevel - 1)) {
-                        if (nBlock != BlockRegistry.AIR && nBlock != this) {
+                        if (nBlock != Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air") && nBlock != this) {
                             dropBlockAsItem(world, nx, y, nz, nState);
                         }
                         world.setBlockState(nx, y, nz, getDefaultState().with(LEVEL, currentLevel - 1));
@@ -225,7 +227,7 @@ public class WaterBlock extends Block {
     private void dropBlockAsItem(World world, int x, int y, int z, BlockState state) {
         Block block = state.getBlock();
 
-        if (block != BlockRegistry.AIR && block != this) {
+        if (block != Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air") && block != this) {
             String lootPath = block.getLootTable();
 
             if (lootPath != null) {

@@ -26,9 +26,9 @@ public class SurfacePass implements IGenerationPass {
         this.elevationNoise = new NoiseGenerator(seed);
         this.underwaterBlobNoise = new NoiseGenerator(seed * 7777L);
 
-        this.air = BlockRegistry.get("air").getDefaultState();
-        this.water = BlockRegistry.get("water").getDefaultState();
-        this.gravel = BlockRegistry.get("gravel").getDefaultState();
+        this.air = BlockRegistry.get(Constants.NAMESPACE + ":air").getDefaultState();
+        this.water = BlockRegistry.get(Constants.NAMESPACE + ":water").getDefaultState();
+        this.gravel = BlockRegistry.get(Constants.NAMESPACE + ":gravel").getDefaultState();
     }
 
     @Override

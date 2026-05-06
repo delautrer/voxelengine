@@ -16,6 +16,8 @@ import de.delautrer.game.ui.UIMeshBuilder;
 
 import java.util.List;
 
+import de.delautrer.Constants;
+import de.delautrer.game.registry.Registries;
 public class HUD {
 
     private long lastSlotChangeTime = 0;
@@ -62,7 +64,7 @@ public class HUD {
 
         // --- 1.5 SUFFOCATION (KOPF IM BLOCK) ---
         Block headBlock = interaction.getPlayer().getHeadBlock();
-        if (interaction.getPlayer().getGameMode() != GameMode.SPECTATOR && headBlock != BlockRegistry.AIR) {
+        if (interaction.getPlayer().getGameMode() != GameMode.SPECTATOR && headBlock != Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air")) {
 
             TextureStitcher.AtlasRegion reg = headBlock.getModel().north;
 

@@ -19,6 +19,9 @@ import org.joml.Vector3i;
 
 import java.util.List;
 
+import de.delautrer.Constants;
+import de.delautrer.engine.graphics.utils.TextureStitcher;
+import de.delautrer.game.registry.Registries;
 public class TorchBlock extends CubeBlock {
 
     public enum TorchAttach { FLOOR, NORTH, SOUTH, EAST, WEST }
@@ -107,7 +110,7 @@ public class TorchBlock extends CubeBlock {
         Block wallBlock = world.getBlockState(wallPos.x, wallPos.y, wallPos.z).getBlock();
         if (!wallBlock.isSolid) {
             dropAsItem(world, x, y, z); // NEU: Fackel droppt, bevor sie verschwindet
-            world.setBlockState(x, y, z, BlockRegistry.AIR.getDefaultState());
+            world.setBlockState(x, y, z, Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air").getDefaultState());
         }
     }
 
@@ -160,7 +163,7 @@ public class TorchBlock extends CubeBlock {
         Vector3f[] v = VERTS[attach.ordinal()];
         float light = 1.0f;
 
-        de.delautrer.engine.graphics.utils.TextureStitcher.AtlasRegion reg = getModel().top;
+        TextureStitcher.AtlasRegion reg = getModel().top;
         if (reg == null) return;
 
         addQuad(chunk, x, y, z, v[4], v[7], v[6], v[5], 7f/16f, 6f/16f, 9f/16f, 8f/16f, reg, light);
@@ -171,7 +174,7 @@ public class TorchBlock extends CubeBlock {
         addQuad(chunk, x, y, z, v[2], v[1], v[5], v[6], 7f/16f, 6f/16f, 9f/16f, 1.0f, reg, light);
     }
 
-    private void addQuad(Chunk chunk, int x, int y, int z, Vector3f vec0, Vector3f vec1, Vector3f vec2, Vector3f vec3, float lu0, float lv0, float lu1, float lv1, de.delautrer.engine.graphics.utils.TextureStitcher.AtlasRegion reg, float light) {
+    private void addQuad(Chunk chunk, int x, int y, int z, Vector3f vec0, Vector3f vec1, Vector3f vec2, Vector3f vec3, float lu0, float lv0, float lu1, float lv1, TextureStitcher.AtlasRegion reg, float light) {
         float u0 = reg.u0 + (reg.u1 - reg.u0) * lu0;
         float v0 = reg.v0 + (reg.v1 - reg.v0) * lv0;
         float u1 = reg.u0 + (reg.u1 - reg.u0) * lu1;

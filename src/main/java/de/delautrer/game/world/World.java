@@ -24,7 +24,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import de.delautrer.game.world.systems.WorldSystem;
+import de.delautrer.game.world.systems.EntitySystem;
+import de.delautrer.game.world.systems.TerrainSystem;
+import de.delautrer.game.world.systems.WeatherSystem;
 
+import de.delautrer.Constants;
+import de.delautrer.game.items.Item;
+import de.delautrer.game.registry.Registries;
 public class World {
     private final EventBus eventBus;
     private final ChunkManager chunkManager;
@@ -39,9 +46,8 @@ public class World {
     private final String worldName;
     private final String worldSave;
 
-    private final List<Entity> entities = new ArrayList<>();
-    private final List<Entity> entitiesToAdd = new ArrayList<>();
-    private final List<Entity> entitiesToRemove = new ArrayList<>();
+    private final List<WorldSystem> systems = new ArrayList<>();
+    private final EntitySystem entitySystem;
     private final Map<Vector3i, BlockEntity> blockEntities = new ConcurrentHashMap<>();
 
     public World(VulkanContext context, LocalPlayer localPlayer, EventBus eventBus, long defaultSeed, String worldName, String worldSave) {
@@ -77,6 +83,11 @@ public class World {
         this.tickScheduler = new TickScheduler(this);
         this.cloudSystem = new CloudSystem();
 
+        this.entitySystem = new EntitySystem();
+        this.systems.add(this.entitySystem);
+        this.systems.add(new TerrainSystem(this.chunkManager));
+        this.systems.add(new WeatherSystem(this.cloudSystem, this.skyManager));
+
         PlayerData pData = storageManager.loadPlayerData("lokaler-spieler");
         if (pData != null) {
             localPlayer.position.set(pData.x, pData.y, pData.z);
@@ -95,7 +106,7 @@ public class World {
             }
             /*
             int i = 0;
-            for (de.delautrer.game.items.Item item : ItemRegistry.getAll().values()) {
+            for (Item item : ItemRegistry.getAll().values()) {
                 localPlayer.getInventory().setStack(i++, new ItemStack(item, 64));
                 if (i >= PlayerInventory.TOTAL_SIZE) break;
             }
@@ -110,58 +121,11 @@ public class World {
     }
 
     public void update(float deltaTime, LocalPlayer localPlayer) {
-        chunkManager.getLightEngine().processLightUpdates();
-        for (Chunk c : chunkManager.getLightEngine().getAndClearDirtiedChunks()) {
-            c.requestMeshUpdate();
+        for (WorldSystem system : systems) {
+            system.update(this, deltaTime, localPlayer);
         }
 
-        chunkManager.update(localPlayer.position.x, localPlayer.position.z);
         tickScheduler.update(deltaTime);
-        cloudSystem.update(deltaTime);
-
-        // --- ENTITIES SYNCHRONISIEREN (Neue hinzufügen, alte löschen) ---
-        if (!entitiesToAdd.isEmpty()) {
-            entities.addAll(entitiesToAdd);
-            entitiesToAdd.clear();
-        }
-        if (!entitiesToRemove.isEmpty()) {
-            entities.removeAll(entitiesToRemove);
-            entitiesToRemove.clear();
-        }
-
-        // --- ENTITIES UPDATEN ---
-        for (Entity entity : entities) {
-            if (entity.isDead()) {
-                entitiesToRemove.add(entity);
-                continue;
-            }
-
-            if (entity instanceof ItemEntity itemEntity) {
-                itemEntity.update(deltaTime, chunkManager, this);
-
-                // Item aufsammeln
-                if (itemEntity.pickupDelay <= 0) {
-                    double dist = localPlayer.position.distance(itemEntity.position);
-                    if (dist < 1.5) {
-                        de.delautrer.game.events.PlayerItemPickupEvent event = new de.delautrer.game.events.PlayerItemPickupEvent(localPlayer, itemEntity.stack);
-                        eventBus.publish(event);
-
-                        if (!event.isCancelled()) {
-                            int leftover = localPlayer.getInventory().addItem(itemEntity.stack);
-                            eventBus.publish(new de.delautrer.game.events.InventoryChangeEvent());
-
-                            if (leftover == 0) {
-                                itemEntity.setDead(true);
-                            } else {
-                                itemEntity.stack.amount = leftover;
-                            }
-                        }
-                    }
-                }
-            } else {
-                entity.update(deltaTime, chunkManager);
-            }
-        }
 
         if (localPlayer.position.y < -50) {
             if (worldSpawnpoint != null) {
@@ -172,8 +136,6 @@ public class World {
                 localPlayer.velocity.y = 0.0f;
             }
         }
-
-        chunkManager.getAsyncBuilder().uploadReadyMeshes(chunkManager);
     }
 
     public void setBlock(int x, int y, int z, byte newBlockId) {
@@ -189,7 +151,7 @@ public class World {
 
         // --- NEU: Altes BlockEntity entfernen (Items droppen) ---
         Vector3i pos = new Vector3i(x, y, z);
-        de.delautrer.game.blocks.entities.BlockEntity oldEntity = getBlockEntity(pos);
+        BlockEntity oldEntity = getBlockEntity(pos);
         if (oldEntity != null) {
             oldEntity.onRemove();
             setBlockEntity(pos, null);
@@ -238,7 +200,7 @@ public class World {
 
         // --- NEU: Altes BlockEntity entfernen (falls da vorher z.B. eine Kiste war) ---
         Vector3i pos = new Vector3i(x, y, z);
-        de.delautrer.game.blocks.entities.BlockEntity oldEntity = getBlockEntity(pos);
+        BlockEntity oldEntity = getBlockEntity(pos);
         if (oldEntity != null) {
             oldEntity.onRemove();
             setBlockEntity(pos, null);
@@ -276,7 +238,7 @@ public class World {
 
     public BlockState getBlockState(int x, int y, int z) {
         Chunk chunk = chunkManager.getChunkAtBlock(x, y, z);
-        if (chunk == null) return BlockRegistry.AIR.getDefaultState();
+        if (chunk == null) return Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air").getDefaultState();
         return chunk.getBlockState(Math.floorMod(x, Chunk.SIZE), y, Math.floorMod(z, Chunk.SIZE));
     }
     public BlockState getBlockState(Vector3i pos) {
@@ -321,7 +283,7 @@ public class World {
         storageManager.savePlayerData("lokaler-spieler", pData);
 
         storageManager.saveBlockEntities(this.blockEntities);
-        storageManager.saveEntities(this.entities);
+        storageManager.saveEntities(entitySystem.getEntities());
 
         for (Chunk c : chunkManager.getLoadedChunks()) {
             if (c.isDirty()) storageManager.queueChunkForSaving(c);
@@ -350,15 +312,15 @@ public class World {
     }
 
     public void spawnEntity(Entity entity) {
-        entitiesToAdd.add(entity);
+        entitySystem.spawnEntity(entity);
     }
 
     public void removeEntity(Entity entity) {
-        entitiesToRemove.add(entity);
+        entitySystem.removeEntity(entity);
     }
 
     public List<Entity> getEntities() {
-        return entities;
+        return entitySystem.getEntities();
     }
 
     public BlockEntity getBlockEntity(Vector3i pos) {
@@ -387,5 +349,9 @@ public class World {
         saveWorld(localPlayer);
         if (storageManager != null) storageManager.shutdown();
         if (chunkManager != null) chunkManager.cleanup();
+    }
+
+    public EventBus getEventBus() {
+        return eventBus;
     }
 }

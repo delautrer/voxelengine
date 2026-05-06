@@ -3,6 +3,7 @@ package de.delautrer.game.ui.elements;
 import de.delautrer.engine.graphics.VulkanFont;
 import de.delautrer.game.ui.UIMeshBuilder;
 
+import de.delautrer.engine.input.InputManager;
 public class UIInputField extends UIElement {
     private String text = "";
     private String placeholder;
@@ -72,7 +73,7 @@ public class UIInputField extends UIElement {
         }
     }
 
-    public void handleInput(de.delautrer.engine.input.InputManager input) {
+    public void handleInput(InputManager input) {
         if (!isFocused) return;
 
         for (char c : input.consumeTypedChars()) {

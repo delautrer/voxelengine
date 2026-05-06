@@ -17,6 +17,8 @@ import org.joml.Vector3i;
 
 import java.util.List;
 
+import de.delautrer.Constants;
+import de.delautrer.game.registry.Registries;
 public class BlockItem extends Item {
     public final Block block;
 
@@ -43,7 +45,7 @@ public class BlockItem extends Item {
         }
 
         BlockState newState = null;
-        if (this.block == BlockRegistry.WATER) {
+        if (this.block == Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "water")) {
             newState = block.getDefaultState();
         } else {
             newState = block.getStateForPlacement(world, player, placePos, rayHit.hitFace, rayHit.exactHit);
@@ -79,7 +81,7 @@ public class BlockItem extends Item {
             interaction.getEventBus().publish(placeEvent);
 
             if (!placeEvent.isCancelled()) {
-                if (this.block == BlockRegistry.WATER) {
+                if (this.block == Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "water")) {
                     world.setBlockWithState(placePos.x, placePos.y, placePos.z, block.getId(), (byte)8);
                 } else {
                     world.setBlockState(placePos.x, placePos.y, placePos.z, newState);

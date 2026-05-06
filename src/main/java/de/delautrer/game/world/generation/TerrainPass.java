@@ -35,9 +35,9 @@ public class TerrainPass implements IGenerationPass {
         // FALLBACK: Falls die BlockRegistry aus irgendeinem Grund spinnt, fangen wir das ab
         BlockState tmpAir = null, tmpBedrock = null, tmpWater = null;
         try {
-            tmpAir = BlockRegistry.get("air").getDefaultState();
-            tmpBedrock = BlockRegistry.get("bedrock").getDefaultState();
-            tmpWater = BlockRegistry.get("water").getDefaultState().with(WaterBlock.LEVEL, 8);
+            tmpAir = BlockRegistry.get(Constants.NAMESPACE + ":air").getDefaultState();
+            tmpBedrock = BlockRegistry.get(Constants.NAMESPACE + ":bedrock").getDefaultState();
+            tmpWater = BlockRegistry.get(Constants.NAMESPACE + ":water").getDefaultState().with(WaterBlock.LEVEL, 8);
         } catch (Exception e) {
             System.err.println("[TerrainPass] Warnung: Konnte Basisblöcke nicht laden!");
             // In diesem fatalen Fall ist das Spiel ohnehin hinüber, aber wir werfen keine stumme NPE
@@ -101,7 +101,7 @@ public class TerrainPass implements IGenerationPass {
                 chunk.setBiome(x, z, biome);
 
                 BlockState deepMaterial = biome.getDeepMaterial();
-                if (deepMaterial == null) deepMaterial = BlockRegistry.get("stone").getDefaultState(); // Fallback
+                if (deepMaterial == null) deepMaterial = BlockRegistry.get(Constants.NAMESPACE + ":stone").getDefaultState(); // Fallback
 
                 for (int y = 0; y < Chunk.HEIGHT; y++) {
                     if (y == 0) {

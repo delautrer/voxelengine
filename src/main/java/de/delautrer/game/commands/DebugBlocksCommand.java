@@ -8,6 +8,8 @@ import de.delautrer.game.world.World;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.delautrer.Constants;
+import de.delautrer.game.registry.Registries;
 public class DebugBlocksCommand implements ICommand {
     @Override
     public String getName() {
@@ -33,8 +35,8 @@ public class DebugBlocksCommand implements ICommand {
 
         int gridSize = (int) Math.ceil(Math.sqrt(count));
 
-        byte airId = BlockRegistry.AIR.getId();
-        byte floorId = BlockRegistry.GRASS_BLOCK.getId();
+        byte airId = Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air").getId();
+        byte floorId = Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "grass_block").getId();
 
         // 1. ZUERST DAS KOMPLETTE RASTER LEEREN UND DEN BODEN BAUEN
         // (Das verhindert, dass spätere Block-Updates beim Platzieren fehlschlagen)

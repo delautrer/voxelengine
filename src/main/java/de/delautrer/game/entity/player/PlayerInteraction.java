@@ -28,6 +28,12 @@ import org.joml.Vector3i;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.delautrer.Constants;
+import de.delautrer.game.blocks.state.BlockProperties;
+import de.delautrer.game.events.HotbarSlotChangeEvent;
+import de.delautrer.game.events.InventoryChangeEvent;
+import de.delautrer.game.items.Item;
+import de.delautrer.game.registry.Registries;
 public class PlayerInteraction {
 
     private final World world;
@@ -75,7 +81,7 @@ public class PlayerInteraction {
         Block headBlock = player.getHeadBlock();
 
         // 1. Raycast (Kopf steckt fest oder normal)
-        if (headBlock != BlockRegistry.AIR) {
+        if (headBlock != Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air")) {
             org.joml.Vector3d eyePos = player.getEyePosition();
 
             selectedBlockPos = new org.joml.Vector3i(
@@ -84,7 +90,7 @@ public class PlayerInteraction {
                     (int) Math.floor(eyePos.z)
             );
 
-            // hitFace = de.delautrer.game.blocks.state.BlockProperties.BlockFace.UP;
+            // hitFace = BlockProperties.BlockFace.UP;
         } else {
             // 1.2 Sonst normaler raycast
             Raycaster.RaycastResult result = Raycaster.raycast(world, new Vector3f((float)camera.getPosition().x, (float)camera.getPosition().y, (float)camera.getPosition().z), camera.getFront(), 6.0f);
@@ -107,7 +113,7 @@ public class PlayerInteraction {
                 if (stack != null && stack.type instanceof BlockItem) {
                     if (((BlockItem)stack.type).block.getId() == targetId) {
                         player.getInventory().setSelectedSlot(i);
-                        eventBus.publish(new de.delautrer.game.events.HotbarSlotChangeEvent(i));
+                        eventBus.publish(new HotbarSlotChangeEvent(i));
                         break;
                     }
                 }
@@ -151,7 +157,7 @@ public class PlayerInteraction {
                     byte blockId = world.getBlockAt(selectedBlockPos);
                     Block targetBlock = BlockRegistry.get(blockId);
 
-                    if (targetBlock != BlockRegistry.AIR && targetBlock.getHardness() >= 0) {
+                    if (targetBlock != Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air") && targetBlock.getHardness() >= 0) {
                         miningProgress += deltaTime;
 
                         // Formel: Wie lange dauert der Abbau? (Base-Härte * 1.5 Sekunden als Richtwert)
@@ -214,9 +220,9 @@ public class PlayerInteraction {
             } else {
                 // 2. FALLBACK: Wenn keine LootTable definiert ist, droppt der Block sich selbst
                 /*
-                de.delautrer.game.items.Item dropItemType = null;
-                for (de.delautrer.game.items.Item item : de.delautrer.game.items.ItemRegistry.getAll().values()) {
-                    if (item instanceof de.delautrer.game.items.BlockItem blockItem) {
+                Item dropItemType = null;
+                for (Item item : ItemRegistry.getAll().values()) {
+                    if (item instanceof BlockItem blockItem) {
                         if (blockItem.getBlock().getId() == blockId) {
                             dropItemType = item;
                             break;
@@ -283,15 +289,15 @@ public class PlayerInteraction {
             // NEU: Item im Survival-Modus verbrauchen ODER Eimer tauschen
             if (success && player.getGameMode() == GameMode.SURVIVAL) {
 
-                if (heldStack.type == ItemRegistry.WATER_BUCKET) {
+                if (heldStack.type == Registries.ITEMS.get(Constants.NAMESPACE + ":" + "water_bucket")) {
                     // Voller Eimer wird ausgeleert -> Wir legen einen leeren Eimer in den Slot
-                    player.getInventory().setStack(player.getInventory().getSelectedSlot(), new ItemStack(ItemRegistry.BUCKET, 1));
-                    eventBus.publish(new de.delautrer.game.events.InventoryChangeEvent());
+                    player.getInventory().setStack(player.getInventory().getSelectedSlot(), new ItemStack(Registries.ITEMS.get(Constants.NAMESPACE + ":" + "bucket"), 1));
+                    eventBus.publish(new InventoryChangeEvent());
 
-                } else if (heldStack.type == ItemRegistry.BUCKET) {
+                } else if (heldStack.type == Registries.ITEMS.get(Constants.NAMESPACE + ":" + "bucket")) {
                     // Leerer Eimer wurde gefüllt -> Wir legen einen Wassereimer in den Slot
-                    player.getInventory().setStack(player.getInventory().getSelectedSlot(), new ItemStack(ItemRegistry.WATER_BUCKET, 1));
-                    eventBus.publish(new de.delautrer.game.events.InventoryChangeEvent());
+                    player.getInventory().setStack(player.getInventory().getSelectedSlot(), new ItemStack(Registries.ITEMS.get(Constants.NAMESPACE + ":" + "water_bucket"), 1));
+                    eventBus.publish(new InventoryChangeEvent());
 
                 } else {
                     heldStack.amount -= 1;
@@ -299,7 +305,7 @@ public class PlayerInteraction {
                     if (heldStack.amount <= 0) {
                         player.getInventory().setStack(player.getInventory().getSelectedSlot(), null);
                     }
-                    eventBus.publish(new de.delautrer.game.events.InventoryChangeEvent());
+                    eventBus.publish(new InventoryChangeEvent());
                 }
             }
         }
@@ -313,7 +319,7 @@ public class PlayerInteraction {
         byte blockId = world.getBlockAt(currentlyMiningPos);
         Block targetBlock = BlockRegistry.get(blockId);
 
-        if (targetBlock == BlockRegistry.AIR || targetBlock.getHardness() < 0) {
+        if (targetBlock == Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air") || targetBlock.getHardness() < 0) {
             return 0.0f;
         }
 

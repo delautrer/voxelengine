@@ -11,6 +11,7 @@ import de.delautrer.game.ui.gui.screens.OptionsScreen;
 import de.delautrer.game.ui.gui.screens.WorldSelectScreen;
 import org.lwjgl.glfw.GLFW;
 
+import de.delautrer.engine.graphics.VulkanContext;
 public class MainMenuScene extends Scene {
 
     private MenuRenderer menuRenderer;
@@ -24,7 +25,7 @@ public class MainMenuScene extends Scene {
     @Override
     public void init() {
         engine.getWindow().enableCursor();
-        menuRenderer = new MenuRenderer(engine.getVulkanContext(), engine.getWindow());
+        menuRenderer = new MenuRenderer((VulkanContext)engine.getGraphicsContext(), engine.getWindow());
 
         mainScreen = new MenuScreen() {
             @Override

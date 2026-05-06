@@ -9,53 +9,22 @@ import de.delautrer.game.items.BlockItem;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 
+import de.delautrer.game.registry.NamespacedKey;
+import de.delautrer.game.registry.Registry;
+
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import de.delautrer.game.world.Chunk;
+import de.delautrer.game.world.ChunkManager;
 public class BlockRegistry {
-    private static final Map<String, Block> BLOCKS = new HashMap<>();
+    public static final Registry<Block> REGISTRY = new Registry<>();
     private static final Block[] BLOCKS_BY_ID = new Block[256];
     private static final Gson GSON = new Gson();
-
-    // --- ALTE STATISCHE KONSTANTEN FÜR DEN ÜBERGANG ---
-    public static Block AIR;
-    public static Block GRASS_BLOCK;
-    public static Block GRASS_BLOCK_SLABS;
-    public static Block GRASS_BLOCK_STAIRS;
-    public static Block DIRT;
-    public static Block DIRT_SLABS;
-    public static Block DIRT_STAIRS;
-    public static Block STONE;
-    public static Block STONE_SLABS;
-    public static Block STONE_STAIRS;
-    public static Block WATER;
-    public static Block GLASS;
-    public static Block LEAVES;
-    public static Block TORCH;
-    public static Block BEDROCK;
-    public static Block GRAVEL;
-    public static Block SAND;
-    public static Block LOG;
-    public static Block GRASS;
-    public static Block SANDY_GRASS;
-    public static Block POPPY;
-    public static Block DANDELION;
-    public static Block DOTTY;
-    public static Block FAIRY_BELL;
-    public static Block RED_TULIP;
-    public static Block PURPLE_TULIP;
-    public static Block MAVVINILIA;
-    public static Block PLANKS;
-    public static Block STAIRS;
-    public static Block SLABS;
-    public static Block BRICKS;
-    public static Block BRICKS_STAIRS;
-    public static Block BRICKS_SLABS;
-    public static Block CHEST;
 
     private static boolean isInitialized = false;
     static {
@@ -70,53 +39,17 @@ public class BlockRegistry {
         registerAir();
         loadBlocksFromJson();
 
-        // Konstanten nachträglich mit den geladenen Daten füttern
-        String ns = Constants.NAMESPACE + ":";
-        GRASS_BLOCK = get(ns + "grass_block");
-        GRASS_BLOCK_SLABS = get(ns + "grass_block_slabs");
-        GRASS_BLOCK_STAIRS = get(ns + "grass_block_stairs");
-        DIRT = get(ns + "dirt");
-        DIRT_SLABS = get(ns + "dirt_slabs");
-        DIRT_STAIRS = get(ns + "dirt_stairs");
-        STONE = get(ns + "stone");
-        STONE_SLABS = get(ns + "stone_slabs");
-        STONE_STAIRS = get(ns + "stone_stairs");
-        WATER = get(ns + "water");
-        GLASS = get(ns + "glass");
-        LEAVES = get(ns + "leaves");
-        TORCH = get(ns + "torch");
-        BEDROCK = get(ns + "bedrock");
-        GRAVEL = get(ns + "gravel");
-        SAND = get(ns + "sand");
-        LOG = get(ns + "log");
-        GRASS = get(ns + "grass");
-        SANDY_GRASS = get(ns + "sandy_grass");
-        POPPY = get(ns + "poppy");
-        DANDELION = get(ns + "dandelion");
-        DOTTY = get(ns + "dotty");
-        FAIRY_BELL = get(ns + "fairy_bell");
-        RED_TULIP = get(ns + "red_tulip");
-        PURPLE_TULIP = get(ns + "purple_tulip");
-        MAVVINILIA = get(ns + "mavvinilia");
-        PLANKS = get(ns + "planks");
-        STAIRS = get(ns + "stairs");
-        SLABS = get(ns + "slabs");
-        BRICKS = get(ns + "bricks");
-        BRICKS_STAIRS = get(ns + "bricks_stairs");
-        BRICKS_SLABS = get(ns + "bricks_slabs");
-        CHEST = get(ns + "chest");
-
-        System.out.println("[BlockRegistry] " + BLOCKS.size() + " Blocks loaded.");
+        System.out.println("[BlockRegistry] " + REGISTRY.size() + " Blocks loaded.");
     }
 
     private static void registerAir() {
-        AIR = new Block(false, true, true, false) {
-            @Override public void generateMesh(int x, int y, int z, de.delautrer.game.world.Chunk chunk, de.delautrer.game.world.ChunkManager cm) {}
+        Block air = new Block(false, true, true, false) {
+            @Override public void generateMesh(int x, int y, int z, Chunk chunk, ChunkManager cm) {}
             @Override public boolean canBeReplaced(BlockState state, BlockItem item, Vector3i hitFace, Vector3f exactHit) { return true; }
         };
-        AIR.setId((byte) 0);
-        BLOCKS_BY_ID[0] = AIR;
-        BLOCKS.put(Constants.NAMESPACE + ":air", AIR);
+        air.setId((byte) 0);
+        BLOCKS_BY_ID[0] = air;
+        REGISTRY.register(new NamespacedKey(Constants.NAMESPACE, "air"), air);
     }
 
     private static void loadBlocksFromJson() {
@@ -178,13 +111,17 @@ public class BlockRegistry {
         block.setSoundMaterialName(def.soundMaterial != null ? def.soundMaterial : path);
         block.setLootTable(def.customLootTable != null ? def.customLootTable : "blocks/" + path + ".json");
 
-        BLOCKS.put(fullId, block);
+        NamespacedKey key = new NamespacedKey(Constants.NAMESPACE, path);
+        REGISTRY.register(key, block);
         BLOCKS_BY_ID[id & 0xFF] = block;
     }
 
-    public static Block get(byte internalId) { return BLOCKS_BY_ID[internalId & 0xFF] != null ? BLOCKS_BY_ID[internalId & 0xFF] : AIR; }
+    public static Block get(byte internalId) { return BLOCKS_BY_ID[internalId & 0xFF] != null ? BLOCKS_BY_ID[internalId & 0xFF] : get(Constants.NAMESPACE + ":air"); }
     public static Block get(String fullId) {
-        return BLOCKS.getOrDefault(fullId.startsWith(Constants.NAMESPACE + ":") ? fullId : Constants.NAMESPACE + ":" + fullId, AIR);
+        Block b = REGISTRY.get(fullId);
+        return b != null ? b : get(Constants.NAMESPACE + ":air");
     }
-    public static Map<String, Block> getAll() { return BLOCKS; }
+    public static Map<String, Block> getAll() {
+        return REGISTRY.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().toString(), Map.Entry::getValue));
+    }
 }

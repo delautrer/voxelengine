@@ -10,7 +10,10 @@ import com.google.gson.GsonBuilder;
 import de.delautrer.game.world.persistence.RegionFile;
 import de.delautrer.game.world.persistence.WorldData;
 import de.delautrer.game.world.persistence.PlayerData;
+import de.delautrer.game.world.persistence.ChunkSerializer;
 
+import de.delautrer.game.inventory.IInventory;
+import de.delautrer.game.items.Item;
 // NEUE IMPORTS FÜR KISTEN UND ITEMS
 import de.delautrer.game.blocks.entities.BlockEntity;
 import de.delautrer.game.blocks.entities.ChestBlockEntity;
@@ -143,7 +146,7 @@ public class WorldStorageManager {
         try {
             chunk.clearDirty();
 
-            byte[] data = chunk.serialize();
+            byte[] data = ChunkSerializer.serialize(chunk);
             RegionFile region = getRegionFile(chunk.getWorldX(), chunk.getWorldZ());
             region.writeChunk(chunk.getWorldX(), chunk.getWorldZ(), data);
 
@@ -161,7 +164,7 @@ public class WorldStorageManager {
         if (data == null) return false;
 
         try {
-            chunk.deserialize(data);
+            ChunkSerializer.deserialize(chunk, data);
             return true;
         } catch (IOException e) {
             System.err.println("Beschädigter Chunk gefunden bei " + chunk.getWorldX() + "," + chunk.getWorldZ());
@@ -245,14 +248,14 @@ public class WorldStorageManager {
     }
 
     // Hilfsmethoden für ItemStacks
-    private void saveInventory(DataOutputStream out, de.delautrer.game.inventory.IInventory inv) throws IOException {
+    private void saveInventory(DataOutputStream out, IInventory inv) throws IOException {
         out.writeInt(inv.getSize());
         for (int i = 0; i < inv.getSize(); i++) {
             saveItemStack(out, inv.getStack(i));
         }
     }
 
-    private void loadInventory(DataInputStream in, de.delautrer.game.inventory.IInventory inv) throws IOException {
+    private void loadInventory(DataInputStream in, IInventory inv) throws IOException {
         int size = in.readInt();
         for (int i = 0; i < size; i++) {
             inv.setStack(i, loadItemStack(in));
@@ -263,7 +266,7 @@ public class WorldStorageManager {
         if (stack == null || stack.type == null) {
             out.writeUTF("null");
         } else {
-            String id = de.delautrer.game.items.ItemRegistry.getId(stack.type);
+            String id = ItemRegistry.getId(stack.type);
             out.writeUTF(id != null ? id : "null");
             out.writeInt(stack.amount);
         }
@@ -273,7 +276,7 @@ public class WorldStorageManager {
         String id = in.readUTF();
         if (id.equals("null")) return null;
         int amount = in.readInt();
-        de.delautrer.game.items.Item item = de.delautrer.game.items.ItemRegistry.get(id);
+        Item item = ItemRegistry.get(id);
         return item != null ? new ItemStack(item, amount) : null;
     }
 

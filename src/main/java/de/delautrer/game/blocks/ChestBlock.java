@@ -6,6 +6,7 @@ import de.delautrer.game.entity.player.LocalPlayer;
 import de.delautrer.game.world.World;
 import org.joml.Vector3i;
 
+import de.delautrer.game.events.InventoryOpenedEvent;
 public class ChestBlock extends CubeBlock implements IInteractable {
 
     public ChestBlock() {
@@ -28,7 +29,7 @@ public class ChestBlock extends CubeBlock implements IInteractable {
 
         if (entity instanceof ChestBlockEntity chestEntity) {
             player.openInventory(chestEntity.getInventory());
-            player.getInteraction().getEventBus().publish(new de.delautrer.game.events.InventoryOpenedEvent(player, chestEntity.getInventory()));
+            player.getInteraction().getEventBus().publish(new InventoryOpenedEvent(player, chestEntity.getInventory()));
             return true;
         }
         return false;

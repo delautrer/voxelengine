@@ -11,6 +11,8 @@ import de.delautrer.game.ui.UIMeshBuilder;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import de.delautrer.engine.input.InputManager;
+import de.delautrer.game.items.ItemRegistry;
 public abstract class ContainerScreen extends MenuScreen {
     protected final BaseContainer container;
     protected VulkanFont font;
@@ -99,7 +101,7 @@ public abstract class ContainerScreen extends MenuScreen {
 
         // 4. Automatischer Tooltip ganz oben auf allem
         if (hoveredSlot != null && mouseStack == null && hoveredSlot.hasItem() && font != null) {
-            String name = UIUtils.formatItemName(de.delautrer.game.items.ItemRegistry.getId(hoveredSlot.getStack().type));
+            String name = UIUtils.formatItemName(ItemRegistry.getId(hoveredSlot.getStack().type));
             drawTooltip(builder, name, mouseX, mouseY);
         }
     }
@@ -145,7 +147,7 @@ public abstract class ContainerScreen extends MenuScreen {
     }
 
     @Override
-    public void handleInput(de.delautrer.engine.input.InputManager input) {
+    public void handleInput(InputManager input) {
         onKeyPressed(input);
         for (char c : input.consumeTypedChars()) {
             onCharTyped(c);

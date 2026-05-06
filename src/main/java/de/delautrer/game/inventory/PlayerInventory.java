@@ -16,7 +16,6 @@ public class PlayerInventory extends BaseInventory {
 
     public PlayerInventory() {
         super(TOTAL_SIZE);
-        ItemRegistry.init();
         RecipeManager.loadRecipes();
         this.setSortable(true);
     }

@@ -2,6 +2,8 @@ package de.delautrer.game.inventory;
 
 import de.delautrer.game.items.ItemStack;
 
+import de.delautrer.game.items.Item;
+import de.delautrer.game.items.ItemRegistry;
 public abstract class BaseInventory implements IInventory {
     private boolean sortable = false;
     protected final ItemStack[] slots;
@@ -80,9 +82,9 @@ public abstract class BaseInventory implements IInventory {
         if (!sortable) return;
 
         // TreeMap sortiert Items automatisch alphabetisch nach ihrer ID
-        java.util.Map<de.delautrer.game.items.Item, Integer> counts = new java.util.TreeMap<>(
+        java.util.Map<Item, Integer> counts = new java.util.TreeMap<>(
                 java.util.Comparator.comparing(item -> {
-                    String id = de.delautrer.game.items.ItemRegistry.getId(item);
+                    String id = ItemRegistry.getId(item);
                     return id != null ? id : "";
                 })
         );
@@ -97,9 +99,9 @@ public abstract class BaseInventory implements IInventory {
 
         // 2. Sortiert und als maximale Stacks wieder einfügen
         int index = 0;
-        for (java.util.Map.Entry<de.delautrer.game.items.Item, Integer> entry : counts.entrySet()) {
+        for (java.util.Map.Entry<Item, Integer> entry : counts.entrySet()) {
             int amount = entry.getValue();
-            de.delautrer.game.items.Item item = entry.getKey();
+            Item item = entry.getKey();
 
             while (amount > 0 && index < slots.length) {
                 int stackSize = Math.min(amount, item.getMaxStackSize());

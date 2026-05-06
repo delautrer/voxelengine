@@ -7,6 +7,8 @@ import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
 
+import de.delautrer.Constants;
+import de.delautrer.game.registry.Registries;
 public class CubeBlock extends Block {
 
     public CubeBlock(boolean isSolid, boolean isTransparent, boolean isPassable,  boolean isRaycastable) {
@@ -34,7 +36,7 @@ public class CubeBlock extends Block {
 
     protected BlockState getNeighborState(Chunk chunk, ChunkManager cm, int nx, int ny, int nz) {
         byte bId = chunk.getBlockAt(nx, ny, nz, cm);
-        if (bId == 0) return BlockRegistry.AIR.getDefaultState();
+        if (bId == 0) return Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air").getDefaultState();
         byte sId = chunk.getStateAt(nx, ny, nz, cm);
         return BlockRegistry.get(bId).getStateForId(sId);
     }

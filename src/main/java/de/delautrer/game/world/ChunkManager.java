@@ -10,6 +10,7 @@ import org.lwjgl.vulkan.VK10;
 import java.util.*;
 import java.util.concurrent.*;
 
+import de.delautrer.engine.graphics.ChunkMesher;
 public class ChunkManager {
 
     // Hilfsklasse, um beide Mesh-Typen pro Chunk zu verwalten
@@ -142,7 +143,7 @@ public class ChunkManager {
                         chunksInPreparation.add(pos);
                         chunkExecutor.submit(() -> {
                             try {
-                                Chunk.ChunkMeshResult result = c.generateMeshData(this);
+                                ChunkMesher.ChunkMeshResult result = c.generateMeshData(this);
                                 meshUploadQueue.add(new MeshGenerationResult(c, result));
                             } catch (Exception e) {
                                 System.err.println("Fehler beim Chunk-Meshing: " + e.getMessage());
@@ -236,7 +237,7 @@ public class ChunkManager {
      * Zentrale Methode, um die Meshes eines Chunks zu aktualisieren oder neu zu erstellen.
      * Wird sowohl vom ChunkManager-Update als auch vom AsyncChunkBuilder genutzt.
      */
-    public void updateChunkMeshes(Vector2i pos, Chunk.ChunkMeshResult result) {
+    public void updateChunkMeshes(Vector2i pos, ChunkMesher.ChunkMeshResult result) {
         ChunkMeshPair pair = meshes.computeIfAbsent(pos, k -> new ChunkMeshPair());
 
         if (pair.opaque != null) {
@@ -320,9 +321,9 @@ public class ChunkManager {
     // Kleine Hilfsklasse für die Upload-Queue
     private static class MeshGenerationResult {
         public final Chunk chunk;
-        public final Chunk.ChunkMeshResult meshData;
+        public final ChunkMesher.ChunkMeshResult meshData;
 
-        public MeshGenerationResult(Chunk chunk, Chunk.ChunkMeshResult meshData) {
+        public MeshGenerationResult(Chunk chunk, ChunkMesher.ChunkMeshResult meshData) {
             this.chunk = chunk;
             this.meshData = meshData;
         }

@@ -5,6 +5,8 @@ import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
 
+import de.delautrer.Constants;
+import de.delautrer.game.registry.Registries;
 public class LeavesBlock extends CubeBlock {
 
     public LeavesBlock() {
@@ -18,7 +20,7 @@ public class LeavesBlock extends CubeBlock {
 
     @Override
     public boolean shouldRenderFaceAgainst(Block neighborBlock, float myHeight, float neighborHeight) {
-        if (this.getId() == BlockRegistry.LEAVES.getId()) return true;
+        if (this.getId() == Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "leaves").getId()) return true;
         return super.shouldRenderFaceAgainst(neighborBlock, myHeight, neighborHeight);
     }
 

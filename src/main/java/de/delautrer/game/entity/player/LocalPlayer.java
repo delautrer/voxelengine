@@ -20,6 +20,13 @@ import de.delautrer.game.world.World;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
 
+import de.delautrer.Constants;
+import de.delautrer.game.events.BlockSelectedEvent;
+import de.delautrer.game.events.InventoryChangeEvent;
+import de.delautrer.game.events.InventoryClosedEvent;
+import de.delautrer.game.events.InventoryOpenedEvent;
+import de.delautrer.game.items.BlockItem;
+import de.delautrer.game.registry.Registries;
 public class LocalPlayer extends Player {
 
     private final Camera camera;
@@ -35,7 +42,7 @@ public class LocalPlayer extends Player {
 
     private float distanceWalked = 0.0f;
 
-    private Block headBlock = BlockRegistry.AIR;
+    private Block headBlock = Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air");
     private double fallDistance = 0.0;
     private boolean wasOnGround = true;
 
@@ -82,7 +89,7 @@ public class LocalPlayer extends Player {
         byte blockWaist = chunkManager.getWorld().getBlockAt(bx, byWaist, bz);
         byte blockBody = chunkManager.getWorld().getBlockAt(bx, byBody, bz);
         byte blockHead = chunkManager.getWorld().getBlockAt(bx, byHead, bz);
-        byte waterId = BlockRegistry.WATER.getId();
+        byte waterId = Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "water").getId();
 
         this.isInWater = (blockFeet == waterId || blockBody == waterId);
         this.isHeadInWater = (blockHead == waterId);
@@ -100,16 +107,16 @@ public class LocalPlayer extends Player {
 
             if (input.isActionJustPressed("INVENTORY") && gameMode != GameMode.SPECTATOR) {
                 if (getOpenedInventory() != null) {
-                    eventBus.publish(new de.delautrer.game.events.InventoryClosedEvent(this, getOpenedInventory()));
+                    eventBus.publish(new InventoryClosedEvent(this, getOpenedInventory()));
                     closeInventory();
                 } else {
                     inventory.toggle();
                     eventBus.publish(new InventoryToggleEvent(inventory.isOpen()));
 
                     if (inventory.isOpen()) {
-                        eventBus.publish(new de.delautrer.game.events.InventoryOpenedEvent(this, inventory));
+                        eventBus.publish(new InventoryOpenedEvent(this, inventory));
                     } else {
-                        eventBus.publish(new de.delautrer.game.events.InventoryClosedEvent(this, inventory));
+                        eventBus.publish(new InventoryClosedEvent(this, inventory));
                     }
                 }
             }
@@ -136,11 +143,11 @@ public class LocalPlayer extends Player {
 
                 if (slotChanged) {
                     ItemStack selectedStack = inventory.getStack(inventory.getSelectedSlot());
-                    if (selectedStack != null && selectedStack.type instanceof de.delautrer.game.items.BlockItem) {
-                        de.delautrer.game.items.BlockItem blockItem = (de.delautrer.game.items.BlockItem) selectedStack.type;
-                        eventBus.publish(new de.delautrer.game.events.BlockSelectedEvent(blockItem.getBlock().getId()));
+                    if (selectedStack != null && selectedStack.type instanceof BlockItem) {
+                        BlockItem blockItem = (BlockItem) selectedStack.type;
+                        eventBus.publish(new BlockSelectedEvent(blockItem.getBlock().getId()));
                     } else {
-                        eventBus.publish(new de.delautrer.game.events.BlockSelectedEvent((byte) 0));
+                        eventBus.publish(new BlockSelectedEvent((byte) 0));
                     }
                 }
             }
@@ -158,7 +165,7 @@ public class LocalPlayer extends Player {
                     inventory.setStack(inventory.getSelectedSlot(), null);
                 }
 
-                eventBus.publish(new de.delautrer.game.events.InventoryChangeEvent());
+                eventBus.publish(new InventoryChangeEvent());
 
                 Vector3d spawnPos = new Vector3d(this.position).add(0, 1.5, 0);
 
@@ -441,7 +448,7 @@ public class LocalPlayer extends Player {
         if (b.isSolid && !b.isTransparent) {
             headBlock = b;
         } else {
-            headBlock = BlockRegistry.AIR;
+            headBlock = Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air");
         }
 
         if (interaction != null) {
@@ -449,7 +456,7 @@ public class LocalPlayer extends Player {
         }
     }
 
-    protected void pushOutOfBlocks(ChunkManager cm, de.delautrer.engine.input.InputManager input, float deltaTime) {
+    protected void pushOutOfBlocks(ChunkManager cm, InputManager input, float deltaTime) {
         int byFeet = (int) Math.floor(position.y + 0.1f);
         int byHead = (int) Math.floor(position.y + height * 0.8f);
         boolean isStuck = false;
@@ -579,7 +586,7 @@ public class LocalPlayer extends Player {
         byte blockInsideId = chunkManager.getWorld().getBlockAt(bx, byFeet, bz);
         Block blockInside = BlockRegistry.get(blockInsideId);
 
-        if (blockInsideId != 0 && (!blockInside.isSolid || blockInside == BlockRegistry.WATER)) {
+        if (blockInsideId != 0 && (!blockInside.isSolid || blockInside == Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "water"))) {
             SoundManager.playEvent(blockInside.getSoundMaterialName(), action, volume);
             return;
         }

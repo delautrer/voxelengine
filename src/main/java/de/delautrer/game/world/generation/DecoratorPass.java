@@ -10,6 +10,7 @@ import de.delautrer.game.world.NoiseGenerator;
 
 import java.util.*;
 
+import de.delautrer.game.blocks.LogBlock;
 public class DecoratorPass implements IGenerationPass {
 
     private final NoiseGenerator floraNoise;
@@ -26,11 +27,11 @@ public class DecoratorPass implements IGenerationPass {
     public DecoratorPass(long seed) {
         this.floraNoise = new NoiseGenerator(seed * 5);
         this.blobNoise = new NoiseGenerator(seed * 8888L);
-        this.air = BlockRegistry.get("air").getDefaultState();
-        this.leaves = BlockRegistry.get("leaves").getDefaultState();
-        this.uprightLog = BlockRegistry.get("log").getDefaultState().with(de.delautrer.game.blocks.LogBlock.AXIS, BlockProperties.Axis.Y);
-        this.water = BlockRegistry.get("water").getDefaultState();
-        this.gravelId = BlockRegistry.get("gravel").getId();
+        this.air = BlockRegistry.get(Constants.NAMESPACE + ":air").getDefaultState();
+        this.leaves = BlockRegistry.get(Constants.NAMESPACE + ":leaves").getDefaultState();
+        this.uprightLog = BlockRegistry.get(Constants.NAMESPACE + ":log").getDefaultState().with(LogBlock.AXIS, BlockProperties.Axis.Y);
+        this.water = BlockRegistry.get(Constants.NAMESPACE + ":water").getDefaultState();
+        this.gravelId = BlockRegistry.get(Constants.NAMESPACE + ":gravel").getId();
     }
 
     @Override

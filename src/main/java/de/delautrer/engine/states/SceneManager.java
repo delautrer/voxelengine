@@ -1,7 +1,7 @@
 package de.delautrer.engine.states;
 
 import de.delautrer.engine.Engine;
-import org.lwjgl.vulkan.VK10;
+
 
 public class SceneManager {
     private Scene currentScene;
@@ -18,7 +18,7 @@ public class SceneManager {
 
     public void update(float deltaTime) {
         if (nextScene != null) {
-            VK10.vkDeviceWaitIdle(engine.getVulkanContext().getDevice());
+            engine.getGraphicsContext().waitIdle();
 
             if (currentScene != null) {
                 currentScene.cleanup();

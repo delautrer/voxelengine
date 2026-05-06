@@ -6,10 +6,12 @@ import de.delautrer.game.world.Chunk;
 
 import java.util.Random;
 
+import de.delautrer.Constants;
+import de.delautrer.game.registry.Registries;
 public class CavePass implements IGenerationPass {
 
-    private final BlockState stone = BlockRegistry.STONE.getDefaultState();
-    private final BlockState air = BlockRegistry.AIR.getDefaultState();
+    private final BlockState stone = Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "stone").getDefaultState();
+    private final BlockState air = Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air").getDefaultState();
     private static final int WATER_LEVEL = 60;
 
     @Override

@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import de.delautrer.game.registry.Registries;
 public class BlockModelManager {
 
     public static void loadAllModels(TextureStitcher.AtlasResult atlas) {
@@ -27,7 +28,7 @@ public class BlockModelManager {
             String fullId = entry.getKey();
             Block block = entry.getValue();
 
-            if (block == BlockRegistry.AIR) continue;
+            if (block == Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air")) continue;
 
             String blockName = fullId.replace(Constants.NAMESPACE + ":", "");
             BlockModelData model = parseJson(blockName, atlas, missingRegion);
@@ -116,7 +117,7 @@ public class BlockModelManager {
         textures.add("destroy_stage_9");
 
         for (Map.Entry<String, Block> entry : BlockRegistry.getAll().entrySet()) {
-            if (entry.getValue() == BlockRegistry.AIR) continue;
+            if (entry.getValue() == Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air")) continue;
 
             String blockName = entry.getKey().replace(Constants.NAMESPACE + ":", "");
             String path = "/assets/models/block/" + blockName + ".json";

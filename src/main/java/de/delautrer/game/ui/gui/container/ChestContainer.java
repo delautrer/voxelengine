@@ -1,8 +1,10 @@
 package de.delautrer.game.ui.gui.container;
 
+import de.delautrer.game.inventory.ChestInventory;
+import de.delautrer.game.inventory.PlayerInventory;
 public class ChestContainer extends BaseContainer {
 
-    public ChestContainer(de.delautrer.game.inventory.PlayerInventory playerInv, de.delautrer.game.inventory.ChestInventory chestInv) {
+    public ChestContainer(PlayerInventory playerInv, ChestInventory chestInv) {
 
         // 1. Kisten-Grid (Slots 0-26), ganz Oben
         for (int row = 0; row < 3; row++) {

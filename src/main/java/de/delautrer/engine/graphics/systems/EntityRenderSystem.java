@@ -20,6 +20,8 @@ import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.delautrer.engine.physics.AABB;
+import de.delautrer.game.blocks.state.BlockState;
 public class EntityRenderSystem implements IRenderSystem {
     private final VulkanContext context;
     private final VulkanGraphicsPipeline blockPipeline;
@@ -211,9 +213,9 @@ public class EntityRenderSystem implements IRenderSystem {
         BlockFace[] faces = {BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST, BlockFace.UP, BlockFace.DOWN};
         float[] shades = {0.8f, 0.8f, 0.65f, 0.65f, 1.0f, 0.4f};
 
-        List<de.delautrer.engine.physics.AABB> boxes = block.getBoundingBoxes(block.getDefaultState());
+        List<AABB> boxes = block.getBoundingBoxes(block.getDefaultState());
 
-        for (de.delautrer.engine.physics.AABB box : boxes) {
+        for (AABB box : boxes) {
             float bx0 = box.min.x; float by0 = box.min.y; float bz0 = box.min.z;
             float bx1 = box.max.x; float by1 = box.max.y; float bz1 = box.max.z;
 
@@ -266,7 +268,7 @@ public class EntityRenderSystem implements IRenderSystem {
                     reg = cb.getTextureForFace(cb.getDefaultState(), faces[i]);
                 } else {
                     try {
-                        java.lang.reflect.Method m = block.getClass().getMethod("getTextureForFace", de.delautrer.game.blocks.state.BlockState.class, BlockFace.class);
+                        java.lang.reflect.Method m = block.getClass().getMethod("getTextureForFace", BlockState.class, BlockFace.class);
                         reg = (AtlasRegion) m.invoke(block, block.getDefaultState(), faces[i]);
                     } catch (Exception e) {
                         if (block.getModel() != null) reg = block.getModel().top;

@@ -5,7 +5,7 @@ import de.delautrer.game.inventory.IInventory;
 import de.delautrer.game.items.ItemStack;
 
 public class CraftingResultSlot extends Slot {
-    private final de.delautrer.game.inventory.CraftingInventory craftingMatrix;
+    private final CraftingInventory craftingMatrix;
 
     public CraftingResultSlot(IInventory inventory, int slotIndex, int x, int y, CraftingInventory craftingMatrix) {
         super(inventory, slotIndex, x, y);

@@ -7,8 +7,8 @@ import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.blocks.state.BlockState;
 
 import java.io.*;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
+
+import de.delautrer.engine.graphics.ChunkMesher;
 
 public class Chunk {
     public static final int SIZE = 16;
@@ -25,10 +25,6 @@ public class Chunk {
     private boolean needsMeshUpdate = false;
     private long lastAccessedTime;
 
-    private static final ThreadLocal<MeshBuffers> MESH_BUFFER = ThreadLocal.withInitial(MeshBuffers::new);
-
-    public record ChunkMeshResult(MeshData opaque, MeshData water) {}
-
     private static final float[] highlightVertices = { 0,0,0, 1,0,0, 1,1,0, 0,1,0, 0,0,1, 1,0,1, 1,1,1, 0,1,1 };
     private static final int[] highlightIndices = { 0,1, 1,2, 2,3, 3,0, 4,5, 5,6, 6,7, 7,4, 0,4, 1,5, 2,6, 3,7 };
 
@@ -38,64 +34,10 @@ public class Chunk {
         this.lastAccessedTime = System.currentTimeMillis();
     }
 
-    private static class MeshBuffers {
-        float[] opaqueVertices = new float[131072]; // Groß genug für 99% aller Chunks (512 KB)
-        int[] opaqueIndices = new int[32768];
-        int opaqueVertexCount = 0;
-        int opaqueIndexCount = 0;
-
-        float[] waterVertices = new float[32768];
-        int[] waterIndices = new int[8192];
-        int waterVertexCount = 0;
-        int waterIndexCount = 0;
-
-        void reset() {
-            opaqueVertexCount = 0;
-            opaqueIndexCount = 0;
-            waterVertexCount = 0;
-            waterIndexCount = 0;
-        }
-
-        void ensureOpaque(int v, int i) {
-            if (opaqueVertexCount + v > opaqueVertices.length) {
-                float[] newArr = new float[Math.max(opaqueVertices.length * 2, opaqueVertexCount + v)];
-                System.arraycopy(opaqueVertices, 0, newArr, 0, opaqueVertexCount);
-                opaqueVertices = newArr;
-            }
-            if (opaqueIndexCount + i > opaqueIndices.length) {
-                int[] newArr = new int[Math.max(opaqueIndices.length * 2, opaqueIndexCount + i)];
-                System.arraycopy(opaqueIndices, 0, newArr, 0, opaqueIndexCount);
-                opaqueIndices = newArr;
-            }
-        }
-
-        void ensureWater(int v, int i) {
-            if (waterVertexCount + v > waterVertices.length) {
-                float[] newArr = new float[Math.max(waterVertices.length * 2, waterVertexCount + v)];
-                System.arraycopy(waterVertices, 0, newArr, 0, waterVertexCount);
-                waterVertices = newArr;
-            }
-            if (waterIndexCount + i > waterIndices.length) {
-                int[] newArr = new int[Math.max(waterIndices.length * 2, waterIndexCount + i)];
-                System.arraycopy(waterIndices, 0, newArr, 0, waterIndexCount);
-                waterIndices = newArr;
-            }
-        }
-
-        ChunkMeshResult createResult() {
-            float[] oVerts = new float[opaqueVertexCount];
-            System.arraycopy(opaqueVertices, 0, oVerts, 0, opaqueVertexCount);
-            int[] oInds = new int[opaqueIndexCount];
-            System.arraycopy(opaqueIndices, 0, oInds, 0, opaqueIndexCount);
-
-            float[] wVerts = new float[waterVertexCount];
-            System.arraycopy(waterVertices, 0, wVerts, 0, waterVertexCount);
-            int[] wInds = new int[waterIndexCount];
-            System.arraycopy(waterIndices, 0, wInds, 0, waterIndexCount);
-
-            return new ChunkMeshResult(new MeshData(oVerts, oInds), new MeshData(wVerts, wInds));
-        }
-    }
+    public byte[] getBlocks() { return blocks; }
+    public byte[] getStates() { return states; }
+    public byte[] getLightMap() { return lightMap; }
+    public Biome[] getBiomeMap() { return biomeMap; }
 
     // Blocks
     public void setBlock(int x, int y, int z, byte type, byte state) {
@@ -288,22 +230,8 @@ public class Chunk {
     public void requestMeshUpdate() {
         this.needsMeshUpdate = true;
     }
-    public ChunkMeshResult generateMeshData(ChunkManager cm) {
-        MeshBuffers buf = MESH_BUFFER.get();
-        buf.reset();
-
-        for (int x = 0; x < SIZE; x++) {
-            for (int y = 0; y < HEIGHT; y++) {
-                for (int z = 0; z < SIZE; z++) {
-                    byte id = blocks[getIndex(x, y, z)];
-                    if (id != 0) {
-                        Block block = BlockRegistry.get(id);
-                        block.generateMesh(x, y, z, this, cm);
-                    }
-                }
-            }
-        }
-        return buf.createResult();
+    public ChunkMesher.ChunkMeshResult generateMeshData(ChunkManager cm) {
+        return ChunkMesher.generateMeshData(this, cm);
     }
 
     public void addFace(float x0, float y0, float z0, float ao0,
@@ -314,137 +242,13 @@ public class Chunk {
                         float texLayer, float directionalLight, Block block,
                         float sl0, float sl1, float sl2, float sl3,
                         float bl0, float bl1, float bl2, float bl3) {
-
-        MeshBuffers buf = MESH_BUFFER.get();
-        boolean isWater = (block == BlockRegistry.get(Constants.NAMESPACE + ":water"));
-
-        // Kapazitäten prüfen
-        if (isWater) buf.ensureWater(48, 6);
-        else buf.ensureOpaque(48, 6);
-
-        // Aktuelle Daten auswählen
-        float[] targetVertices = isWater ? buf.waterVertices : buf.opaqueVertices;
-        int vIdx = isWater ? buf.waterVertexCount : buf.opaqueVertexCount;
-        int offset = vIdx / 12;
-
-        float r = 1.0f, g = 1.0f, b = 1.0f, alpha = 1.0f;
-        if (isWater) {
-            r = 0.2f; g = 0.5f; b = 1.0f; alpha = 0.7f;
-            directionalLight = Math.min(1.0f, directionalLight * 1.2f);
-        }
-
-        float c0 = ao0 * directionalLight;
-        float c1 = ao1 * directionalLight;
-        float c2 = ao2 * directionalLight;
-        float c3 = ao3 * directionalLight;
-
-        // Vertex 0
-        targetVertices[vIdx++] = x0; targetVertices[vIdx++] = y0; targetVertices[vIdx++] = z0;
-        targetVertices[vIdx++] = c0 * r;  targetVertices[vIdx++] = c0 * g; targetVertices[vIdx++] = c0 * b; targetVertices[vIdx++] = alpha;
-        targetVertices[vIdx++] = u0;      targetVertices[vIdx++] = v1; targetVertices[vIdx++] = texLayer;
-        targetVertices[vIdx++] = sl0;     targetVertices[vIdx++] = bl0;
-
-        // Vertex 1
-        targetVertices[vIdx++] = x1; targetVertices[vIdx++] = y1; targetVertices[vIdx++] = z1;
-        targetVertices[vIdx++] = c1 * r;  targetVertices[vIdx++] = c1 * g; targetVertices[vIdx++] = c1 * b; targetVertices[vIdx++] = alpha;
-        targetVertices[vIdx++] = u1;      targetVertices[vIdx++] = v1; targetVertices[vIdx++] = texLayer;
-        targetVertices[vIdx++] = sl1;     targetVertices[vIdx++] = bl1;
-
-        // Vertex 2
-        targetVertices[vIdx++] = x2; targetVertices[vIdx++] = y2; targetVertices[vIdx++] = z2;
-        targetVertices[vIdx++] = c2 * r;  targetVertices[vIdx++] = c2 * g; targetVertices[vIdx++] = c2 * b; targetVertices[vIdx++] = alpha;
-        targetVertices[vIdx++] = u1;      targetVertices[vIdx++] = v0; targetVertices[vIdx++] = texLayer;
-        targetVertices[vIdx++] = sl2;     targetVertices[vIdx++] = bl2;
-
-        // Vertex 3
-        targetVertices[vIdx++] = x3; targetVertices[vIdx++] = y3; targetVertices[vIdx++] = z3;
-        targetVertices[vIdx++] = c3 * r;  targetVertices[vIdx++] = c3 * g; targetVertices[vIdx++] = c3 * b; targetVertices[vIdx++] = alpha;
-        targetVertices[vIdx++] = u0;      targetVertices[vIdx++] = v0; targetVertices[vIdx++] = texLayer;
-        targetVertices[vIdx++] = sl3;     targetVertices[vIdx++] = bl3;
-
-        // Zähler zurückschreiben
-        if (isWater) buf.waterVertexCount = vIdx; else buf.opaqueVertexCount = vIdx;
-
-        // Indices befüllen
-        int[] targetIndices = isWater ? buf.waterIndices : buf.opaqueIndices;
-        int iIdx = isWater ? buf.waterIndexCount : buf.opaqueIndexCount;
-
-        if (ao0 + ao2 > ao1 + ao3) {
-            targetIndices[iIdx++] = offset + 1; targetIndices[iIdx++] = offset + 2; targetIndices[iIdx++] = offset + 3;
-            targetIndices[iIdx++] = offset + 3; targetIndices[iIdx++] = offset + 0; targetIndices[iIdx++] = offset + 1;
-        } else {
-            targetIndices[iIdx++] = offset + 0; targetIndices[iIdx++] = offset + 1; targetIndices[iIdx++] = offset + 2;
-            targetIndices[iIdx++] = offset + 2; targetIndices[iIdx++] = offset + 3; targetIndices[iIdx++] = offset + 0;
-        }
-
-        if (isWater) buf.waterIndexCount = iIdx; else buf.opaqueIndexCount = iIdx;
+        ChunkMesher.addFace(x0, y0, z0, ao0, x1, y1, z1, ao1, x2, y2, z2, ao2, x3, y3, z3, ao3, u0, v0, u1, v1, texLayer, directionalLight, block, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
     }
 
     public void clearMeshCache() {}
 
     public static float[] getHighlightVertices() { return highlightVertices; }
     public static int[] getHighlightIndices() { return highlightIndices; }
-
-    // Persistence
-    public byte[] serialize() throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (GZIPOutputStream gzip = new GZIPOutputStream(baos);
-             DataOutputStream dos = new DataOutputStream(gzip)) {
-
-            dos.writeInt(worldX);
-            dos.writeInt(worldZ);
-
-            dos.write(blocks);
-            dos.write(states);
-            dos.write(lightMap);
-
-            // Neu: Biome-Map mitspeichern (als Bytes)
-            byte[] biomeBytes = new byte[SIZE * SIZE];
-            for (int i = 0; i < biomeMap.length; i++) {
-                biomeBytes[i] = biomeMap[i] != null ? (byte) biomeMap[i].ordinal() : 0;
-            }
-            dos.write(biomeBytes);
-        }
-        return baos.toByteArray();
-    }
-
-    public void deserialize(byte[] data) throws IOException {
-        ByteArrayInputStream bais = new ByteArrayInputStream(data);
-        try (GZIPInputStream gzip = new GZIPInputStream(bais);
-             DataInputStream dis = new java.io.DataInputStream(gzip)) {
-
-            int savedX = dis.readInt();
-            int savedZ = dis.readInt();
-            if (savedX != this.worldX || savedZ != this.worldZ) {
-                throw new IOException("Chunk-Coordinates are not equal!");
-            }
-
-            dis.readFully(blocks);
-            dis.readFully(states);
-            dis.readFully(lightMap);
-
-            // Neu: Biome-Map wieder laden, falls in der Datei vorhanden
-            try {
-                byte[] biomeBytes = new byte[SIZE * SIZE];
-                dis.readFully(biomeBytes);
-                Biome[] biomeValues = Biome.values();
-                for (int i = 0; i < biomeBytes.length; i++) {
-                    int ordinal = biomeBytes[i] & 0xFF;
-                    if (ordinal >= 0 && ordinal < biomeValues.length) {
-                        biomeMap[i] = biomeValues[ordinal];
-                    } else {
-                        biomeMap[i] = Biome.PLAINS;
-                    }
-                }
-            } catch (EOFException e) {
-                // Rückwärtskompatibilität: Falls ein alter Chunk ohne Biome geladen wird
-                for (int i = 0; i < biomeMap.length; i++) {
-                    biomeMap[i] = Biome.PLAINS;
-                }
-            }
-        }
-        this.clearDirty();
-    }
 
     // Getter & Setter
     private int getIndex(int x, int y, int z) {

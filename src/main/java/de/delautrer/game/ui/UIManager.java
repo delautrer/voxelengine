@@ -11,6 +11,7 @@ import de.delautrer.game.ui.gui.container.ChestContainer;
 import de.delautrer.game.ui.gui.screens.*;
 import de.delautrer.game.ui.gui.container.PlayerContainer;
 
+import de.delautrer.game.ui.gui.screens.ContainerScreen;
 public class UIManager {
     private final HUD hud;
     private Screen currentScreen;
@@ -93,7 +94,7 @@ public class UIManager {
             hoveredSlot = currentScreen.getHoveredSlot(mouseX, mouseY);
             isHovering = (hoveredSlot != -1);
 
-            if (currentScreen instanceof de.delautrer.game.ui.gui.screens.ContainerScreen containerScreen) {
+            if (currentScreen instanceof ContainerScreen containerScreen) {
                 if (containerScreen.getContainer().getMouseStack() != null) {
                     showCursor = false;
                 }

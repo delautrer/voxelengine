@@ -13,6 +13,7 @@ import org.joml.Vector3f;
 import org.joml.Vector3i;
 import java.util.List;
 
+import de.delautrer.game.items.BlockItem;
 public class SlabBlock extends CubeBlock {
     public static final EnumProperty<SlabType> TYPE = EnumProperty.create("type", SlabType.class);
 
@@ -24,7 +25,7 @@ public class SlabBlock extends CubeBlock {
     protected void appendProperties(List<Property<?>> properties) { properties.add(TYPE); }
 
     @Override
-    public boolean canBeReplaced(BlockState state, de.delautrer.game.items.BlockItem item, Vector3i hitFace, Vector3f exactHit) {
+    public boolean canBeReplaced(BlockState state, BlockItem item, Vector3i hitFace, Vector3f exactHit) {
         if (item.block != this) return false;
 
         SlabType type = state.getValue(TYPE);

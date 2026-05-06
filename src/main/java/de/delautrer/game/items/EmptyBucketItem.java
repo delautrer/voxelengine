@@ -6,6 +6,8 @@ import de.delautrer.game.entity.player.PlayerInteraction;
 import de.delautrer.game.world.World;
 import org.joml.Vector3i;
 
+import de.delautrer.Constants;
+import de.delautrer.game.registry.Registries;
 public class EmptyBucketItem extends Item {
 
     public EmptyBucketItem(String name, String textureName) {
@@ -18,9 +20,9 @@ public class EmptyBucketItem extends Item {
 
         // Prüfen, ob der Block, den wir anvisieren (oder der davor), Wasser ist
         Vector3i waterPos = null;
-        if (world.getBlockAt(targetBlock) == BlockRegistry.WATER.getId()) {
+        if (world.getBlockAt(targetBlock) == Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "water").getId()) {
             waterPos = targetBlock;
-        } else if (adjacentBlock != null && world.getBlockAt(adjacentBlock) == BlockRegistry.WATER.getId()) {
+        } else if (adjacentBlock != null && world.getBlockAt(adjacentBlock) == Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "water").getId()) {
             waterPos = adjacentBlock;
         }
 
@@ -31,7 +33,7 @@ public class EmptyBucketItem extends Item {
             // NEU: Dem Spieler den vollen Eimer in die Hand drücken!
             interaction.getInventory().setStack(
                     interaction.getInventory().getSelectedSlot(),
-                    new de.delautrer.game.items.ItemStack(de.delautrer.game.items.ItemRegistry.WATER_BUCKET, 1)
+                    new ItemStack(Registries.ITEMS.get(Constants.NAMESPACE + ":" + "water_bucket"), 1)
             );
 
             return true; // Erfolgreich aufgesammelt!

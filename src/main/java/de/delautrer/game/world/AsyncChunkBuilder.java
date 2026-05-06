@@ -7,6 +7,7 @@ import org.lwjgl.vulkan.VK10;
 import java.util.concurrent.*;
 import java.util.Set;
 
+import de.delautrer.engine.graphics.ChunkMesher;
 public class AsyncChunkBuilder {
     private final ExecutorService executor = Executors.newFixedThreadPool(Math.max(1, Runtime.getRuntime().availableProcessors() - 1));
     private final ConcurrentLinkedQueue<ChunkBuildResult> readyMeshes = new ConcurrentLinkedQueue<>();
@@ -18,7 +19,7 @@ public class AsyncChunkBuilder {
         executor.submit(() -> {
             try {
                 // HIER DER FIX: Wir bekommen jetzt beide Meshes zurück
-                Chunk.ChunkMeshResult result = chunk.generateMeshData(cm);
+                ChunkMesher.ChunkMeshResult result = chunk.generateMeshData(cm);
                 readyMeshes.add(new ChunkBuildResult(chunk, result));
             } finally {
                 currentlyBuilding.remove(chunk);
@@ -41,8 +42,8 @@ public class AsyncChunkBuilder {
 
     private static class ChunkBuildResult {
         public final Chunk chunk;
-        public final Chunk.ChunkMeshResult data;
-        public ChunkBuildResult(Chunk chunk, Chunk.ChunkMeshResult data) {
+        public final ChunkMesher.ChunkMeshResult data;
+        public ChunkBuildResult(Chunk chunk, ChunkMesher.ChunkMeshResult data) {
             this.chunk = chunk;
             this.data = data;
         }

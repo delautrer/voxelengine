@@ -66,10 +66,10 @@ public class WorldEventHandler {
         if (c != null) c.requestMeshUpdate();
     }
 
-    private void onNeighborUpdate(de.delautrer.game.events.BlockNeighborUpdateEvent event) {
+    private void onNeighborUpdate(BlockNeighborUpdateEvent event) {
         byte receiverId = world.getBlockAt(event.pos.x, event.pos.y, event.pos.z);
         if (receiverId != 0) {
-            de.delautrer.game.blocks.Block receiverBlock = de.delautrer.game.blocks.BlockRegistry.get(receiverId);
+            Block receiverBlock = BlockRegistry.get(receiverId);
             receiverBlock.onNeighborChanged(world, event.pos.x, event.pos.y, event.pos.z, event.neighborPos, event.changedNeighborId);
         }
     }
@@ -78,7 +78,7 @@ public class WorldEventHandler {
     public void cleanup() {
         if(eventBus != null) {
             eventBus.unsubscribe(BlockChangeEvent.class, this::onBlockChange);
-            eventBus.unsubscribe(de.delautrer.game.events.BlockNeighborUpdateEvent.class, this::onNeighborUpdate);
+            eventBus.unsubscribe(BlockNeighborUpdateEvent.class, this::onNeighborUpdate);
         }
     }
 }
