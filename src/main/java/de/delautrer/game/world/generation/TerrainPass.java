@@ -66,7 +66,7 @@ public class TerrainPass implements IGenerationPass {
                 float baseHeight = 64.0f + (elevation * 40.0f);
                 float localRoughness = 10.0f;
 
-                float mountainFactor = Math.max(0.0f, roughness * 1.5f);
+                float mountainFactor = Math.max(0.0f, roughness * 2.7f);
                 baseHeight += (float)Math.pow(mountainFactor, 3.0) * 160.0f;
                 localRoughness += mountainFactor * 60.0f;
 

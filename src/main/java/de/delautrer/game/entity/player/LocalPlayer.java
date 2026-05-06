@@ -39,8 +39,11 @@ public class LocalPlayer extends Player {
     private double fallDistance = 0.0;
     private boolean wasOnGround = true;
 
-    // NEU: Damit wir wissen, ob wir den GLFW-Cursor-Modus ändern müssen
     private boolean wasUIOpen = false;
+
+    // --- NEU: Double-Tap Sprint Logik Variablen ---
+    private float lastForwardPressTime = 0.0f;
+    private boolean isForwardPressedLastFrame = false;
 
     public LocalPlayer(Vector3d spawnPosition) {
         super(spawnPosition);
@@ -53,7 +56,6 @@ public class LocalPlayer extends Player {
     }
 
     public void updateLocal(InputManager input, ChunkManager chunkManager, float deltaTime) {
-        // 1. ABSOLUTE TODES-SPERRE - Muss die allererste Zeile der Methode sein!
         if (isDead) {
             velocity.x = 0;
             velocity.z = 0;
@@ -62,17 +64,13 @@ public class LocalPlayer extends Player {
             }
             pushOutOfBlocks(chunkManager, input, deltaTime);
             super.update(deltaTime, chunkManager);
-            return; // <-- Dieses Return blockiert ALLES andere (inklusive PlayerInteraction)!
+            return;
         }
 
-        // 2. Spectator-Check (Ab hier geht dein bisheriger Code ganz normal weiter...)
         if (gameMode == GameMode.SPECTATOR) {
             isFlying = true;
         }
 
-        // ==========================================
-        // 1. WASSER-ERKENNUNG VOR DER BEWEGUNG
-        // ==========================================
         int bx = (int) Math.floor(position.x);
         int byFeet = (int) Math.floor(position.y + 0.1f);
         int byWaist = (int) Math.floor(position.y + 0.6f);
@@ -89,9 +87,6 @@ public class LocalPlayer extends Player {
         this.isInWater = (blockFeet == waterId || blockBody == waterId);
         this.isHeadInWater = (blockHead == waterId);
 
-        // ==========================================
-        // UI / Inventar Logik
-        // ==========================================
         if (!isChatOpen) {
             if (input.isActionJustPressed("JUMP")) {
                 float currentTime = (float) org.lwjgl.glfw.GLFW.glfwGetTime();
@@ -119,7 +114,6 @@ public class LocalPlayer extends Player {
                 }
             }
 
-            // Hotbar-Auswahl (Darf nur möglich sein, wenn kein UI offen ist)
             if (!inventory.isOpen() && getOpenedInventory() == null) {
                 boolean slotChanged = false;
 
@@ -140,14 +134,12 @@ public class LocalPlayer extends Player {
                     slotChanged = true;
                 }
 
-                // 3. BlockSelectedEvent feuern
                 if (slotChanged) {
                     ItemStack selectedStack = inventory.getStack(inventory.getSelectedSlot());
                     if (selectedStack != null && selectedStack.type instanceof de.delautrer.game.items.BlockItem) {
                         de.delautrer.game.items.BlockItem blockItem = (de.delautrer.game.items.BlockItem) selectedStack.type;
                         eventBus.publish(new de.delautrer.game.events.BlockSelectedEvent(blockItem.getBlock().getId()));
                     } else {
-                        // Senden wir 0 (Air), wenn kein Block in der Hand ist
                         eventBus.publish(new de.delautrer.game.events.BlockSelectedEvent((byte) 0));
                     }
                 }
@@ -185,12 +177,6 @@ public class LocalPlayer extends Player {
                 chunkManager.getWorld().spawnEntity(itemEntity);
 
                 eventBus.publish(new PlayerItemDropEvent(this, dropStack));
-
-                // TODO: DROP SOUNDS
-                /*
-                float randomPitch = 0.9f + (float) (Math.random() * 0.2f);
-                SoundLibrary.playSound(SoundAction.DROP, SoundMaterial.NONE, randomPitch);
-                 */
             }
         }
 
@@ -199,7 +185,29 @@ public class LocalPlayer extends Player {
         // ==========================================
         if (!isUIOpen) {
             isSneaking = input.isActionActive("SNEAK");
-            isSprinting = input.isActionActive("SPRINT") && !isSneaking;
+
+            // --- NEU: Double-Tap Sprint Logik ---
+            boolean isForwardPressedNow = input.isActionActive("MOVE_FORWARD");
+            float currentTime = (float) org.lwjgl.glfw.GLFW.glfwGetTime();
+
+            if (isForwardPressedNow && !isForwardPressedLastFrame) {
+                // Key was just pressed
+                if (currentTime - lastForwardPressTime < 0.3f && !isSneaking) {
+                    isSprinting = true;
+                }
+                lastForwardPressTime = currentTime;
+            } else if (!isForwardPressedNow) {
+                // Stop sprinting if we stop moving forward
+                isSprinting = false;
+            }
+
+            // Allow explicit sprint key to override
+            if (input.isActionActive("SPRINT") && !isSneaking && isForwardPressedNow) {
+                isSprinting = true;
+            }
+
+            isForwardPressedLastFrame = isForwardPressedNow;
+            // -------------------------------------
 
             if (!isSprinting) {
                 swimLock = false;
@@ -224,9 +232,9 @@ public class LocalPlayer extends Player {
             isSneaking = false;
             isSprinting = false;
             isSwimming = false;
+            isForwardPressedLastFrame = false;
         }
 
-        // --- HITBOX & 1x1 TUNNEL SCHUTZ ---
         if (!isSwimming && swimProgress > 0.1f) {
             int headBlockWhenStanding = chunkManager.getWorld().getBlockAt(
                     (int) Math.floor(position.x),
@@ -239,7 +247,6 @@ public class LocalPlayer extends Player {
             }
         }
 
-        // --- ANIMATION BERECHNEN ---
         if (isSwimming) {
             swimProgress += deltaTime * 5.0f;
             if (swimProgress > 1.0f) swimProgress = 1.0f;
@@ -256,7 +263,9 @@ public class LocalPlayer extends Player {
         // ==========================================
         float currentSpeed = speed;
         if (isFlying) {
-            currentSpeed *= isSneaking ? 2.0f : 1.5f;
+            // --- NEU: Sprinten modifiziert auch die Fluggeschwindigkeit ---
+            if (isSprinting) currentSpeed *= 3.0f; // Schneller fliegen beim Sprinten
+            else currentSpeed *= isSneaking ? 0.5f : 1.5f; // Sneaken macht langsamer, default fliegen ist 1.5x
         } else if (isSwimming) {
             currentSpeed *= 1.3f;
         } else if (isInWater) {
@@ -307,7 +316,7 @@ public class LocalPlayer extends Player {
 
                 velocity.y = 0;
                 if (input.isActionActive("JUMP")) velocity.y = currentSpeed;
-                if (input.isActionActive("SNEAK")) velocity.y = -currentSpeed * 1.2f;
+                if (input.isActionActive("SNEAK")) velocity.y = -currentSpeed;
 
             } else {
                 if (input.isActionActive("MOVE_FORWARD")) moveDir.add(flatFront);
@@ -347,7 +356,7 @@ public class LocalPlayer extends Player {
                 } else if (onGround && input.isActionActive("JUMP")) {
                     velocity.y = jumpForce;
                     onGround = false;
-                    playMovementSound(chunkManager, "jump_start", 0.6f);
+                    playMovementSound(chunkManager, "jump_start", 0.4f);
                 }
             }
         } else {
@@ -356,9 +365,6 @@ public class LocalPlayer extends Player {
             if (isInWater && !isFlying) velocity.y *= 0.9f;
         }
 
-        // ==========================================
-        // Kollisions-Updates
-        // ==========================================
         if (gameMode != GameMode.SPECTATOR) {
             pushOutOfBlocks(chunkManager, input, deltaTime);
         }
@@ -373,20 +379,13 @@ public class LocalPlayer extends Player {
 
         double deltaY = position.y - prevY;
 
-        // ==========================================
-        // Fallschaden & Eintauch-Logik
-        // ==========================================
-
-        // --- NEU: Eintauchen in Wasser (oder Laub/Blumen) erkennen ---
         if (!wasInWater && isInWater && !onGround) {
-            // Wir sind ins Wasser gefallen!
-            playMovementSound(chunkManager, "jump_land", 0.8f);
-            fallDistance = 0.0f; // Wasser fängt den Sturz ab
+            playMovementSound(chunkManager, "jump_land", 0.3f);
+            fallDistance = 0.0f;
         }
 
-        // --- Normale harte Landung auf Boden ---
         if (!wasOnGround && onGround && !isInWater) {
-            playMovementSound(chunkManager, "jump_land", 0.7f);
+            playMovementSound(chunkManager, "jump_land", 0.3f);
 
             if (fallDistance > 3.0f && gameMode == GameMode.SURVIVAL) {
                 float dmg = (float) Math.floor(fallDistance - 3.0f);
@@ -400,31 +399,21 @@ public class LocalPlayer extends Player {
             }
             fallDistance = 0.0f;
         } else if (!onGround && deltaY < 0 && !isFlying && !isInWater) {
-            // Wir fallen durch die Luft
             fallDistance += Math.abs(deltaY);
         } else if (isFlying || isInWater) {
-            // Im Wasser oder beim Fliegen gibt es keinen Fallschaden
             fallDistance = 0.0f;
         }
 
-        // Status für den nächsten Frame merken
         wasOnGround = onGround;
-        wasInWater = isInWater; // NEU
-        // ==========================================
+        wasInWater = isInWater;
 
-        // ==========================================
-        // Laufgeräusche (Schritte & Durchlaufen)
-        // ==========================================
-        // Wir erlauben Sounds jetzt auch im Wasser! (!isFlying statt onGround erzwingen)
         if (!isFlying && (Math.abs(velocity.x) > 0.1f || Math.abs(velocity.z) > 0.1f || (isInWater && Math.abs(velocity.y) > 0.1f))) {
 
-            // Reale Bewegungsgeschwindigkeit berechnen (im Wasser auch hoch/runter beachten)
             float moveSpeed = (float) Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
             if (isInWater) moveSpeed += Math.abs(velocity.y);
 
             distanceWalked += moveSpeed * deltaTime;
 
-            // Schwellenwert: Wann kommt der nächste Sound?
             float stepThreshold = isSprinting ? 1.4f : 1.2f;
             if (isInWater)
                 if (isSwimming) stepThreshold = 5.4f;
@@ -432,20 +421,15 @@ public class LocalPlayer extends Player {
 
 
             if (distanceWalked > stepThreshold) {
-                distanceWalked = 0.0f; // Reset
+                distanceWalked = 0.0f;
 
-                // Ob Sprinten oder Gehen entscheiden
                 String action = isSprinting ? "run" : "walk";
 
-                // Sound abspielen!
-                playMovementSound(chunkManager, action, 0.4f);
+                playMovementSound(chunkManager, action, 0.3f);
             }
         } else {
-            // Wenn wir ruhig stehen oder fliegen, Schritte zurücksetzen
             distanceWalked = 0.0f;
         }
-
-        // ==========================================
 
         if (deltaY > 0.0f && deltaY <= stepHeight && onGround) {
             cameraVisualYOffset -= deltaY;
@@ -589,19 +573,17 @@ public class LocalPlayer extends Player {
 
     private void playMovementSound(ChunkManager chunkManager, String action, float volume) {
         int bx = (int) Math.floor(position.x);
-        int byFeet = (int) Math.floor(position.y + 0.1f); // Exakt auf Fußhöhe
+        int byFeet = (int) Math.floor(position.y + 0.1f);
         int bz = (int) Math.floor(position.z);
 
-        // 1. PRIORITÄT: Stehen wir IN einem Block? (Wasser, hohes Gras, Blumen)
         byte blockInsideId = chunkManager.getWorld().getBlockAt(bx, byFeet, bz);
         Block blockInside = BlockRegistry.get(blockInsideId);
 
         if (blockInsideId != 0 && (!blockInside.isSolid || blockInside == BlockRegistry.WATER)) {
             SoundManager.playEvent(blockInside.getSoundMaterialName(), action, volume);
-            return; // Sound abgespielt -> Wir brechen hier ab!
+            return;
         }
 
-        // 2. PRIORITÄT: Worauf stehen wir? (Fester Boden)
         int footY = (int) Math.floor(position.y - 0.2f);
         byte groundBlockId = chunkManager.getWorld().getBlockAt(bx, footY, bz);
 
