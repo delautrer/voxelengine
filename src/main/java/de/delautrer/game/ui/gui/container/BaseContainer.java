@@ -1,15 +1,14 @@
 package de.delautrer.game.ui.gui.container;
 
-import de.delautrer.game.inventory.CraftingInventory;
 import de.delautrer.game.items.ItemStack;
 import de.delautrer.game.inventory.PlayerInventory;
 import de.delautrer.game.ui.gui.ClickType;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import de.delautrer.game.items.Item;
 import de.delautrer.game.items.ItemRegistry;
+
+
 public abstract class BaseContainer {
     public final List<Slot> slots = new ArrayList<>();
     private ItemStack mouseStack = null;

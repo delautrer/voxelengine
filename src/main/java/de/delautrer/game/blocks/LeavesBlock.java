@@ -4,9 +4,9 @@ import de.delautrer.game.blocks.state.BlockProperties;
 import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
-
 import de.delautrer.Constants;
 import de.delautrer.game.registry.Registries;
+
 public class LeavesBlock extends CubeBlock {
 
     public LeavesBlock() {

@@ -2,10 +2,10 @@ package de.delautrer.game.world.persistence;
 
 import de.delautrer.game.world.Biome;
 import de.delautrer.game.world.Chunk;
-
 import java.io.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+
 
 public class ChunkSerializer {
 

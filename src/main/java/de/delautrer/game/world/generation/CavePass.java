@@ -1,13 +1,12 @@
 package de.delautrer.game.world.generation;
 
-import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.world.Chunk;
-
 import java.util.Random;
-
 import de.delautrer.Constants;
 import de.delautrer.game.registry.Registries;
+
+
 public class CavePass implements IGenerationPass {
 
     private final BlockState stone = Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "stone").getDefaultState();

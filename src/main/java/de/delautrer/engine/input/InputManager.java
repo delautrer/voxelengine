@@ -2,11 +2,11 @@ package de.delautrer.engine.input;
 
 import org.lwjgl.glfw.GLFW;
 import de.delautrer.game.settings.SettingsManager;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 
 public class InputManager {
     private final long windowHandle;

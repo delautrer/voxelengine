@@ -5,13 +5,9 @@ import de.delautrer.engine.graphics.vulkan.core.*;
 import de.delautrer.engine.graphics.vulkan.pipeline.*;
 import de.delautrer.engine.graphics.vulkan.buffer.*;
 import de.delautrer.engine.graphics.vulkan.texture.*;
-
-import de.delautrer.engine.audio.SoundAction;
 import de.delautrer.engine.audio.SoundManager;
-import de.delautrer.engine.audio.SoundMaterial;
 import de.delautrer.engine.events.EventBus;
 import de.delautrer.engine.graphics.Camera;
-import de.delautrer.engine.graphics.vulkan.core.VulkanContext;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
@@ -25,7 +21,6 @@ import de.delautrer.game.world.ChunkManager;
 import de.delautrer.game.world.World;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
-
 import de.delautrer.Constants;
 import de.delautrer.game.events.BlockSelectedEvent;
 import de.delautrer.game.events.InventoryChangeEvent;
@@ -33,6 +28,8 @@ import de.delautrer.game.events.InventoryClosedEvent;
 import de.delautrer.game.events.InventoryOpenedEvent;
 import de.delautrer.game.items.BlockItem;
 import de.delautrer.game.registry.Registries;
+
+
 public class LocalPlayer extends Player {
 
     private final Camera camera;

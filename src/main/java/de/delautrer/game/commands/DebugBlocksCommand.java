@@ -4,12 +4,12 @@ import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.entity.player.LocalPlayer;
 import de.delautrer.game.world.World;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import de.delautrer.Constants;
 import de.delautrer.game.registry.Registries;
+
+
 public class DebugBlocksCommand implements ICommand {
     @Override
     public String getName() {

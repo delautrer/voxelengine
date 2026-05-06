@@ -5,14 +5,14 @@ import de.delautrer.engine.graphics.vulkan.core.*;
 import de.delautrer.engine.graphics.vulkan.pipeline.*;
 import de.delautrer.engine.graphics.vulkan.buffer.*;
 import de.delautrer.engine.graphics.vulkan.texture.*;
-
 import de.delautrer.engine.graphics.IFont;
 import de.delautrer.engine.graphics.utils.TextureStitcher;
 import de.delautrer.game.items.ItemStack;
 import de.delautrer.game.ui.elements.UITexture;
 import org.lwjgl.stb.STBTTBakedChar;
-
 import java.util.*;
+
+
 
 public class UIMeshBuilder {
     public static final float UI_GRID = 16.0f;

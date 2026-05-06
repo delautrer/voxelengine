@@ -5,13 +5,6 @@ import de.delautrer.engine.graphics.vulkan.core.*;
 import de.delautrer.engine.graphics.vulkan.pipeline.*;
 import de.delautrer.engine.graphics.vulkan.buffer.*;
 import de.delautrer.engine.graphics.vulkan.texture.*;
-
-import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
-import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
 import de.delautrer.engine.window.Window;
 import de.delautrer.game.ui.gui.screens.MenuScreen;
 import de.delautrer.game.ui.UIMeshBuilder;
@@ -20,11 +13,11 @@ import de.delautrer.game.ui.elements.UITexture;
 import org.joml.Matrix4f;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
-import org.lwjgl.vulkan.VK10;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+
 
 public class MenuRenderer {
     private final IGraphicsContext graphicsContext;

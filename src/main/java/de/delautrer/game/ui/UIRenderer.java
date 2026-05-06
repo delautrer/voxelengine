@@ -1,37 +1,30 @@
 package de.delautrer.game.ui;
 import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
-import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
-
 import de.delautrer.engine.graphics.MeshData;
-import de.delautrer.engine.graphics.vulkan.core.VulkanContext;
-import de.delautrer.engine.graphics.IFont;
-import de.delautrer.engine.graphics.vulkan.buffer.VulkanMesh;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.game.entity.player.PlayerInteraction;
 import de.delautrer.game.ui.elements.UIDrawCall;
 import de.delautrer.game.ui.elements.UITexture;
 import de.delautrer.game.ui.gui.screens.MenuScreen;
-import org.lwjgl.vulkan.VK10;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+
+
 public class UIRenderer {
 
-    private VulkanMesh combinedMesh;
+    private IMesh combinedMesh;
     private final List<UIDrawCall> drawCalls = new ArrayList<>();
 
-    private final VulkanContext context;
+    private final IGraphicsFactory factory;
+    private final IGraphicsContext graphicsContext;
     private final UIManager uiManager;
     private final UIMeshBuilder meshBuilder;
 
-    public UIRenderer(VulkanContext context, int width, int height) {
-        this.context = context;
+    public UIRenderer(IGraphicsFactory factory, IGraphicsContext graphicsContext) {
+        this.factory = factory;
+        this.graphicsContext = graphicsContext;
         this.uiManager = new UIManager();
         this.meshBuilder = new UIMeshBuilder();
     }
@@ -101,28 +94,24 @@ public class UIRenderer {
         if (!allVerts.isEmpty()) {
             MeshData newMeshData = new MeshData(toArray(allVerts), toIntArray(allInds));
 
-            // Wir halten die GPU kurz an, damit wir die laufenden Daten SICHER aktualisieren können
-            VK10.vkDeviceWaitIdle(context.getDevice());
+            // GPU kurz anhalten, damit wir die laufenden Daten SICHER aktualisieren können
+            graphicsContext.waitIdle();
 
             if (combinedMesh == null) {
-                // Nur beim allerersten Mal wird Speicher alloziiert
-                combinedMesh = new VulkanMesh(context, newMeshData);
+                combinedMesh = factory.createMesh(newMeshData);
             } else {
-                // JETZT WIRD DAS HIER ENDLICH AUFGERUFEN!
-                // Kein Neuzuweisen von RAM, nur flüsterleises Überschreiben.
-                combinedMesh.updateMesh(newMeshData);
+                combinedMesh.updateMesh(newMeshData.vertices(), newMeshData.indices());
             }
         } else {
-            // Falls das UI komplett leer wird (selten)
             if (combinedMesh != null) {
-                VK10.vkDeviceWaitIdle(context.getDevice());
+                graphicsContext.waitIdle();
                 combinedMesh.cleanup();
                 combinedMesh = null;
             }
         }
     }
 
-    public VulkanMesh getCombinedMesh() { return combinedMesh; }
+    public IMesh getCombinedMesh() { return combinedMesh; }
     public List<UIDrawCall> getDrawCalls() { return drawCalls; }
 
     private float[] toArray(List<Float> list) {

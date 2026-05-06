@@ -5,15 +5,7 @@ import de.delautrer.engine.graphics.vulkan.core.*;
 import de.delautrer.engine.graphics.vulkan.pipeline.*;
 import de.delautrer.engine.graphics.vulkan.buffer.*;
 import de.delautrer.engine.graphics.vulkan.texture.*;
-
-import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
-import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
 import de.delautrer.engine.graphics.utils.TextureStitcher.AtlasRegion;
-import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.CubeBlock;
 import de.delautrer.game.blocks.TorchBlock;
 import de.delautrer.game.blocks.state.BlockProperties.BlockFace;
@@ -26,13 +18,14 @@ import org.joml.Vector3f;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VK10;
 import org.lwjgl.vulkan.VkCommandBuffer;
-
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
-
 import de.delautrer.engine.physics.AABB;
 import de.delautrer.game.blocks.state.BlockState;
+
+
+
 public class EntityRenderSystem implements IRenderSystem {
     private final VulkanContext context;
     private final VulkanGraphicsPipeline blockPipeline;

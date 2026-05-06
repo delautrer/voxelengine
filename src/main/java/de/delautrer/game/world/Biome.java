@@ -3,9 +3,8 @@ package de.delautrer.game.world;
 import de.delautrer.Constants;
 import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.blocks.state.BlockState;
-
-import java.util.List;
 import java.util.Map;
+
 
 public enum Biome {
     //                                Surface        Sub-Surface    Beach    Deep Material  BaseH  Var.   Tree  Patch   Dens.  Flora Weights                                    Underground Blobs                          UW-Scale   Underwater Blobs

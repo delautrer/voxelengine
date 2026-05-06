@@ -4,8 +4,8 @@ import de.delautrer.engine.Engine;
 import de.delautrer.engine.utils.GameLogger;
 import de.delautrer.engine.utils.GamePaths;
 import de.delautrer.game.settings.SettingsManager;
-
 import de.delautrer.game.registry.Registries;
+
 public class Main {
     public static void main(String[] args) {
         GamePaths.initDirectories();

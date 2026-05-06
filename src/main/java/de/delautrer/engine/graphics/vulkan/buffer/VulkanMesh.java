@@ -5,16 +5,10 @@ import de.delautrer.engine.graphics.vulkan.core.*;
 import de.delautrer.engine.graphics.vulkan.pipeline.*;
 import de.delautrer.engine.graphics.vulkan.buffer.*;
 import de.delautrer.engine.graphics.vulkan.texture.*;
-import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
-import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
-
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 import org.lwjgl.vulkan.VK10;
+
 
 public class VulkanMesh implements de.delautrer.engine.graphics.IMesh {
     private final VulkanContext context;
@@ -34,11 +28,11 @@ public class VulkanMesh implements de.delautrer.engine.graphics.IMesh {
 
     public VulkanMesh(VulkanContext context, MeshData data) {
         this.context = context;
-        updateMesh(data.vertices, data.indices);
+        updateMesh(data.vertices(), data.indices());
     }
 
     public void updateMesh(MeshData data) {
-        updateMesh(data.vertices, data.indices);
+        updateMesh(data.vertices(), data.indices());
     }
 
     public void updateMesh(float[] vertices, int[] indices) {

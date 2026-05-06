@@ -5,8 +5,6 @@ import de.delautrer.engine.graphics.vulkan.core.*;
 import de.delautrer.engine.graphics.vulkan.pipeline.*;
 import de.delautrer.engine.graphics.vulkan.buffer.*;
 import de.delautrer.engine.graphics.vulkan.texture.*;
-
-import de.delautrer.Constants;
 import de.delautrer.game.settings.SettingsManager;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
@@ -14,9 +12,9 @@ import org.joml.FrustumIntersection;
 import org.joml.Matrix4f;
 import org.joml.Vector2i;
 import org.joml.Vector3d;
-import org.joml.Vector3f;
 import java.util.ArrayList;
 import java.util.Map;
+
 
 public class CullingUtils {
     public static void buildVisibleLists(ChunkManager chunkManager, Matrix4f mvpCameraRelative, RenderPacket packet, boolean isIsoFrame, Vector3d cameraPos) {

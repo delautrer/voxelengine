@@ -3,12 +3,12 @@ package de.delautrer.engine.audio;
 import com.google.gson.Gson;
 import de.delautrer.engine.audio.data.SoundMaterialDefinition;
 import de.delautrer.engine.utils.ResourceUtils;
-
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 
 public class SoundManager {
 

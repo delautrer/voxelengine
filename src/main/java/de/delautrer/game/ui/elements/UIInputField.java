@@ -5,11 +5,11 @@ import de.delautrer.engine.graphics.vulkan.core.*;
 import de.delautrer.engine.graphics.vulkan.pipeline.*;
 import de.delautrer.engine.graphics.vulkan.buffer.*;
 import de.delautrer.engine.graphics.vulkan.texture.*;
-
 import de.delautrer.engine.graphics.IFont;
 import de.delautrer.game.ui.UIMeshBuilder;
-
 import de.delautrer.engine.input.InputManager;
+
+
 public class UIInputField extends UIElement {
     private String text = "";
     private String placeholder;

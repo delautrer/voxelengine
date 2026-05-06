@@ -5,15 +5,13 @@ import de.delautrer.engine.graphics.vulkan.core.*;
 import de.delautrer.engine.graphics.vulkan.pipeline.*;
 import de.delautrer.engine.graphics.vulkan.buffer.*;
 import de.delautrer.engine.graphics.vulkan.texture.*;
-
-import de.delautrer.engine.graphics.vulkan.buffer.VulkanMesh;
 import org.joml.Vector2i;
-import org.lwjgl.vulkan.VK10;
-
 import java.util.concurrent.*;
 import java.util.Set;
-
 import de.delautrer.engine.graphics.ChunkMesher;
+
+
+
 public class AsyncChunkBuilder {
     private final ExecutorService executor = Executors.newFixedThreadPool(Math.max(1, Runtime.getRuntime().availableProcessors() - 1));
     private final ConcurrentLinkedQueue<ChunkBuildResult> readyMeshes = new ConcurrentLinkedQueue<>();

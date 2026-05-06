@@ -5,19 +5,18 @@ import de.delautrer.engine.graphics.vulkan.core.*;
 import de.delautrer.engine.graphics.vulkan.pipeline.*;
 import de.delautrer.engine.graphics.vulkan.buffer.*;
 import de.delautrer.engine.graphics.vulkan.texture.*;
-
 import de.delautrer.engine.graphics.vulkan.core.VulkanContext;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.stb.STBImageWrite;
 import org.lwjgl.vulkan.*;
 import org.lwjgl.PointerBuffer;
-
-import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
-
 import static org.lwjgl.vulkan.VK10.*;
 import static org.lwjgl.vulkan.KHRSwapchain.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+
+
 
 public class ScreenshotHelper {
 

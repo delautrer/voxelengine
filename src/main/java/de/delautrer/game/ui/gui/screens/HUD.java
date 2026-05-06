@@ -5,11 +5,9 @@ import de.delautrer.engine.graphics.vulkan.core.*;
 import de.delautrer.engine.graphics.vulkan.pipeline.*;
 import de.delautrer.engine.graphics.vulkan.buffer.*;
 import de.delautrer.engine.graphics.vulkan.texture.*;
-
 import de.delautrer.engine.graphics.IFont;
 import de.delautrer.engine.graphics.utils.TextureStitcher;
 import de.delautrer.game.blocks.Block;
-import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.entity.player.GameMode;
 import de.delautrer.game.entity.player.PlayerInteraction;
 import de.delautrer.game.inventory.PlayerInventory;
@@ -19,11 +17,12 @@ import de.delautrer.game.ui.ChatOverlay;
 import de.delautrer.game.ui.DebugOverlay;
 import de.delautrer.game.ui.UIUtils;
 import de.delautrer.game.ui.UIMeshBuilder;
-
 import java.util.List;
-
 import de.delautrer.Constants;
 import de.delautrer.game.registry.Registries;
+
+
+
 public class HUD {
 
     private long lastSlotChangeTime = 0;

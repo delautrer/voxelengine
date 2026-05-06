@@ -5,16 +5,16 @@ import de.delautrer.engine.graphics.vulkan.core.*;
 import de.delautrer.engine.graphics.vulkan.pipeline.*;
 import de.delautrer.engine.graphics.vulkan.buffer.*;
 import de.delautrer.engine.graphics.vulkan.texture.*;
-
 import de.delautrer.engine.graphics.utils.TextureStitcher.AtlasRegion;
 import de.delautrer.game.blocks.models.BlockModelData;
 import de.delautrer.game.blocks.state.BlockProperties.BlockFace;
 import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
-
 import de.delautrer.Constants;
 import de.delautrer.game.registry.Registries;
+
+
 public class CubeBlock extends Block {
 
     public CubeBlock(boolean isSolid, boolean isTransparent, boolean isPassable,  boolean isRaycastable) {

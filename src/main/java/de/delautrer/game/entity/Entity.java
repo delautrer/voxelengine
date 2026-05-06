@@ -7,8 +7,8 @@ import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
-
 import java.util.List;
+
 
 public abstract class Entity {
     public Vector3d position;

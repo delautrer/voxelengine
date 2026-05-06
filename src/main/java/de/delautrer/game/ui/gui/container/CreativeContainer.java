@@ -5,10 +5,10 @@ import de.delautrer.game.items.Item;
 import de.delautrer.game.items.ItemRegistry;
 import de.delautrer.game.items.ItemStack;
 import de.delautrer.game.ui.gui.ClickType;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
 
 public class CreativeContainer extends BaseContainer {
 

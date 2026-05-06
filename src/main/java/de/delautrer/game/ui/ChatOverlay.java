@@ -3,9 +3,9 @@ package de.delautrer.game.ui;
 import de.delautrer.engine.events.EventBus;
 import de.delautrer.engine.events.EventListener;
 import de.delautrer.game.events.ChatMessageEvent;
-
 import java.util.ArrayList;
 import java.util.List;
+
 
 public class ChatOverlay implements EventListener<ChatMessageEvent> {
 

@@ -5,8 +5,8 @@ import de.delautrer.engine.graphics.vulkan.core.*;
 import de.delautrer.engine.graphics.vulkan.pipeline.*;
 import de.delautrer.engine.graphics.vulkan.buffer.*;
 import de.delautrer.engine.graphics.vulkan.texture.*;
-
 import de.delautrer.engine.graphics.utils.TextureStitcher.AtlasRegion;
+
 
 public class BlockModelData {
     public AtlasRegion top;

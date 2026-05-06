@@ -5,7 +5,6 @@ import de.delautrer.game.inventory.IInventory;
 import de.delautrer.game.inventory.PlayerInventory;
 import de.delautrer.game.world.ChunkManager;
 import org.joml.Vector3d;
-import org.joml.Vector3f;
 
 public class Player extends Entity {
 

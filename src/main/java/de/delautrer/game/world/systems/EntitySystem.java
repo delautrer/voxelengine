@@ -7,9 +7,9 @@ import de.delautrer.game.world.World;
 import de.delautrer.game.world.ChunkManager;
 import de.delautrer.game.events.PlayerItemPickupEvent;
 import de.delautrer.game.events.InventoryChangeEvent;
-
 import java.util.ArrayList;
 import java.util.List;
+
 
 public class EntitySystem implements WorldSystem {
 

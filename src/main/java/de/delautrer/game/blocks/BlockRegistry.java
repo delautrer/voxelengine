@@ -8,19 +8,19 @@ import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.items.BlockItem;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
-
 import de.delautrer.game.registry.NamespacedKey;
 import de.delautrer.game.registry.Registry;
-
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
+
+
+
 public class BlockRegistry {
     public static final Registry<Block> REGISTRY = new Registry<>();
     private static final Block[] BLOCKS_BY_ID = new Block[256];

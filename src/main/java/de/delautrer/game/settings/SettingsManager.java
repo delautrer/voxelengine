@@ -3,10 +3,10 @@ package de.delautrer.game.settings;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import de.delautrer.engine.utils.GamePaths;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
+
 
 public class SettingsManager {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();

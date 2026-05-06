@@ -1,9 +1,9 @@
 package de.delautrer.game.world;
 
 import de.delautrer.game.world.generation.*;
-
 import java.util.ArrayList;
 import java.util.List;
+
 
 public class WorldGenerator {
 

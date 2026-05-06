@@ -1,6 +1,5 @@
 package de.delautrer.game.blocks;
 
-import de.delautrer.engine.audio.SoundMaterial;
 import de.delautrer.engine.physics.AABB;
 import de.delautrer.game.blocks.entities.BlockEntity;
 import de.delautrer.game.blocks.models.BlockModelData;
@@ -13,8 +12,8 @@ import de.delautrer.game.world.ChunkManager;
 import de.delautrer.game.world.World;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
-
 import java.util.*;
+
 
 public abstract class Block {
     private byte internalId;

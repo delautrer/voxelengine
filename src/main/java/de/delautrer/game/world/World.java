@@ -5,15 +5,12 @@ import de.delautrer.engine.graphics.vulkan.core.*;
 import de.delautrer.engine.graphics.vulkan.pipeline.*;
 import de.delautrer.engine.graphics.vulkan.buffer.*;
 import de.delautrer.engine.graphics.vulkan.texture.*;
-
 import de.delautrer.engine.events.EventBus;
-import de.delautrer.engine.graphics.vulkan.core.VulkanContext;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.blocks.entities.BlockEntity;
 import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.entity.Entity;
-import de.delautrer.game.entity.ItemEntity;
 import de.delautrer.game.entity.player.LocalPlayer;
 import de.delautrer.game.events.BlockChangeEvent;
 import de.delautrer.game.events.BlockNeighborUpdateEvent;
@@ -25,7 +22,6 @@ import de.delautrer.game.world.sky.Weather;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -34,10 +30,12 @@ import de.delautrer.game.world.systems.WorldSystem;
 import de.delautrer.game.world.systems.EntitySystem;
 import de.delautrer.game.world.systems.TerrainSystem;
 import de.delautrer.game.world.systems.WeatherSystem;
-
 import de.delautrer.Constants;
 import de.delautrer.game.items.Item;
 import de.delautrer.game.registry.Registries;
+
+
+
 public class World {
     private final EventBus eventBus;
     private final ChunkManager chunkManager;

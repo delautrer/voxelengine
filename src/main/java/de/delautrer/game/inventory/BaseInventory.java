@@ -1,9 +1,9 @@
 package de.delautrer.game.inventory;
 
 import de.delautrer.game.items.ItemStack;
-
 import de.delautrer.game.items.Item;
 import de.delautrer.game.items.ItemRegistry;
+
 public abstract class BaseInventory implements IInventory {
     private boolean sortable = false;
     protected final ItemStack[] slots;

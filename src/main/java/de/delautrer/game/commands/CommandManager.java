@@ -5,11 +5,11 @@ import de.delautrer.engine.events.EventListener;
 import de.delautrer.game.entity.player.LocalPlayer;
 import de.delautrer.game.events.ChatMessageEvent;
 import de.delautrer.game.events.CommandExecutedEvent;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 
 public class CommandManager implements EventListener<CommandExecutedEvent> {
 

@@ -12,8 +12,8 @@ import de.delautrer.game.world.World;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 import java.util.List;
-
 import de.delautrer.game.items.BlockItem;
+
 public class SlabBlock extends CubeBlock {
     public static final EnumProperty<SlabType> TYPE = EnumProperty.create("type", SlabType.class);
 

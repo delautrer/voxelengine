@@ -5,14 +5,6 @@ import de.delautrer.engine.graphics.vulkan.core.*;
 import de.delautrer.engine.graphics.vulkan.pipeline.*;
 import de.delautrer.engine.graphics.vulkan.buffer.*;
 import de.delautrer.engine.graphics.vulkan.texture.*;
-
-import de.delautrer.Constants;
-import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
-import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
 import de.delautrer.engine.graphics.utils.TextureStitcher;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.engine.graphics.Camera;
@@ -30,10 +22,9 @@ import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.sky.SkyManager;
 import de.delautrer.game.world.World;
 import org.joml.Matrix4f;
-import org.joml.Vector3d;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
-import org.lwjgl.vulkan.VK10;
+
 
 public class MasterRenderer {
     private final VulkanContext vulkanContext;
@@ -71,9 +62,8 @@ public class MasterRenderer {
         this.blockAtlas = blockAtlas;
         this.itemAtlas = itemAtlas;
         this.renderer = new VulkanRenderer(vulkanContext, window);
-        this.uiRenderer = new UIRenderer(vulkanContext, renderer.getWidth(), renderer.getHeight());
-
         this.graphicsFactory = new de.delautrer.engine.graphics.vulkan.core.VulkanGraphicsFactory(vulkanContext, renderer.getCommandBuffers(), renderer.getGraphicsLayout(), renderer.getUiLayout());
+        this.uiRenderer = new UIRenderer(graphicsFactory, vulkanContext);
 
         initResources();
     }

@@ -2,8 +2,8 @@ package de.delautrer.game.ui.gui.screens;
 
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.game.ui.UIMeshBuilder;
-
 import java.util.List;
+
 
 public abstract class Screen {
     protected int width, height;

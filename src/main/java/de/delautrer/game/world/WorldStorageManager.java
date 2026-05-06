@@ -11,17 +11,14 @@ import de.delautrer.game.world.persistence.RegionFile;
 import de.delautrer.game.world.persistence.WorldData;
 import de.delautrer.game.world.persistence.PlayerData;
 import de.delautrer.game.world.persistence.ChunkSerializer;
-
 import de.delautrer.game.inventory.IInventory;
 import de.delautrer.game.items.Item;
-// NEUE IMPORTS FÜR KISTEN UND ITEMS
 import de.delautrer.game.blocks.entities.BlockEntity;
 import de.delautrer.game.blocks.entities.ChestBlockEntity;
 import de.delautrer.game.entity.Entity;
 import de.delautrer.game.entity.ItemEntity;
 import de.delautrer.game.items.ItemRegistry;
 import de.delautrer.game.items.ItemStack;
-
 import java.io.*;
 import java.nio.file.*;
 import java.util.List;
@@ -29,6 +26,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.regex.Pattern;
+
+// NEUE IMPORTS FÜR KISTEN UND ITEMS
+
 
 public class WorldStorageManager {
 

@@ -1,30 +1,28 @@
 package de.delautrer.game.world;
-import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
-import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
-
 import de.delautrer.engine.events.EventBus;
-import de.delautrer.engine.graphics.vulkan.core.VulkanContext;
+import de.delautrer.engine.events.EventListener;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.events.BlockChangeEvent;
 import de.delautrer.game.events.BlockNeighborUpdateEvent;
+
 
 public class WorldEventHandler {
 
     private final World world;
     private final EventBus eventBus;
 
+    // Listener-Referenzen als Felder gespeichert, damit unsubscribe() korrekt funktioniert.
+    // this::onBlockChange erzeugt jedes Mal ein neues Objekt — als Feld ist die Referenz stabil.
+    private final EventListener<BlockChangeEvent> blockChangeListener = this::onBlockChange;
+    private final EventListener<BlockNeighborUpdateEvent> neighborUpdateListener = this::onNeighborUpdate;
+
     public WorldEventHandler(World world, EventBus eventBus) {
         this.world = world;
         this.eventBus = eventBus;
 
-        // EventListener registrieren
-        eventBus.subscribe(BlockChangeEvent.class, this::onBlockChange);
-        eventBus.subscribe(BlockNeighborUpdateEvent.class, this::onNeighborUpdate);
+        eventBus.subscribe(BlockChangeEvent.class, blockChangeListener);
+        eventBus.subscribe(BlockNeighborUpdateEvent.class, neighborUpdateListener);
     }
 
     private void onBlockChange(BlockChangeEvent event) {
@@ -80,9 +78,9 @@ public class WorldEventHandler {
 
 
     public void cleanup() {
-        if(eventBus != null) {
-            eventBus.unsubscribe(BlockChangeEvent.class, this::onBlockChange);
-            eventBus.unsubscribe(BlockNeighborUpdateEvent.class, this::onNeighborUpdate);
+        if (eventBus != null) {
+            eventBus.unsubscribe(BlockChangeEvent.class, blockChangeListener);
+            eventBus.unsubscribe(BlockNeighborUpdateEvent.class, neighborUpdateListener);
         }
     }
 }

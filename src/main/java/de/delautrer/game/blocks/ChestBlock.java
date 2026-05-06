@@ -5,8 +5,8 @@ import de.delautrer.game.blocks.entities.ChestBlockEntity;
 import de.delautrer.game.entity.player.LocalPlayer;
 import de.delautrer.game.world.World;
 import org.joml.Vector3i;
-
 import de.delautrer.game.events.InventoryOpenedEvent;
+
 public class ChestBlock extends CubeBlock implements IInteractable {
 
     public ChestBlock() {

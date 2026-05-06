@@ -5,8 +5,8 @@ import de.delautrer.game.settings.SettingsManager;
 import de.delautrer.game.ui.UIMeshBuilder;
 import de.delautrer.game.ui.elements.*;
 import org.lwjgl.glfw.GLFW;
-
 import java.util.Map;
+
 
 public class OptionsScreen extends MenuScreen {
     private final Runnable onBackAction;

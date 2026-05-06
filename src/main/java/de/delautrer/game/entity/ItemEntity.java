@@ -10,7 +10,6 @@ import de.delautrer.game.world.World;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
 
-import java.util.Objects;
 
 public class ItemEntity extends Entity {
 

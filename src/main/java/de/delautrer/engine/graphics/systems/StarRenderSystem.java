@@ -5,7 +5,6 @@ import de.delautrer.engine.graphics.vulkan.core.*;
 import de.delautrer.engine.graphics.vulkan.pipeline.*;
 import de.delautrer.engine.graphics.vulkan.buffer.*;
 import de.delautrer.engine.graphics.vulkan.texture.*;
-
 import de.delautrer.engine.graphics.RenderPacket;
 import de.delautrer.engine.graphics.ShaderUtils;
 import de.delautrer.engine.graphics.vulkan.core.VulkanContext;
@@ -14,11 +13,12 @@ import de.delautrer.engine.graphics.vulkan.core.VulkanSwapchain;
 import org.joml.Matrix4f;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
-
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
-
 import static org.lwjgl.vulkan.VK10.*;
+
+
+
 
 public class StarRenderSystem implements IRenderSystem {
 

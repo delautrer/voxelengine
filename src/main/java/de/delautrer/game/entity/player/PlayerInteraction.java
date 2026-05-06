@@ -5,11 +5,8 @@ import de.delautrer.engine.graphics.vulkan.core.*;
 import de.delautrer.engine.graphics.vulkan.pipeline.*;
 import de.delautrer.engine.graphics.vulkan.buffer.*;
 import de.delautrer.engine.graphics.vulkan.texture.*;
-
-import de.delautrer.engine.audio.SoundAction;
 import de.delautrer.engine.audio.SoundManager;
 import de.delautrer.engine.events.EventBus;
-import de.delautrer.engine.graphics.vulkan.core.VulkanContext;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.engine.graphics.Camera;
 import de.delautrer.engine.physics.Raycaster;
@@ -21,7 +18,6 @@ import de.delautrer.game.entity.ItemEntity;
 import de.delautrer.game.events.BlockBreakEvent;
 import de.delautrer.game.inventory.PlayerInventory;
 import de.delautrer.game.items.ItemRegistry;
-import de.delautrer.game.items.ItemType;
 import de.delautrer.game.loot.LootTable;
 import de.delautrer.game.loot.LootTableManager;
 import de.delautrer.game.world.World;
@@ -30,16 +26,17 @@ import de.delautrer.game.items.BlockItem;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import de.delautrer.Constants;
 import de.delautrer.game.blocks.state.BlockProperties;
 import de.delautrer.game.events.HotbarSlotChangeEvent;
 import de.delautrer.game.events.InventoryChangeEvent;
 import de.delautrer.game.items.Item;
 import de.delautrer.game.registry.Registries;
+
+
+
 public class PlayerInteraction {
 
     private final World world;

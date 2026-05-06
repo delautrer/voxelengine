@@ -6,10 +6,10 @@ import de.delautrer.game.ui.UIMeshBuilder;
 import de.delautrer.game.ui.elements.UIInputField;
 import de.delautrer.game.ui.gui.container.CreativeContainer;
 import de.delautrer.game.ui.gui.container.Slot;
-
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.game.items.ItemRegistry;
 import de.delautrer.game.ui.UIUtils;
+
 public class CreativeInventoryScreen extends ContainerScreen {
 
     private float panelX, panelY, panelW, panelH;

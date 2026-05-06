@@ -3,9 +3,9 @@ package de.delautrer.game.commands;
 import de.delautrer.game.entity.player.LocalPlayer;
 import de.delautrer.game.world.World;
 import de.delautrer.game.world.sky.Weather;
-
 import java.util.ArrayList;
 import java.util.List;
+
 
 public class WeatherCommand implements ICommand {
 

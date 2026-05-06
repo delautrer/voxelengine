@@ -1,10 +1,10 @@
 package de.delautrer.game.blocks.state;
 
 import de.delautrer.game.blocks.Block;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
 
 public class BlockState {
     private final Block block;

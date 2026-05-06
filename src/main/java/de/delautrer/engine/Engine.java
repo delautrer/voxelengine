@@ -5,7 +5,6 @@ import de.delautrer.engine.graphics.vulkan.core.*;
 import de.delautrer.engine.graphics.vulkan.pipeline.*;
 import de.delautrer.engine.graphics.vulkan.buffer.*;
 import de.delautrer.engine.graphics.vulkan.texture.*;
-
 import de.delautrer.Constants;
 import de.delautrer.engine.audio.AudioEngine;
 import de.delautrer.engine.audio.SoundManager;
@@ -19,6 +18,7 @@ import de.delautrer.game.items.ItemModelManager;
 import de.delautrer.game.states.MainMenuScene;
 import org.lwjgl.glfw.GLFW;
 import de.delautrer.engine.graphics.IGraphicsContext;
+
 public class Engine {
 
     private Window window;

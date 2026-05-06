@@ -5,7 +5,6 @@ import de.delautrer.engine.graphics.vulkan.core.*;
 import de.delautrer.engine.graphics.vulkan.pipeline.*;
 import de.delautrer.engine.graphics.vulkan.buffer.*;
 import de.delautrer.engine.graphics.vulkan.texture.*;
-
 import de.delautrer.Constants;
 import de.delautrer.engine.MasterRenderer;
 import de.delautrer.engine.audio.AudioEngine;
@@ -23,15 +22,14 @@ import de.delautrer.game.ui.ChatOverlay;
 import de.delautrer.game.ui.DebugOverlay;
 import de.delautrer.game.ui.gui.screens.*;
 import de.delautrer.game.world.*;
-import de.delautrer.game.world.sky.Weather;
 import org.joml.Vector3d;
-import org.joml.Vector3f;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
 import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.events.InventoryClosedEvent;
+
+
+
 public class PlayScene extends Scene {
 
     private MasterRenderer masterRenderer;

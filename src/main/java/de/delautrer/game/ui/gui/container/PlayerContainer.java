@@ -2,7 +2,6 @@ package de.delautrer.game.ui.gui.container;
 
 import de.delautrer.game.inventory.CraftingInventory;
 import de.delautrer.game.inventory.PlayerInventory;
-import de.delautrer.game.inventory.BaseInventory;
 import de.delautrer.game.crafting.RecipeManager;
 import de.delautrer.game.inventory.ResultInventory;
 import de.delautrer.game.items.ItemStack;

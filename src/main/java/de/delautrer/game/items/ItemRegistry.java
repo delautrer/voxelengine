@@ -1,23 +1,20 @@
 package de.delautrer.game.items;
 
 import de.delautrer.Constants;
-import de.delautrer.game.blocks.Block;
-import de.delautrer.game.blocks.BlockRegistry;
-import de.delautrer.game.blocks.PlantBlock;
 import de.delautrer.game.entity.player.LocalPlayer;
 import de.delautrer.game.entity.player.PlayerInteraction;
 import de.delautrer.game.world.World;
 import org.joml.Vector3i;
-
 import de.delautrer.game.registry.NamespacedKey;
 import de.delautrer.game.registry.Registry;
-
 import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.stream.Collectors;
-
 import de.delautrer.game.registry.Registries;
+
+
+
 public class ItemRegistry {
     public static final Registry<Item> REGISTRY = new Registry<>();
 

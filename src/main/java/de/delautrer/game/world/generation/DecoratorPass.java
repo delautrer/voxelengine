@@ -7,10 +7,10 @@ import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.world.Biome;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.NoiseGenerator;
-
 import java.util.*;
-
 import de.delautrer.game.blocks.LogBlock;
+
+
 public class DecoratorPass implements IGenerationPass {
 
     private final NoiseGenerator floraNoise;

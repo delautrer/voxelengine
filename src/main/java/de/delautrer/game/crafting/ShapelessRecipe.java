@@ -3,9 +3,9 @@ package de.delautrer.game.crafting;
 import de.delautrer.game.inventory.CraftingInventory;
 import de.delautrer.game.items.Item;
 import de.delautrer.game.items.ItemStack;
-
 import java.util.ArrayList;
 import java.util.List;
+
 
 public class ShapelessRecipe implements IRecipe {
     private final List<Item> ingredients;

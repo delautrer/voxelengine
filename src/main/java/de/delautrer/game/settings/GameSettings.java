@@ -2,9 +2,9 @@ package de.delautrer.game.settings;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import com.google.gson.annotations.SerializedName;
 import org.lwjgl.glfw.GLFW;
+
 
 public class GameSettings {
 

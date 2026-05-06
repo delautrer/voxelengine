@@ -1,10 +1,8 @@
 package de.delautrer.game.items;
 
-import de.delautrer.engine.audio.SoundAction;
 import de.delautrer.engine.audio.SoundManager;
 import de.delautrer.engine.physics.Raycaster;
 import de.delautrer.game.blocks.Block;
-import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.entity.player.LocalPlayer;
 import de.delautrer.game.events.BlockPlaceEvent;
@@ -14,11 +12,11 @@ import de.delautrer.game.entity.player.PlayerInteraction;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
-
 import java.util.List;
-
 import de.delautrer.Constants;
 import de.delautrer.game.registry.Registries;
+
+
 public class BlockItem extends Item {
     public final Block block;
 

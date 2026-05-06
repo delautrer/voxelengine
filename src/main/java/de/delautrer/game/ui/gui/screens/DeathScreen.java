@@ -6,7 +6,6 @@ import de.delautrer.game.ui.elements.UIButton;
 import de.delautrer.game.ui.elements.UIElement;
 import de.delautrer.game.ui.elements.UIVBox;
 import de.delautrer.game.ui.UIMeshBuilder;
-import org.joml.Vector3f;
 
 public class DeathScreen extends MenuScreen {
     private final LocalPlayer player;

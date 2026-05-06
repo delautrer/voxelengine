@@ -5,13 +5,6 @@ import de.delautrer.engine.graphics.vulkan.core.*;
 import de.delautrer.engine.graphics.vulkan.pipeline.*;
 import de.delautrer.engine.graphics.vulkan.buffer.*;
 import de.delautrer.engine.graphics.vulkan.texture.*;
-import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
-import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
-
 import de.delautrer.engine.graphics.systems.*;
 import de.delautrer.engine.window.Window;
 import org.lwjgl.system.MemoryStack;
@@ -20,12 +13,13 @@ import org.lwjgl.vulkan.VK10;
 import org.lwjgl.vulkan.VkCommandBuffer;
 import org.lwjgl.vulkan.VkPresentInfoKHR;
 import org.lwjgl.vulkan.VkSubmitInfo;
-
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
-
 import de.delautrer.engine.graphics.utils.ScreenshotHelper;
+
+
+
 public class VulkanRenderer {
     private final VulkanContext context;
     private VulkanSwapchain swapchain;
