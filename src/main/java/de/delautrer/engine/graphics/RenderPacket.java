@@ -1,10 +1,4 @@
 package de.delautrer.engine.graphics;
-import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
-import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
 
 import de.delautrer.game.entity.Entity;
 import de.delautrer.game.ui.elements.UIDrawCall;
@@ -17,21 +11,21 @@ import java.util.List;
 public class RenderPacket {
     public Matrix4f mvp, proj, view, ortho;
 
-    public List<VulkanMesh> opaqueMeshes;
-    public List<VulkanMesh> waterMeshes;
+    public List<IMesh> opaqueMeshes;
+    public List<IMesh> waterMeshes;
 
     public List<Entity> entities;
 
-    public VulkanMesh highlightMesh;
+    public IMesh highlightMesh;
 
-    public VulkanMesh uiCombinedMesh;
+    public IMesh uiCombinedMesh;
     public List<UIDrawCall> uiDrawCalls;
 
-    public VulkanMesh cloudMesh;
+    public IMesh cloudMesh;
     public Vector3f cloudOffset;
     public Vector3f sunDirection;
-    public VulkanMesh celestialMesh;
-    public VulkanMesh starMesh;
+    public IMesh celestialMesh;
+    public IMesh starMesh;
     public float starAlpha;
     public float timeOfDay;
 
@@ -43,12 +37,12 @@ public class RenderPacket {
 
     public boolean isUnderwater;
 
-    public VulkanTexture fontTexture;
-    public VulkanTextureArray worldTexture;
-    public VulkanTexture uiTexture;
-    public VulkanTexture itemTexture;
-    public VulkanTexture blockUITexture;
-    public VulkanMesh overlayMesh;
+    public ITexture fontTexture;
+    public ITextureArray worldTexture;
+    public ITexture uiTexture;
+    public ITexture itemTexture;
+    public ITexture blockUITexture;
+    public IMesh overlayMesh;
 
     public Vector3i selectedBlockPos;
     public float globalLight, skyR, skyG, skyB;

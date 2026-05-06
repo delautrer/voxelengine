@@ -6,7 +6,7 @@ import de.delautrer.engine.graphics.vulkan.pipeline.*;
 import de.delautrer.engine.graphics.vulkan.buffer.*;
 import de.delautrer.engine.graphics.vulkan.texture.*;
 
-import de.delautrer.engine.graphics.vulkan.texture.VulkanFont;
+import de.delautrer.engine.graphics.IFont;
 import de.delautrer.game.ui.UIMeshBuilder;
 
 import java.util.ArrayList;
@@ -40,7 +40,7 @@ public abstract class UILayout extends UIElement {
     public abstract void pack();
 
     @Override
-    public void render(UIMeshBuilder builder, VulkanFont font, float mouseX, float mouseY) {
+    public void render(UIMeshBuilder builder, IFont font, float mouseX, float mouseY) {
         if (!isVisible) return;
         for (UIElement child : children) {
             child.render(builder, font, mouseX, mouseY);

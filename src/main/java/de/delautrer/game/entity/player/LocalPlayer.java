@@ -63,9 +63,9 @@ public class LocalPlayer extends Player {
         this.camera = new Camera();
     }
 
-    public void initInteraction(World world, VulkanContext context, EventBus eventBus) {
+    public void initInteraction(World world, EventBus eventBus) {
         this.eventBus = eventBus;
-        this.interaction = new PlayerInteraction(world, this.camera, this, context, eventBus);
+        this.interaction = new PlayerInteraction(world, this.camera, this, eventBus);
     }
 
     public void updateLocal(InputManager input, ChunkManager chunkManager, float deltaTime) {

@@ -42,21 +42,23 @@ public class MasterRenderer {
     private final VulkanRenderer renderer;
     private final UIRenderer uiRenderer;
 
-    private VulkanTextureArray worldTexture;
-    private VulkanTexture uiTexture;
-    private VulkanTexture itemTexture;
-    private VulkanTexture fontTexture;
-    private VulkanTexture blockUITexture;
-    private VulkanMesh highlightMesh;
-    private VulkanMesh starMesh;
-    private VulkanMesh cloudMesh;
-    private VulkanMesh celestialMesh;
+    private final IGraphicsFactory graphicsFactory;
+
+    private ITextureArray worldTexture;
+    private ITexture uiTexture;
+    private ITexture itemTexture;
+    private ITexture fontTexture;
+    private ITexture blockUITexture;
+    private IMesh highlightMesh;
+    private IMesh starMesh;
+    private IMesh cloudMesh;
+    private IMesh celestialMesh;
 
     // --- NEU: Beide dynamischen Meshes werden dauerhaft gespeichert ---
-    private VulkanMesh dynamicHighlightMesh;
-    private VulkanMesh dynamicOverlayMesh;
+    private IMesh dynamicHighlightMesh;
+    private IMesh dynamicOverlayMesh;
 
-    private VulkanFont font;
+    private IFont font;
 
     private final TextureStitcher.AtlasResult blockAtlas;
     private final TextureStitcher.AtlasResult itemAtlas;
@@ -71,34 +73,36 @@ public class MasterRenderer {
         this.renderer = new VulkanRenderer(vulkanContext, window);
         this.uiRenderer = new UIRenderer(vulkanContext, renderer.getWidth(), renderer.getHeight());
 
+        this.graphicsFactory = new de.delautrer.engine.graphics.vulkan.core.VulkanGraphicsFactory(vulkanContext, renderer.getCommandBuffers(), renderer.getGraphicsLayout(), renderer.getUiLayout());
+
         initResources();
     }
 
     private void initResources() {
-        worldTexture = new VulkanTextureArray(vulkanContext, renderer.getCommandBuffers(), renderer.getGraphicsLayout(), blockAtlas);
-        uiTexture = new VulkanTexture(vulkanContext, renderer.getCommandBuffers(), renderer.getUiLayout(), "menu_gui.png");
-        itemTexture = new VulkanTexture(vulkanContext, renderer.getCommandBuffers(), renderer.getUiLayout(), itemAtlas);
-        blockUITexture = new VulkanTexture(vulkanContext, renderer.getCommandBuffers(), renderer.getUiLayout(), blockAtlas);
+        worldTexture = graphicsFactory.createTextureArray(blockAtlas);
+        uiTexture = graphicsFactory.createTexture("menu_gui.png");
+        itemTexture = graphicsFactory.createTexture(itemAtlas);
+        blockUITexture = graphicsFactory.createTexture(blockAtlas);
 
-        font = new VulkanFont("MinecraftRegular-Bmg3.otf", 24.0f);
+        font = graphicsFactory.createFont("MinecraftRegular-Bmg3.otf", 24.0f);
         if (font.getRgbaPixels() != null) {
-            fontTexture = new VulkanTexture(vulkanContext, renderer.getCommandBuffers(), renderer.getUiLayout(), font.getRgbaPixels(), font.BITMAP_SIZE, font.BITMAP_SIZE);
+            fontTexture = graphicsFactory.createTexture(font.getRgbaPixels(), font.getBitmapSize(), font.getBitmapSize());
         }
 
-        highlightMesh = new VulkanMesh(vulkanContext, Chunk.getHighlightVertices(), Chunk.getHighlightIndices());
+        highlightMesh = graphicsFactory.createMesh(Chunk.getHighlightVertices(), Chunk.getHighlightIndices());
     }
 
     public void initClouds(MeshData data) {
-        this.cloudMesh = new VulkanMesh(vulkanContext, data.vertices, data.indices);
+        this.cloudMesh = graphicsFactory.createMesh(data);
     }
     public void initStars(MeshData starData) {
         if (this.starMesh != null) this.starMesh.cleanup();
-        this.starMesh = new VulkanMesh(vulkanContext, starData);
+        this.starMesh = graphicsFactory.createMesh(starData);
     }
 
     public void initCelestial(MeshData data) {
         if (this.celestialMesh != null) this.celestialMesh.cleanup();
-        this.celestialMesh = new VulkanMesh(vulkanContext, data);
+        this.celestialMesh = graphicsFactory.createMesh(data);
     }
 
     public void rebuildUI(PlayerInteraction interaction, InputManager input, DebugOverlay debugOverlay, MenuScreen pauseScreen, ChatOverlay chatOverlay) {
@@ -174,7 +178,7 @@ public class MasterRenderer {
 
             // HIGHLIGHT MESH UPDATE
             if (dynamicHighlightMesh == null) {
-                dynamicHighlightMesh = new VulkanMesh(vulkanContext, block.getHighlightVertices(state), block.getHighlightIndices(state));
+                dynamicHighlightMesh = graphicsFactory.createMesh(block.getHighlightVertices(state), block.getHighlightIndices(state));
             } else {
                 dynamicHighlightMesh.updateMesh(block.getHighlightVertices(state), block.getHighlightIndices(state));
             }
@@ -292,7 +296,7 @@ public class MasterRenderer {
         };
 
         if (dynamicOverlayMesh == null) {
-            dynamicOverlayMesh = new VulkanMesh(vulkanContext, verts, inds);
+            dynamicOverlayMesh = graphicsFactory.createMesh(verts, inds);
         } else {
             dynamicOverlayMesh.updateMesh(verts, inds);
         }
@@ -322,8 +326,12 @@ public class MasterRenderer {
         if (renderer != null) renderer.cleanup();
     }
 
-    public VulkanFont getFont() {
+    public IFont getFont() {
         return font;
+    }
+
+    public IGraphicsFactory getGraphicsFactory() {
+        return graphicsFactory;
     }
 
     public void requestScreenshot(String path) {

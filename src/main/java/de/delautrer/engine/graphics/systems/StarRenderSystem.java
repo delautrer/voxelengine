@@ -114,7 +114,7 @@ public class StarRenderSystem implements IRenderSystem {
 
     @Override
     public void render(VkCommandBuffer commandBuffer, RenderPacket packet) {
-        if (packet.starMesh == null || packet.starMesh.getIndexCount() == 0 || packet.starAlpha <= 0.0f) {
+        if (packet.starMesh == null || ((VulkanMesh)packet.starMesh).getIndexCount() == 0 || packet.starAlpha <= 0.0f) {
             return;
         }
 
@@ -140,10 +140,10 @@ public class StarRenderSystem implements IRenderSystem {
 
             VK10.vkCmdPushConstants(commandBuffer, pipelineLayout, VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, pc);
 
-            VK10.vkCmdBindVertexBuffers(commandBuffer, 0, stack.longs(packet.starMesh.getVertexBuffer()), stack.longs(0));
-            VK10.vkCmdBindIndexBuffer(commandBuffer, packet.starMesh.getIndexBuffer(), 0, VK10.VK_INDEX_TYPE_UINT32);
+            VK10.vkCmdBindVertexBuffers(commandBuffer, 0, stack.longs(((VulkanMesh)packet.starMesh).getVertexBuffer()), stack.longs(0));
+            VK10.vkCmdBindIndexBuffer(commandBuffer, ((VulkanMesh)packet.starMesh).getIndexBuffer(), 0, VK10.VK_INDEX_TYPE_UINT32);
 
-            VK10.vkCmdDrawIndexed(commandBuffer, packet.starMesh.getIndexCount(), 1, 0, 0, 0);
+            VK10.vkCmdDrawIndexed(commandBuffer, ((VulkanMesh)packet.starMesh).getIndexCount(), 1, 0, 0, 0);
         }
     }
 

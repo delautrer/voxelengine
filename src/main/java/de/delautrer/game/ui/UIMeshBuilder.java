@@ -6,7 +6,7 @@ import de.delautrer.engine.graphics.vulkan.pipeline.*;
 import de.delautrer.engine.graphics.vulkan.buffer.*;
 import de.delautrer.engine.graphics.vulkan.texture.*;
 
-import de.delautrer.engine.graphics.vulkan.texture.VulkanFont;
+import de.delautrer.engine.graphics.IFont;
 import de.delautrer.engine.graphics.utils.TextureStitcher;
 import de.delautrer.game.items.ItemStack;
 import de.delautrer.game.ui.elements.UITexture;
@@ -128,7 +128,7 @@ public class UIMeshBuilder {
         }
     }
 
-    public void drawText(String text, float startX, float startY, float z, VulkanFont font) {
+    public void drawText(String text, float startX, float startY, float z, IFont font) {
         if (font == null || font.getCharData() == null) return;
         float currentX = startX; float currentY = startY;
         STBTTBakedChar.Buffer charData = font.getCharData();
@@ -140,14 +140,14 @@ public class UIMeshBuilder {
                 float yTop = currentY - bakedChar.yoff();
 
                 addClippedQuad(UITexture.FONT, x0, yTop - (bakedChar.y1() - bakedChar.y0()), x0 + (bakedChar.x1() - bakedChar.x0()), yTop, z, 1f, 1f, 1f,
-                        bakedChar.x0() / (float) font.BITMAP_SIZE, bakedChar.y1() / (float) font.BITMAP_SIZE,
-                        bakedChar.x1() / (float) font.BITMAP_SIZE, bakedChar.y0() / (float) font.BITMAP_SIZE);
+                        bakedChar.x0() / (float) font.getBitmapSize(), bakedChar.y1() / (float) font.getBitmapSize(),
+                        bakedChar.x1() / (float) font.getBitmapSize(), bakedChar.y0() / (float) font.getBitmapSize());
                 currentX += bakedChar.xadvance();
             }
         }
     }
 
-    public float getTextWidth(String text, VulkanFont font) {
+    public float getTextWidth(String text, IFont font) {
         if (font == null || font.getCharData() == null || text == null || text.isEmpty()) return 0.0f;
         float textWidth = 0.0f;
         STBTTBakedChar.Buffer charData = font.getCharData();

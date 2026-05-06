@@ -6,7 +6,7 @@ import de.delautrer.engine.graphics.vulkan.pipeline.*;
 import de.delautrer.engine.graphics.vulkan.buffer.*;
 import de.delautrer.engine.graphics.vulkan.texture.*;
 
-import de.delautrer.engine.graphics.vulkan.texture.VulkanFont;
+import de.delautrer.engine.graphics.IFont;
 import de.delautrer.game.ui.UIMeshBuilder;
 
 public class UIProgressBar extends UIElement {
@@ -28,7 +28,7 @@ public class UIProgressBar extends UIElement {
     }
 
     @Override
-    public void render(UIMeshBuilder builder, VulkanFont font, float mouseX, float mouseY) {
+    public void render(UIMeshBuilder builder, IFont font, float mouseX, float mouseY) {
         if (!isVisible) return;
 
         // 1. HINTERGRUND (Z = 0.1f)

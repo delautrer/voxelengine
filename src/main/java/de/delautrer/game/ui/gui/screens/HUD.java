@@ -6,7 +6,7 @@ import de.delautrer.engine.graphics.vulkan.pipeline.*;
 import de.delautrer.engine.graphics.vulkan.buffer.*;
 import de.delautrer.engine.graphics.vulkan.texture.*;
 
-import de.delautrer.engine.graphics.vulkan.texture.VulkanFont;
+import de.delautrer.engine.graphics.IFont;
 import de.delautrer.engine.graphics.utils.TextureStitcher;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
@@ -29,7 +29,7 @@ public class HUD {
     private long lastSlotChangeTime = 0;
     private int lastSelectedSlot = -1;
 
-    public void render(UIMeshBuilder builder, int width, int height, PlayerInteraction interaction, int hoveredSlot, DebugOverlay debugOverlay, ChatOverlay chatOverlay, VulkanFont font, int blockAtlasWidth) {
+    public void render(UIMeshBuilder builder, int width, int height, PlayerInteraction interaction, int hoveredSlot, DebugOverlay debugOverlay, ChatOverlay chatOverlay, IFont font, int blockAtlasWidth) {
         float pixelScale = 2.0f;
         if (height >= 1080) pixelScale = 3.0f;
         if (height >= 1440) pixelScale = 4.0f;

@@ -16,7 +16,7 @@ import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 import org.lwjgl.vulkan.VK10;
 
-public class VulkanMesh {
+public class VulkanMesh implements de.delautrer.engine.graphics.IMesh {
     private final VulkanContext context;
     private VulkanBuffer vertexBuffer;
     private VulkanBuffer indexBuffer;
@@ -101,6 +101,7 @@ public class VulkanMesh {
 
     public long getVertexBuffer() { return vertexBuffer != null ? vertexBuffer.getBuffer() : 0; }
     public long getIndexBuffer() { return indexBuffer != null ? indexBuffer.getBuffer() : 0; }
+    @Override
     public int getIndexCount() { return indexCount; }
 
     public void cleanup() {

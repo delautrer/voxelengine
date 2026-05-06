@@ -45,7 +45,6 @@ public class PlayerInteraction {
     private final World world;
     private final Camera camera;
     private final LocalPlayer player;
-    private final VulkanContext vulkanContext;
     private final EventBus eventBus;
 
     private Vector3i selectedBlockPos = null;
@@ -58,11 +57,10 @@ public class PlayerInteraction {
     private Vector3i currentlyMiningPos = null;
     private float miningProgress = 0.0f;
 
-    public PlayerInteraction(World world, Camera camera, LocalPlayer player, VulkanContext vulkanContext, EventBus eventBus) {
+    public PlayerInteraction(World world, Camera camera, LocalPlayer player, EventBus eventBus) {
         this.world = world;
         this.camera = camera;
         this.player = player;
-        this.vulkanContext = vulkanContext;
         this.eventBus = eventBus;
     }
 

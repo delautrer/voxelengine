@@ -6,7 +6,7 @@ import de.delautrer.engine.graphics.vulkan.pipeline.*;
 import de.delautrer.engine.graphics.vulkan.buffer.*;
 import de.delautrer.engine.graphics.vulkan.texture.*;
 
-import de.delautrer.engine.graphics.vulkan.texture.VulkanFont;
+import de.delautrer.engine.graphics.IFont;
 import de.delautrer.game.ui.UIMeshBuilder;
 
 public class UILabel extends UIElement {
@@ -22,7 +22,7 @@ public class UILabel extends UIElement {
     }
 
     @Override
-    public void render(UIMeshBuilder builder, VulkanFont font, float mouseX, float mouseY) {
+    public void render(UIMeshBuilder builder, IFont font, float mouseX, float mouseY) {
         if (!isVisible || font == null || text == null) return;
 
         float textY = y + (height / 2.0f) - 10.0f;

@@ -7,7 +7,7 @@ import de.delautrer.engine.graphics.vulkan.buffer.*;
 import de.delautrer.engine.graphics.vulkan.texture.*;
 
 import de.delautrer.engine.events.EventBus;
-import de.delautrer.engine.graphics.vulkan.texture.VulkanFont;
+import de.delautrer.engine.graphics.IFont;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.game.commands.CommandManager;
 import de.delautrer.game.entity.player.LocalPlayer;
@@ -30,7 +30,7 @@ public class ChatScreen extends MenuScreen {
     private final CommandManager commandManager;
     private final ChatOverlay chatOverlay;
     private final Runnable closeCallback;
-    private VulkanFont font;
+    private IFont font;
 
     // History & Autocomplete Features
     private final List<String> history = new ArrayList<>();
@@ -56,7 +56,7 @@ public class ChatScreen extends MenuScreen {
         chatOverlay.resetScroll(); // Springt nach unten, wenn der Chat neu geöffnet wird
     }
 
-    public void setFont(VulkanFont font) {
+    public void setFont(IFont font) {
         this.font = font;
     }
 

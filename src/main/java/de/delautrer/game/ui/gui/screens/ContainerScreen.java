@@ -6,7 +6,7 @@ import de.delautrer.engine.graphics.vulkan.pipeline.*;
 import de.delautrer.engine.graphics.vulkan.buffer.*;
 import de.delautrer.engine.graphics.vulkan.texture.*;
 
-import de.delautrer.engine.graphics.vulkan.texture.VulkanFont;
+import de.delautrer.engine.graphics.IFont;
 import de.delautrer.game.items.ItemStack;
 import de.delautrer.game.ui.UIUtils;
 import de.delautrer.game.ui.gui.container.BaseContainer;
@@ -21,7 +21,7 @@ import de.delautrer.engine.input.InputManager;
 import de.delautrer.game.items.ItemRegistry;
 public abstract class ContainerScreen extends MenuScreen {
     protected final BaseContainer container;
-    protected VulkanFont font;
+    protected IFont font;
 
     protected float guiX, guiY;
     protected float slotSize;
@@ -35,7 +35,7 @@ public abstract class ContainerScreen extends MenuScreen {
         this.container = container;
     }
 
-    public void setFont(VulkanFont font) {
+    public void setFont(IFont font) {
         this.font = font;
     }
 

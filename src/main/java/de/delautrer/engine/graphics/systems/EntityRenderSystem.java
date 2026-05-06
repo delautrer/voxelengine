@@ -118,7 +118,7 @@ public class EntityRenderSystem implements IRenderSystem {
                 blockMesh.updateMesh(toFloatArray(blockVerts), toIntArray(blockInds));
             }
             VK10.vkCmdBindPipeline(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, blockPipeline.getHandle());
-            bindAndDraw(cmd, packet, blockPipeline.getPipelineLayout(), blockMesh, packet.worldTexture.getDescriptorSet());
+            bindAndDraw(cmd, packet, blockPipeline.getPipelineLayout(), blockMesh, ((VulkanTextureArray)packet.worldTexture).getDescriptorSet());
         } else if (blockMesh != null) {
             VK10.vkDeviceWaitIdle(context.getDevice());
             blockMesh.cleanup();
@@ -132,7 +132,7 @@ public class EntityRenderSystem implements IRenderSystem {
                 itemMesh.updateMesh(toFloatArray(itemVerts), toIntArray(itemInds));
             }
             VK10.vkCmdBindPipeline(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, blockPipeline.getHandle());
-            bindAndDraw(cmd, packet, blockPipeline.getPipelineLayout(), itemMesh, packet.itemTexture.getDescriptorSet());
+            bindAndDraw(cmd, packet, blockPipeline.getPipelineLayout(), itemMesh, ((VulkanTexture)packet.itemTexture).getDescriptorSet());
         } else if (itemMesh != null) {
             VK10.vkDeviceWaitIdle(context.getDevice());
             itemMesh.cleanup();

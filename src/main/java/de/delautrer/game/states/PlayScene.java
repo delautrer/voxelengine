@@ -119,9 +119,9 @@ public class PlayScene extends Scene {
         deathScreen.setFont(masterRenderer.getFont());
 
         // Mein schönie seedie : 1337l
-        world = new World((VulkanContext)engine.getGraphicsContext(), localPlayer, eventBus, seed, worldName, worldSave);
-        worldEventHandler = new WorldEventHandler(world, (VulkanContext)engine.getGraphicsContext(), eventBus);
-        localPlayer.initInteraction(world, (VulkanContext)engine.getGraphicsContext(), eventBus);
+        world = new World(masterRenderer.getGraphicsFactory(), localPlayer, eventBus, seed, worldName, worldSave);
+        worldEventHandler = new WorldEventHandler(world, eventBus);
+        localPlayer.initInteraction(world, eventBus);
 
         float cloudLayer;
         if(engine.getBlockAtlas().regions.containsKey("just_white")) {

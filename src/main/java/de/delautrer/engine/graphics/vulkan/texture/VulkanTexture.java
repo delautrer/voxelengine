@@ -22,7 +22,7 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 
-public class VulkanTexture {
+public class VulkanTexture implements de.delautrer.engine.graphics.ITexture {
 
     private final VulkanContext context;
     private long textureImage;

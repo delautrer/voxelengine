@@ -48,9 +48,10 @@ public class TerrainRenderSystem implements IRenderSystem {
             // 1. SOLIDE BLÖCKE ZEICHNEN
             if (packet.opaqueMeshes != null && !packet.opaqueMeshes.isEmpty()) {
                 VK10.vkCmdBindPipeline(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getHandle());
-                VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayout(), 0, stack.longs(packet.worldTexture.getDescriptorSet()), null);
+                VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayout(), 0, stack.longs(((VulkanTextureArray)packet.worldTexture).getDescriptorSet()), null);
 
-                for (VulkanMesh mesh : packet.opaqueMeshes) {
+                for (IMesh imesh : packet.opaqueMeshes) { 
+                    VulkanMesh mesh = (VulkanMesh) imesh;
                     // NEU: Offset pro Chunk in den Buffer schreiben
                     float relX = (float) ((double) mesh.chunkOffsetX - packet.cameraPos.x);
                     float relY = (float) (0.0 - packet.cameraPos.y); // Chunks starten absolut bei Y=0
@@ -66,9 +67,9 @@ public class TerrainRenderSystem implements IRenderSystem {
             }
 
             // 2. OVERLAY ZEICHNEN (Block-Risse) VOR DEM WASSER!
-            if (packet.overlayMesh != null && packet.overlayMesh.getIndexCount() > 0) {
+            if (packet.overlayMesh != null && ((VulkanMesh)packet.overlayMesh).getIndexCount() > 0) {
                 VK10.vkCmdBindPipeline(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getTransparentHandle());
-                VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayout(), 0, stack.longs(packet.worldTexture.getDescriptorSet()), null);
+                VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayout(), 0, stack.longs(((VulkanTextureArray)packet.worldTexture).getDescriptorSet()), null);
 
                 // Das Overlay wird in MasterRenderer bereits in absoluten Weltkoordinaten gebaut,
                 // daher muss der Offset hier wieder auf 0.0f stehen (plus Kamera offset)
@@ -77,15 +78,16 @@ public class TerrainRenderSystem implements IRenderSystem {
                 pcBuffer.put(24, (float) -packet.cameraPos.z);
                 VK10.vkCmdPushConstants(cmd, pipeline.getPipelineLayout(), VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, pcBuffer);
 
-                drawMesh(cmd, stack, packet.overlayMesh);
+                drawMesh(cmd, stack, (VulkanMesh)packet.overlayMesh);
             }
 
             // 3. WASSER ZEICHNEN (TRANSPARENT)
             if (packet.waterMeshes != null && !packet.waterMeshes.isEmpty()) {
                 VK10.vkCmdBindPipeline(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getTransparentHandle());
-                VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayout(), 0, stack.longs(packet.worldTexture.getDescriptorSet()), null);
+                VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayout(), 0, stack.longs(((VulkanTextureArray)packet.worldTexture).getDescriptorSet()), null);
 
-                for (VulkanMesh mesh : packet.waterMeshes) {
+                for (IMesh imesh : packet.waterMeshes) { 
+                    VulkanMesh mesh = (VulkanMesh) imesh;
                     // NEU: Offset pro Chunk in den Buffer schreiben
                     float relX = (float) ((double) mesh.chunkOffsetX - packet.cameraPos.x);
                     float relY = (float) (0.0 - packet.cameraPos.y); // Chunks starten absolut bei Y=0

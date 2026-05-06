@@ -115,7 +115,7 @@ public class CelestialRenderSystem implements IRenderSystem {
 
     @Override
     public void render(VkCommandBuffer commandBuffer, RenderPacket packet) {
-        if (packet.celestialMesh == null || packet.celestialMesh.getIndexCount() == 0) return;
+        if (packet.celestialMesh == null || ((VulkanMesh)packet.celestialMesh).getIndexCount() == 0) return;
 
         VK10.vkCmdBindPipeline(commandBuffer, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
@@ -127,8 +127,8 @@ public class CelestialRenderSystem implements IRenderSystem {
             view.m30(0); view.m31(0); view.m32(0);
 
             // Mesh binden (wird für Sonne UND Mond benutzt!)
-            VK10.vkCmdBindVertexBuffers(commandBuffer, 0, stack.longs(packet.celestialMesh.getVertexBuffer()), stack.longs(0));
-            VK10.vkCmdBindIndexBuffer(commandBuffer, packet.celestialMesh.getIndexBuffer(), 0, VK10.VK_INDEX_TYPE_UINT32);
+            VK10.vkCmdBindVertexBuffers(commandBuffer, 0, stack.longs(((VulkanMesh)packet.celestialMesh).getVertexBuffer()), stack.longs(0));
+            VK10.vkCmdBindIndexBuffer(commandBuffer, ((VulkanMesh)packet.celestialMesh).getIndexBuffer(), 0, VK10.VK_INDEX_TYPE_UINT32);
 
             ByteBuffer pc = stack.malloc(80);
 
@@ -141,7 +141,7 @@ public class CelestialRenderSystem implements IRenderSystem {
             pc.putFloat(76, 1.0f); // A
 
             VK10.vkCmdPushConstants(commandBuffer, pipelineLayout, VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, pc);
-            VK10.vkCmdDrawIndexed(commandBuffer, packet.celestialMesh.getIndexCount(), 1, 0, 0, 0);
+            VK10.vkCmdDrawIndexed(commandBuffer, ((VulkanMesh)packet.celestialMesh).getIndexCount(), 1, 0, 0, 0);
 
             // --- 2. MOND ZEICHNEN ---
             // Der Mond ist exakt 180 Grad (Pi) versetzt!
@@ -153,7 +153,7 @@ public class CelestialRenderSystem implements IRenderSystem {
             pc.putFloat(76, 1.0f); // A
 
             VK10.vkCmdPushConstants(commandBuffer, pipelineLayout, VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, pc);
-            VK10.vkCmdDrawIndexed(commandBuffer, packet.celestialMesh.getIndexCount(), 1, 0, 0, 0);
+            VK10.vkCmdDrawIndexed(commandBuffer, ((VulkanMesh)packet.celestialMesh).getIndexCount(), 1, 0, 0, 0);
         }
     }
 

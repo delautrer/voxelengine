@@ -8,7 +8,7 @@ import de.delautrer.engine.graphics.vulkan.texture.*;
 
 import de.delautrer.engine.graphics.MeshData;
 import de.delautrer.engine.graphics.vulkan.core.VulkanContext;
-import de.delautrer.engine.graphics.vulkan.texture.VulkanFont;
+import de.delautrer.engine.graphics.IFont;
 import de.delautrer.engine.graphics.vulkan.buffer.VulkanMesh;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.game.entity.player.PlayerInteraction;
@@ -36,7 +36,7 @@ public class UIRenderer {
         this.meshBuilder = new UIMeshBuilder();
     }
 
-    public void rebuildMesh(int width, int height, InputManager input, PlayerInteraction interaction, float mouseX, float mouseY, DebugOverlay debugOverlay, ChatOverlay chatOverlay, VulkanFont font, MenuScreen pauseScreen, int blockAtlasWidth) {
+    public void rebuildMesh(int width, int height, InputManager input, PlayerInteraction interaction, float mouseX, float mouseY, DebugOverlay debugOverlay, ChatOverlay chatOverlay, IFont font, MenuScreen pauseScreen, int blockAtlasWidth) {
 
         // --- HIER WURDE AUFGERÄUMT: Kein WaitIdle und kein cleanup mehr am Anfang! ---
         drawCalls.clear();

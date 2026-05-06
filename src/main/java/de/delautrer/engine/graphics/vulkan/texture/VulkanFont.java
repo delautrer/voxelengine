@@ -23,7 +23,7 @@ import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-public class VulkanFont {
+public class VulkanFont implements de.delautrer.engine.graphics.IFont {
     private STBTTBakedChar.Buffer charData;
     private ByteBuffer rgbaBitmap;
 
@@ -59,5 +59,10 @@ public class VulkanFont {
     public void cleanup() {
         charData.free();
         if (rgbaBitmap != null) MemoryUtil.memFree(rgbaBitmap);
+    }
+
+    @Override
+    public int getBitmapSize() {
+        return BITMAP_SIZE;
     }
 }

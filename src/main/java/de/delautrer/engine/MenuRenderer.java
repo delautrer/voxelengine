@@ -27,40 +27,43 @@ import java.util.List;
 import java.util.Map;
 
 public class MenuRenderer {
-    private final VulkanContext context;
+    private final IGraphicsContext graphicsContext;
     private final Window window;
     private final VulkanRenderer renderer;
+    private final IGraphicsFactory factory;
 
-    private VulkanTexture guiTexture;
-    private VulkanTexture fontTexture;
-    private VulkanFont font;
+    private ITexture guiTexture;
+    private ITexture fontTexture;
+    private IFont font;
 
     // --- NEUES UI SYSTEM ---
-    private VulkanMesh uiCombinedMesh;
+    private IMesh uiCombinedMesh;
     private final List<UIDrawCall> drawCalls = new ArrayList<>();
     // -----------------------
 
     private final UIMeshBuilder meshBuilder;
 
-    public MenuRenderer(VulkanContext context, Window window) {
-        this.context = context;
+    public MenuRenderer(IGraphicsContext graphicsContext, Window window) {
+        this.graphicsContext = graphicsContext;
         this.window = window;
+        VulkanContext context = (VulkanContext) graphicsContext;
         this.renderer = new VulkanRenderer(context, window);
         this.meshBuilder = new UIMeshBuilder();
+        this.factory = new VulkanGraphicsFactory(context, renderer.getCommandBuffers(), renderer.getGraphicsLayout(), renderer.getUiLayout());
         initResources();
     }
 
     private void initResources() {
-        guiTexture = new VulkanTexture(context, renderer.getCommandBuffers(), renderer.getUiLayout(), "menu_gui.png");
-        font = new VulkanFont("MinecraftRegular-Bmg3.otf", 24.0f);
+        guiTexture = factory.createTexture("menu_gui.png");
+        font = factory.createFont("MinecraftRegular-Bmg3.otf", 24.0f);
         if (font.getRgbaPixels() != null) {
-            fontTexture = new VulkanTexture(context, renderer.getCommandBuffers(), renderer.getUiLayout(), font.getRgbaPixels(), font.BITMAP_SIZE, font.BITMAP_SIZE);
+            fontTexture = factory.createTexture(font.getRgbaPixels(), font.getBitmapSize(), font.getBitmapSize());
         }
     }
 
     public void draw(MenuScreen screen, float uiMouseX, float uiMouseY) {
         if (uiCombinedMesh != null) {
-            VK10.vkDeviceWaitIdle(context.getDevice());
+            graphicsContext.waitIdle();
             uiCombinedMesh.cleanup();
             uiCombinedMesh = null;
         }
@@ -113,7 +116,7 @@ public class MenuRenderer {
             for (int i = 0; i < vArr.length; i++) vArr[i] = allVerts.get(i);
             int[] iArr = new int[allInds.size()];
             for (int i = 0; i < iArr.length; i++) iArr[i] = allInds.get(i);
-            uiCombinedMesh = new VulkanMesh(context, vArr, iArr);
+            uiCombinedMesh = factory.createMesh(vArr, iArr);
         }
         // ----------------------------------------------
 
@@ -143,7 +146,7 @@ public class MenuRenderer {
     }
 
     public void recreate() { renderer.recreate(window); }
-    public VulkanFont getFont() { return font; }
+    public IFont getFont() { return font; }
 
     public void cleanup() {
         if (guiTexture != null) guiTexture.cleanup();

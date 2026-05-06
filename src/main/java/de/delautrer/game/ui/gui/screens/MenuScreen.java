@@ -6,7 +6,7 @@ import de.delautrer.engine.graphics.vulkan.pipeline.*;
 import de.delautrer.engine.graphics.vulkan.buffer.*;
 import de.delautrer.engine.graphics.vulkan.texture.*;
 
-import de.delautrer.engine.graphics.vulkan.texture.VulkanFont;
+import de.delautrer.engine.graphics.IFont;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.game.ui.UIMeshBuilder;
 import de.delautrer.game.ui.elements.*;
@@ -17,9 +17,9 @@ import java.util.List;
 public abstract class MenuScreen extends Screen {
 
     protected List<UIElement> elements = new ArrayList<>();
-    protected VulkanFont font;
+    protected IFont font;
 
-    public void setFont(VulkanFont font) {
+    public void setFont(IFont font) {
         this.font = font;
     }
 

@@ -16,12 +16,10 @@ import de.delautrer.game.events.BlockNeighborUpdateEvent;
 public class WorldEventHandler {
 
     private final World world;
-    private final VulkanContext vulkanContext;
     private final EventBus eventBus;
 
-    public WorldEventHandler(World world, VulkanContext context, EventBus eventBus) {
+    public WorldEventHandler(World world, EventBus eventBus) {
         this.world = world;
-        this.vulkanContext = context;
         this.eventBus = eventBus;
 
         // EventListener registrieren

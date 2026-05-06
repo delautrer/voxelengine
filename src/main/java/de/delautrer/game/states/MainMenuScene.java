@@ -31,7 +31,7 @@ public class MainMenuScene extends Scene {
     @Override
     public void init() {
         engine.getWindow().enableCursor();
-        menuRenderer = new MenuRenderer((VulkanContext)engine.getGraphicsContext(), engine.getWindow());
+        menuRenderer = new MenuRenderer(engine.getGraphicsContext(), engine.getWindow());
 
         mainScreen = new MenuScreen() {
             @Override

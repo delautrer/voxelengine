@@ -35,7 +35,6 @@ public class AsyncChunkBuilder {
 
     public void uploadReadyMeshes(ChunkManager cm) {
         if (readyMeshes.isEmpty()) return;
-        VK10.vkQueueWaitIdle(cm.getContext().getGraphicsQueue());
 
         while (!readyMeshes.isEmpty()) {
             ChunkBuildResult result = readyMeshes.poll();

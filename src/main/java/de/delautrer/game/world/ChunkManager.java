@@ -21,8 +21,8 @@ public class ChunkManager {
 
     // Hilfsklasse, um beide Mesh-Typen pro Chunk zu verwalten
     public static class ChunkMeshPair {
-        public VulkanMesh opaque;
-        public VulkanMesh water;
+        public IMesh opaque;
+        public IMesh water;
 
         public void cleanup() {
             if (opaque != null) opaque.cleanup();
@@ -31,10 +31,10 @@ public class ChunkManager {
     }
 
     private static class MeshToDelete {
-        final VulkanMesh mesh;
+        final IMesh mesh;
         int framesToLive = 3;
 
-        MeshToDelete(VulkanMesh mesh) {
+        MeshToDelete(IMesh mesh) {
             this.mesh = mesh;
         }
     }
@@ -56,16 +56,16 @@ public class ChunkManager {
     private final ConcurrentLinkedQueue<Chunk> newlyLoadedQueue = new ConcurrentLinkedQueue<>();
     private final LightEngine lightEngine;
 
-    private final VulkanContext context;
+    private final IGraphicsFactory graphicsFactory;
 
     private boolean initialLoadComplete = false;
     private final int requiredInitialRadius = 4;
     private boolean isCleanedUp = false;
 
-    public ChunkManager(World world, VulkanContext context) {
+    public ChunkManager(World world, IGraphicsFactory graphicsFactory) {
         this.world = world;
         this.worldGenerator = new WorldGenerator(this.world.getSeed());
-        this.context = context;
+        this.graphicsFactory = graphicsFactory;
         int threads = Math.max(1, Runtime.getRuntime().availableProcessors() - 2);
         this.chunkExecutor = Executors.newFixedThreadPool(threads);
         this.lightEngine = new LightEngine(this);
@@ -249,16 +249,20 @@ public class ChunkManager {
         if (pair.opaque != null) {
             trashBin.add(new MeshToDelete(pair.opaque));
         }
-        pair.opaque = new VulkanMesh(context, result.opaque());
-        pair.opaque.chunkOffsetX = pos.x * Chunk.SIZE;
-        pair.opaque.chunkOffsetZ = pos.y * Chunk.SIZE;
+        pair.opaque = graphicsFactory.createMesh(result.opaque());
+        if (pair.opaque instanceof VulkanMesh vm) {
+            vm.chunkOffsetX = pos.x * Chunk.SIZE;
+            vm.chunkOffsetZ = pos.y * Chunk.SIZE;
+        }
 
         if (pair.water != null) {
             trashBin.add(new MeshToDelete(pair.water));
         }
-        pair.water = new VulkanMesh(context, result.water());
-        pair.water.chunkOffsetX = pos.x * Chunk.SIZE;
-        pair.water.chunkOffsetZ = pos.y * Chunk.SIZE;
+        pair.water = graphicsFactory.createMesh(result.water());
+        if (pair.water instanceof VulkanMesh vm) {
+            vm.chunkOffsetX = pos.x * Chunk.SIZE;
+            vm.chunkOffsetZ = pos.y * Chunk.SIZE;
+        }
     }
 
     // Getter & Setter
@@ -271,7 +275,7 @@ public class ChunkManager {
     }
 
     public AsyncChunkBuilder getAsyncBuilder() { return asyncBuilder; }
-    public VulkanContext getContext() { return context; }
+    public IGraphicsFactory getGraphicsFactory() { return graphicsFactory; }
     public Collection<Chunk> getLoadedChunks() { return chunks.values(); }
     public LightEngine getLightEngine() { return lightEngine; }
 
@@ -313,8 +317,9 @@ public class ChunkManager {
             Thread.currentThread().interrupt();
         }
         System.out.println("[Thread] Clearing vulkan meshes. Give GPU space to breath");
-        VK10.vkDeviceWaitIdle(context.getDevice());
-
+        // VK10.vkDeviceWaitIdle(context.getDevice()); 
+        // Wir können IGraphicsContext verwenden, aber das Cleanup kümmert sich später drum.
+        
         for (ChunkMeshPair pair : meshes.values()) {
             pair.cleanup();
         }

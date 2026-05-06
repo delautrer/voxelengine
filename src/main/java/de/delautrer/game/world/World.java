@@ -56,8 +56,11 @@ public class World {
     private final EntitySystem entitySystem;
     private final Map<Vector3i, BlockEntity> blockEntities = new ConcurrentHashMap<>();
 
-    public World(VulkanContext context, LocalPlayer localPlayer, EventBus eventBus, long defaultSeed, String worldName, String worldSave) {
+    private final IGraphicsFactory graphicsFactory;
+
+    public World(IGraphicsFactory graphicsFactory, LocalPlayer localPlayer, EventBus eventBus, long defaultSeed, String worldName, String worldSave) {
         this.eventBus = eventBus;
+        this.graphicsFactory = graphicsFactory;
         this.worldName = worldName;
         this.worldSave = worldSave;
         this.storageManager = new WorldStorageManager(worldSave);
@@ -85,7 +88,7 @@ public class World {
         }
 
         // ChunkManager und Threads erst DANACH starten!
-        this.chunkManager = new ChunkManager(this, context);
+        this.chunkManager = new ChunkManager(this, graphicsFactory);
         this.tickScheduler = new TickScheduler(this);
         this.cloudSystem = new CloudSystem();
 
