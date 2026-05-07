@@ -1,5 +1,5 @@
 package de.delautrer.engine.graphics;
-import de.delautrer.engine.graphics.*;
+
 import de.delautrer.Constants;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
@@ -10,7 +10,8 @@ public class ChunkMesher {
 
     private static final ThreadLocal<MeshBuffers> MESH_BUFFER = ThreadLocal.withInitial(MeshBuffers::new);
 
-    public record ChunkMeshResult(MeshData opaque, MeshData water) {}
+    public record ChunkMeshResult(MeshData opaque, MeshData water) {
+    }
 
     private static class MeshBuffers {
         float[] opaqueVertices = new float[131072];
@@ -92,19 +93,21 @@ public class ChunkMesher {
     }
 
     public static void addFace(float x0, float y0, float z0, float ao0,
-                               float x1, float y1, float z1, float ao1,
-                               float x2, float y2, float z2, float ao2,
-                               float x3, float y3, float z3, float ao3,
-                               float u0, float v0, float u1, float v1,
-                               float texLayer, float directionalLight, Block block,
-                               float sl0, float sl1, float sl2, float sl3,
-                               float bl0, float bl1, float bl2, float bl3) {
+            float x1, float y1, float z1, float ao1,
+            float x2, float y2, float z2, float ao2,
+            float x3, float y3, float z3, float ao3,
+            float u0, float v0, float u1, float v1,
+            float texLayer, float directionalLight, Block block,
+            float sl0, float sl1, float sl2, float sl3,
+            float bl0, float bl1, float bl2, float bl3) {
 
         MeshBuffers buf = MESH_BUFFER.get();
         boolean isWater = (block == BlockRegistry.get(Constants.NAMESPACE + ":water"));
 
-        if (isWater) buf.ensureWater(48, 6);
-        else buf.ensureOpaque(48, 6);
+        if (isWater)
+            buf.ensureWater(48, 6);
+        else
+            buf.ensureOpaque(48, 6);
 
         float[] targetVertices = isWater ? buf.waterVertices : buf.opaqueVertices;
         int vIdx = isWater ? buf.waterVertexCount : buf.opaqueVertexCount;
@@ -112,7 +115,10 @@ public class ChunkMesher {
 
         float r = 1.0f, g = 1.0f, b = 1.0f, alpha = 1.0f;
         if (isWater) {
-            r = 0.2f; g = 0.5f; b = 1.0f; alpha = 0.7f;
+            r = 0.2f;
+            g = 0.5f;
+            b = 1.0f;
+            alpha = 0.7f;
             directionalLight = Math.min(1.0f, directionalLight * 1.2f);
         }
 
@@ -122,42 +128,88 @@ public class ChunkMesher {
         float c3 = ao3 * directionalLight;
 
         // Vertex 0
-        targetVertices[vIdx++] = x0; targetVertices[vIdx++] = y0; targetVertices[vIdx++] = z0;
-        targetVertices[vIdx++] = c0 * r;  targetVertices[vIdx++] = c0 * g; targetVertices[vIdx++] = c0 * b; targetVertices[vIdx++] = alpha;
-        targetVertices[vIdx++] = u0;      targetVertices[vIdx++] = v1; targetVertices[vIdx++] = texLayer;
-        targetVertices[vIdx++] = sl0;     targetVertices[vIdx++] = bl0;
+        targetVertices[vIdx++] = x0;
+        targetVertices[vIdx++] = y0;
+        targetVertices[vIdx++] = z0;
+        targetVertices[vIdx++] = c0 * r;
+        targetVertices[vIdx++] = c0 * g;
+        targetVertices[vIdx++] = c0 * b;
+        targetVertices[vIdx++] = alpha;
+        targetVertices[vIdx++] = u0;
+        targetVertices[vIdx++] = v1;
+        targetVertices[vIdx++] = texLayer;
+        targetVertices[vIdx++] = sl0;
+        targetVertices[vIdx++] = bl0;
 
         // Vertex 1
-        targetVertices[vIdx++] = x1; targetVertices[vIdx++] = y1; targetVertices[vIdx++] = z1;
-        targetVertices[vIdx++] = c1 * r;  targetVertices[vIdx++] = c1 * g; targetVertices[vIdx++] = c1 * b; targetVertices[vIdx++] = alpha;
-        targetVertices[vIdx++] = u1;      targetVertices[vIdx++] = v1; targetVertices[vIdx++] = texLayer;
-        targetVertices[vIdx++] = sl1;     targetVertices[vIdx++] = bl1;
+        targetVertices[vIdx++] = x1;
+        targetVertices[vIdx++] = y1;
+        targetVertices[vIdx++] = z1;
+        targetVertices[vIdx++] = c1 * r;
+        targetVertices[vIdx++] = c1 * g;
+        targetVertices[vIdx++] = c1 * b;
+        targetVertices[vIdx++] = alpha;
+        targetVertices[vIdx++] = u1;
+        targetVertices[vIdx++] = v1;
+        targetVertices[vIdx++] = texLayer;
+        targetVertices[vIdx++] = sl1;
+        targetVertices[vIdx++] = bl1;
 
         // Vertex 2
-        targetVertices[vIdx++] = x2; targetVertices[vIdx++] = y2; targetVertices[vIdx++] = z2;
-        targetVertices[vIdx++] = c2 * r;  targetVertices[vIdx++] = c2 * g; targetVertices[vIdx++] = c2 * b; targetVertices[vIdx++] = alpha;
-        targetVertices[vIdx++] = u1;      targetVertices[vIdx++] = v0; targetVertices[vIdx++] = texLayer;
-        targetVertices[vIdx++] = sl2;     targetVertices[vIdx++] = bl2;
+        targetVertices[vIdx++] = x2;
+        targetVertices[vIdx++] = y2;
+        targetVertices[vIdx++] = z2;
+        targetVertices[vIdx++] = c2 * r;
+        targetVertices[vIdx++] = c2 * g;
+        targetVertices[vIdx++] = c2 * b;
+        targetVertices[vIdx++] = alpha;
+        targetVertices[vIdx++] = u1;
+        targetVertices[vIdx++] = v0;
+        targetVertices[vIdx++] = texLayer;
+        targetVertices[vIdx++] = sl2;
+        targetVertices[vIdx++] = bl2;
 
         // Vertex 3
-        targetVertices[vIdx++] = x3; targetVertices[vIdx++] = y3; targetVertices[vIdx++] = z3;
-        targetVertices[vIdx++] = c3 * r;  targetVertices[vIdx++] = c3 * g; targetVertices[vIdx++] = c3 * b; targetVertices[vIdx++] = alpha;
-        targetVertices[vIdx++] = u0;      targetVertices[vIdx++] = v0; targetVertices[vIdx++] = texLayer;
-        targetVertices[vIdx++] = sl3;     targetVertices[vIdx++] = bl3;
+        targetVertices[vIdx++] = x3;
+        targetVertices[vIdx++] = y3;
+        targetVertices[vIdx++] = z3;
+        targetVertices[vIdx++] = c3 * r;
+        targetVertices[vIdx++] = c3 * g;
+        targetVertices[vIdx++] = c3 * b;
+        targetVertices[vIdx++] = alpha;
+        targetVertices[vIdx++] = u0;
+        targetVertices[vIdx++] = v0;
+        targetVertices[vIdx++] = texLayer;
+        targetVertices[vIdx++] = sl3;
+        targetVertices[vIdx++] = bl3;
 
-        if (isWater) buf.waterVertexCount = vIdx; else buf.opaqueVertexCount = vIdx;
+        if (isWater)
+            buf.waterVertexCount = vIdx;
+        else
+            buf.opaqueVertexCount = vIdx;
 
         int[] targetIndices = isWater ? buf.waterIndices : buf.opaqueIndices;
         int iIdx = isWater ? buf.waterIndexCount : buf.opaqueIndexCount;
 
         if (ao0 + ao2 > ao1 + ao3) {
-            targetIndices[iIdx++] = offset + 1; targetIndices[iIdx++] = offset + 2; targetIndices[iIdx++] = offset + 3;
-            targetIndices[iIdx++] = offset + 3; targetIndices[iIdx++] = offset + 0; targetIndices[iIdx++] = offset + 1;
+            targetIndices[iIdx++] = offset + 1;
+            targetIndices[iIdx++] = offset + 2;
+            targetIndices[iIdx++] = offset + 3;
+            targetIndices[iIdx++] = offset + 3;
+            targetIndices[iIdx++] = offset + 0;
+            targetIndices[iIdx++] = offset + 1;
         } else {
-            targetIndices[iIdx++] = offset + 0; targetIndices[iIdx++] = offset + 1; targetIndices[iIdx++] = offset + 2;
-            targetIndices[iIdx++] = offset + 2; targetIndices[iIdx++] = offset + 3; targetIndices[iIdx++] = offset + 0;
+            targetIndices[iIdx++] = offset + 0;
+            targetIndices[iIdx++] = offset + 1;
+            targetIndices[iIdx++] = offset + 2;
+            targetIndices[iIdx++] = offset + 2;
+            targetIndices[iIdx++] = offset + 3;
+            targetIndices[iIdx++] = offset + 0;
         }
 
-        if (isWater) buf.waterIndexCount = iIdx; else buf.opaqueIndexCount = iIdx;
+        if (isWater)
+            buf.waterIndexCount = iIdx;
+        else
+            buf.opaqueIndexCount = iIdx;
     }
 }

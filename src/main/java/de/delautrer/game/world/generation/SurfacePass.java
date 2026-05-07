@@ -7,7 +7,6 @@ import de.delautrer.game.world.Biome;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.NoiseGenerator;
 import java.util.Map;
-import java.util.Random;
 
 public class SurfacePass implements IGenerationPass {
 
@@ -33,13 +32,15 @@ public class SurfacePass implements IGenerationPass {
 
     @Override
     public void process(Chunk chunk, long seed, int[][] heightMap) {
-        if (chunk == null) return;
+        if (chunk == null)
+            return;
 
         int worldX = chunk.getWorldX();
         int worldZ = chunk.getWorldZ();
 
-        long chunkSeed = seed ^ ((long)worldX * 8934571L + (long)worldZ * 4392871L);
-        Random random = new Random(chunkSeed);
+        // long chunkSeed = seed ^ ((long) worldX * 8934571L + (long) worldZ *
+        // 4392871L);
+        // Random random = new Random(chunkSeed);
 
         for (int x = 0; x < Chunk.SIZE; x++) {
             for (int z = 0; z < Chunk.SIZE; z++) {
@@ -52,13 +53,15 @@ public class SurfacePass implements IGenerationPass {
                 float realZ = (worldZ * Chunk.SIZE + z);
 
                 Biome b = chunk.getBiome(x, z);
-                if (b == null) b = Biome.PLAINS; // Fallback
+                if (b == null)
+                    b = Biome.PLAINS; // Fallback
 
                 float elevation = elevationNoise.getFractalNoise2D(realX * 0.0015f, realZ * 0.0015f, 4, 0.5f, 2.0f);
                 boolean isRealCoastline = (elevation < -0.02f);
 
                 BlockState deepMaterialState = b.getDeepMaterial();
-                if (deepMaterialState == null) continue; // Wenn das Biome keinen validen Block liefert, abbrechen
+                if (deepMaterialState == null)
+                    continue; // Wenn das Biome keinen validen Block liefert, abbrechen
                 byte deepMaterialId = deepMaterialState.getBlock().getId();
 
                 for (int y = Chunk.HEIGHT - 1; y >= 1; y--) {
@@ -76,14 +79,17 @@ public class SurfacePass implements IGenerationPass {
 
                                 Map<String, Float> uwBlobs = b.getUnderwaterBlobs();
                                 if (uwBlobs != null && !uwBlobs.isEmpty()) {
-                                    float rawNoise = underwaterBlobNoise.getFractalNoise2D(realX * b.underwaterBlobScale, realZ * b.underwaterBlobScale, 2, 0.5f, 2.0f);
+                                    float rawNoise = underwaterBlobNoise.getFractalNoise2D(
+                                            realX * b.underwaterBlobScale, realZ * b.underwaterBlobScale, 2, 0.5f,
+                                            2.0f);
                                     float normalizedNoise = Math.max(0.0f, Math.min(1.0f, (rawNoise + 1.0f) / 2.0f));
 
                                     float currentWeight = 0.0f;
                                     for (Map.Entry<String, Float> entry : uwBlobs.entrySet()) {
                                         currentWeight += entry.getValue();
                                         if (normalizedNoise <= currentWeight) {
-                                            BlockState newMat = BlockRegistry.get(Constants.NAMESPACE + ":" + entry.getKey()).getDefaultState();
+                                            BlockState newMat = BlockRegistry
+                                                    .get(Constants.NAMESPACE + ":" + entry.getKey()).getDefaultState();
                                             if (newMat != null) {
                                                 topMaterial = newMat;
                                                 subMaterial = newMat;
@@ -92,12 +98,10 @@ public class SurfacePass implements IGenerationPass {
                                         }
                                     }
                                 }
-                            }
-                            else if (isWaterLevel && isRealCoastline && b != Biome.MOUNTAINS) {
+                            } else if (isWaterLevel && isRealCoastline && b != Biome.MOUNTAINS) {
                                 topMaterial = b.getBeachBlock();
                                 subMaterial = b.getBeachBlock();
-                            }
-                            else {
+                            } else {
                                 topMaterial = b.getSurfaceBlock();
                                 subMaterial = b.getSubSurfaceBlock();
                             }
@@ -121,7 +125,8 @@ public class SurfacePass implements IGenerationPass {
                         }
                         soilDepth++;
                     } else if (currentBlockId == air.getBlock().getId() || currentBlockId == water.getBlock().getId()) {
-                        if (hasHitSurface) break;
+                        if (hasHitSurface)
+                            break;
                     }
                 }
             }

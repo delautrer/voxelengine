@@ -1,5 +1,5 @@
 package de.delautrer.game.items;
-import de.delautrer.engine.graphics.*;
+
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import de.delautrer.Constants;
@@ -52,7 +52,8 @@ public class ItemModelManager {
                 } else {
                     System.err.println("[ItemModelManager] WARNING: No model found for item: " + itemName);
                 }
-            } catch (Exception e) {}
+            } catch (Exception e) {
+            }
 
             entry.getValue().setIconRegion(iconRegion);
         }

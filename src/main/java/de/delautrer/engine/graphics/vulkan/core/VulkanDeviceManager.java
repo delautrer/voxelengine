@@ -1,10 +1,5 @@
 package de.delautrer.engine.graphics.vulkan.core;
-import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
-import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
+
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
@@ -12,8 +7,6 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.HashSet;
 import java.util.Set;
-
-
 
 public class VulkanDeviceManager {
 
@@ -49,7 +42,8 @@ public class VulkanDeviceManager {
 
                 if (isDeviceSuitable(dev, surface, stack)) {
                     int score = 0;
-                    if (props.deviceType() == VK10.VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) score += 1000;
+                    if (props.deviceType() == VK10.VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+                        score += 1000;
 
                     if (score > bestScore) {
                         bestScore = score;
@@ -58,7 +52,8 @@ public class VulkanDeviceManager {
                 }
             }
 
-            if (selected == null) throw new RuntimeException("Keine passende GPU gefunden!");
+            if (selected == null)
+                throw new RuntimeException("Keine passende GPU gefunden!");
             physicalDevice = selected;
         }
     }
@@ -86,12 +81,14 @@ public class VulkanDeviceManager {
                 present = i;
             }
 
-            if ((props.queueFlags() & VK10.VK_QUEUE_TRANSFER_BIT) != 0 && (props.queueFlags() & VK10.VK_QUEUE_GRAPHICS_BIT) == 0) {
+            if ((props.queueFlags() & VK10.VK_QUEUE_TRANSFER_BIT) != 0
+                    && (props.queueFlags() & VK10.VK_QUEUE_GRAPHICS_BIT) == 0) {
                 transfer = i;
             }
         }
 
-        if (transfer == -1) transfer = graphics;
+        if (transfer == -1)
+            transfer = graphics;
 
         if (graphics != -1 && present != -1) {
             graphicsQueueFamily = graphics;
@@ -113,7 +110,8 @@ public class VulkanDeviceManager {
             uniqueIndices.add(presentQueueFamily);
             uniqueIndices.add(transferQueueFamily);
 
-            VkDeviceQueueCreateInfo.Buffer queueCreateInfos = VkDeviceQueueCreateInfo.calloc(uniqueIndices.size(), stack);
+            VkDeviceQueueCreateInfo.Buffer queueCreateInfos = VkDeviceQueueCreateInfo.calloc(uniqueIndices.size(),
+                    stack);
             FloatBuffer priorities = stack.floats(1.0f);
 
             int i = 0;
@@ -157,14 +155,37 @@ public class VulkanDeviceManager {
         }
     }
 
-    public VkPhysicalDevice getPhysicalDevice() { return physicalDevice; }
-    public VkDevice getDevice() { return device; }
-    public VkQueue getGraphicsQueue() { return graphicsQueue; }
-    public VkQueue getPresentQueue() { return presentQueue; }
-    public VkQueue getTransferQueue() { return transferQueue; }
-    public int getGraphicsQueueFamily() { return graphicsQueueFamily; }
-    public int getTransferQueueFamily() { return transferQueueFamily; }
-    public int getPresentQueueFamily() { return presentQueueFamily; }
+    public VkPhysicalDevice getPhysicalDevice() {
+        return physicalDevice;
+    }
+
+    public VkDevice getDevice() {
+        return device;
+    }
+
+    public VkQueue getGraphicsQueue() {
+        return graphicsQueue;
+    }
+
+    public VkQueue getPresentQueue() {
+        return presentQueue;
+    }
+
+    public VkQueue getTransferQueue() {
+        return transferQueue;
+    }
+
+    public int getGraphicsQueueFamily() {
+        return graphicsQueueFamily;
+    }
+
+    public int getTransferQueueFamily() {
+        return transferQueueFamily;
+    }
+
+    public int getPresentQueueFamily() {
+        return presentQueueFamily;
+    }
 
     public void cleanup() {
         if (device != null) {

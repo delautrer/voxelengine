@@ -1,5 +1,5 @@
 package de.delautrer.game.entity.player;
-import de.delautrer.engine.graphics.*;
+
 import de.delautrer.engine.audio.SoundManager;
 import de.delautrer.engine.events.EventBus;
 import de.delautrer.engine.graphics.Camera;
@@ -131,8 +131,10 @@ public class LocalPlayer extends Player {
                 double scroll = input.consumeScroll();
                 if (scroll != 0) {
                     int newSlot = inventory.getSelectedSlot() - (int) Math.signum(scroll);
-                    if (newSlot < 0) newSlot = 8;
-                    else if (newSlot > 8) newSlot = 0;
+                    if (newSlot < 0)
+                        newSlot = 8;
+                    else if (newSlot > 8)
+                        newSlot = 0;
                     inventory.setSelectedSlot(newSlot);
                     eventBus.publish(new HotbarSlotChangeEvent(newSlot));
                     slotChanged = true;
@@ -243,8 +245,7 @@ public class LocalPlayer extends Player {
             int headBlockWhenStanding = chunkManager.getWorld().getBlockAt(
                     (int) Math.floor(position.x),
                     (int) Math.floor(position.y + 1.8f),
-                    (int) Math.floor(position.z)
-            );
+                    (int) Math.floor(position.z));
 
             if (BlockRegistry.get((byte) headBlockWhenStanding).isSolid) {
                 isSwimming = true;
@@ -253,10 +254,12 @@ public class LocalPlayer extends Player {
 
         if (isSwimming) {
             swimProgress += deltaTime * 5.0f;
-            if (swimProgress > 1.0f) swimProgress = 1.0f;
+            if (swimProgress > 1.0f)
+                swimProgress = 1.0f;
         } else {
             swimProgress -= deltaTime * 5.0f;
-            if (swimProgress < 0.0f) swimProgress = 0.0f;
+            if (swimProgress < 0.0f)
+                swimProgress = 0.0f;
         }
 
         float targetBaseHeight = isSneaking ? 1.5f : 1.8f;
@@ -268,15 +271,19 @@ public class LocalPlayer extends Player {
         float currentSpeed = speed;
         if (isFlying) {
             // --- NEU: Sprinten modifiziert auch die Fluggeschwindigkeit ---
-            if (isSprinting) currentSpeed *= 3.0f; // Schneller fliegen beim Sprinten
-            else currentSpeed *= isSneaking ? 0.5f : 1.5f; // Sneaken macht langsamer, default fliegen ist 1.5x
+            if (isSprinting)
+                currentSpeed *= 3.0f; // Schneller fliegen beim Sprinten
+            else
+                currentSpeed *= isSneaking ? 0.5f : 1.5f; // Sneaken macht langsamer, default fliegen ist 1.5x
         } else if (isSwimming) {
             currentSpeed *= 1.3f;
         } else if (isInWater) {
             currentSpeed *= 0.4f;
         } else {
-            if (isSneaking) currentSpeed *= 0.4f;
-            else if (isSprinting) currentSpeed *= 1.5f;
+            if (isSneaking)
+                currentSpeed *= 0.4f;
+            else if (isSprinting)
+                currentSpeed *= 1.5f;
         }
 
         Vector3f moveDir = new Vector3f(0, 0, 0);
@@ -289,46 +296,66 @@ public class LocalPlayer extends Player {
         // ==========================================
         if (!isUIOpen) {
             if (isSwimming) {
-                if (input.isActionActive("MOVE_FORWARD")) moveDir.add(cameraFront);
-                if (input.isActionActive("MOVE_BACKWARD")) moveDir.sub(cameraFront);
-                if (input.isActionActive("MOVE_LEFT")) moveDir.sub(flatRight);
-                if (input.isActionActive("MOVE_RIGHT")) moveDir.add(flatRight);
+                if (input.isActionActive("MOVE_FORWARD"))
+                    moveDir.add(cameraFront);
+                if (input.isActionActive("MOVE_BACKWARD"))
+                    moveDir.sub(cameraFront);
+                if (input.isActionActive("MOVE_LEFT"))
+                    moveDir.sub(flatRight);
+                if (input.isActionActive("MOVE_RIGHT"))
+                    moveDir.add(flatRight);
 
-                if (moveDir.lengthSquared() > 0) moveDir.normalize().mul(currentSpeed);
+                if (moveDir.lengthSquared() > 0)
+                    moveDir.normalize().mul(currentSpeed);
 
                 velocity.x = moveDir.x;
                 velocity.z = moveDir.z;
                 velocity.y = moveDir.y;
 
-                int blockAtTop = chunkManager.getWorld().getBlockAt(bx, (int) Math.floor(position.y + height + 0.1f), bz);
+                int blockAtTop = chunkManager.getWorld().getBlockAt(bx, (int) Math.floor(position.y + height + 0.1f),
+                        bz);
                 if (blockAtTop != waterId && velocity.y > 0 && !input.isActionActive("JUMP")) {
                     velocity.y *= 0.1f;
                 }
 
-                if (input.isActionActive("JUMP")) velocity.y += 3.5f;
-                if (input.isActionActive("SNEAK")) velocity.y -= 2.0f;
+                if (input.isActionActive("JUMP"))
+                    velocity.y += 3.5f;
+                if (input.isActionActive("SNEAK"))
+                    velocity.y -= 2.0f;
 
             } else if (isFlying) {
-                if (input.isActionActive("MOVE_FORWARD")) moveDir.add(flatFront);
-                if (input.isActionActive("MOVE_BACKWARD")) moveDir.sub(flatFront);
-                if (input.isActionActive("MOVE_LEFT")) moveDir.sub(flatRight);
-                if (input.isActionActive("MOVE_RIGHT")) moveDir.add(flatRight);
+                if (input.isActionActive("MOVE_FORWARD"))
+                    moveDir.add(flatFront);
+                if (input.isActionActive("MOVE_BACKWARD"))
+                    moveDir.sub(flatFront);
+                if (input.isActionActive("MOVE_LEFT"))
+                    moveDir.sub(flatRight);
+                if (input.isActionActive("MOVE_RIGHT"))
+                    moveDir.add(flatRight);
 
-                if (moveDir.lengthSquared() > 0) moveDir.normalize().mul(currentSpeed);
+                if (moveDir.lengthSquared() > 0)
+                    moveDir.normalize().mul(currentSpeed);
                 velocity.x = moveDir.x;
                 velocity.z = moveDir.z;
 
                 velocity.y = 0;
-                if (input.isActionActive("JUMP")) velocity.y = currentSpeed;
-                if (input.isActionActive("SNEAK")) velocity.y = -currentSpeed;
+                if (input.isActionActive("JUMP"))
+                    velocity.y = currentSpeed;
+                if (input.isActionActive("SNEAK"))
+                    velocity.y = -currentSpeed;
 
             } else {
-                if (input.isActionActive("MOVE_FORWARD")) moveDir.add(flatFront);
-                if (input.isActionActive("MOVE_BACKWARD")) moveDir.sub(flatFront);
-                if (input.isActionActive("MOVE_LEFT")) moveDir.sub(flatRight);
-                if (input.isActionActive("MOVE_RIGHT")) moveDir.add(flatRight);
+                if (input.isActionActive("MOVE_FORWARD"))
+                    moveDir.add(flatFront);
+                if (input.isActionActive("MOVE_BACKWARD"))
+                    moveDir.sub(flatFront);
+                if (input.isActionActive("MOVE_LEFT"))
+                    moveDir.sub(flatRight);
+                if (input.isActionActive("MOVE_RIGHT"))
+                    moveDir.add(flatRight);
 
-                if (moveDir.lengthSquared() > 0) moveDir.normalize().mul(currentSpeed);
+                if (moveDir.lengthSquared() > 0)
+                    moveDir.normalize().mul(currentSpeed);
                 velocity.x = moveDir.x;
                 velocity.z = moveDir.z;
 
@@ -336,13 +363,16 @@ public class LocalPlayer extends Player {
                     if (blockWaist == waterId) {
                         if (input.isActionActive("JUMP")) {
                             velocity.y += 15.0f * deltaTime;
-                            if (velocity.y > 4.0f) velocity.y = 4.0f;
+                            if (velocity.y > 4.0f)
+                                velocity.y = 4.0f;
                         } else if (input.isActionActive("SNEAK")) {
                             velocity.y -= 15.0f * deltaTime;
-                            if (velocity.y < -4.0f) velocity.y = -4.0f;
+                            if (velocity.y < -4.0f)
+                                velocity.y = -4.0f;
                         } else {
                             velocity.y -= 2.0f * deltaTime;
-                            if (velocity.y < -2.0f) velocity.y = -2.0f;
+                            if (velocity.y < -2.0f)
+                                velocity.y = -2.0f;
                         }
                     } else {
                         if (input.isActionActive("JUMP")) {
@@ -351,7 +381,8 @@ public class LocalPlayer extends Player {
                                 onGround = false;
                             } else {
                                 velocity.y += 15.0f * deltaTime;
-                                if (velocity.y > 3.0f) velocity.y = 3.0f;
+                                if (velocity.y > 3.0f)
+                                    velocity.y = 3.0f;
                             }
                         } else {
                             velocity.y += gravity * deltaTime;
@@ -366,7 +397,8 @@ public class LocalPlayer extends Player {
         } else {
             velocity.x = 0;
             velocity.z = 0;
-            if (isInWater && !isFlying) velocity.y *= 0.9f;
+            if (isInWater && !isFlying)
+                velocity.y *= 0.9f;
         }
 
         if (gameMode != GameMode.SPECTATOR) {
@@ -411,17 +443,21 @@ public class LocalPlayer extends Player {
         wasOnGround = onGround;
         wasInWater = isInWater;
 
-        if (!isFlying && (Math.abs(velocity.x) > 0.1f || Math.abs(velocity.z) > 0.1f || (isInWater && Math.abs(velocity.y) > 0.1f))) {
+        if (!isFlying && (Math.abs(velocity.x) > 0.1f || Math.abs(velocity.z) > 0.1f
+                || (isInWater && Math.abs(velocity.y) > 0.1f))) {
 
             float moveSpeed = (float) Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
-            if (isInWater) moveSpeed += Math.abs(velocity.y);
+            if (isInWater)
+                moveSpeed += Math.abs(velocity.y);
 
             distanceWalked += moveSpeed * deltaTime;
 
             float stepThreshold = isSprinting ? 1.4f : 1.2f;
             if (isInWater)
-                if (isSwimming) stepThreshold = 5.4f;
-                else            stepThreshold = 1.5f;
+                if (isSwimming)
+                    stepThreshold = 5.4f;
+                else
+                    stepThreshold = 1.5f;
 
             if (distanceWalked > stepThreshold) {
                 distanceWalked = 0.0f;
@@ -474,7 +510,8 @@ public class LocalPlayer extends Player {
             }
         }
 
-        if (!isStuck) return;
+        if (!isStuck)
+            return;
 
         int bx = (int) Math.floor(position.x);
         int bz = (int) Math.floor(position.z);
@@ -495,32 +532,52 @@ public class LocalPlayer extends Player {
         boolean frontFree = !BlockRegistry.get(cm.getWorld().getBlockAt(bx, byFeet, bz + 1)).isSolid &&
                 !BlockRegistry.get(cm.getWorld().getBlockAt(bx, byHead, bz + 1)).isSolid;
 
-        double distLeft  = position.x - bx;
+        double distLeft = position.x - bx;
         double distRight = (bx + 1.0) - position.x;
-        double distBack  = position.z - bz;
+        double distBack = position.z - bz;
         double distFront = (bz + 1.0) - position.z;
 
         float intentBonus = 10.0f;
-        if (velocity.x < -0.1f) distLeft -= intentBonus;
-        if (velocity.x > 0.1f) distRight -= intentBonus;
-        if (velocity.z < -0.1f) distBack -= intentBonus;
-        if (velocity.z > 0.1f) distFront -= intentBonus;
+        if (velocity.x < -0.1f)
+            distLeft -= intentBonus;
+        if (velocity.x > 0.1f)
+            distRight -= intentBonus;
+        if (velocity.z < -0.1f)
+            distBack -= intentBonus;
+        if (velocity.z > 0.1f)
+            distFront -= intentBonus;
 
         double minScore = 999.0;
         int escapeDir = -1;
 
-        if (leftFree && distLeft < minScore) { minScore = distLeft; escapeDir = 0; }
-        if (rightFree && distRight < minScore) { minScore = distRight; escapeDir = 1; }
-        if (backFree && distBack < minScore) { minScore = distBack; escapeDir = 2; }
-        if (frontFree && distFront < minScore) { minScore = distFront; escapeDir = 3; }
+        if (leftFree && distLeft < minScore) {
+            minScore = distLeft;
+            escapeDir = 0;
+        }
+        if (rightFree && distRight < minScore) {
+            minScore = distRight;
+            escapeDir = 1;
+        }
+        if (backFree && distBack < minScore) {
+            minScore = distBack;
+            escapeDir = 2;
+        }
+        if (frontFree && distFront < minScore) {
+            minScore = distFront;
+            escapeDir = 3;
+        }
 
         if (escapeDir != -1) {
             float pushSpeed = 4.5f * deltaTime;
 
-            if (escapeDir == 0) position.x -= pushSpeed;
-            if (escapeDir == 1) position.x += pushSpeed;
-            if (escapeDir == 2) position.z -= pushSpeed;
-            if (escapeDir == 3) position.z += pushSpeed;
+            if (escapeDir == 0)
+                position.x -= pushSpeed;
+            if (escapeDir == 1)
+                position.x += pushSpeed;
+            if (escapeDir == 2)
+                position.z -= pushSpeed;
+            if (escapeDir == 3)
+                position.z += pushSpeed;
         }
     }
 
@@ -532,9 +589,11 @@ public class LocalPlayer extends Player {
 
         if (isUIOpen != wasUIOpen) {
             if (isUIOpen) {
-                org.lwjgl.glfw.GLFW.glfwSetInputMode(windowHandle, org.lwjgl.glfw.GLFW.GLFW_CURSOR, org.lwjgl.glfw.GLFW.GLFW_CURSOR_NORMAL);
+                org.lwjgl.glfw.GLFW.glfwSetInputMode(windowHandle, org.lwjgl.glfw.GLFW.GLFW_CURSOR,
+                        org.lwjgl.glfw.GLFW.GLFW_CURSOR_NORMAL);
             } else {
-                org.lwjgl.glfw.GLFW.glfwSetInputMode(windowHandle, org.lwjgl.glfw.GLFW.GLFW_CURSOR, org.lwjgl.glfw.GLFW.GLFW_CURSOR_DISABLED);
+                org.lwjgl.glfw.GLFW.glfwSetInputMode(windowHandle, org.lwjgl.glfw.GLFW.GLFW_CURSOR,
+                        org.lwjgl.glfw.GLFW.GLFW_CURSOR_DISABLED);
                 camera.resetMouseTracking();
             }
             wasUIOpen = isUIOpen;
@@ -547,16 +606,35 @@ public class LocalPlayer extends Player {
         }
     }
 
-    public void setChatOpen(boolean chatOpen) { this.isChatOpen = chatOpen; }
-    public boolean isChatOpen() { return isChatOpen; }
+    public void setChatOpen(boolean chatOpen) {
+        this.isChatOpen = chatOpen;
+    }
+
+    public boolean isChatOpen() {
+        return isChatOpen;
+    }
+
     public void setGameMode(GameMode mode) {
         this.gameMode = mode;
-        if (mode == GameMode.SURVIVAL) this.isFlying = false;
+        if (mode == GameMode.SURVIVAL)
+            this.isFlying = false;
     }
-    public GameMode getGameMode() { return gameMode; }
-    public Camera getCamera() { return camera; }
-    public PlayerInteraction getInteraction() { return interaction; }
-    public Block getHeadBlock() { return headBlock; }
+
+    public GameMode getGameMode() {
+        return gameMode;
+    }
+
+    public Camera getCamera() {
+        return camera;
+    }
+
+    public PlayerInteraction getInteraction() {
+        return interaction;
+    }
+
+    public Block getHeadBlock() {
+        return headBlock;
+    }
 
     public void respawn(Vector3d spawnPos) {
         this.position.set(spawnPos);
@@ -569,6 +647,7 @@ public class LocalPlayer extends Player {
             interaction.resetCooldown();
         }
     }
+
     @Override
     public Vector3d getEyePosition() {
         return new Vector3d(position.x, position.y + (this.height * 0.9f), position.z);
@@ -582,7 +661,8 @@ public class LocalPlayer extends Player {
         byte blockInsideId = chunkManager.getWorld().getBlockAt(bx, byFeet, bz);
         Block blockInside = BlockRegistry.get(blockInsideId);
 
-        if (blockInsideId != 0 && (!blockInside.isSolid || blockInside == Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "water"))) {
+        if (blockInsideId != 0 && (!blockInside.isSolid
+                || blockInside == Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "water"))) {
             SoundManager.playEvent(blockInside.getSoundMaterialName(), action, volume);
             return;
         }

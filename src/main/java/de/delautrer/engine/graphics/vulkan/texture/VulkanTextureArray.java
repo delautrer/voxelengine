@@ -1,10 +1,7 @@
 package de.delautrer.engine.graphics.vulkan.texture;
-import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
+
 import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
 import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
 import de.delautrer.engine.graphics.utils.TextureStitcher;
 import de.delautrer.engine.utils.AssetManager;
 import org.lwjgl.stb.STBImage;
@@ -13,8 +10,6 @@ import org.lwjgl.vulkan.*;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
-
-
 
 public class VulkanTextureArray implements de.delautrer.engine.graphics.ITextureArray {
 
@@ -26,8 +21,10 @@ public class VulkanTextureArray implements de.delautrer.engine.graphics.ITexture
     private long descriptorPool;
     private long descriptorSet;
 
-    // --- ALTE METHODE (Bleibt als Fallback, falls du sie noch woanders brauchst) ---
-    public VulkanTextureArray(VulkanContext context, VulkanCommandBuffers commandBuffers, long descriptorSetLayout, String path) {
+    // --- ALTE METHODE (Bleibt als Fallback, falls du sie noch woanders brauchst)
+    // ---
+    public VulkanTextureArray(VulkanContext context, VulkanCommandBuffers commandBuffers, long descriptorSetLayout,
+            String path) {
         this.context = context;
         int layerCount = 256;
         createTextureArray(commandBuffers, path, layerCount);
@@ -38,7 +35,8 @@ public class VulkanTextureArray implements de.delautrer.engine.graphics.ITexture
     }
 
     // --- NEUE METHODE: Direkt aus dem Arbeitsspeicher (TextureStitcher) ---
-    public VulkanTextureArray(VulkanContext context, VulkanCommandBuffers commandBuffers, long descriptorSetLayout, TextureStitcher.AtlasResult atlasResult) {
+    public VulkanTextureArray(VulkanContext context, VulkanCommandBuffers commandBuffers, long descriptorSetLayout,
+            TextureStitcher.AtlasResult atlasResult) {
         this.context = context;
 
         // Berechne, wie viele Bilder im Atlas sind
@@ -46,7 +44,8 @@ public class VulkanTextureArray implements de.delautrer.engine.graphics.ITexture
         int tilesY = atlasResult.atlasHeight / TextureStitcher.TEXTURE_SIZE;
         int layerCount = tilesX * tilesY; // Z.B. 4x4 Grid = 16 Layers
 
-        createTextureArrayFromMemory(commandBuffers, atlasResult.atlasPixels, atlasResult.atlasWidth, atlasResult.atlasHeight, tilesX, tilesY, layerCount);
+        createTextureArrayFromMemory(commandBuffers, atlasResult.atlasPixels, atlasResult.atlasWidth,
+                atlasResult.atlasHeight, tilesX, tilesY, layerCount);
 
         createTextureImageView(layerCount);
         createTextureSampler();
@@ -55,7 +54,8 @@ public class VulkanTextureArray implements de.delautrer.engine.graphics.ITexture
     }
 
     // --- NEUE HILFSMETHODE: Kopiert die reinen Bytes ohne STBImage! ---
-    private void createTextureArrayFromMemory(VulkanCommandBuffers commandBuffers, ByteBuffer pixels, int texWidth, int texHeight, int tilesX, int tilesY, int layerCount) {
+    private void createTextureArrayFromMemory(VulkanCommandBuffers commandBuffers, ByteBuffer pixels, int texWidth,
+            int texHeight, int tilesX, int tilesY, int layerCount) {
         long imageSize = (long) texWidth * texHeight * 4;
         int tileSizeX = texWidth / tilesX; // Sollte immer 16 sein
         int tileSizeY = texHeight / tilesY;
@@ -72,17 +72,20 @@ public class VulkanTextureArray implements de.delautrer.engine.graphics.ITexture
             org.lwjgl.system.MemoryUtil.memCopy(org.lwjgl.system.MemoryUtil.memAddress(pixels), destAddress, imageSize);
             VK10.vkUnmapMemory(context.getDevice(), stagingBuffer.getBufferMemory());
 
-            createImageArray(tileSizeX, tileSizeY, layerCount, VK10.VK_FORMAT_R8G8B8A8_SRGB, VK10.VK_IMAGE_TILING_OPTIMAL,
+            createImageArray(tileSizeX, tileSizeY, layerCount, VK10.VK_FORMAT_R8G8B8A8_SRGB,
+                    VK10.VK_IMAGE_TILING_OPTIMAL,
                     VK10.VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK10.VK_IMAGE_USAGE_SAMPLED_BIT,
                     VK10.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
             transitionImageLayout(commandBuffers, textureImage, VK10.VK_FORMAT_R8G8B8A8_SRGB,
                     VK10.VK_IMAGE_LAYOUT_UNDEFINED, VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, layerCount);
 
-            copyBufferToImageLayers(commandBuffers, stagingBuffer.getBuffer(), textureImage, texWidth, texHeight, tileSizeX, tileSizeY, tilesX, layerCount);
+            copyBufferToImageLayers(commandBuffers, stagingBuffer.getBuffer(), textureImage, texWidth, texHeight,
+                    tileSizeX, tileSizeY, tilesX, layerCount);
 
             transitionImageLayout(commandBuffers, textureImage, VK10.VK_FORMAT_R8G8B8A8_SRGB,
-                    VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK10.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, layerCount);
+                    VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK10.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                    layerCount);
         }
         stagingBuffer.cleanup();
     }
@@ -94,7 +97,8 @@ public class VulkanTextureArray implements de.delautrer.engine.graphics.ITexture
             IntBuffer pChannels = stack.mallocInt(1);
 
             ByteBuffer fileBuffer = AssetManager.loadResource(path);
-            ByteBuffer pixels = STBImage.stbi_load_from_memory(fileBuffer, pWidth, pHeight, pChannels, STBImage.STBI_rgb_alpha);
+            ByteBuffer pixels = STBImage.stbi_load_from_memory(fileBuffer, pWidth, pHeight, pChannels,
+                    STBImage.STBI_rgb_alpha);
 
             if (pixels == null) {
                 throw new RuntimeException("Failed to load texture image array: " + path);
@@ -120,23 +124,27 @@ public class VulkanTextureArray implements de.delautrer.engine.graphics.ITexture
 
             STBImage.stbi_image_free(pixels);
 
-            createImageArray(tileSizeX, tileSizeY, layerCount, VK10.VK_FORMAT_R8G8B8A8_SRGB, VK10.VK_IMAGE_TILING_OPTIMAL,
+            createImageArray(tileSizeX, tileSizeY, layerCount, VK10.VK_FORMAT_R8G8B8A8_SRGB,
+                    VK10.VK_IMAGE_TILING_OPTIMAL,
                     VK10.VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK10.VK_IMAGE_USAGE_SAMPLED_BIT,
                     VK10.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
             transitionImageLayout(commandBuffers, textureImage, VK10.VK_FORMAT_R8G8B8A8_SRGB,
                     VK10.VK_IMAGE_LAYOUT_UNDEFINED, VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, layerCount);
 
-            copyBufferToImageLayers(commandBuffers, stagingBuffer.getBuffer(), textureImage, texWidth, texHeight, tileSizeX, tileSizeY, tilesX, layerCount);
+            copyBufferToImageLayers(commandBuffers, stagingBuffer.getBuffer(), textureImage, texWidth, texHeight,
+                    tileSizeX, tileSizeY, tilesX, layerCount);
 
             transitionImageLayout(commandBuffers, textureImage, VK10.VK_FORMAT_R8G8B8A8_SRGB,
-                    VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK10.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, layerCount);
+                    VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK10.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                    layerCount);
 
             stagingBuffer.cleanup();
         }
     }
 
-    private void createImageArray(int width, int height, int layerCount, int format, int tiling, int usage, int properties) {
+    private void createImageArray(int width, int height, int layerCount, int format, int tiling, int usage,
+            int properties) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             VkImageCreateInfo imageInfo = VkImageCreateInfo.calloc(stack);
             imageInfo.sType(VK10.VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO);
@@ -175,7 +183,8 @@ public class VulkanTextureArray implements de.delautrer.engine.graphics.ITexture
         }
     }
 
-    private void transitionImageLayout(VulkanCommandBuffers commandBuffers, long image, int format, int oldLayout, int newLayout, int layerCount) {
+    private void transitionImageLayout(VulkanCommandBuffers commandBuffers, long image, int format, int oldLayout,
+            int newLayout, int layerCount) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             VkCommandBuffer commandBuffer = commandBuffers.beginSingleTimeCommands();
 
@@ -200,7 +209,8 @@ public class VulkanTextureArray implements de.delautrer.engine.graphics.ITexture
                 barrier.dstAccessMask(VK10.VK_ACCESS_TRANSFER_WRITE_BIT);
                 sourceStage = VK10.VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
                 destinationStage = VK10.VK_PIPELINE_STAGE_TRANSFER_BIT;
-            } else if (oldLayout == VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK10.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+            } else if (oldLayout == VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
+                    && newLayout == VK10.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
                 barrier.srcAccessMask(VK10.VK_ACCESS_TRANSFER_WRITE_BIT);
                 barrier.dstAccessMask(VK10.VK_ACCESS_SHADER_READ_BIT);
                 sourceStage = VK10.VK_PIPELINE_STAGE_TRANSFER_BIT;
@@ -215,7 +225,8 @@ public class VulkanTextureArray implements de.delautrer.engine.graphics.ITexture
         }
     }
 
-    private void copyBufferToImageLayers(VulkanCommandBuffers commandBuffers, long buffer, long image, int texWidth, int texHeight, int tileSizeX, int tileSizeY, int tilesX, int layerCount) {
+    private void copyBufferToImageLayers(VulkanCommandBuffers commandBuffers, long buffer, long image, int texWidth,
+            int texHeight, int tileSizeX, int tileSizeY, int tilesX, int layerCount) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             VkCommandBuffer commandBuffer = commandBuffers.beginSingleTimeCommands();
 
@@ -225,7 +236,8 @@ public class VulkanTextureArray implements de.delautrer.engine.graphics.ITexture
                 int ty = layer / tilesX;
 
                 VkBufferImageCopy region = regions.get(layer);
-                // Hier sagen wir Vulkan, an welcher Pixel-Position es im Staging-Buffer anfangen soll zu lesen
+                // Hier sagen wir Vulkan, an welcher Pixel-Position es im Staging-Buffer
+                // anfangen soll zu lesen
                 region.bufferOffset((ty * tileSizeY * texWidth + tx * tileSizeX) * 4L);
                 region.bufferRowLength(texWidth);
                 region.bufferImageHeight(texHeight);
@@ -239,7 +251,8 @@ public class VulkanTextureArray implements de.delautrer.engine.graphics.ITexture
                 region.imageExtent().set(tileSizeX, tileSizeY, 1);
             }
 
-            VK10.vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, regions);
+            VK10.vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                    regions);
 
             commandBuffers.endSingleTimeCommands(commandBuffer);
         }

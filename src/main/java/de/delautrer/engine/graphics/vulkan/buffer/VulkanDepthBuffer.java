@@ -1,15 +1,9 @@
 package de.delautrer.engine.graphics.vulkan.buffer;
-import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
+
 import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
 import java.nio.LongBuffer;
-
-
 
 public class VulkanDepthBuffer {
 
@@ -52,7 +46,8 @@ public class VulkanDepthBuffer {
             allocInfo.sType(VK10.VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO);
             allocInfo.allocationSize(memRequirements.size());
             // local device memory for maximum performance
-            allocInfo.memoryTypeIndex(context.findMemoryType(memRequirements.memoryTypeBits(), VK10.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT));
+            allocInfo.memoryTypeIndex(
+                    context.findMemoryType(memRequirements.memoryTypeBits(), VK10.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT));
 
             LongBuffer pImageMemory = stack.mallocLong(1);
             if (VK10.vkAllocateMemory(context.getDevice(), allocInfo, null, pImageMemory) != VK10.VK_SUCCESS) {

@@ -1,5 +1,5 @@
 package de.delautrer.game.blocks;
-import de.delautrer.engine.graphics.*;
+
 import de.delautrer.engine.physics.AABB;
 import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.items.BlockItem;
@@ -27,24 +27,30 @@ public class PlantBlock extends Block {
     @Override
     public void generateMesh(int x, int y, int z, Chunk chunk, ChunkManager cm) {
         TextureStitcher.AtlasRegion reg = getModel().top;
-        if (reg == null) return;
+        if (reg == null)
+            return;
 
         float light = 1.0f;
         float sl = chunk.getSmoothSkyLight(x, y, z, 0, 0, 0, 0, 0, 0, cm);
         float bl = chunk.getSmoothBlockLight(x, y, z, 0, 0, 0, 0, 0, 0, cm);
-        float slBottom = sl * 0.67f; float blBottom = bl * 0.67f;
+        float slBottom = sl * 0.67f;
+        float blBottom = bl * 0.67f;
 
         // --- ERSTES KREUZ ---
         chunk.addFace(x, y, z, 1.0f, x + 1, y, z + 1, 1.0f, x + 1, y + 1, z + 1, 1.0f, x, y + 1, z, 1.0f,
-                reg.u0, reg.v0, reg.u1, reg.v1, reg.layer, light, this, slBottom, slBottom, sl, sl, blBottom, blBottom, bl, bl);
+                reg.u0, reg.v0, reg.u1, reg.v1, reg.layer, light, this, slBottom, slBottom, sl, sl, blBottom, blBottom,
+                bl, bl);
         chunk.addFace(x + 1, y, z + 1, 1.0f, x, y, z, 1.0f, x, y + 1, z, 1.0f, x + 1, y + 1, z + 1, 1.0f,
-                reg.u0, reg.v0, reg.u1, reg.v1, reg.layer, light, this, slBottom, slBottom, sl, sl, blBottom, blBottom, bl, bl);
+                reg.u0, reg.v0, reg.u1, reg.v1, reg.layer, light, this, slBottom, slBottom, sl, sl, blBottom, blBottom,
+                bl, bl);
 
         // --- ZWEITES KREUZ ---
         chunk.addFace(x + 1, y, z, 1.0f, x, y, z + 1, 1.0f, x, y + 1, z + 1, 1.0f, x + 1, y + 1, z, 1.0f,
-                reg.u0, reg.v0, reg.u1, reg.v1, reg.layer, light, this, slBottom, slBottom, sl, sl, blBottom, blBottom, bl, bl);
+                reg.u0, reg.v0, reg.u1, reg.v1, reg.layer, light, this, slBottom, slBottom, sl, sl, blBottom, blBottom,
+                bl, bl);
         chunk.addFace(x, y, z + 1, 1.0f, x + 1, y, z, 1.0f, x + 1, y + 1, z, 1.0f, x, y + 1, z + 1, 1.0f,
-                reg.u0, reg.v0, reg.u1, reg.v1, reg.layer, light, this, slBottom, slBottom, sl, sl, blBottom, blBottom, bl, bl);
+                reg.u0, reg.v0, reg.u1, reg.v1, reg.layer, light, this, slBottom, slBottom, sl, sl, blBottom, blBottom,
+                bl, bl);
     }
 
     @Override
@@ -54,7 +60,8 @@ public class PlantBlock extends Block {
 
     @Override
     public java.util.List<AABB> getBoundingBoxes(BlockState state) {
-        return java.util.List.of(new AABB(new org.joml.Vector3f(4f/16f,0,4f/16f), new org.joml.Vector3f(12f/16f,8f/16f,12f/16f)));
+        return java.util.List.of(new AABB(new org.joml.Vector3f(4f / 16f, 0, 4f / 16f),
+                new org.joml.Vector3f(12f / 16f, 8f / 16f, 12f / 16f)));
     }
 
     @Override
@@ -71,13 +78,16 @@ public class PlantBlock extends Block {
             // Wenn der Block darunter nicht mehr solide ist (z.B. Luft, Wasser etc.)
             if (!blockBelow.isSolid) {
                 dropAsItem(world, x, y, z); // NEU: Pflanze droppen
-                world.setBlock(x, y, z, Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air").getId()); // Dann erst den Block löschen
+                world.setBlock(x, y, z, Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air").getId()); // Dann erst
+                                                                                                           // den Block
+                                                                                                           // löschen
             }
         }
     }
 
     /**
-     * Zerstört die Pflanze physikalisch und spawnt ihr Item basierend auf der Loot-Tabelle.
+     * Zerstört die Pflanze physikalisch und spawnt ihr Item basierend auf der
+     * Loot-Tabelle.
      */
     private void dropAsItem(World world, int x, int y, int z) {
         String lootPath = this.getLootTable();
@@ -92,15 +102,13 @@ public class PlantBlock extends Block {
                     Vector3d dropPos = new Vector3d(
                             x + 0.5,
                             y + 0.5,
-                            z + 0.5
-                    );
+                            z + 0.5);
 
                     // Ein kleiner Schubs nach oben und zufällig zur Seite ("Plopp"-Effekt)
                     Vector3f dropVel = new Vector3f(
-                            (float)(Math.random() - 0.5) * 2.0f,
+                            (float) (Math.random() - 0.5) * 2.0f,
                             2.0f,
-                            (float)(Math.random() - 0.5) * 2.0f
-                    );
+                            (float) (Math.random() - 0.5) * 2.0f);
 
                     ItemEntity entity = new ItemEntity(stack, dropPos, dropVel);
                     world.spawnEntity(entity);

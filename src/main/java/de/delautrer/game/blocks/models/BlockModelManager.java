@@ -1,5 +1,5 @@
 package de.delautrer.game.blocks.models;
-import de.delautrer.engine.graphics.*;
+
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import de.delautrer.Constants;
@@ -27,7 +27,8 @@ public class BlockModelManager {
             String fullId = entry.getKey();
             Block block = entry.getValue();
 
-            if (block == Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air")) continue;
+            if (block == Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air"))
+                continue;
 
             String blockName = fullId.replace(Constants.NAMESPACE + ":", "");
             BlockModelData model = parseJson(blockName, atlas, missingRegion);
@@ -36,7 +37,8 @@ public class BlockModelManager {
         }
     }
 
-    private static BlockModelData parseJson(String blockName, TextureStitcher.AtlasResult atlas, TextureStitcher.AtlasRegion missingRegion) {
+    private static BlockModelData parseJson(String blockName, TextureStitcher.AtlasResult atlas,
+            TextureStitcher.AtlasRegion missingRegion) {
         BlockModelData model = new BlockModelData();
         String path = "/assets/models/block/" + blockName + ".json";
 
@@ -57,9 +59,14 @@ public class BlockModelManager {
                 JsonObject textures = json.getAsJsonObject("textures");
 
                 if (textures.has("all")) {
-                    TextureStitcher.AtlasRegion r = atlas.regions.getOrDefault(textures.get("all").getAsString(), missingRegion);
-                    model.top = r; model.bottom = r;
-                    model.north = r; model.south = r; model.east = r; model.west = r;
+                    TextureStitcher.AtlasRegion r = atlas.regions.getOrDefault(textures.get("all").getAsString(),
+                            missingRegion);
+                    model.top = r;
+                    model.bottom = r;
+                    model.north = r;
+                    model.south = r;
+                    model.east = r;
+                    model.west = r;
                 }
 
                 if (textures.has("top")) {
@@ -69,25 +76,41 @@ public class BlockModelManager {
                     model.bottom = atlas.regions.getOrDefault(textures.get("bottom").getAsString(), missingRegion);
                 }
                 if (textures.has("side")) {
-                    TextureStitcher.AtlasRegion r = atlas.regions.getOrDefault(textures.get("side").getAsString(), missingRegion);
-                    model.north = r; model.south = r; model.east = r; model.west = r;
+                    TextureStitcher.AtlasRegion r = atlas.regions.getOrDefault(textures.get("side").getAsString(),
+                            missingRegion);
+                    model.north = r;
+                    model.south = r;
+                    model.east = r;
+                    model.west = r;
                 }
 
                 if (textures.has("end")) {
-                    TextureStitcher.AtlasRegion r = atlas.regions.getOrDefault(textures.get("end").getAsString(), missingRegion);
-                    model.top = r; model.bottom = r;
+                    TextureStitcher.AtlasRegion r = atlas.regions.getOrDefault(textures.get("end").getAsString(),
+                            missingRegion);
+                    model.top = r;
+                    model.bottom = r;
                 }
 
                 if (textures.has("cross")) {
-                    TextureStitcher.AtlasRegion r = atlas.regions.getOrDefault(textures.get("cross").getAsString(), missingRegion);
-                    model.top = r; model.bottom = r;
-                    model.north = r; model.south = r; model.east = r; model.west = r;
+                    TextureStitcher.AtlasRegion r = atlas.regions.getOrDefault(textures.get("cross").getAsString(),
+                            missingRegion);
+                    model.top = r;
+                    model.bottom = r;
+                    model.north = r;
+                    model.south = r;
+                    model.east = r;
+                    model.west = r;
                 }
 
                 if (textures.has("torch")) {
-                    TextureStitcher.AtlasRegion r = atlas.regions.getOrDefault(textures.get("torch").getAsString(), missingRegion);
-                    model.top = r; model.bottom = r;
-                    model.north = r; model.south = r; model.east = r; model.west = r;
+                    TextureStitcher.AtlasRegion r = atlas.regions.getOrDefault(textures.get("torch").getAsString(),
+                            missingRegion);
+                    model.top = r;
+                    model.bottom = r;
+                    model.north = r;
+                    model.south = r;
+                    model.east = r;
+                    model.west = r;
                 }
             }
         } catch (Exception e) {
@@ -116,7 +139,8 @@ public class BlockModelManager {
         textures.add("destroy_stage_9");
 
         for (Map.Entry<String, Block> entry : BlockRegistry.getAll().entrySet()) {
-            if (entry.getValue() == Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air")) continue;
+            if (entry.getValue() == Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air"))
+                continue;
 
             String blockName = entry.getKey().replace(Constants.NAMESPACE + ":", "");
             String path = "/assets/models/block/" + blockName + ".json";

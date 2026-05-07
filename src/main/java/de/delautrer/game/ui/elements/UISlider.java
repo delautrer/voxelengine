@@ -1,5 +1,5 @@
 package de.delautrer.game.ui.elements;
-import de.delautrer.engine.graphics.*;
+
 import de.delautrer.engine.graphics.IFont;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.game.ui.UIMeshBuilder;
@@ -13,7 +13,8 @@ public class UISlider extends UIElement {
     private final Consumer<Float> onChange;
     private boolean isDragging = false;
 
-    public UISlider(float x, float y, float width, float height, String prefix, float min, float max, float step, float startValue, Consumer<Float> onChange) {
+    public UISlider(float x, float y, float width, float height, String prefix, float min, float max, float step,
+            float startValue, Consumer<Float> onChange) {
         super(x, y, width, height);
         this.prefix = prefix;
         this.min = min;
@@ -24,7 +25,8 @@ public class UISlider extends UIElement {
     }
 
     public void handleInput(InputManager input, float mouseX, float mouseY) {
-        if (!isVisible) return;
+        if (!isVisible)
+            return;
 
         boolean mouseDown = input.isActionActive("INTERACT_BREAK");
         boolean justPressed = input.isActionJustPressed("INTERACT_BREAK");
@@ -55,7 +57,8 @@ public class UISlider extends UIElement {
 
     @Override
     public void render(UIMeshBuilder builder, IFont font, float mouseX, float mouseY) {
-        if (!isVisible) return;
+        if (!isVisible)
+            return;
 
         builder.add9Slice(x, y, 0.1f, width, height, 0, 0, 8.0f);
 

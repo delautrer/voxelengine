@@ -1,14 +1,8 @@
 package de.delautrer.engine.graphics.vulkan.core;
-import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
-import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
+
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
 import java.nio.LongBuffer;
-
 
 public class VulkanSync {
     public static final int MAX_FRAMES_IN_FLIGHT = 2;
@@ -52,9 +46,17 @@ public class VulkanSync {
         }
     }
 
-    public long getImageAvailableSemaphore(int frame) { return imageAvailableSemaphores[frame]; }
-    public long getRenderFinishedSemaphore(int index) { return renderFinishedSemaphores[index]; }
-    public long getInFlightFence(int frame) { return inFlightFences[frame]; }
+    public long getImageAvailableSemaphore(int frame) {
+        return imageAvailableSemaphores[frame];
+    }
+
+    public long getRenderFinishedSemaphore(int index) {
+        return renderFinishedSemaphores[index];
+    }
+
+    public long getInFlightFence(int frame) {
+        return inFlightFences[frame];
+    }
 
     public void cleanup() {
         for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {

@@ -1,20 +1,15 @@
 package de.delautrer.engine.graphics.vulkan.core;
-import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
-import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
+
 import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
 import org.lwjgl.vulkan.VK10;
-
-
 
 public class VulkanFramebuffers {
 
     private final VulkanContext context;
     private final long[] framebuffers;
 
-    public VulkanFramebuffers(VulkanContext context, VulkanSwapchain swapchain, VulkanRenderPass renderPass, VulkanDepthBuffer depthBuffer) {
+    public VulkanFramebuffers(VulkanContext context, VulkanSwapchain swapchain, VulkanRenderPass renderPass,
+            VulkanDepthBuffer depthBuffer) {
         this.context = context;
         long[] imageViews = swapchain.getImageViews();
         framebuffers = new long[imageViews.length];
@@ -27,7 +22,8 @@ public class VulkanFramebuffers {
                 attachments.put(0, imageViews[i]);
                 attachments.put(1, depthBuffer.getDepthImageView());
 
-                org.lwjgl.vulkan.VkFramebufferCreateInfo framebufferInfo = org.lwjgl.vulkan.VkFramebufferCreateInfo.calloc(stack);
+                org.lwjgl.vulkan.VkFramebufferCreateInfo framebufferInfo = org.lwjgl.vulkan.VkFramebufferCreateInfo
+                        .calloc(stack);
                 framebufferInfo.sType(org.lwjgl.vulkan.VK10.VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO);
                 framebufferInfo.renderPass(renderPass.getHandle());
                 framebufferInfo.pAttachments(attachments);
@@ -35,7 +31,8 @@ public class VulkanFramebuffers {
                 framebufferInfo.height(swapchain.getExtent().height());
                 framebufferInfo.layers(1);
 
-                if (org.lwjgl.vulkan.VK10.vkCreateFramebuffer(context.getDevice(), framebufferInfo, null, pFramebuffer) != org.lwjgl.vulkan.VK10.VK_SUCCESS) {
+                if (org.lwjgl.vulkan.VK10.vkCreateFramebuffer(context.getDevice(), framebufferInfo, null,
+                        pFramebuffer) != org.lwjgl.vulkan.VK10.VK_SUCCESS) {
                     throw new RuntimeException("Failed to create framebuffer");
                 }
                 framebuffers[i] = pFramebuffer.get(0);

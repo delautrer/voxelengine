@@ -1,5 +1,5 @@
 package de.delautrer.game.ui.elements;
-import de.delautrer.engine.graphics.*;
+
 import de.delautrer.engine.graphics.IFont;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.game.ui.UIMeshBuilder;
@@ -46,19 +46,23 @@ public class UIScrollableList extends UIElement {
     }
 
     private float getContentHeight() {
-        if (items.isEmpty()) return 0;
+        if (items.isEmpty())
+            return 0;
         float maxY = -999999f;
         float minY = 999999f;
         for (UIElement item : items) {
             // Getter verwenden, um Felder nicht zu umgehen
-            if (item.getY() + item.getHeight() > maxY) maxY = item.getY() + item.getHeight();
-            if (item.getY() < minY) minY = item.getY();
+            if (item.getY() + item.getHeight() > maxY)
+                maxY = item.getY() + item.getHeight();
+            if (item.getY() < minY)
+                minY = item.getY();
         }
         return (maxY - minY) + 40.0f;
     }
 
     // --- NEU: Rekursiver Input für Layout-Container ---
-    private void handleItemInput(UIElement item, InputManager input, float uiMouseX, float uiMouseY, boolean mouseJustPressed, boolean overScrollbar) {
+    private void handleItemInput(UIElement item, InputManager input, float uiMouseX, float uiMouseY,
+            boolean mouseJustPressed, boolean overScrollbar) {
         if (item instanceof UILayout) {
             // Wenn es eine Box ist, schick den Input an alle Kinder in der Box weiter
             for (UIElement child : ((UILayout) item).getChildren()) {
@@ -73,19 +77,24 @@ public class UIScrollableList extends UIElement {
             }
 
             if (mouseJustPressed && !overScrollbar && item.isHovered(uiMouseX, uiMouseY)) {
-                if (item instanceof UIButton) ((UIButton) item).click();
-                else if (item instanceof UIConfirmButton) ((UIConfirmButton) item).click();
-                else if (item instanceof UIToggleButton) ((UIToggleButton) item).click();
+                if (item instanceof UIButton)
+                    ((UIButton) item).click();
+                else if (item instanceof UIConfirmButton)
+                    ((UIConfirmButton) item).click();
+                else if (item instanceof UIToggleButton)
+                    ((UIToggleButton) item).click();
             }
         }
     }
 
     public void handleInput(InputManager input, float uiMouseX, float uiMouseY) {
-        if (!isVisible) return;
+        if (!isVisible)
+            return;
 
         float totalContentHeight = getContentHeight();
         float maxScroll = totalContentHeight - height;
-        if (maxScroll < 0) maxScroll = 0;
+        if (maxScroll < 0)
+            maxScroll = 0;
 
         // --- 1. MAUSRAD ---
         if (isHovered(uiMouseX, uiMouseY)) {
@@ -122,15 +131,19 @@ public class UIScrollableList extends UIElement {
 
         if (isDragging) {
             float dragY = uiMouseY - (scrollbarHeight / 2.0f);
-            if (dragY < minY) dragY = minY;
-            if (dragY > maxY) dragY = maxY;
+            if (dragY < minY)
+                dragY = minY;
+            if (dragY > maxY)
+                dragY = maxY;
 
             float percent = 1.0f - ((dragY - minY) / (maxY - minY));
             scrollOffset = percent * maxScroll;
         }
 
-        if (scrollOffset < 0) scrollOffset = 0;
-        if (scrollOffset > maxScroll) scrollOffset = maxScroll;
+        if (scrollOffset < 0)
+            scrollOffset = 0;
+        if (scrollOffset > maxScroll)
+            scrollOffset = maxScroll;
 
         // --- 3. INPUT AN KINDER WEITERLEITEN ---
         float clipPadding = 15.0f;
@@ -154,7 +167,8 @@ public class UIScrollableList extends UIElement {
 
     @Override
     public void render(UIMeshBuilder builder, IFont font, float mouseX, float mouseY) {
-        if (!isVisible) return;
+        if (!isVisible)
+            return;
 
         builder.add9Slice(x, y, 0.05f, width, height, bgGridX, bgGridY, 12.0f);
 

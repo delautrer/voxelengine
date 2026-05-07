@@ -1,5 +1,5 @@
 package de.delautrer.game.ui.elements;
-import de.delautrer.engine.graphics.*;
+
 import de.delautrer.engine.graphics.IFont;
 import de.delautrer.game.ui.UIMeshBuilder;
 import java.util.function.Consumer;
@@ -10,7 +10,8 @@ public class UIToggleButton extends UIElement {
     private String prefix;
     private Consumer<String> onChange;
 
-    public UIToggleButton(float x, float y, float width, float height, String prefix, String[] options, Consumer<String> onChange) {
+    public UIToggleButton(float x, float y, float width, float height, String prefix, String[] options,
+            Consumer<String> onChange) {
         super(x, y, width, height);
         this.prefix = prefix;
         this.options = options;
@@ -30,7 +31,8 @@ public class UIToggleButton extends UIElement {
 
     @Override
     public void render(UIMeshBuilder builder, IFont font, float mouseX, float mouseY) {
-        if (!isVisible) return;
+        if (!isVisible)
+            return;
 
         int gridX = isHovered(mouseX, mouseY) ? 0 : 1;
         int gridY = 8;

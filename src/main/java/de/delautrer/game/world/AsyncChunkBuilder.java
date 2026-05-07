@@ -1,17 +1,19 @@
 package de.delautrer.game.world;
-import de.delautrer.engine.graphics.*;
+
 import org.joml.Vector2i;
 import java.util.concurrent.*;
 import java.util.Set;
 import de.delautrer.engine.graphics.ChunkMesher;
 
 public class AsyncChunkBuilder {
-    private final ExecutorService executor = Executors.newFixedThreadPool(Math.max(1, Runtime.getRuntime().availableProcessors() - 1));
+    private final ExecutorService executor = Executors
+            .newFixedThreadPool(Math.max(1, Runtime.getRuntime().availableProcessors() - 1));
     private final ConcurrentLinkedQueue<ChunkBuildResult> readyMeshes = new ConcurrentLinkedQueue<>();
     private final Set<Chunk> currentlyBuilding = ConcurrentHashMap.newKeySet();
 
     public void queueRebuild(Chunk chunk, ChunkManager cm) {
-        if (executor.isShutdown() || !currentlyBuilding.add(chunk)) return;
+        if (executor.isShutdown() || !currentlyBuilding.add(chunk))
+            return;
 
         executor.submit(() -> {
             try {
@@ -25,7 +27,8 @@ public class AsyncChunkBuilder {
     }
 
     public void uploadReadyMeshes(ChunkManager cm) {
-        if (readyMeshes.isEmpty()) return;
+        if (readyMeshes.isEmpty())
+            return;
 
         while (!readyMeshes.isEmpty()) {
             ChunkBuildResult result = readyMeshes.poll();
@@ -34,11 +37,14 @@ public class AsyncChunkBuilder {
         }
     }
 
-    public void cleanup() { executor.shutdown(); }
+    public void cleanup() {
+        executor.shutdown();
+    }
 
     private static class ChunkBuildResult {
         public final Chunk chunk;
         public final ChunkMesher.ChunkMeshResult data;
+
         public ChunkBuildResult(Chunk chunk, ChunkMesher.ChunkMeshResult data) {
             this.chunk = chunk;
             this.data = data;

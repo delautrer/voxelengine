@@ -1,5 +1,5 @@
 package de.delautrer.engine.graphics;
-import de.delautrer.engine.graphics.*;
+
 import de.delautrer.game.settings.SettingsManager;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
@@ -11,12 +11,14 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public class CullingUtils {
-    public static void buildVisibleLists(ChunkManager chunkManager, Matrix4f mvpCameraRelative, RenderPacket packet, boolean isIsoFrame, Vector3d cameraPos) {
+    public static void buildVisibleLists(ChunkManager chunkManager, Matrix4f mvpCameraRelative, RenderPacket packet,
+            boolean isIsoFrame, Vector3d cameraPos) {
         FrustumIntersection frustum = new FrustumIntersection(mvpCameraRelative);
         packet.opaqueMeshes = new ArrayList<>();
         packet.waterMeshes = new ArrayList<>();
 
-        // Wir nutzen double, damit bei der Subtraktion weit draußen kein Bit verloren geht!
+        // Wir nutzen double, damit bei der Subtraktion weit draußen kein Bit verloren
+        // geht!
         double camX = cameraPos != null ? cameraPos.x : 0.0;
         double camY = cameraPos != null ? cameraPos.y : 0.0;
         double camZ = cameraPos != null ? cameraPos.z : 0.0;
@@ -38,7 +40,8 @@ public class CullingUtils {
                     isVisible = true;
                 }
             } else {
-                // Präzise Berechnung in Double, das Ergebnis der Subtraktion ist dann eine kleine Zahl!
+                // Präzise Berechnung in Double, das Ergebnis der Subtraktion ist dann eine
+                // kleine Zahl!
                 double chunkWorldX = cx * (double) Chunk.SIZE;
                 double chunkWorldZ = cz * (double) Chunk.SIZE;
 
@@ -57,8 +60,10 @@ public class CullingUtils {
 
             if (isVisible) {
                 ChunkManager.ChunkMeshPair pair = entry.getValue();
-                if (pair.opaque != null && pair.opaque.getIndexCount() > 0) packet.opaqueMeshes.add(pair.opaque);
-                if (pair.water != null && pair.water.getIndexCount() > 0) packet.waterMeshes.add(pair.water);
+                if (pair.opaque != null && pair.opaque.getIndexCount() > 0)
+                    packet.opaqueMeshes.add(pair.opaque);
+                if (pair.water != null && pair.water.getIndexCount() > 0)
+                    packet.waterMeshes.add(pair.water);
             }
         }
 
@@ -66,7 +71,7 @@ public class CullingUtils {
         packet.entities = new ArrayList<>();
         float cullRadius = (SettingsManager.get().renderDistance + 1) * 16.0f;
         float entityCullDistSq = cullRadius * cullRadius;
-        
+
         for (de.delautrer.game.entity.Entity entity : chunkManager.getWorld().getEntities()) {
             double ex = entity.position.x;
             double ey = entity.position.y;
@@ -76,13 +81,14 @@ public class CullingUtils {
             double dx = ex - camX;
             double dy = ey - camY;
             double dz = ez - camZ;
-            if (dx*dx + dy*dy + dz*dz > entityCullDistSq) continue;
+            if (dx * dx + dy * dy + dz * dz > entityCullDistSq)
+                continue;
 
             // 2. Frustum Culling (Jetzt mit kleiner AABB für mehr Robustheit)
             float r = 0.5f;
             float h = 2.0f;
-            if (frustum.testAab((float)(dx - r), (float)(dy), (float)(dz - r),
-                                (float)(dx + r), (float)(dy + h), (float)(dz + r))) {
+            if (frustum.testAab((float) (dx - r), (float) (dy), (float) (dz - r),
+                    (float) (dx + r), (float) (dy + h), (float) (dz + r))) {
                 packet.entities.add(entity);
             }
         }

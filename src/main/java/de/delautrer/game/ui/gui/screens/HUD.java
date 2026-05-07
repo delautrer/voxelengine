@@ -1,5 +1,5 @@
 package de.delautrer.game.ui.gui.screens;
-import de.delautrer.engine.graphics.*;
+
 import de.delautrer.engine.graphics.IFont;
 import de.delautrer.engine.graphics.utils.TextureStitcher;
 import de.delautrer.game.blocks.Block;
@@ -21,10 +21,13 @@ public class HUD {
     private long lastSlotChangeTime = 0;
     private int lastSelectedSlot = -1;
 
-    public void render(UIMeshBuilder builder, int width, int height, PlayerInteraction interaction, int hoveredSlot, DebugOverlay debugOverlay, ChatOverlay chatOverlay, IFont font, int blockAtlasWidth) {
+    public void render(UIMeshBuilder builder, int width, int height, PlayerInteraction interaction, int hoveredSlot,
+            DebugOverlay debugOverlay, ChatOverlay chatOverlay, IFont font, int blockAtlasWidth) {
         float pixelScale = 2.0f;
-        if (height >= 1080) pixelScale = 3.0f;
-        if (height >= 1440) pixelScale = 4.0f;
+        if (height >= 1080)
+            pixelScale = 3.0f;
+        if (height >= 1440)
+            pixelScale = 4.0f;
 
         PlayerInventory inventory = interaction.getInventory();
         boolean isScreenOpen = inventory.isOpen();
@@ -62,7 +65,8 @@ public class HUD {
 
         // --- 1.5 SUFFOCATION (KOPF IM BLOCK) ---
         Block headBlock = interaction.getPlayer().getHeadBlock();
-        if (interaction.getPlayer().getGameMode() != GameMode.SPECTATOR && headBlock != Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air")) {
+        if (interaction.getPlayer().getGameMode() != GameMode.SPECTATOR
+                && headBlock != Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air")) {
 
             TextureStitcher.AtlasRegion reg = headBlock.getModel().north;
 
@@ -98,9 +102,12 @@ public class HUD {
         }
 
         // --- 3. HOTBAR ---
-        if (interaction.getPlayer().getGameMode() == GameMode.SPECTATOR) return;
-        if (isScreenOpen) return;
-        if (isChatOpen) return;
+        if (interaction.getPlayer().getGameMode() == GameMode.SPECTATOR)
+            return;
+        if (isScreenOpen)
+            return;
+        if (isChatOpen)
+            return;
 
         float hotbarWidth = 24f * 9f * pixelScale;
         float hotbarHeight = 24f * pixelScale;
@@ -130,8 +137,12 @@ public class HUD {
             builder.drawItem(stack, slotX + 3 * pixelScale, hotbarY + 3 * pixelScale, 0.2f, selectorW - 6 * pixelScale);
 
             if (stack != null && stack.amount > 1) {
-                if(stack.amount > 9) builder.drawText(String.valueOf(stack.amount), slotX + selectorW - (12.0f * pixelScale), hotbarY + (2.0f * pixelScale), 0.25f, font);
-                else builder.drawText(String.valueOf(stack.amount), slotX + selectorW - (8 * pixelScale), hotbarY + (2.0f * pixelScale), 0.25f, font);
+                if (stack.amount > 9)
+                    builder.drawText(String.valueOf(stack.amount), slotX + selectorW - (12.0f * pixelScale),
+                            hotbarY + (2.0f * pixelScale), 0.25f, font);
+                else
+                    builder.drawText(String.valueOf(stack.amount), slotX + selectorW - (8 * pixelScale),
+                            hotbarY + (2.0f * pixelScale), 0.25f, font);
             }
         }
 

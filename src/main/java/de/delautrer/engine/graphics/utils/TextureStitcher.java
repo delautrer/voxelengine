@@ -1,5 +1,5 @@
 package de.delautrer.engine.graphics.utils;
-import de.delautrer.engine.graphics.*;
+
 import de.delautrer.Constants;
 import de.delautrer.engine.utils.AssetManager;
 import org.lwjgl.stb.STBImage;
@@ -21,7 +21,11 @@ public class TextureStitcher {
         public final float layer; // NEU: Der Layer im Texture Array!
 
         public AtlasRegion(float u0, float v0, float u1, float v1, float layer) {
-            this.u0 = u0; this.v0 = v0; this.u1 = u1; this.v1 = v1; this.layer = layer;
+            this.u0 = u0;
+            this.v0 = v0;
+            this.u1 = u1;
+            this.v1 = v1;
+            this.layer = layer;
         }
     }
 
@@ -44,7 +48,8 @@ public class TextureStitcher {
         }
     }
 
-    public static AtlasResult buildAtlas(Set<String> textureNames, String debugOutputPath, String textureFolder, boolean is2DAtlas) {
+    public static AtlasResult buildAtlas(Set<String> textureNames, String debugOutputPath, String textureFolder,
+            boolean is2DAtlas) {
         if (textureNames == null || textureNames.isEmpty()) {
             throw new RuntimeException("lmao I need textures bro...");
         }
@@ -102,7 +107,10 @@ public class TextureStitcher {
                             layer = 0.0f;
                         } else {
                             // Texture Array (Blöcke): Volle Textur, Layer ist der Index
-                            u0 = 0.0f; v0 = 0.0f; u1 = 1.0f; v1 = 1.0f;
+                            u0 = 0.0f;
+                            v0 = 0.0f;
+                            u1 = 1.0f;
+                            v1 = 1.0f;
                             layer = (float) i;
                         }
 
@@ -119,7 +127,11 @@ public class TextureStitcher {
 
         if (Constants.IS_DEV) {
             if (debugOutputPath != null) {
-                try { STBImageWrite.stbi_write_png(debugOutputPath, atlasWidth, atlasHeight, 4, atlasPixels, atlasWidth * 4); } catch (Exception ignored) {}
+                try {
+                    STBImageWrite.stbi_write_png(debugOutputPath, atlasWidth, atlasHeight, 4, atlasPixels,
+                            atlasWidth * 4);
+                } catch (Exception ignored) {
+                }
             }
         }
 

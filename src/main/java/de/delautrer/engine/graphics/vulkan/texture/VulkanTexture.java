@@ -1,10 +1,7 @@
 package de.delautrer.engine.graphics.vulkan.texture;
-import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
+
 import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
 import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
 import de.delautrer.engine.graphics.utils.TextureStitcher;
 import de.delautrer.engine.utils.AssetManager;
 import org.lwjgl.stb.STBImage;
@@ -13,8 +10,6 @@ import org.lwjgl.vulkan.*;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
-
-
 
 public class VulkanTexture implements de.delautrer.engine.graphics.ITexture {
 
@@ -26,7 +21,8 @@ public class VulkanTexture implements de.delautrer.engine.graphics.ITexture {
     private long descriptorPool;
     private long descriptorSet;
 
-    public VulkanTexture(VulkanContext context, VulkanCommandBuffers commandBuffers, long descriptorSetLayout, String path) {
+    public VulkanTexture(VulkanContext context, VulkanCommandBuffers commandBuffers, long descriptorSetLayout,
+            String path) {
         this.context = context;
         createTextureImage(commandBuffers, path);
         createTextureImageView();
@@ -35,7 +31,8 @@ public class VulkanTexture implements de.delautrer.engine.graphics.ITexture {
         createDescriptorSet(descriptorSetLayout);
     }
 
-    public VulkanTexture(VulkanContext context, VulkanCommandBuffers commandBuffers, long descriptorSetLayout, ByteBuffer pixels, int width, int height) {
+    public VulkanTexture(VulkanContext context, VulkanCommandBuffers commandBuffers, long descriptorSetLayout,
+            ByteBuffer pixels, int width, int height) {
         this.context = context;
         createTextureImage(commandBuffers, pixels, width, height);
         createTextureImageView();
@@ -44,7 +41,8 @@ public class VulkanTexture implements de.delautrer.engine.graphics.ITexture {
         createDescriptorSet(descriptorSetLayout);
     }
 
-    public VulkanTexture(VulkanContext context, VulkanCommandBuffers commandBuffers, long descriptorSetLayout, TextureStitcher.AtlasResult atlasResult) {
+    public VulkanTexture(VulkanContext context, VulkanCommandBuffers commandBuffers, long descriptorSetLayout,
+            TextureStitcher.AtlasResult atlasResult) {
         this.context = context;
         createTextureImage(commandBuffers, atlasResult.atlasPixels, atlasResult.atlasWidth, atlasResult.atlasHeight);
         createTextureImageView();
@@ -60,10 +58,12 @@ public class VulkanTexture implements de.delautrer.engine.graphics.ITexture {
             IntBuffer pChannels = stack.mallocInt(1);
 
             ByteBuffer fileBuffer = AssetManager.loadResource(path);
-            ByteBuffer pixels = STBImage.stbi_load_from_memory(fileBuffer, pWidth, pHeight, pChannels, STBImage.STBI_rgb_alpha);
+            ByteBuffer pixels = STBImage.stbi_load_from_memory(fileBuffer, pWidth, pHeight, pChannels,
+                    STBImage.STBI_rgb_alpha);
 
             if (pixels == null) {
-                throw new RuntimeException("Failed to load texture image: " + path + " -> " + STBImage.stbi_failure_reason());
+                throw new RuntimeException(
+                        "Failed to load texture image: " + path + " -> " + STBImage.stbi_failure_reason());
             }
 
             int texWidth = pWidth.get(0);
@@ -97,7 +97,8 @@ public class VulkanTexture implements de.delautrer.engine.graphics.ITexture {
         }
     }
 
-    private void createTextureImage(VulkanCommandBuffers commandBuffers, ByteBuffer pixels, int texWidth, int texHeight) {
+    private void createTextureImage(VulkanCommandBuffers commandBuffers, ByteBuffer pixels, int texWidth,
+            int texHeight) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             long imageSize = (long) texWidth * texHeight * 4;
 
@@ -165,7 +166,8 @@ public class VulkanTexture implements de.delautrer.engine.graphics.ITexture {
         }
     }
 
-    private void transitionImageLayout(VulkanCommandBuffers commandBuffers, long image, int format, int oldLayout, int newLayout) {
+    private void transitionImageLayout(VulkanCommandBuffers commandBuffers, long image, int format, int oldLayout,
+            int newLayout) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             VkCommandBuffer commandBuffer = commandBuffers.beginSingleTimeCommands();
 
@@ -190,7 +192,8 @@ public class VulkanTexture implements de.delautrer.engine.graphics.ITexture {
                 barrier.dstAccessMask(VK10.VK_ACCESS_TRANSFER_WRITE_BIT);
                 sourceStage = VK10.VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
                 destinationStage = VK10.VK_PIPELINE_STAGE_TRANSFER_BIT;
-            } else if (oldLayout == VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK10.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+            } else if (oldLayout == VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
+                    && newLayout == VK10.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
                 barrier.srcAccessMask(VK10.VK_ACCESS_TRANSFER_WRITE_BIT);
                 barrier.dstAccessMask(VK10.VK_ACCESS_SHADER_READ_BIT);
                 sourceStage = VK10.VK_PIPELINE_STAGE_TRANSFER_BIT;
@@ -205,7 +208,8 @@ public class VulkanTexture implements de.delautrer.engine.graphics.ITexture {
         }
     }
 
-    private void copyBufferToImage(VulkanCommandBuffers commandBuffers, long buffer, long image, int width, int height) {
+    private void copyBufferToImage(VulkanCommandBuffers commandBuffers, long buffer, long image, int width,
+            int height) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             VkCommandBuffer commandBuffer = commandBuffers.beginSingleTimeCommands();
 
@@ -222,7 +226,8 @@ public class VulkanTexture implements de.delautrer.engine.graphics.ITexture {
             region.imageOffset().set(0, 0, 0);
             region.imageExtent().set(width, height, 1);
 
-            VK10.vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, region);
+            VK10.vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK10.VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                    region);
 
             commandBuffers.endSingleTimeCommands(commandBuffer);
         }
@@ -294,23 +299,27 @@ public class VulkanTexture implements de.delautrer.engine.graphics.ITexture {
 
     private void createDescriptorSet(long descriptorSetLayout) {
         try (org.lwjgl.system.MemoryStack stack = org.lwjgl.system.MemoryStack.stackPush()) {
-            org.lwjgl.vulkan.VkDescriptorSetAllocateInfo allocInfo = org.lwjgl.vulkan.VkDescriptorSetAllocateInfo.calloc(stack);
+            org.lwjgl.vulkan.VkDescriptorSetAllocateInfo allocInfo = org.lwjgl.vulkan.VkDescriptorSetAllocateInfo
+                    .calloc(stack);
             allocInfo.sType(org.lwjgl.vulkan.VK10.VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO);
             allocInfo.descriptorPool(descriptorPool);
             allocInfo.pSetLayouts(stack.longs(descriptorSetLayout));
 
             java.nio.LongBuffer pDescriptorSet = stack.mallocLong(1);
-            if (org.lwjgl.vulkan.VK10.vkAllocateDescriptorSets(context.getDevice(), allocInfo, pDescriptorSet) != org.lwjgl.vulkan.VK10.VK_SUCCESS) {
+            if (org.lwjgl.vulkan.VK10.vkAllocateDescriptorSets(context.getDevice(), allocInfo,
+                    pDescriptorSet) != org.lwjgl.vulkan.VK10.VK_SUCCESS) {
                 throw new RuntimeException("Failed to allocate descriptor set");
             }
             descriptorSet = pDescriptorSet.get(0);
 
-            org.lwjgl.vulkan.VkDescriptorImageInfo.Buffer imageInfo = org.lwjgl.vulkan.VkDescriptorImageInfo.calloc(1, stack);
+            org.lwjgl.vulkan.VkDescriptorImageInfo.Buffer imageInfo = org.lwjgl.vulkan.VkDescriptorImageInfo.calloc(1,
+                    stack);
             imageInfo.imageLayout(org.lwjgl.vulkan.VK10.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
             imageInfo.imageView(textureImageView);
             imageInfo.sampler(textureSampler);
 
-            org.lwjgl.vulkan.VkWriteDescriptorSet.Buffer descriptorWrite = org.lwjgl.vulkan.VkWriteDescriptorSet.calloc(1, stack);
+            org.lwjgl.vulkan.VkWriteDescriptorSet.Buffer descriptorWrite = org.lwjgl.vulkan.VkWriteDescriptorSet
+                    .calloc(1, stack);
             descriptorWrite.sType(org.lwjgl.vulkan.VK10.VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET);
             descriptorWrite.dstSet(descriptorSet);
             descriptorWrite.dstBinding(0);

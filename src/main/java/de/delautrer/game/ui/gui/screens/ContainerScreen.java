@@ -1,5 +1,5 @@
 package de.delautrer.game.ui.gui.screens;
-import de.delautrer.engine.graphics.*;
+
 import de.delautrer.engine.graphics.IFont;
 import de.delautrer.game.items.ItemStack;
 import de.delautrer.game.ui.UIUtils;
@@ -63,11 +63,12 @@ public abstract class ContainerScreen extends MenuScreen {
             }
 
             /*
-            // Drag-Highlight
-            if (isDragging && dragSlots.contains(slot)) {
-                builder.addRect(slotX, slotY, 0.25f, slotSize, slotSize, 0.8f, 0.8f, 1.0f, 0.4f);
-            }
-            */
+             * // Drag-Highlight
+             * if (isDragging && dragSlots.contains(slot)) {
+             * builder.addRect(slotX, slotY, 0.25f, slotSize, slotSize, 0.8f, 0.8f, 1.0f,
+             * 0.4f);
+             * }
+             */
 
             // Item im Slot
             ItemStack stack = slot.getStack();
@@ -75,10 +76,12 @@ public abstract class ContainerScreen extends MenuScreen {
 
             // Anzahl
             if (stack != null && stack.amount > 1 && font != null) {
-                if(stack.amount > 9){
-                    builder.drawText(String.valueOf(stack.amount), slotX + slotSize - (12.0f * pixelScale), slotY + (2.0f * pixelScale), 0.3f, font);
+                if (stack.amount > 9) {
+                    builder.drawText(String.valueOf(stack.amount), slotX + slotSize - (12.0f * pixelScale),
+                            slotY + (2.0f * pixelScale), 0.3f, font);
                 } else {
-                    builder.drawText(String.valueOf(stack.amount), slotX + slotSize - (8 * pixelScale), slotY + (2.0f * pixelScale), 0.3f, font);
+                    builder.drawText(String.valueOf(stack.amount), slotX + slotSize - (8 * pixelScale),
+                            slotY + (2.0f * pixelScale), 0.3f, font);
                 }
             }
         }
@@ -88,13 +91,17 @@ public abstract class ContainerScreen extends MenuScreen {
         if (mouseStack != null) {
             float itemSize = slotSize - 4 * pixelScale;
             float invertedMouseY = height - mouseY;
-            builder.drawItem(mouseStack, mouseX - itemSize / 2.0f - 5 * pixelScale, invertedMouseY - itemSize / 2.0f + 3 * pixelScale, 0.5f, itemSize);
+            builder.drawItem(mouseStack, mouseX - itemSize / 2.0f - 5 * pixelScale,
+                    invertedMouseY - itemSize / 2.0f + 3 * pixelScale, 0.5f, itemSize);
 
             if (mouseStack.amount > 1 && font != null) {
-                if(mouseStack.amount > 9)
-                    builder.drawText(String.valueOf(mouseStack.amount), mouseX + (itemSize / 2.0f) - (14.0f * pixelScale), invertedMouseY - (itemSize / 2.0f) + (3.0f * pixelScale), 0.55f, font);
+                if (mouseStack.amount > 9)
+                    builder.drawText(String.valueOf(mouseStack.amount),
+                            mouseX + (itemSize / 2.0f) - (14.0f * pixelScale),
+                            invertedMouseY - (itemSize / 2.0f) + (3.0f * pixelScale), 0.55f, font);
                 else
-                    builder.drawText(String.valueOf(mouseStack.amount), mouseX + (itemSize / 2.0f) - (10f * pixelScale), invertedMouseY - (itemSize / 2.0f) + (3.0f * pixelScale), 0.55f, font);
+                    builder.drawText(String.valueOf(mouseStack.amount), mouseX + (itemSize / 2.0f) - (10f * pixelScale),
+                            invertedMouseY - (itemSize / 2.0f) + (3.0f * pixelScale), 0.55f, font);
             }
         }
 
@@ -121,8 +128,9 @@ public abstract class ContainerScreen extends MenuScreen {
             tipY = textHeight;
         }
 
-        builder.addTooltipBackground(tipX, tipY - (textHeight / 2.0f), 1.0f, textWidth + (12.0f*pixelScale), textHeight + (8.0f*pixelScale), 4, 0, 4.0f * pixelScale);
-        builder.drawText(text, tipX + (6.0f*pixelScale), tipY, 1.1f, font);
+        builder.addTooltipBackground(tipX, tipY - (textHeight / 2.0f), 1.0f, textWidth + (12.0f * pixelScale),
+                textHeight + (8.0f * pixelScale), 4, 0, 4.0f * pixelScale);
+        builder.drawText(text, tipX + (6.0f * pixelScale), tipY, 1.1f, font);
     }
 
     public Slot getHoveredSlotObj(float mouseX, float mouseY) {
@@ -159,7 +167,8 @@ public abstract class ContainerScreen extends MenuScreen {
         for (int i = 0; i < 9; i++) {
             if (input.isActionJustPressed("SLOT_" + (i + 1))) {
                 Slot hovered = getHoveredSlotObj(mouseX, rawMouseY);
-                if (hovered != null) container.hotbarSwap(hovered, i);
+                if (hovered != null)
+                    container.hotbarSwap(hovered, i);
                 break;
             }
         }
@@ -167,12 +176,16 @@ public abstract class ContainerScreen extends MenuScreen {
         // --- Inventar sortieren (Mittlere Maustaste) ---
         if (input.isActionJustPressed("PICK_BLOCK")) {
             Slot hovered = getHoveredSlotObj(mouseX, rawMouseY);
-            if (hovered != null) container.sortRegion(hovered);
+            if (hovered != null)
+                container.sortRegion(hovered);
         }
 
         // --- Maus-States ---
         boolean shiftPressed = false;
-        try { shiftPressed = input.isActionActive("SNEAK"); } catch (Exception e) {}
+        try {
+            shiftPressed = input.isActionActive("SNEAK");
+        } catch (Exception e) {
+        }
 
         boolean leftDown = input.isActionActive("INTERACT_BREAK");
         boolean leftJustPressed = input.isActionJustPressed("INTERACT_BREAK");
@@ -204,7 +217,8 @@ public abstract class ContainerScreen extends MenuScreen {
             if (leftDown && isDragging) {
                 // Solange gedrückt, Slots sammeln
                 Slot hovered = getHoveredSlotObj(mouseX, rawMouseY);
-                if (hovered != null) dragSlots.add(hovered);
+                if (hovered != null)
+                    dragSlots.add(hovered);
             } else if (!leftDown && isDragging) {
                 // Beim Loslassen verteilen
                 container.applyDrag(dragSlots);
@@ -233,7 +247,8 @@ public abstract class ContainerScreen extends MenuScreen {
 
     // Muss wegen der abstrakten Basisklasse leer bleiben (wird nicht mehr benutzt)
     @Override
-    protected void mouseClicked(float mouseX, float mouseY, int button) {}
+    protected void mouseClicked(float mouseX, float mouseY, int button) {
+    }
 
     public BaseContainer getContainer() {
         return container;

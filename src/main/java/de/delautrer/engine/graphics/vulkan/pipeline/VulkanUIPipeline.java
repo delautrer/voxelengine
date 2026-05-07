@@ -1,17 +1,12 @@
 package de.delautrer.engine.graphics.vulkan.pipeline;
+
 import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
 import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
-
-
 
 public class VulkanUIPipeline {
 
@@ -59,15 +54,19 @@ public class VulkanUIPipeline {
             shaderStages.get(1).module(fragShaderModule);
             shaderStages.get(1).pName(entryPoint);
 
-            VkVertexInputBindingDescription.Buffer bindingDescription = VkVertexInputBindingDescription.calloc(1, stack);
+            VkVertexInputBindingDescription.Buffer bindingDescription = VkVertexInputBindingDescription.calloc(1,
+                    stack);
             bindingDescription.binding(0);
             bindingDescription.stride(8 * Float.BYTES);
             bindingDescription.inputRate(VK10.VK_VERTEX_INPUT_RATE_VERTEX);
 
-            VkVertexInputAttributeDescription.Buffer attributeDescriptions = VkVertexInputAttributeDescription.calloc(3, stack);
+            VkVertexInputAttributeDescription.Buffer attributeDescriptions = VkVertexInputAttributeDescription.calloc(3,
+                    stack);
             attributeDescriptions.get(0).binding(0).location(0).format(VK10.VK_FORMAT_R32G32B32_SFLOAT).offset(0);
-            attributeDescriptions.get(1).binding(0).location(1).format(VK10.VK_FORMAT_R32G32B32_SFLOAT).offset(3 * Float.BYTES);
-            attributeDescriptions.get(2).binding(0).location(2).format(VK10.VK_FORMAT_R32G32_SFLOAT).offset(6 * Float.BYTES);
+            attributeDescriptions.get(1).binding(0).location(1).format(VK10.VK_FORMAT_R32G32B32_SFLOAT)
+                    .offset(3 * Float.BYTES);
+            attributeDescriptions.get(2).binding(0).location(2).format(VK10.VK_FORMAT_R32G32_SFLOAT)
+                    .offset(6 * Float.BYTES);
 
             VkPipelineVertexInputStateCreateInfo vertexInputInfo = VkPipelineVertexInputStateCreateInfo.calloc(stack);
             vertexInputInfo.sType(VK10.VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO);
@@ -80,7 +79,8 @@ public class VulkanUIPipeline {
             inputAssembly.primitiveRestartEnable(false);
 
             VkViewport.Buffer viewport = VkViewport.calloc(1, stack);
-            viewport.x(0.0f).y(0.0f).width((float) swapchain.getExtent().width()).height((float) swapchain.getExtent().height()).minDepth(0.0f).maxDepth(1.0f);
+            viewport.x(0.0f).y(0.0f).width((float) swapchain.getExtent().width())
+                    .height((float) swapchain.getExtent().height()).minDepth(0.0f).maxDepth(1.0f);
 
             VkRect2D.Buffer scissor = VkRect2D.calloc(1, stack);
             scissor.offset(VkOffset2D.calloc(stack).set(0, 0));
@@ -103,16 +103,17 @@ public class VulkanUIPipeline {
             // --- Z-INDEX: Tiefentest AN und auf GREATER_OR_EQUAL gesetzt ---
             VkPipelineDepthStencilStateCreateInfo depthStencil = VkPipelineDepthStencilStateCreateInfo.calloc(stack);
             depthStencil.sType(VK10.VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO);
-            //depthStencil.depthTestEnable(true).depthWriteEnable(true);
+            // depthStencil.depthTestEnable(true).depthWriteEnable(true);
             depthStencil.depthTestEnable(false).depthWriteEnable(false);
             depthStencil.depthCompareOp(VK10.VK_COMPARE_OP_GREATER_OR_EQUAL);
 
-            // Blending-Attachment (hier deaktivieren wir das klassische Alpha-Blending, damit LogicOp greift)
-            VkPipelineColorBlendAttachmentState.Buffer colorBlendAttachment = VkPipelineColorBlendAttachmentState.calloc(1, stack);
+            // Blending-Attachment (hier deaktivieren wir das klassische Alpha-Blending,
+            // damit LogicOp greift)
+            VkPipelineColorBlendAttachmentState.Buffer colorBlendAttachment = VkPipelineColorBlendAttachmentState
+                    .calloc(1, stack);
             colorBlendAttachment.colorWriteMask(
                     VK10.VK_COLOR_COMPONENT_R_BIT | VK10.VK_COLOR_COMPONENT_G_BIT |
-                            VK10.VK_COLOR_COMPONENT_B_BIT | VK10.VK_COLOR_COMPONENT_A_BIT
-            );
+                            VK10.VK_COLOR_COMPONENT_B_BIT | VK10.VK_COLOR_COMPONENT_A_BIT);
             colorBlendAttachment.blendEnable(true);
 
             // Neue Farbe * Alpha + Alte Farbe * (1 - Alpha)
@@ -131,7 +132,8 @@ public class VulkanUIPipeline {
             colorBlending.pAttachments(colorBlendAttachment);
 
             VkDescriptorSetLayoutBinding.Buffer bindings = VkDescriptorSetLayoutBinding.calloc(1, stack);
-            bindings.get(0).binding(0).descriptorCount(1).descriptorType(VK10.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER).stageFlags(VK10.VK_SHADER_STAGE_FRAGMENT_BIT);
+            bindings.get(0).binding(0).descriptorCount(1).descriptorType(VK10.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+                    .stageFlags(VK10.VK_SHADER_STAGE_FRAGMENT_BIT);
 
             VkDescriptorSetLayoutCreateInfo layoutInfo = VkDescriptorSetLayoutCreateInfo.calloc(stack);
             layoutInfo.sType(VK10.VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO).pBindings(bindings);
@@ -165,7 +167,8 @@ public class VulkanUIPipeline {
             pipelineInfo.layout(pipelineLayout).renderPass(renderPass.getHandle()).subpass(0);
 
             LongBuffer pGraphicsPipeline = stack.mallocLong(1);
-            VK10.vkCreateGraphicsPipelines(context.getDevice(), VK10.VK_NULL_HANDLE, pipelineInfo, null, pGraphicsPipeline);
+            VK10.vkCreateGraphicsPipelines(context.getDevice(), VK10.VK_NULL_HANDLE, pipelineInfo, null,
+                    pGraphicsPipeline);
             graphicsPipeline = pGraphicsPipeline.get(0);
 
             VK10.vkDestroyShaderModule(context.getDevice(), vertShaderModule, null);
@@ -173,9 +176,17 @@ public class VulkanUIPipeline {
         }
     }
 
-    public long getHandle() { return graphicsPipeline; }
-    public long getPipelineLayout() { return pipelineLayout; }
-    public long getDescriptorSetLayout() { return descriptorSetLayout; }
+    public long getHandle() {
+        return graphicsPipeline;
+    }
+
+    public long getPipelineLayout() {
+        return pipelineLayout;
+    }
+
+    public long getDescriptorSetLayout() {
+        return descriptorSetLayout;
+    }
 
     public void cleanup() {
         VK10.vkDestroyPipeline(context.getDevice(), graphicsPipeline, null);

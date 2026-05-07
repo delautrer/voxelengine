@@ -1,5 +1,5 @@
 package de.delautrer.engine.graphics;
-import de.delautrer.engine.graphics.*;
+
 import de.delautrer.engine.utils.AssetManager;
 import java.nio.ByteBuffer;
 

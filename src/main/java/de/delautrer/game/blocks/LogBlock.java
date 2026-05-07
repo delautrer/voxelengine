@@ -1,5 +1,5 @@
 package de.delautrer.game.blocks;
-import de.delautrer.engine.graphics.*;
+
 import de.delautrer.engine.graphics.utils.TextureStitcher.AtlasRegion;
 import de.delautrer.game.blocks.models.BlockModelData;
 import de.delautrer.game.blocks.state.BlockProperties.*;
@@ -25,26 +25,33 @@ public class LogBlock extends CubeBlock {
     }
 
     @Override
-    public BlockState getStateForPlacement(World world, Player player, Vector3i hitPos, Vector3i hitFace, Vector3f exactHit) {
+    public BlockState getStateForPlacement(World world, Player player, Vector3i hitPos, Vector3i hitFace,
+            Vector3f exactHit) {
         Axis axis = Axis.Y;
-        if (hitFace.x != 0) axis = Axis.X;
-        else if (hitFace.z != 0) axis = Axis.Z;
+        if (hitFace.x != 0)
+            axis = Axis.X;
+        else if (hitFace.z != 0)
+            axis = Axis.Z;
         return getDefaultState().with(AXIS, axis);
     }
 
     @Override
     public AtlasRegion getTextureForFace(BlockState state, BlockFace face) {
         BlockModelData model = getModel();
-        if (model == null) return null;
+        if (model == null)
+            return null;
 
         AtlasRegion texEnd = model.top;
         AtlasRegion texBark = model.north;
 
         Axis axis = state.getValue(AXIS);
 
-        if (axis == Axis.Y) return (face == BlockFace.UP || face == BlockFace.DOWN) ? texEnd : texBark;
-        if (axis == Axis.X) return (face == BlockFace.EAST || face == BlockFace.WEST) ? texEnd : texBark;
-        if (axis == Axis.Z) return (face == BlockFace.NORTH || face == BlockFace.SOUTH) ? texEnd : texBark;
+        if (axis == Axis.Y)
+            return (face == BlockFace.UP || face == BlockFace.DOWN) ? texEnd : texBark;
+        if (axis == Axis.X)
+            return (face == BlockFace.EAST || face == BlockFace.WEST) ? texEnd : texBark;
+        if (axis == Axis.Z)
+            return (face == BlockFace.NORTH || face == BlockFace.SOUTH) ? texEnd : texBark;
 
         return texBark;
     }

@@ -1,7 +1,5 @@
 package de.delautrer.game.inventory;
 
-import de.delautrer.game.inventory.BaseInventory;
-
 public class CraftingInventory extends BaseInventory {
     private final int width;
     private final int height;
@@ -12,6 +10,11 @@ public class CraftingInventory extends BaseInventory {
         this.height = height;
     }
 
-    public int getWidth() { return width; }
-    public int getHeight() { return height; }
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
 }

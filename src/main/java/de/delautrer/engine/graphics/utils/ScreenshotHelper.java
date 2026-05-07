@@ -1,5 +1,5 @@
 package de.delautrer.engine.graphics.utils;
-import de.delautrer.engine.graphics.*;
+
 import de.delautrer.engine.graphics.vulkan.core.VulkanContext;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.stb.STBImageWrite;
@@ -12,7 +12,8 @@ import static org.lwjgl.vulkan.KHRSwapchain.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
 public class ScreenshotHelper {
 
-    public static void saveScreenshot(VulkanContext context, long commandPool, long srcImage, int width, int height, String filepath) {
+    public static void saveScreenshot(VulkanContext context, long commandPool, long srcImage, int width, int height,
+            String filepath) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             // 1. Lineares Bild (Buffer) erstellen
             VkBufferCreateInfo bufferInfo = VkBufferCreateInfo.calloc(stack)
@@ -31,7 +32,8 @@ public class ScreenshotHelper {
             VkMemoryAllocateInfo allocInfo = VkMemoryAllocateInfo.calloc(stack)
                     .sType(VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO)
                     .allocationSize(memReqs.size())
-                    .memoryTypeIndex(findMemoryType(context, memReqs.memoryTypeBits(), VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT));
+                    .memoryTypeIndex(findMemoryType(context, memReqs.memoryTypeBits(),
+                            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT));
 
             LongBuffer pMemory = stack.mallocLong(1);
             vkAllocateMemory(context.getDevice(), allocInfo, null, pMemory);
@@ -58,15 +60,16 @@ public class ScreenshotHelper {
             vkMapMemory(context.getDevice(), dstMemory, 0, width * height * 4, 0, pData);
             ByteBuffer vulkanData = pData.getByteBuffer(0, width * height * 4);
 
-            // EIGENEN ARBEITSSPEICHER ALLOZIEREN (da wir den Vulkan-Speicher gleich freigeben!)
+            // EIGENEN ARBEITSSPEICHER ALLOZIEREN (da wir den Vulkan-Speicher gleich
+            // freigeben!)
             ByteBuffer ramData = org.lwjgl.system.MemoryUtil.memAlloc(width * height * 4);
 
             // BGRA zu RGBA konvertieren UND gleichzeitig in RAM kopieren
             for (int i = 0; i < width * height * 4; i += 4) {
-                ramData.put(i, vulkanData.get(i + 2));           // R <- B
+                ramData.put(i, vulkanData.get(i + 2)); // R <- B
                 ramData.put(i + 1, vulkanData.get(i + 1)); // G <- G
-                ramData.put(i + 2, vulkanData.get(i));     // B <- R
-                ramData.put(i + 3, (byte) 255);            // A zwingend auf 1.0
+                ramData.put(i + 2, vulkanData.get(i)); // B <- R
+                ramData.put(i + 3, (byte) 255); // A zwingend auf 1.0
             }
 
             // Vulkan Speicher SOFORT freigeben, damit das Spiel flüssig weiterläuft!
@@ -94,11 +97,13 @@ public class ScreenshotHelper {
                     .srcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
                     .dstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
                     .image(image);
-            barrier.subresourceRange().aspectMask(VK_IMAGE_ASPECT_COLOR_BIT).baseMipLevel(0).levelCount(1).baseArrayLayer(0).layerCount(1);
+            barrier.subresourceRange().aspectMask(VK_IMAGE_ASPECT_COLOR_BIT).baseMipLevel(0).levelCount(1)
+                    .baseArrayLayer(0).layerCount(1);
             barrier.srcAccessMask(VK_ACCESS_MEMORY_READ_BIT);
             barrier.dstAccessMask(VK_ACCESS_TRANSFER_READ_BIT);
 
-            vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, null, null, barrier);
+            vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, null, null,
+                    barrier);
         }
     }
 
@@ -106,7 +111,8 @@ public class ScreenshotHelper {
         VkPhysicalDeviceMemoryProperties memProperties = VkPhysicalDeviceMemoryProperties.calloc();
         vkGetPhysicalDeviceMemoryProperties(context.getPhysicalDevice(), memProperties);
         for (int i = 0; i < memProperties.memoryTypeCount(); i++) {
-            if ((typeFilter & (1 << i)) != 0 && (memProperties.memoryTypes(i).propertyFlags() & properties) == properties) {
+            if ((typeFilter & (1 << i)) != 0
+                    && (memProperties.memoryTypes(i).propertyFlags() & properties) == properties) {
                 memProperties.free();
                 return i;
             }

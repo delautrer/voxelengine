@@ -1,5 +1,5 @@
 package de.delautrer.game.ui.elements;
-import de.delautrer.engine.graphics.*;
+
 import de.delautrer.engine.graphics.IFont;
 import de.delautrer.game.ui.UIMeshBuilder;
 
@@ -12,12 +12,16 @@ public class UISeparator extends UIElement {
         super(0, 0, width, height);
         this.text = text;
         this.lineHeight = lineHeight;
-        this.r = r; this.g = g; this.b = b; this.a = a;
+        this.r = r;
+        this.g = g;
+        this.b = b;
+        this.a = a;
     }
 
     @Override
     public void render(UIMeshBuilder builder, IFont font, float mouseX, float mouseY) {
-        if (!isVisible) return;
+        if (!isVisible)
+            return;
 
         float currentX = x;
 

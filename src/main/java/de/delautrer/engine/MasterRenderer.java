@@ -148,13 +148,6 @@ public class MasterRenderer {
         packet.cameraPos = camera.getPosition();
         packet.renderDistance = SettingsManager.get().renderDistance * 16.0f;
 
-        Vector3f skyColor = skyManager.getCurrentSkyColor();
-        float intensity = skyManager.getGlobalLightIntensity();
-        if (packet.isUnderwater)
-            renderer.setClearColor(0.02f * intensity, 0.1f * intensity, 0.3f * intensity);
-        else
-            renderer.setClearColor(skyColor.x, skyColor.y, skyColor.z);
-
         packet.blockUITexture = blockUITexture;
         packet.uiCombinedMesh = uiRenderer.getCombinedMesh();
         packet.uiDrawCalls = uiRenderer.getDrawCalls();
@@ -197,9 +190,7 @@ public class MasterRenderer {
             packet.highlightMesh = highlightMesh;
         }
 
-        // Entity population is now handled by CullingUtils.buildVisibleLists
-        // packet.entities = world.getEntities();
-
+        Vector3f skyColor = skyManager.getCurrentSkyColor();
         packet.sunDirection = skyManager.getSunDirection();
         packet.globalLight = skyManager.getGlobalLightIntensity();
         packet.skyR = skyColor.x;

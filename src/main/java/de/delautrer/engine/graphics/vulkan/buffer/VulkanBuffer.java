@@ -1,17 +1,12 @@
 package de.delautrer.engine.graphics.vulkan.buffer;
-import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
+
 import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
 import org.lwjgl.vulkan.VK10;
 import org.lwjgl.vulkan.VkBufferCreateInfo;
 import org.lwjgl.vulkan.VkMemoryAllocateInfo;
 import org.lwjgl.vulkan.VkMemoryRequirements;
 import org.lwjgl.system.MemoryStack;
 import java.nio.LongBuffer;
-
 
 public class VulkanBuffer {
     private final VulkanContext context;
@@ -51,8 +46,13 @@ public class VulkanBuffer {
         }
     }
 
-    public long getBuffer() { return buffer; }
-    public long getBufferMemory() { return bufferMemory; }
+    public long getBuffer() {
+        return buffer;
+    }
+
+    public long getBufferMemory() {
+        return bufferMemory;
+    }
 
     public void cleanup() {
         VK10.vkDestroyBuffer(context.getDevice(), buffer, null);

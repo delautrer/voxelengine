@@ -1,15 +1,8 @@
 package de.delautrer.engine.graphics.vulkan.core;
-import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
-import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
+
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
 import java.nio.LongBuffer;
-
-
 
 public class VulkanCommandBuffers {
 
@@ -58,7 +51,8 @@ public class VulkanCommandBuffers {
         }
     }
 
-    public VkCommandBuffer beginRecording(int imageIndex, VulkanSwapchain swapchain, VulkanRenderPass renderPass, VulkanFramebuffers framebuffers, float skyR, float skyG, float skyB) {
+    public VkCommandBuffer beginRecording(int imageIndex, VulkanSwapchain swapchain, VulkanRenderPass renderPass,
+            VulkanFramebuffers framebuffers, float skyR, float skyG, float skyB) {
         VkCommandBuffer cmd = commandBuffers[imageIndex];
         VK10.vkResetCommandBuffer(cmd, 0);
 
@@ -85,10 +79,12 @@ public class VulkanCommandBuffers {
             VK10.vkCmdBeginRenderPass(cmd, renderPassInfo, VK10.VK_SUBPASS_CONTENTS_INLINE);
 
             VkViewport.Buffer viewport = VkViewport.calloc(1, stack);
-            viewport.x(0.0f); viewport.y(0.0f);
+            viewport.x(0.0f);
+            viewport.y(0.0f);
             viewport.width((float) swapchain.getExtent().width());
             viewport.height((float) swapchain.getExtent().height());
-            viewport.minDepth(0.0f); viewport.maxDepth(1.0f);
+            viewport.minDepth(0.0f);
+            viewport.maxDepth(1.0f);
             VK10.vkCmdSetViewport(cmd, 0, viewport);
 
             VkRect2D.Buffer scissor = VkRect2D.calloc(1, stack);
@@ -145,8 +141,14 @@ public class VulkanCommandBuffers {
         }
     }
 
-    public long getCommandPool() { return commandPool; }
-    public VkCommandBuffer[] getCommandBuffers() { return commandBuffers; }
+    public long getCommandPool() {
+        return commandPool;
+    }
+
+    public VkCommandBuffer[] getCommandBuffers() {
+        return commandBuffers;
+    }
+
     public void cleanup() {
         VK10.vkDestroyCommandPool(context.getDevice(), commandPool, null);
     }

@@ -1,5 +1,5 @@
 package de.delautrer.engine.graphics.systems;
-import de.delautrer.engine.graphics.vulkan.*;
+
 import de.delautrer.engine.graphics.vulkan.core.*;
 import de.delautrer.engine.graphics.vulkan.pipeline.*;
 import de.delautrer.engine.graphics.vulkan.buffer.*;
@@ -28,9 +28,9 @@ public class TerrainRenderSystem implements IRenderSystem {
             pcBuffer.put(17, packet.renderDistance);
             pcBuffer.put(18, 1.0f); // fogMultiplier
 
-            pcBuffer.put(19, (float)packet.cameraPos.x);
-            pcBuffer.put(20, (float)packet.cameraPos.y);
-            pcBuffer.put(21, (float)packet.cameraPos.z);
+            pcBuffer.put(19, (float) packet.cameraPos.x);
+            pcBuffer.put(20, (float) packet.cameraPos.y);
+            pcBuffer.put(21, (float) packet.cameraPos.z);
 
             pcBuffer.put(22, 0.0f); // offsetX
             pcBuffer.put(23, 0.0f); // offsetY
@@ -42,9 +42,10 @@ public class TerrainRenderSystem implements IRenderSystem {
             // 1. SOLIDE BLÖCKE ZEICHNEN
             if (packet.opaqueMeshes != null && !packet.opaqueMeshes.isEmpty()) {
                 VK10.vkCmdBindPipeline(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getHandle());
-                VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayout(), 0, stack.longs(((VulkanTextureArray)packet.worldTexture).getDescriptorSet()), null);
+                VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayout(), 0,
+                        stack.longs(((VulkanTextureArray) packet.worldTexture).getDescriptorSet()), null);
 
-                for (IMesh imesh : packet.opaqueMeshes) { 
+                for (IMesh imesh : packet.opaqueMeshes) {
                     VulkanMesh mesh = (VulkanMesh) imesh;
                     // NEU: Offset pro Chunk in den Buffer schreiben
                     float relX = (float) ((double) mesh.chunkOffsetX - packet.cameraPos.x);
@@ -54,33 +55,38 @@ public class TerrainRenderSystem implements IRenderSystem {
                     pcBuffer.put(23, relY);
                     pcBuffer.put(24, relZ);
                     // NEU: Push Constants FÜR DIESES MESH senden
-                    VK10.vkCmdPushConstants(cmd, pipeline.getPipelineLayout(), VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, pcBuffer);
+                    VK10.vkCmdPushConstants(cmd, pipeline.getPipelineLayout(),
+                            VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, pcBuffer);
 
                     drawMesh(cmd, stack, mesh);
                 }
             }
 
             // 2. OVERLAY ZEICHNEN (Block-Risse) VOR DEM WASSER!
-            if (packet.overlayMesh != null && ((VulkanMesh)packet.overlayMesh).getIndexCount() > 0) {
+            if (packet.overlayMesh != null && ((VulkanMesh) packet.overlayMesh).getIndexCount() > 0) {
                 VK10.vkCmdBindPipeline(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getTransparentHandle());
-                VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayout(), 0, stack.longs(((VulkanTextureArray)packet.worldTexture).getDescriptorSet()), null);
+                VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayout(), 0,
+                        stack.longs(((VulkanTextureArray) packet.worldTexture).getDescriptorSet()), null);
 
-                // Das Overlay wird in MasterRenderer bereits in absoluten Weltkoordinaten gebaut,
+                // Das Overlay wird in MasterRenderer bereits in absoluten Weltkoordinaten
+                // gebaut,
                 // daher muss der Offset hier wieder auf 0.0f stehen (plus Kamera offset)
                 pcBuffer.put(22, (float) -packet.cameraPos.x);
                 pcBuffer.put(23, (float) -packet.cameraPos.y);
                 pcBuffer.put(24, (float) -packet.cameraPos.z);
-                VK10.vkCmdPushConstants(cmd, pipeline.getPipelineLayout(), VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, pcBuffer);
+                VK10.vkCmdPushConstants(cmd, pipeline.getPipelineLayout(),
+                        VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, pcBuffer);
 
-                drawMesh(cmd, stack, (VulkanMesh)packet.overlayMesh);
+                drawMesh(cmd, stack, (VulkanMesh) packet.overlayMesh);
             }
 
             // 3. WASSER ZEICHNEN (TRANSPARENT)
             if (packet.waterMeshes != null && !packet.waterMeshes.isEmpty()) {
                 VK10.vkCmdBindPipeline(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getTransparentHandle());
-                VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayout(), 0, stack.longs(((VulkanTextureArray)packet.worldTexture).getDescriptorSet()), null);
+                VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayout(), 0,
+                        stack.longs(((VulkanTextureArray) packet.worldTexture).getDescriptorSet()), null);
 
-                for (IMesh imesh : packet.waterMeshes) { 
+                for (IMesh imesh : packet.waterMeshes) {
                     VulkanMesh mesh = (VulkanMesh) imesh;
                     // NEU: Offset pro Chunk in den Buffer schreiben
                     float relX = (float) ((double) mesh.chunkOffsetX - packet.cameraPos.x);
@@ -90,7 +96,8 @@ public class TerrainRenderSystem implements IRenderSystem {
                     pcBuffer.put(23, relY);
                     pcBuffer.put(24, relZ);
                     // NEU: Push Constants FÜR DIESES MESH senden
-                    VK10.vkCmdPushConstants(cmd, pipeline.getPipelineLayout(), VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, pcBuffer);
+                    VK10.vkCmdPushConstants(cmd, pipeline.getPipelineLayout(),
+                            VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, pcBuffer);
 
                     drawMesh(cmd, stack, mesh);
                 }
@@ -106,8 +113,12 @@ public class TerrainRenderSystem implements IRenderSystem {
         }
     }
 
-    public long getDescriptorSetLayout() { return pipeline.getDescriptorSetLayout(); }
+    public long getDescriptorSetLayout() {
+        return pipeline.getDescriptorSetLayout();
+    }
 
     @Override
-    public void cleanup() { pipeline.cleanup(); }
+    public void cleanup() {
+        pipeline.cleanup();
+    }
 }

@@ -1,14 +1,10 @@
 package de.delautrer.engine.graphics.vulkan.buffer;
+
 import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
 import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 import org.lwjgl.vulkan.VK10;
-
 
 public class VulkanMesh implements de.delautrer.engine.graphics.IMesh {
     private final VulkanContext context;
@@ -37,21 +33,24 @@ public class VulkanMesh implements de.delautrer.engine.graphics.IMesh {
 
     public void updateMesh(float[] vertices, int[] indices) {
         indexCount = indices.length;
-        if (indexCount == 0) return;
+        if (indexCount == 0)
+            return;
 
         long requiredVertexSize = (long) vertices.length * Float.BYTES;
         long requiredIndexSize = (long) indices.length * Integer.BYTES;
 
         // --- 1. VERTEX BUFFER UPDATE ---
         if (requiredVertexSize > maxVertexBufferSize) {
-            // FIX: Wir warten auf die GPU, BEVOR wir ihr den Speicher unter den Füßen wegziehen!
+            // FIX: Wir warten auf die GPU, BEVOR wir ihr den Speicher unter den Füßen
+            // wegziehen!
             if (vertexBuffer != null) {
                 VK10.vkDeviceWaitIdle(context.getDevice());
                 vertexBuffer.cleanup();
             }
 
             // ANTI-STUTTER FIX: Wenn wir vergrößern, dann direkt massiv!
-            // Min. 128 KB vorab-allozieren. Dadurch muss die Engine beim Droppen von Items nie wieder warten!
+            // Min. 128 KB vorab-allozieren. Dadurch muss die Engine beim Droppen von Items
+            // nie wieder warten!
             maxVertexBufferSize = Math.max((long) (requiredVertexSize * 2.0), 128 * 1024L);
 
             vertexBuffer = new VulkanBuffer(context, maxVertexBufferSize,
@@ -59,7 +58,8 @@ public class VulkanMesh implements de.delautrer.engine.graphics.IMesh {
                     VK10.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK10.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
         }
 
-        // Daten flink in den reservierten (und garantiert ausreichend großen) Speicher schreiben
+        // Daten flink in den reservierten (und garantiert ausreichend großen) Speicher
+        // schreiben
         try (MemoryStack stack = MemoryStack.stackPush()) {
             org.lwjgl.PointerBuffer data = stack.mallocPointer(1);
             VK10.vkMapMemory(context.getDevice(), vertexBuffer.getBufferMemory(), 0, requiredVertexSize, 0, data);
@@ -93,10 +93,18 @@ public class VulkanMesh implements de.delautrer.engine.graphics.IMesh {
         }
     }
 
-    public long getVertexBuffer() { return vertexBuffer != null ? vertexBuffer.getBuffer() : 0; }
-    public long getIndexBuffer() { return indexBuffer != null ? indexBuffer.getBuffer() : 0; }
+    public long getVertexBuffer() {
+        return vertexBuffer != null ? vertexBuffer.getBuffer() : 0;
+    }
+
+    public long getIndexBuffer() {
+        return indexBuffer != null ? indexBuffer.getBuffer() : 0;
+    }
+
     @Override
-    public int getIndexCount() { return indexCount; }
+    public int getIndexCount() {
+        return indexCount;
+    }
 
     public void cleanup() {
         if (vertexBuffer != null) {

@@ -1,5 +1,5 @@
 package de.delautrer.game.ui.elements;
-import de.delautrer.engine.graphics.*;
+
 import de.delautrer.engine.graphics.IFont;
 import de.delautrer.game.ui.UIMeshBuilder;
 import de.delautrer.engine.input.InputManager;
@@ -29,9 +29,11 @@ public class UIInputField extends UIElement {
     public boolean isFocused() {
         return isFocused;
     }
+
     public void setText(String text) {
         this.text = text;
     }
+
     public String getText() {
         return text;
     }
@@ -52,7 +54,8 @@ public class UIInputField extends UIElement {
 
     @Override
     public void render(UIMeshBuilder builder, IFont font, float mouseX, float mouseY) {
-        if (!isVisible) return;
+        if (!isVisible)
+            return;
 
         // Hintergrund (dunkler, wenn fokussiert)
         int gridX = isFocused ? GRID_X_HOVER : GRID_X_NORMAL;
@@ -74,7 +77,8 @@ public class UIInputField extends UIElement {
     }
 
     public void handleInput(InputManager input) {
-        if (!isFocused) return;
+        if (!isFocused)
+            return;
 
         for (char c : input.consumeTypedChars()) {
             typeChar(c);

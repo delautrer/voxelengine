@@ -30,7 +30,8 @@ public class BlockRegistry {
     }
 
     public static void init() {
-        if (isInitialized) return; // Wenn schon geladen, abbrechen
+        if (isInitialized)
+            return; // Wenn schon geladen, abbrechen
         isInitialized = true;
         System.out.println("[BlockRegistry] Initializing...");
 
@@ -42,8 +43,14 @@ public class BlockRegistry {
 
     private static void registerAir() {
         Block air = new Block(false, true, true, false) {
-            @Override public void generateMesh(int x, int y, int z, Chunk chunk, ChunkManager cm) {}
-            @Override public boolean canBeReplaced(BlockState state, BlockItem item, Vector3i hitFace, Vector3f exactHit) { return true; }
+            @Override
+            public void generateMesh(int x, int y, int z, Chunk chunk, ChunkManager cm) {
+            }
+
+            @Override
+            public boolean canBeReplaced(BlockState state, BlockItem item, Vector3i hitFace, Vector3f exactHit) {
+                return true;
+            }
         };
         air.setId((byte) 0);
         BLOCKS_BY_ID[0] = air;
@@ -52,14 +59,16 @@ public class BlockRegistry {
 
     private static void loadBlocksFromJson() {
         try {
-            // Lesen der Datei. getResourceAsStream funktioniert sowohl in der IDE als auch in der .exe (.jar)
+            // Lesen der Datei. getResourceAsStream funktioniert sowohl in der IDE als auch
+            // in der .exe (.jar)
             InputStream is = BlockRegistry.class.getResourceAsStream("/assets/data/blocks.json");
             if (is == null) {
                 System.err.println("[BlockRegistry] Error: /assets/data/blocks.json nicht gefunden!");
                 return;
             }
 
-            Type listType = new TypeToken<List<BlockDefinition>>(){}.getType();
+            Type listType = new TypeToken<List<BlockDefinition>>() {
+            }.getType();
             List<BlockDefinition> definitions = GSON.fromJson(new InputStreamReader(is), listType);
 
             for (BlockDefinition def : definitions) {
@@ -81,15 +90,24 @@ public class BlockRegistry {
         }
 
         switch (def.type.toLowerCase()) {
-            case "cube":   return new CubeBlock(def.isSolid, def.isTransparent);
-            case "slab":   return new SlabBlock();
-            case "stair":  return new StairBlock();
-            case "plant":  return new PlantBlock();
-            case "water":  return new WaterBlock();
-            case "leaves": return new LeavesBlock();
-            case "torch":  return new TorchBlock();
-            case "log":    return new LogBlock();
-            case "chest":  return new ChestBlock();
+            case "cube":
+                return new CubeBlock(def.isSolid, def.isTransparent);
+            case "slab":
+                return new SlabBlock();
+            case "stair":
+                return new StairBlock();
+            case "plant":
+                return new PlantBlock();
+            case "water":
+                return new WaterBlock();
+            case "leaves":
+                return new LeavesBlock();
+            case "torch":
+                return new TorchBlock();
+            case "log":
+                return new LogBlock();
+            case "chest":
+                return new ChestBlock();
             default:
                 System.err.println("[BlockRegistry] Unbekannter Block Type: " + def.type + " bei " + def.name);
                 return null;
@@ -97,7 +115,7 @@ public class BlockRegistry {
     }
 
     private static void register(byte id, String path, Block block, BlockDefinition def) {
-        String fullId = Constants.NAMESPACE + ":" + path;
+        // String fullId = Constants.NAMESPACE + ":" + path;
         block.setId(id);
         block.setHardness(def.hardness);
 
@@ -105,7 +123,8 @@ public class BlockRegistry {
             block.setLightEmission(def.lightEmission);
         }
 
-        // Sound und Loot-Table (Nutzt die überschriebenen Werte, falls vorhanden, sonst Fallback)
+        // Sound und Loot-Table (Nutzt die überschriebenen Werte, falls vorhanden, sonst
+        // Fallback)
         block.setSoundMaterialName(def.soundMaterial != null ? def.soundMaterial : path);
         block.setLootTable(def.customLootTable != null ? def.customLootTable : "blocks/" + path + ".json");
 
@@ -114,11 +133,16 @@ public class BlockRegistry {
         BLOCKS_BY_ID[id & 0xFF] = block;
     }
 
-    public static Block get(byte internalId) { return BLOCKS_BY_ID[internalId & 0xFF] != null ? BLOCKS_BY_ID[internalId & 0xFF] : get(Constants.NAMESPACE + ":air"); }
+    public static Block get(byte internalId) {
+        return BLOCKS_BY_ID[internalId & 0xFF] != null ? BLOCKS_BY_ID[internalId & 0xFF]
+                : get(Constants.NAMESPACE + ":air");
+    }
+
     public static Block get(String fullId) {
         Block b = REGISTRY.get(fullId);
         return b != null ? b : get(Constants.NAMESPACE + ":air");
     }
+
     public static Map<String, Block> getAll() {
         return REGISTRY.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().toString(), Map.Entry::getValue));
     }

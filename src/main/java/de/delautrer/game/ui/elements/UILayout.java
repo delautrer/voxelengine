@@ -1,5 +1,5 @@
 package de.delautrer.game.ui.elements;
-import de.delautrer.engine.graphics.*;
+
 import de.delautrer.engine.graphics.IFont;
 import de.delautrer.game.ui.UIMeshBuilder;
 import java.util.ArrayList;
@@ -34,7 +34,8 @@ public abstract class UILayout extends UIElement {
 
     @Override
     public void render(UIMeshBuilder builder, IFont font, float mouseX, float mouseY) {
-        if (!isVisible) return;
+        if (!isVisible)
+            return;
         for (UIElement child : children) {
             child.render(builder, font, mouseX, mouseY);
         }

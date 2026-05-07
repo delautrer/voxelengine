@@ -1,5 +1,5 @@
 package de.delautrer.game.ui;
-import de.delautrer.engine.graphics.*;
+
 import de.delautrer.engine.graphics.IFont;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.game.entity.player.GameMode;
@@ -38,7 +38,8 @@ public class UIManager {
                     currentScreen.onClose();
                 }
                 if (externalInv instanceof ChestInventory) {
-                    currentScreen = new ChestScreen(new ChestContainer(interaction.getInventory(), (ChestInventory) externalInv));
+                    currentScreen = new ChestScreen(
+                            new ChestContainer(interaction.getInventory(), (ChestInventory) externalInv));
                 }
                 if (lastWidth > 0 && currentScreen != null) {
                     currentScreen.init(lastWidth, lastHeight);
@@ -51,7 +52,8 @@ public class UIManager {
         }
         // 2. Hat der Spieler nur sein eigenes Inventar offen?
         else if (isPlayerInvOpen) {
-            // Prüfen, ob wir den Screen neu laden müssen (falls er vorher null oder ein ChestScreen war)
+            // Prüfen, ob wir den Screen neu laden müssen (falls er vorher null oder ein
+            // ChestScreen war)
             if (currentScreen == null || currentScreen instanceof ChestScreen) {
                 if (currentScreen != null) {
                     currentScreen.onClose();
@@ -63,7 +65,8 @@ public class UIManager {
                     currentScreen = new InventoryScreen(new PlayerContainer(interaction.getInventory()));
                 }
 
-                if (lastWidth > 0) currentScreen.init(lastWidth, lastHeight);
+                if (lastWidth > 0)
+                    currentScreen.init(lastWidth, lastHeight);
             }
             currentScreen.handleInput(input);
 
@@ -77,12 +80,16 @@ public class UIManager {
         }
     }
 
-    public void buildMeshes(UIMeshBuilder builder, int width, int height, InputManager input, PlayerInteraction interaction, float mouseX, float mouseY, DebugOverlay debugOverlay, ChatOverlay chatOverlay, IFont font, int blockAtlasWidth) {
+    public void buildMeshes(UIMeshBuilder builder, int width, int height, InputManager input,
+            PlayerInteraction interaction, float mouseX, float mouseY, DebugOverlay debugOverlay,
+            ChatOverlay chatOverlay, IFont font, int blockAtlasWidth) {
         builder.clear();
 
         if (width != lastWidth || height != lastHeight) {
-            lastWidth = width; lastHeight = height;
-            if (currentScreen != null) currentScreen.init(width, height);
+            lastWidth = width;
+            lastHeight = height;
+            if (currentScreen != null)
+                currentScreen.init(width, height);
         }
 
         int hoveredSlot = -1;

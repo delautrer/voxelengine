@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 public class CreativeContainer extends BaseContainer {
 
+    @SuppressWarnings("unused")
     private final PlayerInventory playerInventory;
     private final List<Item> allItems;
     private List<Item> filteredItems;
@@ -33,7 +34,7 @@ public class CreativeContainer extends BaseContainer {
         final int rows = 5;
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < 9; col++) {
-                addSlot(new Slot(null, row * 9 + col, col * 24, 34 + (((rows-1) - row) * 24)));
+                addSlot(new Slot(null, row * 9 + col, col * 24, 34 + (((rows - 1) - row) * 24)));
             }
         }
 
@@ -101,6 +102,11 @@ public class CreativeContainer extends BaseContainer {
         }
     }
 
-    public int getMaxRows() { return (int) Math.ceil(filteredItems.size() / 9.0); }
-    public int getScrollOffset() { return scrollOffset; }
+    public int getMaxRows() {
+        return (int) Math.ceil(filteredItems.size() / 9.0);
+    }
+
+    public int getScrollOffset() {
+        return scrollOffset;
+    }
 }

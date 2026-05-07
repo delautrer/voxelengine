@@ -1,5 +1,5 @@
 package de.delautrer.game.states;
-import de.delautrer.engine.graphics.*;
+
 import de.delautrer.engine.Engine;
 import de.delautrer.engine.MenuRenderer;
 import de.delautrer.engine.input.InputManager;
@@ -37,7 +37,8 @@ public class MainMenuScene extends Scene {
                 // 1. Box erstellen (Spacing: 20px)
                 UIVBox menuBox = new UIVBox(0, 0, 20.0f);
 
-                // 2. Buttons einwerfen (X und Y werden von der Box ignoriert und selbst gesetzt!)
+                // 2. Buttons einwerfen (X und Y werden von der Box ignoriert und selbst
+                // gesetzt!)
                 menuBox.addChild(new UIButton(0, 0, btnWidth, btnHeight, "Play Singleplayer", () -> {
                     WorldSelectScreen worldScreen = new WorldSelectScreen(engine, () -> activeScreen = mainScreen);
                     worldScreen.init(engine.getWindow().getWidth(), engine.getWindow().getHeight());
@@ -69,7 +70,8 @@ public class MainMenuScene extends Scene {
 
     @Override
     public void update(float deltaTime) {
-        if (activeScreen == null) return;
+        if (activeScreen == null)
+            return;
         InputManager input = engine.getInputManager();
         float uiMouseX = input.getMouseX();
         float uiMouseY = engine.getWindow().getHeight() - input.getMouseY();
@@ -78,7 +80,8 @@ public class MainMenuScene extends Scene {
 
     @Override
     public void render() {
-        if (activeScreen == null) return;
+        if (activeScreen == null)
+            return;
         InputManager input = engine.getInputManager();
         float uiMouseX = input.getMouseX();
         float uiMouseY = engine.getWindow().getHeight() - input.getMouseY();
@@ -88,7 +91,8 @@ public class MainMenuScene extends Scene {
     @Override
     public void onResize() {
         menuRenderer.recreate();
-        if (mainScreen != null) mainScreen.init(engine.getWindow().getWidth(), engine.getWindow().getHeight());
+        if (mainScreen != null)
+            mainScreen.init(engine.getWindow().getWidth(), engine.getWindow().getHeight());
         if (activeScreen != null && activeScreen != mainScreen) {
             activeScreen.init(engine.getWindow().getWidth(), engine.getWindow().getHeight());
         }
@@ -96,6 +100,7 @@ public class MainMenuScene extends Scene {
 
     @Override
     public void cleanup() {
-        if (menuRenderer != null) menuRenderer.cleanup();
+        if (menuRenderer != null)
+            menuRenderer.cleanup();
     }
 }

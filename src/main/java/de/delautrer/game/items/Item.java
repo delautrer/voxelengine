@@ -1,5 +1,5 @@
 package de.delautrer.game.items;
-import de.delautrer.engine.graphics.*;
+
 import de.delautrer.engine.graphics.utils.TextureStitcher;
 import de.delautrer.game.entity.player.LocalPlayer;
 import de.delautrer.game.world.World;
@@ -10,7 +10,7 @@ public abstract class Item {
     public final String name;
     public final String textureName;
     private TextureStitcher.AtlasRegion iconRegion;
-    private String id;
+    // private String id;
 
     protected int maxStackSize = 64;
 
@@ -40,5 +40,6 @@ public abstract class Item {
         return name;
     }
 
-    public abstract boolean onUseRightClick(World world, LocalPlayer localPlayer, Vector3i targetBlock, Vector3i adjacentBlock, PlayerInteraction interaction);
+    public abstract boolean onUseRightClick(World world, LocalPlayer localPlayer, Vector3i targetBlock,
+            Vector3i adjacentBlock, PlayerInteraction interaction);
 }

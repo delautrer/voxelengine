@@ -1,5 +1,5 @@
 package de.delautrer.engine.graphics;
-import de.delautrer.engine.graphics.*;
+
 import de.delautrer.game.settings.SettingsManager;
 import org.joml.Matrix4f;
 import org.joml.Vector3d;
@@ -51,10 +51,13 @@ public class Camera {
         }
 
         yaw %= 360.0f;
-        if (yaw < 0.0f) yaw += 360.0f;
+        if (yaw < 0.0f)
+            yaw += 360.0f;
 
-        if (pitch > 89.0f) pitch = 89.0f;
-        if (pitch < -89.0f) pitch = -89.0f;
+        if (pitch > 89.0f)
+            pitch = 89.0f;
+        if (pitch < -89.0f)
+            pitch = -89.0f;
 
         Vector3f direction = new Vector3f();
         direction.x = (float) (Math.cos(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch)));
@@ -66,27 +69,35 @@ public class Camera {
     public void resetMouseTracking() {
         this.firstMouse = true;
     }
+
     public Matrix4f getViewMatrix() {
         return new Matrix4f().lookAt(new Vector3f(0, 0, 0), front, up);
     }
+
     public void setPosition(Vector3d position) {
         this.position.set(position);
     }
+
     public Vector3d getPosition() {
         return position;
     }
+
     public Vector3f getFront() {
         return front;
     }
+
     public float getYaw() {
         return yaw;
     }
+
     public void setYaw(float yaw) {
         this.yaw = yaw;
     }
+
     public float getPitch() {
         return pitch;
     }
+
     public void setPitch(float pitch) {
         this.pitch = pitch;
     }

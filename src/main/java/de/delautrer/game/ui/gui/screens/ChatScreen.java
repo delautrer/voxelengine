@@ -1,5 +1,5 @@
 package de.delautrer.game.ui.gui.screens;
-import de.delautrer.engine.graphics.*;
+
 import de.delautrer.engine.events.EventBus;
 import de.delautrer.engine.graphics.IFont;
 import de.delautrer.engine.input.InputManager;
@@ -33,7 +33,8 @@ public class ChatScreen extends MenuScreen {
     private int completionIndex = -1;
     private boolean isTabCycling = false;
 
-    public ChatScreen(EventBus eventBus, LocalPlayer player, World world, CommandManager commandManager, ChatOverlay chatOverlay, Runnable closeCallback) {
+    public ChatScreen(EventBus eventBus, LocalPlayer player, World world, CommandManager commandManager,
+            ChatOverlay chatOverlay, Runnable closeCallback) {
         this.eventBus = eventBus;
         this.player = player;
         this.world = world;
@@ -71,7 +72,8 @@ public class ChatScreen extends MenuScreen {
     // --- NEU: Input für das Mausrad UND für Tastatur/Tippen ---
     @Override
     public void handleInput(InputManager input) {
-        // EXTREM WICHTIG: Das super.handleInput feuert onCharTyped! Ohne das geht Tippen nicht!
+        // EXTREM WICHTIG: Das super.handleInput feuert onCharTyped! Ohne das geht
+        // Tippen nicht!
         super.handleInput(input);
 
         double scroll = input.consumeScroll();
@@ -85,10 +87,13 @@ public class ChatScreen extends MenuScreen {
     }
 
     @Override
-    public int getHoveredSlot(float mouseX, float mouseY) { return -1; }
+    public int getHoveredSlot(float mouseX, float mouseY) {
+        return -1;
+    }
 
     @Override
-    protected void mouseClicked(float mouseX, float mouseY, int button) {}
+    protected void mouseClicked(float mouseX, float mouseY, int button) {
+    }
 
     @Override
     protected void onCharTyped(char c) {
@@ -103,7 +108,8 @@ public class ChatScreen extends MenuScreen {
             isTabCycling = false;
         }
 
-        // HINWEIS: Die PAUSE (ESC) Abfrage ist hier raus, weil deine PlayScene das jetzt global und viel sauberer managt!
+        // HINWEIS: Die PAUSE (ESC) Abfrage ist hier raus, weil deine PlayScene das
+        // jetzt global und viel sauberer managt!
 
         // --- AUTOCOMPLETE (TAB) ---
         if (input.isActionJustPressed("UI_TAB")) {

@@ -1,18 +1,11 @@
 package de.delautrer.engine.graphics.vulkan.texture;
-import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
-import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
+
 import de.delautrer.engine.utils.AssetManager;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.stb.STBTTBakedChar;
 import org.lwjgl.stb.STBTruetype;
 import org.lwjgl.system.MemoryUtil;
 import java.nio.ByteBuffer;
-
-
 
 public class VulkanFont implements de.delautrer.engine.graphics.IFont {
     private STBTTBakedChar.Buffer charData;
@@ -26,7 +19,8 @@ public class VulkanFont implements de.delautrer.engine.graphics.IFont {
             ByteBuffer ttfBuffer = AssetManager.loadResource(fontPath);
 
             ByteBuffer alphaBitmap = BufferUtils.createByteBuffer(BITMAP_SIZE * BITMAP_SIZE);
-            STBTruetype.stbtt_BakeFontBitmap(ttfBuffer, fontHeight, alphaBitmap, BITMAP_SIZE, BITMAP_SIZE, 32, charData);
+            STBTruetype.stbtt_BakeFontBitmap(ttfBuffer, fontHeight, alphaBitmap, BITMAP_SIZE, BITMAP_SIZE, 32,
+                    charData);
 
             rgbaBitmap = MemoryUtil.memAlloc(BITMAP_SIZE * BITMAP_SIZE * 4);
             for (int i = 0; i < BITMAP_SIZE * BITMAP_SIZE; i++) {
@@ -44,12 +38,18 @@ public class VulkanFont implements de.delautrer.engine.graphics.IFont {
         }
     }
 
-    public STBTTBakedChar.Buffer getCharData() { return charData; }
-    public ByteBuffer getRgbaPixels() { return rgbaBitmap; }
+    public STBTTBakedChar.Buffer getCharData() {
+        return charData;
+    }
+
+    public ByteBuffer getRgbaPixels() {
+        return rgbaBitmap;
+    }
 
     public void cleanup() {
         charData.free();
-        if (rgbaBitmap != null) MemoryUtil.memFree(rgbaBitmap);
+        if (rgbaBitmap != null)
+            MemoryUtil.memFree(rgbaBitmap);
     }
 
     @Override

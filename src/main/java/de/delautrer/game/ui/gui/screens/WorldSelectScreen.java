@@ -59,7 +59,8 @@ public class WorldSelectScreen extends MenuScreen {
         float itemY = listY + listHeight - 60.0f;
 
         File savesDir = GamePaths.SAVES_DIR.toFile();
-        if (!savesDir.exists()) savesDir.mkdirs();
+        if (!savesDir.exists())
+            savesDir.mkdirs();
 
         File[] saveFiles = savesDir.listFiles(File::isDirectory);
         if (saveFiles != null) {
@@ -72,14 +73,16 @@ public class WorldSelectScreen extends MenuScreen {
                 }
                 String wN = displayName;
 
-                UIButton loadBtn = new UIButton(worldList.getX() + 20, itemY, listWidth - 140, 40, "Play: " + displayName, () -> {
-                    engine.getSceneManager().changeScene(new PlayScene(engine, wN, safeFolderName));
-                });
+                UIButton loadBtn = new UIButton(worldList.getX() + 20, itemY, listWidth - 140, 40,
+                        "Play: " + displayName, () -> {
+                            engine.getSceneManager().changeScene(new PlayScene(engine, wN, safeFolderName));
+                        });
 
-                UIConfirmButton deleteBtn = new UIConfirmButton(worldList.getX() + listWidth - 110, itemY, 90, 40, "Del", "Sure?", () -> {
-                    deleteDirectory(saveFolder);
-                    buildLayout(); // Liste nach dem Löschen sofort neu aufbauen!
-                });
+                UIConfirmButton deleteBtn = new UIConfirmButton(worldList.getX() + listWidth - 110, itemY, 90, 40,
+                        "Del", "Sure?", () -> {
+                            deleteDirectory(saveFolder);
+                            buildLayout(); // Liste nach dem Löschen sofort neu aufbauen!
+                        });
 
                 worldList.addItem(loadBtn);
                 worldList.addItem(deleteBtn);
@@ -90,12 +93,13 @@ public class WorldSelectScreen extends MenuScreen {
 
         // --- BOTTOM BAR BUTTONS ---
         UIButton backBtn = new UIButton(centerX - 300, 30.0f, 290, 40, "Back to Title", () -> {
-            if (onBackAction != null) onBackAction.run();
+            if (onBackAction != null)
+                onBackAction.run();
         });
 
         UIButton newWorldBtn = new UIButton(centerX + 10, 30.0f, 290, 40, "Create New World", () -> {
             isCreatingWorld = true; // Status ändern
-            buildLayout();          // UI neu zeichnen lassen (öffnet das Popup)
+            buildLayout(); // UI neu zeichnen lassen (öffnet das Popup)
         });
 
         elements.add(backBtn);
@@ -110,20 +114,23 @@ public class WorldSelectScreen extends MenuScreen {
         float centerY = height / 2.0f;
 
         UIInputField nameInput = new UIInputField(centerX - 200, centerY + 20.0f, 400, 40, "Enter World Name...", 20);
-        UIInputField seedInput = new UIInputField(centerX - 200, centerY - 40.0f, 400, 40, "Seed (leave empty for random)", 20);
+        UIInputField seedInput = new UIInputField(centerX - 200, centerY - 40.0f, 400, 40,
+                "Seed (leave empty for random)", 20);
 
         UIButton createBtn = new UIButton(centerX + 10, centerY - 110.0f, 190, 40, "Create", () -> {
             String worldName = nameInput.getText().isEmpty() ? "New World" : nameInput.getText();
-            String safeFolderName = WorldStorageManager.getUniqueValidFolderName(worldName);
-            String seedStr = seedInput.getText().replaceAll("[^0-9]", "");;
-            long seed = seedStr.isEmpty() ? (long)(Math.random() * Long.MAX_VALUE) : Long.valueOf(seedStr);
+            // String safeFolderName =
+            // WorldStorageManager.getUniqueValidFolderName(worldName);
+            String seedStr = seedInput.getText().replaceAll("[^0-9]", "");
+            ;
+            long seed = seedStr.isEmpty() ? (long) (Math.random() * Long.MAX_VALUE) : Long.valueOf(seedStr);
 
             engine.getSceneManager().changeScene(new PlayScene(engine, worldName, seed));
         });
 
         UIButton cancelBtn = new UIButton(centerX - 200, centerY - 110.0f, 190, 40, "Cancel", () -> {
             isCreatingWorld = false; // Status ändern
-            buildLayout();           // UI neu zeichnen lassen (schließt das Popup)
+            buildLayout(); // UI neu zeichnen lassen (schließt das Popup)
         });
 
         elements.add(nameInput);
@@ -147,7 +154,8 @@ public class WorldSelectScreen extends MenuScreen {
         // 1. Hintergrund (Schmutz-Textur, Z = 0.0f)
         builder.addAtlasQuad(0, 0, 0.0f, width, height, 15, 15, 1, 1, false);
 
-        // 2. Wenn das Popup aktiv ist, dimmen wir den Hintergrund und zeichnen ein Panel
+        // 2. Wenn das Popup aktiv ist, dimmen wir den Hintergrund und zeichnen ein
+        // Panel
         if (isCreatingWorld) {
             // Dunkler Schleier über dem ganzen Bildschirm (Z = 0.02f)
             // builder.addRect(0, 0, 0.02f, width, height, 0.0f, 0.0f, 0.0f, 0.7f);
@@ -168,7 +176,8 @@ public class WorldSelectScreen extends MenuScreen {
             }
         }
 
-        // 3. UI Elemente rendern lassen (die Inputs und Buttons haben intern Z = 0.1f oder höher)
+        // 3. UI Elemente rendern lassen (die Inputs und Buttons haben intern Z = 0.1f
+        // oder höher)
         super.render(builder, mouseX, mouseY);
 
         // 4. Haupt-Titel rendern (Nur anzeigen, wenn wir NICHT im Popup sind)

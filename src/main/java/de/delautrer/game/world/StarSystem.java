@@ -1,5 +1,5 @@
 package de.delautrer.game.world;
-import de.delautrer.engine.graphics.*;
+
 import de.delautrer.engine.graphics.MeshData;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,52 +36,78 @@ public class StarSystem {
 
             float upX = 0.0f, upY = 1.0f, upZ = 0.0f;
             if (Math.abs(ny) > 0.99f) {
-                upX = 1.0f; upY = 0.0f; upZ = 0.0f;
+                upX = 1.0f;
+                upY = 0.0f;
+                upZ = 0.0f;
             }
 
             float rx = upY * nz - upZ * ny;
             float ry = upZ * nx - upX * nz;
             float rz = upX * ny - upY * nx;
-            float rLen = (float) Math.sqrt(rx*rx + ry*ry + rz*rz);
-            rx /= rLen; ry /= rLen; rz /= rLen;
+            float rLen = (float) Math.sqrt(rx * rx + ry * ry + rz * rz);
+            rx /= rLen;
+            ry /= rLen;
+            rz /= rLen;
 
             float ux = ny * rz - nz * ry;
             float uy = nz * rx - nx * rz;
             float uz = nx * ry - ny * rx;
 
             float size = baseStarSize + (random.nextFloat() * 0.15f);
-            rx *= size; ry *= size; rz *= size;
-            ux *= size; uy *= size; uz *= size;
+            rx *= size;
+            ry *= size;
+            rz *= size;
+            ux *= size;
+            uy *= size;
+            uz *= size;
 
             // --- NEU: XYZ + UV Koordinaten (5 Floats pro Vertex) ---
 
             // Unten Links
-            vertices.add(dx - rx - ux); vertices.add(dy - ry - uy); vertices.add(dz - rz - uz);
-            vertices.add(0.0f); vertices.add(0.0f);
+            vertices.add(dx - rx - ux);
+            vertices.add(dy - ry - uy);
+            vertices.add(dz - rz - uz);
+            vertices.add(0.0f);
+            vertices.add(0.0f);
 
             // Unten Rechts
-            vertices.add(dx + rx - ux); vertices.add(dy + ry - uy); vertices.add(dz + rz - uz);
-            vertices.add(1.0f); vertices.add(0.0f);
+            vertices.add(dx + rx - ux);
+            vertices.add(dy + ry - uy);
+            vertices.add(dz + rz - uz);
+            vertices.add(1.0f);
+            vertices.add(0.0f);
 
             // Oben Rechts
-            vertices.add(dx + rx + ux); vertices.add(dy + ry + uy); vertices.add(dz + rz + uz);
-            vertices.add(1.0f); vertices.add(1.0f);
+            vertices.add(dx + rx + ux);
+            vertices.add(dy + ry + uy);
+            vertices.add(dz + rz + uz);
+            vertices.add(1.0f);
+            vertices.add(1.0f);
 
             // Oben Links
-            vertices.add(dx - rx + ux); vertices.add(dy - ry + uy); vertices.add(dz - rz + uz);
-            vertices.add(0.0f); vertices.add(1.0f);
+            vertices.add(dx - rx + ux);
+            vertices.add(dy - ry + uy);
+            vertices.add(dz - rz + uz);
+            vertices.add(0.0f);
+            vertices.add(1.0f);
 
-            indices.add(indexOffset);     indices.add(indexOffset + 1); indices.add(indexOffset + 2);
-            indices.add(indexOffset + 2); indices.add(indexOffset + 3); indices.add(indexOffset);
+            indices.add(indexOffset);
+            indices.add(indexOffset + 1);
+            indices.add(indexOffset + 2);
+            indices.add(indexOffset + 2);
+            indices.add(indexOffset + 3);
+            indices.add(indexOffset);
 
             indexOffset += 4;
         }
 
         float[] vArray = new float[vertices.size()];
-        for(int i=0; i<vertices.size(); i++) vArray[i] = vertices.get(i);
+        for (int i = 0; i < vertices.size(); i++)
+            vArray[i] = vertices.get(i);
 
         int[] iArray = new int[indices.size()];
-        for(int i=0; i<indices.size(); i++) iArray[i] = indices.get(i);
+        for (int i = 0; i < indices.size(); i++)
+            iArray[i] = indices.get(i);
 
         return new MeshData(vArray, iArray);
     }

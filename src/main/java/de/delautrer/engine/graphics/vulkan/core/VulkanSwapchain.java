@@ -1,19 +1,11 @@
 package de.delautrer.engine.graphics.vulkan.core;
-import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
-import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
+
 import de.delautrer.engine.window.Window;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import static org.lwjgl.system.MemoryUtil.NULL;
-
-
-
 
 public class VulkanSwapchain {
 
@@ -30,12 +22,11 @@ public class VulkanSwapchain {
         createImageViews();
     }
 
-
-
     private void createSwapchain() {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             VkSurfaceCapabilitiesKHR capabilities = VkSurfaceCapabilitiesKHR.calloc(stack);
-            KHRSurface.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(context.getPhysicalDevice(), context.getSurface(), capabilities);
+            KHRSurface.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(context.getPhysicalDevice(), context.getSurface(),
+                    capabilities);
 
             VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(stack);
             int presentMode = chooseSwapPresentMode(stack);
@@ -64,7 +55,8 @@ public class VulkanSwapchain {
             createInfo.oldSwapchain(NULL);
 
             LongBuffer pSwapchain = stack.longs(VK10.VK_NULL_HANDLE);
-            if (KHRSwapchain.vkCreateSwapchainKHR(context.getDevice(), createInfo, null, pSwapchain) != VK10.VK_SUCCESS) {
+            if (KHRSwapchain.vkCreateSwapchainKHR(context.getDevice(), createInfo, null,
+                    pSwapchain) != VK10.VK_SUCCESS) {
                 throw new RuntimeException("Failed to create swapchain");
             }
             swapchain = pSwapchain.get(0);
@@ -118,13 +110,16 @@ public class VulkanSwapchain {
 
     private VkSurfaceFormatKHR chooseSwapSurfaceFormat(MemoryStack stack) {
         IntBuffer formatCount = stack.ints(0);
-        KHRSurface.vkGetPhysicalDeviceSurfaceFormatsKHR(context.getPhysicalDevice(), context.getSurface(), formatCount, null);
+        KHRSurface.vkGetPhysicalDeviceSurfaceFormatsKHR(context.getPhysicalDevice(), context.getSurface(), formatCount,
+                null);
         VkSurfaceFormatKHR.Buffer formats = VkSurfaceFormatKHR.malloc(formatCount.get(0), stack);
-        KHRSurface.vkGetPhysicalDeviceSurfaceFormatsKHR(context.getPhysicalDevice(), context.getSurface(), formatCount, formats);
+        KHRSurface.vkGetPhysicalDeviceSurfaceFormatsKHR(context.getPhysicalDevice(), context.getSurface(), formatCount,
+                formats);
 
         for (int i = 0; i < formats.capacity(); i++) {
             VkSurfaceFormatKHR format = formats.get(i);
-            if (format.format() == VK10.VK_FORMAT_B8G8R8A8_SRGB && format.colorSpace() == KHRSurface.VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+            if (format.format() == VK10.VK_FORMAT_B8G8R8A8_SRGB
+                    && format.colorSpace() == KHRSurface.VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
                 return format;
             }
         }
@@ -133,9 +128,11 @@ public class VulkanSwapchain {
 
     private int chooseSwapPresentMode(MemoryStack stack) {
         IntBuffer presentModeCount = stack.ints(0);
-        KHRSurface.vkGetPhysicalDeviceSurfacePresentModesKHR(context.getPhysicalDevice(), context.getSurface(), presentModeCount, null);
+        KHRSurface.vkGetPhysicalDeviceSurfacePresentModesKHR(context.getPhysicalDevice(), context.getSurface(),
+                presentModeCount, null);
         IntBuffer presentModes = stack.mallocInt(presentModeCount.get(0));
-        KHRSurface.vkGetPhysicalDeviceSurfacePresentModesKHR(context.getPhysicalDevice(), context.getSurface(), presentModeCount, presentModes);
+        KHRSurface.vkGetPhysicalDeviceSurfacePresentModesKHR(context.getPhysicalDevice(), context.getSurface(),
+                presentModeCount, presentModes);
 
         for (int i = 0; i < presentModes.capacity(); i++) {
             if (presentModes.get(i) == KHRSurface.VK_PRESENT_MODE_MAILBOX_KHR) {
@@ -156,8 +153,10 @@ public class VulkanSwapchain {
         org.lwjgl.glfw.GLFW.glfwGetFramebufferSize(window.getHandle(), width, height);
 
         VkExtent2D actualExtent = VkExtent2D.malloc().set(width[0], height[0]);
-        actualExtent.width(Math.clamp(actualExtent.width(), capabilities.minImageExtent().width(), capabilities.maxImageExtent().width()));
-        actualExtent.height(Math.clamp(actualExtent.height(), capabilities.minImageExtent().height(), capabilities.maxImageExtent().height()));
+        actualExtent.width(Math.clamp(actualExtent.width(), capabilities.minImageExtent().width(),
+                capabilities.maxImageExtent().width()));
+        actualExtent.height(Math.clamp(actualExtent.height(), capabilities.minImageExtent().height(),
+                capabilities.maxImageExtent().height()));
 
         return actualExtent;
     }
@@ -177,6 +176,7 @@ public class VulkanSwapchain {
     public long[] getImages() {
         return images;
     }
+
     public long[] getImageViews() {
         return imageViews;
     }
@@ -192,8 +192,10 @@ public class VulkanSwapchain {
             }
         }
         KHRSwapchain.vkDestroySwapchainKHR(context.getDevice(), swapchain, null);
-        /*if (extent != null) {
-            extent.free();
-        }*/
+        /*
+         * if (extent != null) {
+         * extent.free();
+         * }
+         */
     }
 }

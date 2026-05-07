@@ -46,7 +46,6 @@ public class PlayScene extends Scene {
     private final String worldName;
     private final String worldSave;
     private long seed;
-    private final boolean isNewWorld;
 
     private boolean uiNeedsRebuild = true;
     private boolean wasLoading = true;
@@ -73,14 +72,12 @@ public class PlayScene extends Scene {
         this.worldName = worldName;
         this.worldSave = WorldStorageManager.getUniqueValidFolderName(worldName);
         this.seed = seed;
-        this.isNewWorld = true;
     }
 
     public PlayScene(Engine engine, String worldName, String worldSave) {
         super(engine);
         this.worldName = worldName;
         this.worldSave = worldSave;
-        this.isNewWorld = false;
         this.seed = 0;
     }
 

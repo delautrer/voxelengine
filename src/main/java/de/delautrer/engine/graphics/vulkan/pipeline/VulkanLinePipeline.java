@@ -1,17 +1,12 @@
 package de.delautrer.engine.graphics.vulkan.pipeline;
+
 import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
 import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
-import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
-
-
 
 public class VulkanLinePipeline {
 
@@ -61,12 +56,14 @@ public class VulkanLinePipeline {
             fragShaderStageInfo.module(fragShaderModule);
             fragShaderStageInfo.pName(entryPoint);
 
-            VkVertexInputBindingDescription.Buffer bindingDescription = VkVertexInputBindingDescription.calloc(1, stack);
+            VkVertexInputBindingDescription.Buffer bindingDescription = VkVertexInputBindingDescription.calloc(1,
+                    stack);
             bindingDescription.binding(0);
             bindingDescription.stride(3 * Float.BYTES); // Just position (x, y, z)
             bindingDescription.inputRate(VK10.VK_VERTEX_INPUT_RATE_VERTEX);
 
-            VkVertexInputAttributeDescription.Buffer attributeDescriptions = VkVertexInputAttributeDescription.calloc(1, stack);
+            VkVertexInputAttributeDescription.Buffer attributeDescriptions = VkVertexInputAttributeDescription.calloc(1,
+                    stack);
 
             attributeDescriptions.get(0).binding(0);
             attributeDescriptions.get(0).location(0);
@@ -125,7 +122,8 @@ public class VulkanLinePipeline {
             depthStencil.depthBoundsTestEnable(false);
             depthStencil.stencilTestEnable(false);
 
-            VkPipelineColorBlendAttachmentState.Buffer colorBlendAttachment = VkPipelineColorBlendAttachmentState.calloc(1, stack);
+            VkPipelineColorBlendAttachmentState.Buffer colorBlendAttachment = VkPipelineColorBlendAttachmentState
+                    .calloc(1, stack);
             colorBlendAttachment.colorWriteMask(
                     VK10.VK_COLOR_COMPONENT_R_BIT |
                             VK10.VK_COLOR_COMPONENT_G_BIT |
@@ -150,15 +148,15 @@ public class VulkanLinePipeline {
             pipelineLayoutInfo.pPushConstantRanges(pushConstantRange);
 
             LongBuffer pPipelineLayout = stack.mallocLong(1);
-            if (VK10.vkCreatePipelineLayout(context.getDevice(), pipelineLayoutInfo, null, pPipelineLayout) != VK10.VK_SUCCESS) {
+            if (VK10.vkCreatePipelineLayout(context.getDevice(), pipelineLayoutInfo, null,
+                    pPipelineLayout) != VK10.VK_SUCCESS) {
                 throw new RuntimeException("Failed to create pipeline layout");
             }
             pipelineLayout = pPipelineLayout.get(0);
 
             IntBuffer dynamicStates = stack.ints(
                     VK10.VK_DYNAMIC_STATE_VIEWPORT,
-                    VK10.VK_DYNAMIC_STATE_SCISSOR
-            );
+                    VK10.VK_DYNAMIC_STATE_SCISSOR);
 
             VkPipelineDynamicStateCreateInfo dynamicState = VkPipelineDynamicStateCreateInfo.calloc(stack);
             dynamicState.sType(VK10.VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO);
@@ -181,7 +179,8 @@ public class VulkanLinePipeline {
             pipelineInfo.subpass(0);
 
             LongBuffer pGraphicsPipeline = stack.mallocLong(1);
-            if (VK10.vkCreateGraphicsPipelines(context.getDevice(), VK10.VK_NULL_HANDLE, pipelineInfo, null, pGraphicsPipeline) != VK10.VK_SUCCESS) {
+            if (VK10.vkCreateGraphicsPipelines(context.getDevice(), VK10.VK_NULL_HANDLE, pipelineInfo, null,
+                    pGraphicsPipeline) != VK10.VK_SUCCESS) {
                 throw new RuntimeException("Failed to create graphics pipeline");
             }
             graphicsPipeline = pGraphicsPipeline.get(0);

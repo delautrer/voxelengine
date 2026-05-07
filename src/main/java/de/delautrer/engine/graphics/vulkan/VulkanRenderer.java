@@ -1,10 +1,8 @@
 package de.delautrer.engine.graphics.vulkan;
+
 import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.*;
 import de.delautrer.engine.graphics.vulkan.core.*;
-import de.delautrer.engine.graphics.vulkan.pipeline.*;
 import de.delautrer.engine.graphics.vulkan.buffer.*;
-import de.delautrer.engine.graphics.vulkan.texture.*;
 import de.delautrer.engine.graphics.systems.*;
 import de.delautrer.engine.window.Window;
 import org.lwjgl.system.MemoryStack;
@@ -17,8 +15,6 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import de.delautrer.engine.graphics.utils.ScreenshotHelper;
-
-
 
 public class VulkanRenderer {
     private final VulkanContext context;
@@ -79,7 +75,8 @@ public class VulkanRenderer {
 
             VK10.vkWaitForFences(context.getDevice(), inFlightFence, true, Long.MAX_VALUE);
             IntBuffer pImageIndex = stack.mallocInt(1);
-            int acquireResult = KHRSwapchain.vkAcquireNextImageKHR(context.getDevice(), swapchain.getSwapchain(), Long.MAX_VALUE, imageAvailableSemaphore, 0, pImageIndex);
+            int acquireResult = KHRSwapchain.vkAcquireNextImageKHR(context.getDevice(), swapchain.getSwapchain(),
+                    Long.MAX_VALUE, imageAvailableSemaphore, 0, pImageIndex);
 
             if (acquireResult == KHRSwapchain.VK_ERROR_OUT_OF_DATE_KHR) {
                 return false;
@@ -90,14 +87,19 @@ public class VulkanRenderer {
             int imageIndex = pImageIndex.get(0);
             VK10.vkResetFences(context.getDevice(), inFlightFence);
 
-            /*VkCommandBuffer cmd = commandBuffers.beginRecording(imageIndex, swapchain, renderPass, framebuffers, packet.skyR, packet.skyG, packet.skyB);
-            for (IRenderSystem system : renderSystems) {
-                system.render(cmd, packet);
-            }
-            commandBuffers.endRecording(cmd);*/
+            /*
+             * VkCommandBuffer cmd = commandBuffers.beginRecording(imageIndex, swapchain,
+             * renderPass, framebuffers, packet.skyR, packet.skyG, packet.skyB);
+             * for (IRenderSystem system : renderSystems) {
+             * system.render(cmd, packet);
+             * }
+             * commandBuffers.endRecording(cmd);
+             */
 
-            VkCommandBuffer cmd = commandBuffers.beginRecording(imageIndex, swapchain, renderPass, framebuffers, packet.skyR, packet.skyG, packet.skyB);
-            //VkCommandBuffer cmd = commandBuffers.beginRecording(imageIndex, swapchain, renderPass, framebuffers, clearR, clearG, clearB);
+            VkCommandBuffer cmd = commandBuffers.beginRecording(imageIndex, swapchain, renderPass, framebuffers,
+                    packet.skyR, packet.skyG, packet.skyB);
+            // VkCommandBuffer cmd = commandBuffers.beginRecording(imageIndex, swapchain,
+            // renderPass, framebuffers, clearR, clearG, clearB);
 
             org.lwjgl.vulkan.VkViewport.Buffer viewport = org.lwjgl.vulkan.VkViewport.calloc(1, stack)
                     .x(0.0f)
@@ -137,7 +139,8 @@ public class VulkanRenderer {
 
             int presentResult = KHRSwapchain.vkQueuePresentKHR(context.getPresentQueue(), presentInfo);
 
-            if (presentResult == KHRSwapchain.VK_ERROR_OUT_OF_DATE_KHR || presentResult == KHRSwapchain.VK_SUBOPTIMAL_KHR) {
+            if (presentResult == KHRSwapchain.VK_ERROR_OUT_OF_DATE_KHR
+                    || presentResult == KHRSwapchain.VK_SUBOPTIMAL_KHR) {
                 return false;
             } else if (presentResult != VK10.VK_SUCCESS) {
                 throw new RuntimeException("Failed to present swapchain image");
@@ -151,8 +154,8 @@ public class VulkanRenderer {
                 VK10.vkQueueWaitIdle(context.getPresentQueue());
                 long currentImage = swapchain.getImages()[imageIndex];
                 ScreenshotHelper.saveScreenshot(
-                        context, commandBuffers.getCommandPool(), currentImage, swapchain.getExtent().width(), swapchain.getExtent().height(), pendingScreenshotPath
-                );
+                        context, commandBuffers.getCommandPool(), currentImage, swapchain.getExtent().width(),
+                        swapchain.getExtent().height(), pendingScreenshotPath);
                 pendingScreenshotPath = null;
             }
 
@@ -218,19 +221,28 @@ public class VulkanRenderer {
         this.pendingScreenshotPath = path;
     }
 
-    public long getGraphicsLayout() { return terrainSystem.getDescriptorSetLayout(); }
-    public long getUiLayout() { return uiSystem.getDescriptorSetLayout(); }
-
-    public VulkanSwapchain getSwapchain() { return swapchain; }
-    public VulkanCommandBuffers getCommandBuffers() { return commandBuffers; }
-    public int getWidth() { return swapchain.getExtent().width(); }
-    public int getHeight() { return swapchain.getExtent().height(); }
-
-    private float clearR = 0.5f, clearG = 0.7f, clearB = 1.0f; // Standard-Himmel
-
-    public void setClearColor(float r, float g, float b) {
-        this.clearR = r;
-        this.clearG = g;
-        this.clearB = b;
+    public long getGraphicsLayout() {
+        return terrainSystem.getDescriptorSetLayout();
     }
+
+    public long getUiLayout() {
+        return uiSystem.getDescriptorSetLayout();
+    }
+
+    public VulkanSwapchain getSwapchain() {
+        return swapchain;
+    }
+
+    public VulkanCommandBuffers getCommandBuffers() {
+        return commandBuffers;
+    }
+
+    public int getWidth() {
+        return swapchain.getExtent().width();
+    }
+
+    public int getHeight() {
+        return swapchain.getExtent().height();
+    }
+
 }

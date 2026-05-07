@@ -18,7 +18,8 @@ public class ChestScreen extends ContainerScreen {
         float hotbarWidth = 24f * 9f * pixelScale;
 
         // Gesamte Höhe des Containers intern berechnen:
-        // Kiste (3x24) + Abstand (14) + SpielerGrid (3x24) + Abstand (6) + Hotbar (24) = 188px
+        // Kiste (3x24) + Abstand (14) + SpielerGrid (3x24) + Abstand (6) + Hotbar (24)
+        // = 188px
         float containerPixelHeight = 188f * pixelScale;
 
         guiX = (float) Math.floor((width - hotbarWidth) / 2.0f);
@@ -40,7 +41,8 @@ public class ChestScreen extends ContainerScreen {
             builder.drawText("Chest", panelX + padding, titleY, 0.1f, font);
 
             // "Inventory" Text über dem Spieler-Bereich
-            float invTextY = guiY + (3 * 24f + 14f) * pixelScale + (84f * pixelScale); // Höhe ausrechnen
+            // float invTextY = guiY + (3 * 24f + 14f) * pixelScale + (84f * pixelScale); //
+            // Höhe ausrechnen
             // builder.drawText("Inventory", panelX + padding, invTextY, 0.1f, font);
         }
     }

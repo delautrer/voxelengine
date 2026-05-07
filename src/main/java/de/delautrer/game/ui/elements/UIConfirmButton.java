@@ -1,5 +1,5 @@
 package de.delautrer.game.ui.elements;
-import de.delautrer.engine.graphics.*;
+
 import de.delautrer.engine.graphics.IFont;
 import de.delautrer.game.ui.UIMeshBuilder;
 
@@ -15,7 +15,8 @@ public class UIConfirmButton extends UIElement {
     private static final int GRID_Y_HOVER = 0;
     private static final float CORNER_SIZE = 8.0f;
 
-    public UIConfirmButton(float x, float y, float width, float height, String normalText, String confirmText, Runnable onConfirm) {
+    public UIConfirmButton(float x, float y, float width, float height, String normalText, String confirmText,
+            Runnable onConfirm) {
         super(x, y, width, height);
         this.normalText = normalText;
         this.confirmText = confirmText;
@@ -26,7 +27,8 @@ public class UIConfirmButton extends UIElement {
         if (!isWaitingForConfirm) {
             isWaitingForConfirm = true; // Erster Klick: In den Bestätigungs-Modus wechseln
         } else {
-            if (onConfirm != null) onConfirm.run(); // Zweiter Klick: Aktion ausführen!
+            if (onConfirm != null)
+                onConfirm.run(); // Zweiter Klick: Aktion ausführen!
             isWaitingForConfirm = false;
         }
     }
@@ -40,7 +42,8 @@ public class UIConfirmButton extends UIElement {
 
     @Override
     public void render(UIMeshBuilder builder, IFont font, float mouseX, float mouseY) {
-        if (!isVisible) return;
+        if (!isVisible)
+            return;
         updateHoverState(mouseX, mouseY);
 
         if (isWaitingForConfirm) {

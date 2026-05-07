@@ -1,5 +1,5 @@
 package de.delautrer.game.ui.gui.screens;
-import de.delautrer.engine.graphics.*;
+
 import de.delautrer.engine.graphics.IFont;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.game.ui.UIMeshBuilder;
@@ -104,11 +104,15 @@ public abstract class MenuScreen extends Screen {
     }
 
     @Override
-    public int getHoveredSlot(float mouseX, float mouseY) { return -1; }
+    public int getHoveredSlot(float mouseX, float mouseY) {
+        return -1;
+    }
 
     @Override
-    protected void mouseClicked(float mouseX, float mouseY, int button) {}
+    protected void mouseClicked(float mouseX, float mouseY, int button) {
+    }
 
     @Override
-    protected void onInit() {}
+    protected void onInit() {
+    }
 }

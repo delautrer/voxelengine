@@ -1,4 +1,5 @@
 package de.delautrer.game.world;
+
 import de.delautrer.engine.graphics.*;
 import de.delautrer.engine.events.EventBus;
 import de.delautrer.game.blocks.Block;
@@ -26,7 +27,7 @@ import de.delautrer.game.world.systems.EntitySystem;
 import de.delautrer.game.world.systems.TerrainSystem;
 import de.delautrer.game.world.systems.WeatherSystem;
 import de.delautrer.Constants;
-import de.delautrer.game.items.Item;
+
 import de.delautrer.game.registry.Registries;
 
 public class World {
@@ -41,15 +42,19 @@ public class World {
     private final long seed;
     private boolean isCleanedUp = false;
     private final String worldName;
+
+    @SuppressWarnings("unused")
     private final String worldSave;
 
     private final List<WorldSystem> systems = new ArrayList<>();
     private final EntitySystem entitySystem;
     private final Map<Vector3i, BlockEntity> blockEntities = new ConcurrentHashMap<>();
 
+    @SuppressWarnings("unused")
     private final IGraphicsFactory graphicsFactory;
 
-    public World(IGraphicsFactory graphicsFactory, LocalPlayer localPlayer, EventBus eventBus, long defaultSeed, String worldName, String worldSave) {
+    public World(IGraphicsFactory graphicsFactory, LocalPlayer localPlayer, EventBus eventBus, long defaultSeed,
+            String worldName, String worldSave) {
         this.eventBus = eventBus;
         this.graphicsFactory = graphicsFactory;
         this.worldName = worldName;
@@ -72,7 +77,8 @@ public class World {
         } else {
             this.seed = defaultSeed;
             Vector3f sp = WorldInitializer.findSpawnPoint(this.seed);
-            if (sp != null) this.worldSpawnpoint = new Vector3d(sp);
+            if (sp != null)
+                this.worldSpawnpoint = new Vector3d(sp);
             skyManager.setCurrentWeather(Weather.PARTLY_CLOUDY);
             skyManager.forceWeather(skyManager.getCurrentWeather());
             saveWorldData();
@@ -105,12 +111,12 @@ public class World {
                 localPlayer.position.set(this.worldSpawnpoint);
             }
             /*
-            int i = 0;
-            for (Item item : ItemRegistry.getAll().values()) {
-                localPlayer.getInventory().setStack(i++, new ItemStack(item, 64));
-                if (i >= PlayerInventory.TOTAL_SIZE) break;
-            }
-            */
+             * int i = 0;
+             * for (Item item : ItemRegistry.getAll().values()) {
+             * localPlayer.getInventory().setStack(i++, new ItemStack(item, 64));
+             * if (i >= PlayerInventory.TOTAL_SIZE) break;
+             * }
+             */
         }
 
         storageManager.loadBlockEntities(this);
@@ -138,15 +144,18 @@ public class World {
     }
 
     public void setBlock(int x, int y, int z, byte newBlockId) {
-        if (y < 0 || y >= Chunk.HEIGHT) return;
+        if (y < 0 || y >= Chunk.HEIGHT)
+            return;
         Chunk targetChunk = chunkManager.getChunkAtBlock(x, y, z);
-        if (targetChunk == null) return;
+        if (targetChunk == null)
+            return;
 
         int localX = Math.floorMod(x, Chunk.SIZE);
         int localZ = Math.floorMod(z, Chunk.SIZE);
 
         byte oldBlockId = targetChunk.getBlock(localX, y, localZ);
-        if (oldBlockId == newBlockId) return;
+        if (oldBlockId == newBlockId)
+            return;
 
         // --- NEU: Altes BlockEntity entfernen (Items droppen) ---
         Vector3i pos = new Vector3i(x, y, z);
@@ -163,7 +172,7 @@ public class World {
 
         eventBus.publish(new BlockChangeEvent(pos, oldBlockId, newBlockId, targetChunk));
 
-        int[][] dirs = {{0,1,0}, {0,-1,0}, {1,0,0}, {-1,0,0}, {0,0,1}, {0,0,-1}};
+        int[][] dirs = { { 0, 1, 0 }, { 0, -1, 0 }, { 1, 0, 0 }, { -1, 0, 0 }, { 0, 0, 1 }, { 0, 0, -1 } };
         for (int[] dir : dirs) {
             Vector3i nPos = new Vector3i(x + dir[0], y + dir[1], z + dir[2]);
             eventBus.publish(new BlockNeighborUpdateEvent(nPos, pos, newBlockId));
@@ -181,13 +190,16 @@ public class World {
     }
 
     public void setBlock(Vector3i pos, byte newBlockId) {
-        if (pos != null) setBlock(pos.x, pos.y, pos.z, newBlockId);
+        if (pos != null)
+            setBlock(pos.x, pos.y, pos.z, newBlockId);
     }
 
     public void setBlockWithState(int x, int y, int z, byte newBlockId, byte newState) {
-        if (y < 0 || y >= Chunk.HEIGHT) return;
+        if (y < 0 || y >= Chunk.HEIGHT)
+            return;
         Chunk targetChunk = chunkManager.getChunkAtBlock(x, y, z);
-        if (targetChunk == null) return;
+        if (targetChunk == null)
+            return;
 
         int localX = Math.floorMod(x, Chunk.SIZE);
         int localZ = Math.floorMod(z, Chunk.SIZE);
@@ -195,9 +207,11 @@ public class World {
         byte oldBlockId = targetChunk.getBlock(localX, y, localZ);
         byte oldState = targetChunk.getState(localX, y, localZ);
 
-        if (oldBlockId == newBlockId && oldState == newState) return;
+        if (oldBlockId == newBlockId && oldState == newState)
+            return;
 
-        // --- NEU: Altes BlockEntity entfernen (falls da vorher z.B. eine Kiste war) ---
+        // --- NEU: Altes BlockEntity entfernen (falls da vorher z.B. eine Kiste war)
+        // ---
         Vector3i pos = new Vector3i(x, y, z);
         BlockEntity oldEntity = getBlockEntity(pos);
         if (oldEntity != null) {
@@ -214,7 +228,7 @@ public class World {
         // Events
         eventBus.publish(new BlockChangeEvent(pos, oldBlockId, newBlockId, targetChunk));
 
-        int[][] dirs = {{0,1,0}, {0,-1,0}, {1,0,0}, {-1,0,0}, {0,0,1}, {0,0,-1}};
+        int[][] dirs = { { 0, 1, 0 }, { 0, -1, 0 }, { 1, 0, 0 }, { -1, 0, 0 }, { 0, 0, 1 }, { 0, 0, -1 } };
         for (int[] dir : dirs) {
             Vector3i nPos = new Vector3i(x + dir[0], y + dir[1], z + dir[2]);
             eventBus.publish(new BlockNeighborUpdateEvent(nPos, pos, newBlockId));
@@ -237,20 +251,25 @@ public class World {
 
     public BlockState getBlockState(int x, int y, int z) {
         Chunk chunk = chunkManager.getChunkAtBlock(x, y, z);
-        if (chunk == null) return Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air").getDefaultState();
+        if (chunk == null)
+            return Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air").getDefaultState();
         return chunk.getBlockState(Math.floorMod(x, Chunk.SIZE), y, Math.floorMod(z, Chunk.SIZE));
     }
+
     public BlockState getBlockState(Vector3i pos) {
         return getBlockState(pos.x, pos.y, pos.z);
     }
 
     public byte getBlockAt(int x, int y, int z) {
         Chunk c = chunkManager.getChunkAtBlock(x, y, z);
-        if (c == null) return 0;
+        if (c == null)
+            return 0;
         return c.getBlock(Math.floorMod(x, Chunk.SIZE), y, Math.floorMod(z, Chunk.SIZE));
     }
 
-    public byte getBlockAt(Vector3i pos) { return getBlockAt(pos.x, pos.y, pos.z); }
+    public byte getBlockAt(Vector3i pos) {
+        return getBlockAt(pos.x, pos.y, pos.z);
+    }
 
     public void saveWorldData() {
         WorldData wData = new WorldData();
@@ -258,7 +277,8 @@ public class World {
         wData.seed = this.seed;
         wData.timeOfDay = skyManager.getTimeOfDay();
         if (worldSpawnpoint != null) {
-            wData.worldSpawnpoint = new Vector3f((float)worldSpawnpoint.x, (float)worldSpawnpoint.y, (float)worldSpawnpoint.z);
+            wData.worldSpawnpoint = new Vector3f((float) worldSpawnpoint.x, (float) worldSpawnpoint.y,
+                    (float) worldSpawnpoint.z);
         }
         wData.weather = skyManager.getCurrentWeather().name();
         storageManager.saveLevelMetadata(wData);
@@ -268,9 +288,9 @@ public class World {
         saveWorldData();
 
         PlayerData pData = new PlayerData();
-        pData.x = (float)localPlayer.position.x;
-        pData.y = (float)localPlayer.position.y;
-        pData.z = (float)localPlayer.position.z;
+        pData.x = (float) localPlayer.position.x;
+        pData.y = (float) localPlayer.position.y;
+        pData.z = (float) localPlayer.position.z;
         pData.yaw = localPlayer.getCamera().getYaw();
         pData.pitch = localPlayer.getCamera().getPitch();
         pData.selectedHotbarSlot = localPlayer.getInventory().getSelectedSlot();
@@ -285,7 +305,8 @@ public class World {
         storageManager.saveEntities(entitySystem.getEntities());
 
         for (Chunk c : chunkManager.getLoadedChunks()) {
-            if (c.isDirty()) storageManager.queueChunkForSaving(c);
+            if (c.isDirty())
+                storageManager.queueChunkForSaving(c);
         }
     }
 
@@ -327,27 +348,53 @@ public class World {
     }
 
     public void setBlockEntity(Vector3i pos, BlockEntity entity) {
-        if (entity == null) blockEntities.remove(pos);
-        else blockEntities.put(pos, entity);
+        if (entity == null)
+            blockEntities.remove(pos);
+        else
+            blockEntities.put(pos, entity);
     }
 
-    public long getSeed() { return seed; }
-    public CloudSystem getCloudSystem() { return cloudSystem; }
-    public TickScheduler getTickScheduler() { return tickScheduler; }
-    public ChunkManager getChunkManager() { return chunkManager; }
-    public WorldStorageManager getStorageManager() { return storageManager; }
-    public SkyManager getEnvironment() { return skyManager; }
-    public SkyManager getSkyManager() { return skyManager; }
+    public long getSeed() {
+        return seed;
+    }
+
+    public CloudSystem getCloudSystem() {
+        return cloudSystem;
+    }
+
+    public TickScheduler getTickScheduler() {
+        return tickScheduler;
+    }
+
+    public ChunkManager getChunkManager() {
+        return chunkManager;
+    }
+
+    public WorldStorageManager getStorageManager() {
+        return storageManager;
+    }
+
+    public SkyManager getEnvironment() {
+        return skyManager;
+    }
+
+    public SkyManager getSkyManager() {
+        return skyManager;
+    }
+
     public Vector3d getWorldSpawnpoint() {
         return worldSpawnpoint;
     }
 
     public void cleanup(LocalPlayer localPlayer) {
-        if (isCleanedUp) return;
+        if (isCleanedUp)
+            return;
         isCleanedUp = true;
         saveWorld(localPlayer);
-        if (storageManager != null) storageManager.shutdown();
-        if (chunkManager != null) chunkManager.cleanup();
+        if (storageManager != null)
+            storageManager.shutdown();
+        if (chunkManager != null)
+            chunkManager.cleanup();
     }
 
     public EventBus getEventBus() {

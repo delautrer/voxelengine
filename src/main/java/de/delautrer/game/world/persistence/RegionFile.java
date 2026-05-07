@@ -6,12 +6,10 @@ public class RegionFile {
     private static final int CHUNK_COUNT = 32 * 32;
     private static final int SECTOR_SIZE = 4096;
 
-    private final File file;
     private RandomAccessFile raf;
     private final int[] offsets = new int[CHUNK_COUNT];
 
     public RegionFile(File file) {
-        this.file = file;
         try {
             // Datei EINMALIG im Lese-/Schreibmodus öffnen und offen halten!
             this.raf = new RandomAccessFile(file, "rw");
@@ -22,7 +20,8 @@ public class RegionFile {
     }
 
     private void loadOffsets() throws IOException {
-        if (raf.length() < SECTOR_SIZE) return;
+        if (raf.length() < SECTOR_SIZE)
+            return;
         raf.seek(0);
         for (int i = 0; i < CHUNK_COUNT; i++) {
             offsets[i] = raf.readInt();
@@ -34,7 +33,8 @@ public class RegionFile {
     public synchronized byte[] readChunk(int cx, int cz) {
         int index = (cx & 31) + (cz & 31) * 32;
         int offsetData = offsets[index];
-        if (offsetData == 0) return null;
+        if (offsetData == 0)
+            return null;
 
         int sectorOffset = offsetData >> 8;
 
@@ -53,7 +53,8 @@ public class RegionFile {
         int index = (cx & 31) + (cz & 31) * 32;
         try {
             int sectorOffset = (int) (raf.length() + SECTOR_SIZE - 1) / SECTOR_SIZE;
-            if (sectorOffset < 1) sectorOffset = 1; // Sector 0 ist für den Header (Offsets) reserviert
+            if (sectorOffset < 1)
+                sectorOffset = 1; // Sector 0 ist für den Header (Offsets) reserviert
 
             raf.seek((long) sectorOffset * SECTOR_SIZE);
             raf.writeInt(data.length);

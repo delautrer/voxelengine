@@ -1,5 +1,5 @@
 package de.delautrer.game.ui.elements;
-import de.delautrer.engine.graphics.*;
+
 import de.delautrer.engine.graphics.IFont;
 import de.delautrer.game.ui.UIMeshBuilder;
 
@@ -17,7 +17,8 @@ public class UILabel extends UIElement {
 
     @Override
     public void render(UIMeshBuilder builder, IFont font, float mouseX, float mouseY) {
-        if (!isVisible || font == null || text == null) return;
+        if (!isVisible || font == null || text == null)
+            return;
 
         float textY = y + (height / 2.0f) - 10.0f;
         builder.drawText(text, x, textY, 0.2f, font);
