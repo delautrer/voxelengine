@@ -1,0 +1,14 @@
+{
+  "type": "shaped",
+  "pattern": [
+    "AAA",
+    "AAA"
+  ],
+  "keys": {
+    "A": "engine:palm_planks"
+  },
+  "result": {
+    "item": "engine:palm_trapdoor",
+    "count": 2
+  }
+}

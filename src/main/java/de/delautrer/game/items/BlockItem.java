@@ -19,9 +19,11 @@ import de.delautrer.game.registry.Registries;
 public class BlockItem extends Item {
     public final Block block;
 
+    @SuppressWarnings("this-escape")
     public BlockItem(String name, String textureName, Block block) {
         super(name, textureName);
         this.block = block;
+        if (block != null) this.setCategory(block.getCategory());
     }
 
     @Override
@@ -83,6 +85,8 @@ public class BlockItem extends Item {
                 } else {
                     world.setBlockState(placePos.x, placePos.y, placePos.z, newState);
                 }
+
+                this.block.onBlockPlaced(world, placePos, newState, player);
 
                 SoundManager.playEvent(this.block.getSoundMaterialName(), "walk", 0.4f);
 

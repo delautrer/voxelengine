@@ -28,6 +28,7 @@ public abstract class Block {
     public final boolean isRaycastable;
 
     protected String lootTable = null;
+    protected String category = "misc";
 
     private BlockState defaultState;
     private BlockState[] stateArray;
@@ -41,6 +42,7 @@ public abstract class Block {
     public Block(boolean isSolid, boolean isTransparent, boolean isPassable) {
         this(isSolid, isTransparent, isPassable, true);
     }
+    @SuppressWarnings("this-escape")
     public Block(boolean isSolid, boolean isTransparent, boolean isPassable,  boolean isRaycastable) {
         this.isSolid = isSolid;
         this.isTransparent = isTransparent;
@@ -74,6 +76,16 @@ public abstract class Block {
      * (z.B. Spieler baut etwas ab, Wasser fließt daneben, etc.)
      */
     public void onNeighborChanged(World world, int x, int y, int z, Vector3i neighborPos, byte newNeighborId) {}
+
+    /**
+     * Wird aufgerufen, wenn der Block in der Welt platziert wurde.
+     */
+    public void onBlockPlaced(World world, Vector3i pos, BlockState state, Player player) {}
+
+    /**
+     * Wird aufgerufen, bevor der Block aus der Welt entfernt wird.
+     */
+    public void onBlockRemoved(World world, Vector3i pos, BlockState state) {}
 
     /**
      * Wird vom TickScheduler aufgerufen, wenn die geplante Zeit abgelaufen ist.
@@ -145,9 +157,23 @@ public abstract class Block {
         return List.of(new AABB(new Vector3f(0,0,0), new Vector3f(1,1,1)));
     }
 
-    // Highlighter generiert sich jetzt AUTOMATISCH aus den BoundingBoxes!
+    /**
+     * Gibt die Bounding-Boxen für den Highlighter zurück (Standard: gleiche wie BoundingBoxes)
+     */
+    public List<AABB> getHighlightBoxes(BlockState state) {
+        return getBoundingBoxes(state);
+    }
+
+    /**
+     * Gibt die Bounding-Boxen für die Kollision zurück (Standard: gleiche wie BoundingBoxes)
+     */
+    public List<AABB> getCollisionBoxes(BlockState state) {
+        return getBoundingBoxes(state);
+    }
+
+    // Highlighter generiert sich jetzt AUTOMATISCH aus den Highlight-Boxes!
     public float[] getHighlightVertices(BlockState state) {
-        java.util.List<AABB> boxes = getBoundingBoxes(state);
+        java.util.List<AABB> boxes = getHighlightBoxes(state);
         float[] verts = new float[boxes.size() * 24];
         int idx = 0;
         for (AABB b : boxes) {
@@ -161,7 +187,7 @@ public abstract class Block {
         return verts;
     }
     public int[] getHighlightIndices(BlockState state) {
-        java.util.List<AABB> boxes = getBoundingBoxes(state);
+        java.util.List<AABB> boxes = getHighlightBoxes(state);
         int[] inds = new int[boxes.size() * 24];
         int idx = 0;
         for (int i = 0; i < boxes.size(); i++) {
@@ -208,5 +234,13 @@ public abstract class Block {
 
     public String getSoundMaterialName() {
         return soundMaterialName;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public String getCategory() {
+        return category;
     }
 }

@@ -4,6 +4,7 @@ import de.delautrer.game.inventory.ChestInventory;
 import de.delautrer.game.inventory.PlayerInventory;
 public class ChestContainer extends BaseContainer {
 
+    @SuppressWarnings("this-escape")
     public ChestContainer(PlayerInventory playerInv, ChestInventory chestInv) {
 
         // 1. Kisten-Grid (Slots 0-26), ganz Oben

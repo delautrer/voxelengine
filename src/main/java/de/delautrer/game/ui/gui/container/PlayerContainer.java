@@ -11,6 +11,7 @@ public class PlayerContainer extends BaseContainer {
     private final CraftingInventory craftingInventory;
     private final ResultInventory resultInventory;
 
+    @SuppressWarnings("this-escape")
     public PlayerContainer(PlayerInventory playerInventory) {
         this.playerInventory = playerInventory;
         this.craftingInventory = new CraftingInventory(2, 2);

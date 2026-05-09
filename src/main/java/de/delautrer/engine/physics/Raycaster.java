@@ -70,7 +70,16 @@ public class Raycaster {
                 if (closestHitDist != Float.MAX_VALUE) {
                     Vector3f exactHit = new Vector3f(dir).mul(closestHitDist).add(start);
                     Vector3i adjPos = new Vector3i(x + bestNormal.x, y + bestNormal.y, z + bestNormal.z);
-                    return new RaycastResult(new Vector3i(x, y, z), adjPos, exactHit);
+                    Vector3i hitPos = new Vector3i(x, y, z);
+
+                    // Spezial-Logik für Türen: Immer die untere Position zurückgeben, um Highlight-Blipping zu vermeiden
+                    if (block.getClass().getSimpleName().equals("DoorBlock")) {
+                        if (state.getValue(de.delautrer.game.blocks.DoorBlock.HALF) == de.delautrer.game.blocks.state.BlockProperties.Half.TOP) {
+                            hitPos.y -= 1;
+                        }
+                    }
+
+                    return new RaycastResult(hitPos, adjPos, exactHit);
                 }
             }
 

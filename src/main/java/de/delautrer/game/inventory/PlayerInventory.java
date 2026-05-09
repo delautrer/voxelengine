@@ -14,6 +14,7 @@ public class PlayerInventory extends BaseInventory {
     private int selectedHotbarSlot = 0;
     private boolean isOpen = false;
 
+    @SuppressWarnings("this-escape")
     public PlayerInventory() {
         super(TOTAL_SIZE);
         RecipeManager.loadRecipes();

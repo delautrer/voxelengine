@@ -16,7 +16,7 @@ public class VulkanSync {
         createSyncObjects(swapchain.getImageCount());
     }
 
-    public void createSyncObjects(int imageCount) {
+    public final void createSyncObjects(int imageCount) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             VkSemaphoreCreateInfo semaphoreInfo = VkSemaphoreCreateInfo.calloc(stack);
             semaphoreInfo.sType(VK10.VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO);

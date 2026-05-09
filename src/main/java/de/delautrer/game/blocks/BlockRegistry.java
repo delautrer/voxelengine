@@ -108,6 +108,10 @@ public class BlockRegistry {
                 return new LogBlock();
             case "chest":
                 return new ChestBlock();
+            case "trapdoor":
+                return new TrapdoorBlock();
+            case "door":
+                return new DoorBlock();
             default:
                 System.err.println("[BlockRegistry] Unbekannter Block Type: " + def.type + " bei " + def.name);
                 return null;
@@ -127,6 +131,7 @@ public class BlockRegistry {
         // Fallback)
         block.setSoundMaterialName(def.soundMaterial != null ? def.soundMaterial : path);
         block.setLootTable(def.customLootTable != null ? def.customLootTable : "blocks/" + path + ".json");
+        block.setCategory(def.category);
 
         NamespacedKey key = new NamespacedKey(Constants.NAMESPACE, path);
         REGISTRY.register(key, block);

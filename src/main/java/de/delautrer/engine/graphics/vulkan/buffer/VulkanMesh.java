@@ -31,7 +31,7 @@ public class VulkanMesh implements de.delautrer.engine.graphics.IMesh {
         updateMesh(data.vertices(), data.indices());
     }
 
-    public void updateMesh(float[] vertices, int[] indices) {
+    public final void updateMesh(float[] vertices, int[] indices) {
         indexCount = indices.length;
         if (indexCount == 0)
             return;

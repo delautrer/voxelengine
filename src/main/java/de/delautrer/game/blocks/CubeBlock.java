@@ -81,7 +81,7 @@ public class CubeBlock extends Block {
     @Override
     public void generateMesh(int x, int y, int z, Chunk chunk, ChunkManager cm) {
         BlockState state = chunk.getBlockState(x, y, z);
-        renderBox(state, x, y, z, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, true, true, true, true, true, true, chunk, cm);
+        renderBox(state, x, y, z, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, true, true, true, true, true, true, false, chunk, cm);
     }
 
     private float bilerp(float c00, float c10, float c11, float c01, float u, float v) {
@@ -100,20 +100,46 @@ public class CubeBlock extends Block {
     private void addMappedFace(Chunk chunk, float x0, float y0, float z0, float ao0, float x1, float y1, float z1,
             float ao1, float x2, float y2, float z2, float ao2, float x3, float y3, float z3, float ao3, float lu0,
             float lv0, float lu1, float lv1, AtlasRegion reg, float light, float sl0, float sl1, float sl2, float sl3,
-            float bl0, float bl1, float bl2, float bl3) {
+            float bl0, float bl1, float bl2, float bl3, int rotation) {
         if (reg == null)
             return;
+
         float u0 = reg.u0 + (reg.u1 - reg.u0) * lu0;
         float v0 = reg.v0 + (reg.v1 - reg.v0) * lv0;
         float u1 = reg.u0 + (reg.u1 - reg.u0) * lu1;
         float v1 = reg.v0 + (reg.v1 - reg.v0) * lv1;
-        chunk.addFace(x0, y0, z0, ao0, x1, y1, z1, ao1, x2, y2, z2, ao2, x3, y3, z3, ao3, u0, v0, u1, v1, reg.layer,
-                light, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
+
+        // Base mapping (rotation 0):
+        // Vertex 0: u0, v1
+        // Vertex 1: u1, v1
+        // Vertex 2: u1, v0
+        // Vertex 3: u0, v0
+        float[][] uvs = {
+                { u0, v1 }, { u1, v1 }, { u1, v0 }, { u0, v0 }
+        };
+
+        int r = rotation % 4;
+        float uv0_u = uvs[r][0], uv0_v = uvs[r][1];
+        float uv1_u = uvs[(r + 1) % 4][0], uv1_v = uvs[(r + 1) % 4][1];
+        float uv2_u = uvs[(r + 2) % 4][0], uv2_v = uvs[(r + 2) % 4][1];
+        float uv3_u = uvs[(r + 3) % 4][0], uv3_v = uvs[(r + 3) % 4][1];
+
+        chunk.addFace(x0, y0, z0, ao0, x1, y1, z1, ao1, x2, y2, z2, ao2, x3, y3, z3, ao3,
+                uv0_u, uv0_v, uv1_u, uv1_v, uv2_u, uv2_v, uv3_u, uv3_v,
+                reg.layer, light, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
     }
 
     protected void renderBox(BlockState state, int x, int y, int z, float minX, float minY, float minZ, float maxX,
             float maxY, float maxZ, boolean rTop, boolean rBot, boolean rN, boolean rS, boolean rE, boolean rW,
-            Chunk chunk, ChunkManager cm) {
+            boolean fullUVs, Chunk chunk, ChunkManager cm) {
+        renderBox(state, x, y, z, minX, minY, minZ, maxX, maxY, maxZ, rTop, rBot, rN, rS, rE, rW, fullUVs, chunk, cm, 0,
+                0, 0, 0, 0, 0);
+    }
+
+    protected void renderBox(BlockState state, int x, int y, int z, float minX, float minY, float minZ, float maxX,
+            float maxY, float maxZ, boolean rTop, boolean rBot, boolean rN, boolean rS, boolean rE, boolean rW,
+            boolean fullUVs, Chunk chunk, ChunkManager cm, int rotTop, int rotBot, int rotN, int rotS, int rotE,
+            int rotW) {
         float tint = getColorTint();
         float lightTop = 1.0f * tint, lightBot = 0.4f * tint, lightFrontBack = 0.8f * tint,
                 lightLeftRight = 0.65f * tint;
@@ -174,15 +200,15 @@ public class CubeBlock extends Block {
             float bl1 = chunk.getSmoothBlockLight(x, y + 1, z, -1, 0, 0, 0, 0, 1, cm);
             float bl2 = chunk.getSmoothBlockLight(x, y + 1, z, 1, 0, 0, 0, 0, 1, cm);
             float bl3 = chunk.getSmoothBlockLight(x, y + 1, z, 1, 0, 0, 0, 0, -1, cm);
-            addMappedFace(chunk, x + minX, y + maxY, z + minZ,
-                    bilerp(ao0, ao3, ao2, ao1, minX, minZ) * getCrease(minX, maxY, minZ), x + minX, y + maxY, z + maxZ,
+            addMappedFace(chunk, x + minX, y + maxY, z + maxZ,
                     bilerp(ao0, ao3, ao2, ao1, minX, maxZ) * getCrease(minX, maxY, maxZ), x + maxX, y + maxY, z + maxZ,
                     bilerp(ao0, ao3, ao2, ao1, maxX, maxZ) * getCrease(maxX, maxY, maxZ), x + maxX, y + maxY, z + minZ,
-                    bilerp(ao0, ao3, ao2, ao1, maxX, minZ) * getCrease(maxX, maxY, minZ), minX, minZ, maxX, maxZ, tTop,
-                    lightTop, bilerp(sl0, sl3, sl2, sl1, minX, minZ), bilerp(sl0, sl3, sl2, sl1, minX, maxZ),
-                    bilerp(sl0, sl3, sl2, sl1, maxX, maxZ), bilerp(sl0, sl3, sl2, sl1, maxX, minZ),
-                    bilerp(bl0, bl3, bl2, bl1, minX, minZ), bilerp(bl0, bl3, bl2, bl1, minX, maxZ),
-                    bilerp(bl0, bl3, bl2, bl1, maxX, maxZ), bilerp(bl0, bl3, bl2, bl1, maxX, minZ));
+                    bilerp(ao0, ao3, ao2, ao1, maxX, minZ) * getCrease(maxX, maxY, minZ), x + minX, y + maxY, z + minZ,
+                    bilerp(ao0, ao3, ao2, ao1, minX, minZ) * getCrease(minX, maxY, minZ), fullUVs ? 0 : minX, fullUVs ? 0 : minZ, fullUVs ? 1 : maxX, fullUVs ? 1 : maxZ, tTop,
+                    lightTop, bilerp(sl0, sl3, sl2, sl1, minX, maxZ), bilerp(sl0, sl3, sl2, sl1, maxX, maxZ),
+                    bilerp(sl0, sl3, sl2, sl1, maxX, minZ), bilerp(sl0, sl3, sl2, sl1, minX, minZ),
+                    bilerp(bl0, bl3, bl2, bl1, minX, maxZ), bilerp(bl0, bl3, bl2, bl1, maxX, maxZ),
+                    bilerp(bl0, bl3, bl2, bl1, maxX, minZ), bilerp(bl0, bl3, bl2, bl1, minX, minZ), rotTop);
         }
         BlockState sBot = getNeighborState(chunk, cm, x, y - 1, z);
         if (rBot && (minY > 0.0f || (y > 0 && shouldRenderFaceAgainstState(state, sBot, BlockFace.DOWN)))) {
@@ -198,15 +224,15 @@ public class CubeBlock extends Block {
             float bl1 = chunk.getSmoothBlockLight(x, y - 1, z, -1, 0, 0, 0, 0, -1, cm);
             float bl2 = chunk.getSmoothBlockLight(x, y - 1, z, 1, 0, 0, 0, 0, -1, cm);
             float bl3 = chunk.getSmoothBlockLight(x, y - 1, z, 1, 0, 0, 0, 0, 1, cm);
-            addMappedFace(chunk, x + minX, y + minY, z + maxZ,
-                    bilerp(ao1, ao2, ao3, ao0, minX, maxZ) * getCrease(minX, minY, maxZ), x + minX, y + minY, z + minZ,
+            addMappedFace(chunk, x + minX, y + minY, z + minZ,
                     bilerp(ao1, ao2, ao3, ao0, minX, minZ) * getCrease(minX, minY, minZ), x + maxX, y + minY, z + minZ,
                     bilerp(ao1, ao2, ao3, ao0, maxX, minZ) * getCrease(maxX, minY, minZ), x + maxX, y + minY, z + maxZ,
-                    bilerp(ao1, ao2, ao3, ao0, maxX, maxZ) * getCrease(maxX, minY, maxZ), minX, minZ, maxX, maxZ, tBot,
-                    lightBot, bilerp(sl1, sl2, sl3, sl0, minX, maxZ), bilerp(sl1, sl2, sl3, sl0, minX, minZ),
-                    bilerp(sl1, sl2, sl3, sl0, maxX, minZ), bilerp(sl1, sl2, sl3, sl0, maxX, maxZ),
-                    bilerp(bl1, bl2, bl3, bl0, minX, maxZ), bilerp(bl1, bl2, bl3, bl0, minX, minZ),
-                    bilerp(bl1, bl2, bl3, bl0, maxX, minZ), bilerp(bl1, bl2, bl3, bl0, maxX, maxZ));
+                    bilerp(ao1, ao2, ao3, ao0, maxX, maxZ) * getCrease(maxX, minY, maxZ), x + minX, y + minY, z + maxZ,
+                    bilerp(ao1, ao2, ao3, ao0, minX, maxZ) * getCrease(minX, minY, maxZ), fullUVs ? 0 : minX, fullUVs ? 0 : minZ, fullUVs ? 1 : maxX, fullUVs ? 1 : maxZ, tBot,
+                    lightBot, bilerp(sl1, sl2, sl3, sl0, minX, minZ), bilerp(sl1, sl2, sl3, sl0, maxX, minZ),
+                    bilerp(sl1, sl2, sl3, sl0, maxX, maxZ), bilerp(sl1, sl2, sl3, sl0, minX, maxZ),
+                    bilerp(bl1, bl2, bl3, bl0, minX, minZ), bilerp(bl1, bl2, bl3, bl0, maxX, minZ),
+                    bilerp(bl1, bl2, bl3, bl0, maxX, maxZ), bilerp(bl1, bl2, bl3, bl0, minX, maxZ), rotBot);
         }
         BlockState sSouth = getNeighborState(chunk, cm, x, y, z + 1);
         if (rS && (maxZ < 1.0f || shouldRenderFaceAgainstState(state, sSouth, BlockFace.SOUTH))) {
@@ -226,12 +252,12 @@ public class CubeBlock extends Block {
                     bilerp(ao0, ao1, ao2, ao3, minX, minY) * getCrease(minX, minY, maxZ), x + maxX, y + minY, z + maxZ,
                     bilerp(ao0, ao1, ao2, ao3, maxX, minY) * getCrease(maxX, minY, maxZ), x + maxX, y + maxY, z + maxZ,
                     bilerp(ao0, ao1, ao2, ao3, maxX, maxY) * getCrease(maxX, maxY, maxZ), x + minX, y + maxY, z + maxZ,
-                    bilerp(ao0, ao1, ao2, ao3, minX, maxY) * getCrease(minX, maxY, maxZ), minX, sideV0, maxX, sideV1,
+                    bilerp(ao0, ao1, ao2, ao3, minX, maxY) * getCrease(minX, maxY, maxZ), fullUVs ? 0 : minX, fullUVs ? 0 : sideV0, fullUVs ? 1 : maxX, fullUVs ? 1 : sideV1,
                     tSouth, lightFrontBack, bilerp(sl0, sl1, sl2, sl3, minX, minY),
                     bilerp(sl0, sl1, sl2, sl3, maxX, minY), bilerp(sl0, sl1, sl2, sl3, maxX, maxY),
                     bilerp(sl0, sl1, sl2, sl3, minX, maxY), bilerp(bl0, bl1, bl2, bl3, minX, minY),
                     bilerp(bl0, bl1, bl2, bl3, maxX, minY), bilerp(bl0, bl1, bl2, bl3, maxX, maxY),
-                    bilerp(bl0, bl1, bl2, bl3, minX, maxY));
+                    bilerp(bl0, bl1, bl2, bl3, minX, maxY), rotS);
         }
         BlockState sNorth = getNeighborState(chunk, cm, x, y, z - 1);
         if (rN && (minZ > 0.0f || shouldRenderFaceAgainstState(state, sNorth, BlockFace.NORTH))) {
@@ -251,12 +277,12 @@ public class CubeBlock extends Block {
                     bilerp(ao1, ao0, ao3, ao2, maxX, minY) * getCrease(maxX, minY, minZ), x + minX, y + minY, z + minZ,
                     bilerp(ao1, ao0, ao3, ao2, minX, minY) * getCrease(minX, minY, minZ), x + minX, y + maxY, z + minZ,
                     bilerp(ao1, ao0, ao3, ao2, minX, maxY) * getCrease(minX, maxY, minZ), x + maxX, y + maxY, z + minZ,
-                    bilerp(ao1, ao0, ao3, ao2, maxX, maxY) * getCrease(maxX, maxY, minZ), 1.0f - maxX, sideV0,
-                    1.0f - minX, sideV1, tNorth, lightFrontBack, bilerp(sl1, sl0, sl3, sl2, maxX, minY),
+                    bilerp(ao1, ao0, ao3, ao2, maxX, maxY) * getCrease(maxX, maxY, minZ), fullUVs ? 0 : 1.0f - maxX, fullUVs ? 0 : sideV0,
+                    fullUVs ? 1 : 1.0f - minX, fullUVs ? 1 : sideV1, tNorth, lightFrontBack, bilerp(sl1, sl0, sl3, sl2, maxX, minY),
                     bilerp(sl1, sl0, sl3, sl2, minX, minY), bilerp(sl1, sl0, sl3, sl2, minX, maxY),
                     bilerp(sl1, sl0, sl3, sl2, maxX, maxY), bilerp(bl1, bl0, bl3, bl2, maxX, minY),
                     bilerp(bl1, bl0, bl3, bl2, minX, minY), bilerp(bl1, bl0, bl3, bl2, minX, maxY),
-                    bilerp(bl1, bl0, bl3, bl2, maxX, maxY));
+                    bilerp(bl1, bl0, bl3, bl2, maxX, maxY), rotN);
         }
         BlockState sWest = getNeighborState(chunk, cm, x - 1, y, z);
         if (rW && (minX > 0.0f || shouldRenderFaceAgainstState(state, sWest, BlockFace.WEST))) {
@@ -276,12 +302,12 @@ public class CubeBlock extends Block {
                     bilerp(ao0, ao1, ao2, ao3, minZ, minY) * getCrease(minX, minY, minZ), x + minX, y + minY, z + maxZ,
                     bilerp(ao0, ao1, ao2, ao3, maxZ, minY) * getCrease(minX, minY, maxZ), x + minX, y + maxY, z + maxZ,
                     bilerp(ao0, ao1, ao2, ao3, maxZ, maxY) * getCrease(minX, maxY, maxZ), x + minX, y + maxY, z + minZ,
-                    bilerp(ao0, ao1, ao2, ao3, minZ, maxY) * getCrease(minX, maxY, minZ), minZ, sideV0, maxZ, sideV1,
+                    bilerp(ao0, ao1, ao2, ao3, minZ, maxY) * getCrease(minX, maxY, minZ), fullUVs ? 0 : minZ, fullUVs ? 0 : sideV0, fullUVs ? 1 : maxZ, fullUVs ? 1 : sideV1,
                     tWest, lightLeftRight, bilerp(sl0, sl1, sl2, sl3, minZ, minY),
                     bilerp(sl0, sl1, sl2, sl3, maxZ, minY), bilerp(sl0, sl1, sl2, sl3, maxZ, maxY),
                     bilerp(sl0, sl1, sl2, sl3, minZ, maxY), bilerp(bl0, bl1, bl2, bl3, minZ, minY),
                     bilerp(bl0, bl1, bl2, bl3, maxZ, minY), bilerp(bl0, bl1, bl2, bl3, maxZ, maxY),
-                    bilerp(bl0, bl1, bl2, bl3, minZ, maxY));
+                    bilerp(bl0, bl1, bl2, bl3, minZ, maxY), rotW);
         }
         BlockState sEast = getNeighborState(chunk, cm, x + 1, y, z);
         if (rE && (maxX < 1.0f || shouldRenderFaceAgainstState(state, sEast, BlockFace.EAST))) {
@@ -301,12 +327,12 @@ public class CubeBlock extends Block {
                     bilerp(ao1, ao0, ao3, ao2, maxZ, minY) * getCrease(maxX, minY, maxZ), x + maxX, y + minY, z + minZ,
                     bilerp(ao1, ao0, ao3, ao2, minZ, minY) * getCrease(maxX, minY, minZ), x + maxX, y + maxY, z + minZ,
                     bilerp(ao1, ao0, ao3, ao2, minZ, maxY) * getCrease(maxX, maxY, minZ), x + maxX, y + maxY, z + maxZ,
-                    bilerp(ao1, ao0, ao3, ao2, maxZ, maxY) * getCrease(maxX, maxY, maxZ), 1.0f - maxZ, sideV0,
-                    1.0f - minZ, sideV1, tEast, lightLeftRight, bilerp(sl1, sl0, sl3, sl2, maxZ, minY),
+                    bilerp(ao1, ao0, ao3, ao2, maxZ, maxY) * getCrease(maxX, maxY, maxZ), fullUVs ? 0 : 1.0f - maxZ, fullUVs ? 0 : sideV0,
+                    fullUVs ? 1 : 1.0f - minZ, fullUVs ? 1 : sideV1, tEast, lightLeftRight, bilerp(sl1, sl0, sl3, sl2, maxZ, minY),
                     bilerp(sl1, sl0, sl3, sl2, minZ, minY), bilerp(sl1, sl0, sl3, sl2, minZ, maxY),
                     bilerp(sl1, sl0, sl3, sl2, maxZ, maxY), bilerp(bl1, bl0, bl3, bl2, maxZ, minY),
                     bilerp(bl1, bl0, bl3, bl2, minZ, minY), bilerp(bl1, bl0, bl3, bl2, minZ, maxY),
-                    bilerp(bl1, bl0, bl3, bl2, maxZ, maxY));
+                    bilerp(bl1, bl0, bl3, bl2, maxZ, maxY), rotE);
         }
     }
 }

@@ -11,4 +11,5 @@ public class BlockDefinition {
     public int lightEmission = 0;
     public String soundMaterial = null;
     public String customLootTable = null;
+    public String category = "misc";
 }

@@ -53,6 +53,7 @@ public class World {
     @SuppressWarnings("unused")
     private final IGraphicsFactory graphicsFactory;
 
+    @SuppressWarnings("this-escape")
     public World(IGraphicsFactory graphicsFactory, LocalPlayer localPlayer, EventBus eventBus, long defaultSeed,
             String worldName, String worldSave) {
         this.eventBus = eventBus;
@@ -157,15 +158,20 @@ public class World {
         if (oldBlockId == newBlockId)
             return;
 
-        // --- NEU: Altes BlockEntity entfernen (Items droppen) ---
         Vector3i pos = new Vector3i(x, y, z);
+        byte oldState = targetChunk.getState(localX, y, localZ);
+        targetChunk.setBlock(localX, y, localZ, newBlockId);
+
+        // Altes BlockEntity entfernen (Items droppen)
         BlockEntity oldEntity = getBlockEntity(pos);
         if (oldEntity != null) {
             oldEntity.onRemove();
             setBlockEntity(pos, null);
         }
 
-        targetChunk.setBlock(localX, y, localZ, newBlockId);
+        if (oldBlockId != 0 && oldBlockId != newBlockId) {
+            BlockRegistry.get(oldBlockId).onBlockRemoved(this, pos, BlockRegistry.get(oldBlockId).getStateForId(oldState));
+        }
 
         targetChunk.recalculateSunlightColumn(localX, localZ, chunkManager.getLightEngine());
         chunkManager.getLightEngine().notifyBlockChanged(x, y, z);
@@ -210,16 +216,19 @@ public class World {
         if (oldBlockId == newBlockId && oldState == newState)
             return;
 
-        // --- NEU: Altes BlockEntity entfernen (falls da vorher z.B. eine Kiste war)
-        // ---
         Vector3i pos = new Vector3i(x, y, z);
+        targetChunk.setBlock(localX, y, localZ, newBlockId, newState);
+
+        // Altes BlockEntity entfernen
         BlockEntity oldEntity = getBlockEntity(pos);
         if (oldEntity != null) {
             oldEntity.onRemove();
             setBlockEntity(pos, null);
         }
 
-        targetChunk.setBlock(localX, y, localZ, newBlockId, newState);
+        if (oldBlockId != 0 && oldBlockId != newBlockId) {
+            BlockRegistry.get(oldBlockId).onBlockRemoved(this, pos, BlockRegistry.get(oldBlockId).getStateForId(oldState));
+        }
 
         // Licht-Updates
         targetChunk.recalculateSunlightColumn(localX, localZ, chunkManager.getLightEngine());
@@ -271,7 +280,7 @@ public class World {
         return getBlockAt(pos.x, pos.y, pos.z);
     }
 
-    public void saveWorldData() {
+    public final void saveWorldData() {
         WorldData wData = new WorldData();
         wData.worldName = worldName;
         wData.seed = this.seed;

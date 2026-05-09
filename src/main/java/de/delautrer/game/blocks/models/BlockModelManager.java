@@ -91,6 +91,39 @@ public class BlockModelManager {
                     model.bottom = r;
                 }
 
+                if (textures.has("side_top")) {
+                    model.side_top = atlas.regions.getOrDefault(textures.get("side_top").getAsString(), missingRegion);
+                }
+                if (textures.has("side_bottom")) {
+                    model.side_bottom = atlas.regions.getOrDefault(textures.get("side_bottom").getAsString(), missingRegion);
+                }
+
+                if (textures.has("north")) {
+                    model.north = atlas.regions.getOrDefault(textures.get("north").getAsString(), missingRegion);
+                }
+                if (textures.has("south")) {
+                    model.south = atlas.regions.getOrDefault(textures.get("south").getAsString(), missingRegion);
+                }
+                if (textures.has("east")) {
+                    model.east = atlas.regions.getOrDefault(textures.get("east").getAsString(), missingRegion);
+                }
+                if (textures.has("west")) {
+                    model.west = atlas.regions.getOrDefault(textures.get("west").getAsString(), missingRegion);
+                }
+
+                if (textures.has("front")) {
+                    model.north = atlas.regions.getOrDefault(textures.get("front").getAsString(), missingRegion);
+                }
+                if (textures.has("back")) {
+                    model.south = atlas.regions.getOrDefault(textures.get("back").getAsString(), missingRegion);
+                }
+                if (textures.has("left")) {
+                    model.west = atlas.regions.getOrDefault(textures.get("left").getAsString(), missingRegion);
+                }
+                if (textures.has("right")) {
+                    model.east = atlas.regions.getOrDefault(textures.get("right").getAsString(), missingRegion);
+                }
+
                 if (textures.has("cross")) {
                     TextureStitcher.AtlasRegion r = atlas.regions.getOrDefault(textures.get("cross").getAsString(),
                             missingRegion);
@@ -127,16 +160,16 @@ public class BlockModelManager {
 
         textures.add("just_white");
 
-        textures.add("destroy_stage_0");
-        textures.add("destroy_stage_1");
-        textures.add("destroy_stage_2");
-        textures.add("destroy_stage_3");
-        textures.add("destroy_stage_4");
-        textures.add("destroy_stage_5");
-        textures.add("destroy_stage_6");
-        textures.add("destroy_stage_7");
-        textures.add("destroy_stage_8");
-        textures.add("destroy_stage_9");
+        textures.add("destroy/destroy_stage_0");
+        textures.add("destroy/destroy_stage_1");
+        textures.add("destroy/destroy_stage_2");
+        textures.add("destroy/destroy_stage_3");
+        textures.add("destroy/destroy_stage_4");
+        textures.add("destroy/destroy_stage_5");
+        textures.add("destroy/destroy_stage_6");
+        textures.add("destroy/destroy_stage_7");
+        textures.add("destroy/destroy_stage_8");
+        textures.add("destroy/destroy_stage_9");
 
         for (Map.Entry<String, Block> entry : BlockRegistry.getAll().entrySet()) {
             if (entry.getValue() == Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air"))

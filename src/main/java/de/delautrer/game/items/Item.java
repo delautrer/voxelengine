@@ -13,6 +13,7 @@ public abstract class Item {
     // private String id;
 
     protected int maxStackSize = 64;
+    protected String category = "misc";
 
     public Item(String name, String textureName) {
         this.name = name;
@@ -42,4 +43,13 @@ public abstract class Item {
 
     public abstract boolean onUseRightClick(World world, LocalPlayer localPlayer, Vector3i targetBlock,
             Vector3i adjacentBlock, PlayerInteraction interaction);
+
+    public Item setCategory(String category) {
+        this.category = category;
+        return this;
+    }
+
+    public String getCategory() {
+        return category;
+    }
 }

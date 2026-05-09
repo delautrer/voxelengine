@@ -1,0 +1,10 @@
+{
+  "type": "shapeless",
+  "ingredients": [
+    "engine:birch_log"
+  ],
+  "result": {
+    "item": "engine:birch_planks",
+    "count": 4
+  }
+}

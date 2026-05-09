@@ -1,0 +1,8 @@
+{
+  "parent": "blocks/door",
+  "directional_textures": true,
+  "textures": {
+    "side_top": "stone",
+    "all": "planks/pine"
+  }
+}

@@ -5,10 +5,10 @@
     "A"
   ],
   "keys": {
-    "A": "engine:planks"
+    "A": "engine:oak_planks"
   },
   "result": {
     "item": "engine:sticks",
-    "count": 10
+    "count": 4
   }
 }

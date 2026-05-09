@@ -1,0 +1,15 @@
+{
+  "type": "shaped",
+  "pattern": [
+    "AAA",
+    "A A",
+    "AAA"
+  ],
+  "keys": {
+    "A": "engine:palm_planks"
+  },
+  "result": {
+    "item": "engine:palm_chest",
+    "count": 1
+  }
+}

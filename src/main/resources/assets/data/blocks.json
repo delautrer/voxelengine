@@ -1,42 +1,679 @@
 [
-  { "id": 1, "name": "grass_block", "type": "cube", "hardness": 0.6, "soundMaterial": "grass"},
-  { "id": 24, "name": "grass_block_slabs", "type": "slab", "hardness": 0.6, "soundMaterial": "grass" },
-  { "id": 25, "name": "grass_block_stairs", "type": "stair", "hardness": 0.6, "soundMaterial": "grass" },
+    {
+        "id":  1,
+        "name":  "grass_block",
+        "type":  "cube",
+        "hardness":  0.6,
+        "soundMaterial":  "grass",
+        "category":  "natural"
+    },
+    {
+        "id":  24,
+        "name":  "grass_block_slabs",
+        "type":  "slab",
+        "hardness":  0.6,
+        "soundMaterial":  "grass",
+        "category":  "natural"
+    },
+    {
+        "id":  25,
+        "name":  "grass_block_stairs",
+        "type":  "stair",
+        "hardness":  0.6,
+        "soundMaterial":  "grass",
+        "category":  "natural"
+    },
+    {
+        "id":  2,
+        "name":  "dirt",
+        "type":  "cube",
+        "hardness":  0.5,
+        "category":  "natural"
+    },
+    {
+        "id":  26,
+        "name":  "dirt_slabs",
+        "type":  "slab",
+        "hardness":  0.5,
+        "category":  "natural"
+    },
+    {
+        "id":  27,
+        "name":  "dirt_stairs",
+        "type":  "stair",
+        "hardness":  0.5,
+        "category":  "natural"
+    },
+    {
+        "id":  3,
+        "name":  "stone",
+        "type":  "cube",
+        "hardness":  1.5,
+        "soundMaterial":  "rock",
+        "category":  "natural"
+    },
+    {
+        "id":  28,
+        "name":  "stone_slabs",
+        "type":  "slab",
+        "hardness":  1.5,
+        "soundMaterial":  "rock",
+        "category":  "natural"
+    },
+    {
+        "id":  29,
+        "name":  "stone_stairs",
+        "type":  "stair",
+        "hardness":  1.5,
+        "soundMaterial":  "rock",
+        "category":  "natural"
+    },
+    {
+        "id":  4,
+        "name":  "water",
+        "type":  "water",
+        "hardness":  -1.0,
+        "soundMaterial":  "water",
+        "category":  "misc"
+    },
+    {
+        "id":  5,
+        "name":  "glass",
+        "type":  "cube",
+        "isTransparent":  true,
+        "hardness":  0.25,
+        "category":  "building"
+    },
+    {
+        "id":  6,
+        "name":  "oak_leaves",
+        "type":  "leaves",
+        "hardness":  0.2,
+        "soundMaterial":  "leaves",
+        "category":  "wood"
+    },
+    {
+        "id":  7,
+        "name":  "torch",
+        "type":  "torch",
+        "hardness":  0.0001,
+        "lightEmission":  14,
+        "category":  "misc"
+    },
+    {
+        "id":  8,
+        "name":  "bedrock",
+        "type":  "cube",
+        "hardness":  -1.0,
+        "soundMaterial":  "rock",
+        "category":  "natural"
+    },
+    {
+        "id":  9,
+        "name":  "gravel",
+        "type":  "cube",
+        "hardness":  0.6,
+        "category":  "natural"
+    },
+    {
+        "id":  10,
+        "name":  "sand",
+        "type":  "cube",
+        "hardness":  0.5,
+        "category":  "natural"
+    },
+    {
+        "id":  11,
+        "name":  "oak_log",
+        "type":  "log",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  12,
+        "name":  "grass",
+        "type":  "plant",
+        "hardness":  0.0001,
+        "soundMaterial":  "leaves",
+        "category":  "misc"
+    },
+    {
+        "id":  13,
+        "name":  "sandy_grass",
+        "type":  "plant",
+        "hardness":  0.0001,
+        "soundMaterial":  "leaves",
+        "category":  "misc"
+    },
+    {
+        "id":  14,
+        "name":  "poppy",
+        "type":  "plant",
+        "hardness":  0.0001,
+        "soundMaterial":  "leaves",
+        "category":  "natural"
+    },
+    {
+        "id":  15,
+        "name":  "dandelion",
+        "type":  "plant",
+        "hardness":  0.0001,
+        "soundMaterial":  "leaves",
+        "category":  "natural"
+    },
+    {
+        "id":  16,
+        "name":  "dotty",
+        "type":  "plant",
+        "hardness":  0.0001,
+        "soundMaterial":  "leaves",
+        "category":  "natural"
+    },
+    {
+        "id":  17,
+        "name":  "fairy_bell",
+        "type":  "plant",
+        "hardness":  0.0001,
+        "soundMaterial":  "leaves",
+        "category":  "natural"
+    },
+    {
+        "id":  18,
+        "name":  "red_tulip",
+        "type":  "plant",
+        "hardness":  0.0001,
+        "soundMaterial":  "leaves",
+        "category":  "natural"
+    },
+    {
+        "id":  19,
+        "name":  "purple_tulip",
+        "type":  "plant",
+        "hardness":  0.0001,
+        "soundMaterial":  "leaves",
+        "category":  "natural"
+    },
+    {
+        "id":  23,
+        "name":  "mavvinilia",
+        "type":  "plant",
+        "hardness":  0.0001,
+        "soundMaterial":  "leaves",
+        "category":  "natural"
+    },
+    {
+        "id":  20,
+        "name":  "oak_planks",
+        "type":  "cube",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  21,
+        "name":  "oak_stairs",
+        "type":  "stair",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  22,
+        "name":  "oak_slabs",
+        "type":  "slab",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  30,
+        "name":  "bricks",
+        "type":  "cube",
+        "hardness":  2.0,
+        "category":  "building"
+    },
+    {
+        "id":  31,
+        "name":  "bricks_stairs",
+        "type":  "stair",
+        "hardness":  2.0,
+        "category":  "wood"
+    },
+    {
+        "id":  32,
+        "name":  "bricks_slabs",
+        "type":  "slab",
+        "hardness":  2.0,
+        "category":  "wood"
+    },
+    {
+        "id":  33,
+        "name":  "oak_chest",
+        "type":  "chest",
+        "hardness":  1.42,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  34,
+        "name":  "oak_trapdoor",
+        "type":  "trapdoor",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood",
+        "textures":  {
 
-  { "id": 2, "name": "dirt", "type": "cube", "hardness": 0.5 },
-  { "id": 26, "name": "dirt_slabs", "type": "slab", "hardness": 0.5 },
-  { "id": 27, "name": "dirt_stairs", "type": "stair", "hardness": 0.5 },
+                     }
+    },
+    {
+        "id":  35,
+        "name":  "oak_door",
+        "type":  "door",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  100,
+        "name":  "birch_log",
+        "type":  "log",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  101,
+        "name":  "birch_planks",
+        "type":  "cube",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  102,
+        "name":  "birch_leaves",
+        "type":  "leaves",
+        "hardness":  0.2,
+        "soundMaterial":  "leaves",
+        "category":  "wood"
+    },
+    {
+        "id":  103,
+        "name":  "birch_stairs",
+        "type":  "stair",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  104,
+        "name":  "birch_slabs",
+        "type":  "slab",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  105,
+        "name":  "birch_chest",
+        "type":  "chest",
+        "hardness":  1.42,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  106,
+        "name":  "birch_trapdoor",
+        "type":  "trapdoor",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood",
+        "textures":  {
 
-  { "id": 3, "name": "stone", "type": "cube", "hardness": 1.5, "soundMaterial": "rock" },
-  { "id": 28, "name": "stone_slabs", "type": "slab", "hardness": 1.5, "soundMaterial": "rock" },
-  { "id": 29, "name": "stone_stairs", "type": "stair", "hardness": 1.5, "soundMaterial": "rock" },
+                     }
+    },
+    {
+        "id":  107,
+        "name":  "birch_door",
+        "type":  "door",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  110,
+        "name":  "pine_log",
+        "type":  "log",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  111,
+        "name":  "pine_planks",
+        "type":  "cube",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  112,
+        "name":  "pine_leaves",
+        "type":  "leaves",
+        "hardness":  0.2,
+        "soundMaterial":  "leaves",
+        "category":  "wood"
+    },
+    {
+        "id":  113,
+        "name":  "pine_stairs",
+        "type":  "stair",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  114,
+        "name":  "pine_slabs",
+        "type":  "slab",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  115,
+        "name":  "pine_chest",
+        "type":  "chest",
+        "hardness":  1.42,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  116,
+        "name":  "pine_trapdoor",
+        "type":  "trapdoor",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood",
+        "textures":  {
 
-  { "id": 4, "name": "water", "type": "water", "hardness": -1.0, "soundMaterial": "water" },
-  { "id": 5, "name": "glass", "type": "cube", "isTransparent": true, "hardness": 0.25 },
-  { "id": 6, "name": "leaves", "type": "leaves", "hardness": 0.2, "soundMaterial": "leaves" },
-  { "id": 7, "name": "torch", "type": "torch", "hardness": 0.0001, "lightEmission": 14 },
-  { "id": 8, "name": "bedrock", "type": "cube", "hardness": -1.0, "soundMaterial": "rock" },
-  { "id": 9, "name": "gravel", "type": "cube", "hardness": 0.6},
-  { "id": 10, "name": "sand", "type": "cube", "hardness": 0.5 },
-  { "id": 11, "name": "log", "type": "log", "hardness": 2.0, "soundMaterial": "wood" },
+                     }
+    },
+    {
+        "id":  117,
+        "name":  "pine_door",
+        "type":  "door",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  120,
+        "name":  "willow_log",
+        "type":  "log",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  121,
+        "name":  "willow_planks",
+        "type":  "cube",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  122,
+        "name":  "willow_leaves",
+        "type":  "leaves",
+        "hardness":  0.2,
+        "soundMaterial":  "leaves",
+        "category":  "wood"
+    },
+    {
+        "id":  123,
+        "name":  "willow_stairs",
+        "type":  "stair",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  124,
+        "name":  "willow_slabs",
+        "type":  "slab",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  125,
+        "name":  "willow_chest",
+        "type":  "chest",
+        "hardness":  1.42,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  126,
+        "name":  "willow_trapdoor",
+        "type":  "trapdoor",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood",
+        "textures":  {
 
-  { "id": 12, "name": "grass", "type": "plant", "hardness": 0.0001, "soundMaterial": "leaves" },
-  { "id": 13, "name": "sandy_grass", "type": "plant", "hardness": 0.0001, "soundMaterial": "leaves" },
-  { "id": 14, "name": "poppy", "type": "plant", "hardness": 0.0001, "soundMaterial": "leaves" },
-  { "id": 15, "name": "dandelion", "type": "plant", "hardness": 0.0001, "soundMaterial": "leaves" },
-  { "id": 16, "name": "dotty", "type": "plant", "hardness": 0.0001, "soundMaterial": "leaves" },
-  { "id": 17, "name": "fairy_bell", "type": "plant", "hardness": 0.0001, "soundMaterial": "leaves" },
-  { "id": 18, "name": "red_tulip", "type": "plant", "hardness": 0.0001, "soundMaterial": "leaves" },
-  { "id": 19, "name": "purple_tulip", "type": "plant", "hardness": 0.0001, "soundMaterial": "leaves" },
-  { "id": 23, "name": "mavvinilia", "type": "plant", "hardness": 0.0001, "soundMaterial": "leaves" },
+                     }
+    },
+    {
+        "id":  127,
+        "name":  "willow_door",
+        "type":  "door",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  130,
+        "name":  "baobab_log",
+        "type":  "log",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  131,
+        "name":  "baobab_planks",
+        "type":  "cube",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  132,
+        "name":  "baobab_leaves",
+        "type":  "leaves",
+        "hardness":  0.2,
+        "soundMaterial":  "leaves",
+        "category":  "wood"
+    },
+    {
+        "id":  133,
+        "name":  "baobab_stairs",
+        "type":  "stair",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  134,
+        "name":  "baobab_slabs",
+        "type":  "slab",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  135,
+        "name":  "baobab_chest",
+        "type":  "chest",
+        "hardness":  1.42,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  136,
+        "name":  "baobab_trapdoor",
+        "type":  "trapdoor",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood",
+        "textures":  {
 
-  { "id": 20, "name": "planks", "type": "cube", "hardness": 2.0, "soundMaterial": "wood" },
-  { "id": 21, "name": "stairs", "type": "stair", "hardness": 2.0, "soundMaterial": "wood" },
-  { "id": 22, "name": "slabs", "type": "slab", "hardness": 2.0, "soundMaterial": "wood" },
+                     }
+    },
+    {
+        "id":  137,
+        "name":  "baobab_door",
+        "type":  "door",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  140,
+        "name":  "mahogany_log",
+        "type":  "log",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  141,
+        "name":  "mahogany_planks",
+        "type":  "cube",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  142,
+        "name":  "mahogany_leaves",
+        "type":  "leaves",
+        "hardness":  0.2,
+        "soundMaterial":  "leaves",
+        "category":  "wood"
+    },
+    {
+        "id":  143,
+        "name":  "mahogany_stairs",
+        "type":  "stair",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  144,
+        "name":  "mahogany_slabs",
+        "type":  "slab",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  145,
+        "name":  "mahogany_chest",
+        "type":  "chest",
+        "hardness":  1.42,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  146,
+        "name":  "mahogany_trapdoor",
+        "type":  "trapdoor",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood",
+        "textures":  {
 
-  { "id": 30, "name": "bricks", "type": "cube", "hardness": 2.0 },
-  { "id": 31, "name": "bricks_stairs", "type": "stair", "hardness": 2.0 },
-  { "id": 32, "name": "bricks_slabs", "type": "slab", "hardness": 2.0 },
+                     }
+    },
+    {
+        "id":  147,
+        "name":  "mahogany_door",
+        "type":  "door",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  150,
+        "name":  "palm_log",
+        "type":  "log",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  151,
+        "name":  "palm_planks",
+        "type":  "cube",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  152,
+        "name":  "palm_leaves",
+        "type":  "leaves",
+        "hardness":  0.2,
+        "soundMaterial":  "leaves",
+        "category":  "wood"
+    },
+    {
+        "id":  153,
+        "name":  "palm_stairs",
+        "type":  "stair",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  154,
+        "name":  "palm_slabs",
+        "type":  "slab",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  155,
+        "name":  "palm_chest",
+        "type":  "chest",
+        "hardness":  1.42,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    },
+    {
+        "id":  156,
+        "name":  "palm_trapdoor",
+        "type":  "trapdoor",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood",
+        "textures":  {
 
-  { "id": 33, "name": "chest", "type": "chest", "hardness": 1.42, "soundMaterial": "wood" }
+                     }
+    },
+    {
+        "id":  157,
+        "name":  "palm_door",
+        "type":  "door",
+        "hardness":  2.0,
+        "soundMaterial":  "wood",
+        "category":  "wood"
+    }
 ]

@@ -1,0 +1,10 @@
+{
+  "type": "shapeless",
+  "ingredients": [
+    "engine:baobab_log"
+  ],
+  "result": {
+    "item": "engine:baobab_planks",
+    "count": 4
+  }
+}

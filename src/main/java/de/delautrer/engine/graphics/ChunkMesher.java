@@ -96,7 +96,8 @@ public class ChunkMesher {
             float x1, float y1, float z1, float ao1,
             float x2, float y2, float z2, float ao2,
             float x3, float y3, float z3, float ao3,
-            float u0, float v0, float u1, float v1,
+            float uv0_u, float uv0_v, float uv1_u, float uv1_v,
+            float uv2_u, float uv2_v, float uv3_u, float uv3_v,
             float texLayer, float directionalLight, Block block,
             float sl0, float sl1, float sl2, float sl3,
             float bl0, float bl1, float bl2, float bl3) {
@@ -135,8 +136,8 @@ public class ChunkMesher {
         targetVertices[vIdx++] = c0 * g;
         targetVertices[vIdx++] = c0 * b;
         targetVertices[vIdx++] = alpha;
-        targetVertices[vIdx++] = u0;
-        targetVertices[vIdx++] = v1;
+        targetVertices[vIdx++] = uv0_u;
+        targetVertices[vIdx++] = uv0_v;
         targetVertices[vIdx++] = texLayer;
         targetVertices[vIdx++] = sl0;
         targetVertices[vIdx++] = bl0;
@@ -149,8 +150,8 @@ public class ChunkMesher {
         targetVertices[vIdx++] = c1 * g;
         targetVertices[vIdx++] = c1 * b;
         targetVertices[vIdx++] = alpha;
-        targetVertices[vIdx++] = u1;
-        targetVertices[vIdx++] = v1;
+        targetVertices[vIdx++] = uv1_u;
+        targetVertices[vIdx++] = uv1_v;
         targetVertices[vIdx++] = texLayer;
         targetVertices[vIdx++] = sl1;
         targetVertices[vIdx++] = bl1;
@@ -163,8 +164,8 @@ public class ChunkMesher {
         targetVertices[vIdx++] = c2 * g;
         targetVertices[vIdx++] = c2 * b;
         targetVertices[vIdx++] = alpha;
-        targetVertices[vIdx++] = u1;
-        targetVertices[vIdx++] = v0;
+        targetVertices[vIdx++] = uv2_u;
+        targetVertices[vIdx++] = uv2_v;
         targetVertices[vIdx++] = texLayer;
         targetVertices[vIdx++] = sl2;
         targetVertices[vIdx++] = bl2;
@@ -177,8 +178,8 @@ public class ChunkMesher {
         targetVertices[vIdx++] = c3 * g;
         targetVertices[vIdx++] = c3 * b;
         targetVertices[vIdx++] = alpha;
-        targetVertices[vIdx++] = u0;
-        targetVertices[vIdx++] = v0;
+        targetVertices[vIdx++] = uv3_u;
+        targetVertices[vIdx++] = uv3_v;
         targetVertices[vIdx++] = texLayer;
         targetVertices[vIdx++] = sl3;
         targetVertices[vIdx++] = bl3;

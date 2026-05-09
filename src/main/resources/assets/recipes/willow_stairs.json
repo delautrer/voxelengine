@@ -1,0 +1,15 @@
+{
+  "type": "shaped",
+  "pattern": [
+    "A  ",
+    "AA ",
+    "AAA"
+  ],
+  "keys": {
+    "A": "engine:willow_planks"
+  },
+  "result": {
+    "item": "engine:willow_stairs",
+    "count": 4
+  }
+}

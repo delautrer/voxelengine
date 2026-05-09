@@ -9,6 +9,8 @@ public class BlockModelData {
     public AtlasRegion south;
     public AtlasRegion east;
     public AtlasRegion west;
+    public AtlasRegion side_top;
+    public AtlasRegion side_bottom;
 
     public boolean directional_textures = true;
 

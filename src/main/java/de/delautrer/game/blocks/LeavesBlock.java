@@ -20,7 +20,7 @@ public class LeavesBlock extends CubeBlock {
 
     @Override
     public boolean shouldRenderFaceAgainst(Block neighborBlock, float myHeight, float neighborHeight) {
-        if (this.getId() == Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "leaves").getId()) return true;
+        if (this.getId() == Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "oak_leaves").getId()) return true;
         return super.shouldRenderFaceAgainst(neighborBlock, myHeight, neighborHeight);
     }
 

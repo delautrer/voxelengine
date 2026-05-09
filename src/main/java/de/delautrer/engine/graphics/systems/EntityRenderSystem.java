@@ -170,14 +170,14 @@ public class EntityRenderSystem implements IRenderSystem {
 
         for (int i = 0; i < 4; i++) {
             Vector3f p = new Vector3f(posUp[i]).mulPosition(transform);
-            addVertex(verts, p.x, p.y, p.z, 1.0f, 1.0f, 1.0f, 1.0f, u[i], v[i], (float) reg.layer, 1.0f, 0.0f);
+            addVertex(verts, p.x, p.y, p.z, 1.0f, 1.0f, 1.0f, 1.0f, u[i], v[i], reg.layer, 1.0f, 0.0f);
         }
         addIndices(inds, offset);
         offset += 4;
 
         for (int i = 0; i < 4; i++) {
             Vector3f p = new Vector3f(posDown[i]).mulPosition(transform);
-            addVertex(verts, p.x, p.y, p.z, 0.6f, 0.6f, 0.6f, 1.0f, u[i], v[i], (float) reg.layer, 1.0f, 0.0f);
+            addVertex(verts, p.x, p.y, p.z, 0.6f, 0.6f, 0.6f, 1.0f, u[i], v[i], reg.layer, 1.0f, 0.0f);
         }
         addIndices(inds, offset);
         offset += 4;
@@ -192,7 +192,7 @@ public class EntityRenderSystem implements IRenderSystem {
         for (int e = 0; e < 4; e++) {
             for (int i = 0; i < 4; i++) {
                 Vector3f p = new Vector3f(edges[e][i]).mulPosition(transform);
-                addVertex(verts, p.x, p.y, p.z, 0.3f, 0.3f, 0.3f, 1.0f, reg.u0, reg.v0, (float) reg.layer, 1.0f, 0.0f);
+                addVertex(verts, p.x, p.y, p.z, 0.3f, 0.3f, 0.3f, 1.0f, reg.u0, reg.v0, reg.layer, 1.0f, 0.0f);
             }
             addIndices(inds, offset);
             offset += 4;
@@ -278,7 +278,7 @@ public class EntityRenderSystem implements IRenderSystem {
                     Vector3f tv = new Vector3f(p[j]).mulPosition(transform);
                     float finalU = reg.u0 + (u[j] * (reg.u1 - reg.u0));
                     float finalV = reg.v0 + (v[j] * (reg.v1 - reg.v0));
-                    addVertex(verts, tv.x, tv.y, tv.z, s, s, s, 1.0f, finalU, finalV, (float) reg.layer, 1.0f, 0.0f);
+                    addVertex(verts, tv.x, tv.y, tv.z, s, s, s, 1.0f, finalU, finalV, reg.layer, 1.0f, 0.0f);
                 }
                 addIndices(inds, offset);
                 offset += 4;

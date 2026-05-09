@@ -1,0 +1,10 @@
+{
+  "type": "shapeless",
+  "ingredients": [
+    "engine:mahogany_log"
+  ],
+  "result": {
+    "item": "engine:mahogany_planks",
+    "count": 4
+  }
+}

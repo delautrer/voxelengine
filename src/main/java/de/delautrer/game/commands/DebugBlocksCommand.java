@@ -2,6 +2,7 @@ package de.delautrer.game.commands;
 
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
+import de.delautrer.game.blocks.DoorBlock;
 import de.delautrer.game.entity.player.LocalPlayer;
 import de.delautrer.game.world.World;
 import java.util.ArrayList;
@@ -64,8 +65,14 @@ public class DebugBlocksCommand implements ICommand {
                 int bz = startZ + (gz * 2);
 
                 // Block aus der Registry platzieren
-                System.out.println(allBlocks[blockIndex]);
-                world.setBlock(bx, targetY, bz, allBlocks[blockIndex].getId());
+                Block b = allBlocks[blockIndex];
+                world.setBlock(bx, targetY, bz, b.getId());
+                
+                // Spezialbehandlung für Türen: Obere Hälfte platzieren
+                if (b instanceof DoorBlock) {
+                    world.setBlockState(bx, targetY + 1, bz, b.getDefaultState().with(DoorBlock.HALF, de.delautrer.game.blocks.state.BlockProperties.Half.TOP));
+                }
+                
                 blockIndex++;
             }
         }

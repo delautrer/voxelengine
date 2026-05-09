@@ -1,0 +1,14 @@
+{
+  "type": "shaped",
+  "pattern": [
+    "A",
+    "A"
+  ],
+  "keys": {
+    "A": "engine:birch_planks"
+  },
+  "result": {
+    "item": "engine:sticks",
+    "count": 4
+  }
+}

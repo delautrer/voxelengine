@@ -225,7 +225,7 @@ public class WorldStorageManager {
             out.writeInt(items.size());
             for (ItemEntity item : items) {
                 out.writeFloat((float)item.position.x); out.writeFloat((float)item.position.y); out.writeFloat((float)item.position.z);
-                out.writeFloat((float)item.velocity.x); out.writeFloat((float)item.velocity.y); out.writeFloat((float)item.velocity.z);
+                out.writeFloat(item.velocity.x); out.writeFloat(item.velocity.y); out.writeFloat(item.velocity.z);
                 saveItemStack(out, item.stack);
             }
         } catch (IOException e) {

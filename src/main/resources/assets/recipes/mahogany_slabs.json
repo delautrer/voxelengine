@@ -1,0 +1,13 @@
+{
+  "type": "shaped",
+  "pattern": [
+    "AAA"
+  ],
+  "keys": {
+    "A": "engine:mahogany_planks"
+  },
+  "result": {
+    "item": "engine:mahogany_slabs",
+    "count": 6
+  }
+}

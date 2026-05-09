@@ -1,0 +1,11 @@
+{
+  "parent": "block/cube_column",
+  "textures": {
+    "top": "chest/baobab/top",
+    "bottom": "chest/baobab/bottom",
+    "front": "chest/baobab/front",
+    "back": "chest/baobab/back",
+    "left": "chest/baobab/side",
+    "right": "chest/baobab/side"
+  }
+}

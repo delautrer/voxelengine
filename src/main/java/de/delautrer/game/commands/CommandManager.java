@@ -15,6 +15,7 @@ public class CommandManager implements EventListener<CommandExecutedEvent> {
     private final EventBus eventBus;
     private final Map<String, ICommand> commands = new HashMap<>();
 
+    @SuppressWarnings("this-escape")
     public CommandManager(EventBus eventBus) {
         this.eventBus = eventBus;
         eventBus.subscribe(CommandExecutedEvent.class, this);

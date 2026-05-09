@@ -1,0 +1,10 @@
+{
+  "type": "shapeless",
+  "ingredients": [
+    "engine:willow_log"
+  ],
+  "result": {
+    "item": "engine:willow_planks",
+    "count": 4
+  }
+}

@@ -319,7 +319,7 @@ public class StairBlock extends CubeBlock {
             boolean rW = true; if (i==1||i==3||i==5||i==7) rW = !q[i-1];
             boolean rE = true; if (i==0||i==2||i==4||i==6) rE = !q[i+1];
 
-            renderBox(state, x, y, z, bounds[i][0], bounds[i][1], bounds[i][2], bounds[i][3], bounds[i][4], bounds[i][5], rTop, rBot, rN, rS, rE, rW, chunk, cm);
+            renderBox(state, x, y, z, bounds[i][0], bounds[i][1], bounds[i][2], bounds[i][3], bounds[i][4], bounds[i][5], rTop, rBot, rN, rS, rE, rW, false, chunk, cm);
         }
     }
 

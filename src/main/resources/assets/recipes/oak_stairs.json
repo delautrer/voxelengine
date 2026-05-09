@@ -5,10 +5,10 @@
     "AA"
   ],
   "keys": {
-    "A": "engine:planks"
+    "A": "engine:oak_planks"
   },
   "result": {
-    "item": "engine:stairs",
+    "item": "engine:oak_stairs",
     "count": 4
   }
 }

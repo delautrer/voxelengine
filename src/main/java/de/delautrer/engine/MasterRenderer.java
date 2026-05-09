@@ -177,7 +177,7 @@ public class MasterRenderer {
             float miningProgress = interaction.getMiningProgressPercent();
             if (miningProgress > 0.0f) {
                 int stage = (int) Math.min(9, Math.floor(miningProgress * 10.0f));
-                String textureName = "destroy_stage_" + stage;
+                String textureName = "destroy/destroy_stage_" + stage;
 
                 if (blockAtlas.regions.containsKey(textureName)) {
                     float layer = blockAtlas.regions.get(textureName).layer;

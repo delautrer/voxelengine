@@ -28,8 +28,8 @@ public class DecoratorPass implements IGenerationPass {
         this.floraNoise = new NoiseGenerator(seed * 5);
         this.blobNoise = new NoiseGenerator(seed * 8888L);
         this.air = BlockRegistry.get(Constants.NAMESPACE + ":air").getDefaultState();
-        this.leaves = BlockRegistry.get(Constants.NAMESPACE + ":leaves").getDefaultState();
-        this.uprightLog = BlockRegistry.get(Constants.NAMESPACE + ":log").getDefaultState().with(LogBlock.AXIS,
+        this.leaves = BlockRegistry.get(Constants.NAMESPACE + ":oak_leaves").getDefaultState();
+        this.uprightLog = BlockRegistry.get(Constants.NAMESPACE + ":oak_log").getDefaultState().with(LogBlock.AXIS,
                 BlockProperties.Axis.Y);
         this.water = BlockRegistry.get(Constants.NAMESPACE + ":water").getDefaultState();
         this.gravelId = BlockRegistry.get(Constants.NAMESPACE + ":gravel").getId();

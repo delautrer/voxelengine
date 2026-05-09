@@ -55,6 +55,7 @@ public class ChunkManager {
     private final int requiredInitialRadius = 4;
     private boolean isCleanedUp = false;
 
+    @SuppressWarnings("this-escape")
     public ChunkManager(World world, IGraphicsFactory graphicsFactory) {
         this.world = world;
         this.worldGenerator = new WorldGenerator(this.world.getSeed());

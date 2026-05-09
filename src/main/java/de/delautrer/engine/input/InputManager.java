@@ -49,7 +49,7 @@ public class InputManager {
         });
     }
 
-    public void reloadBindings() {
+    public final void reloadBindings() {
         keyBindings.clear();
         mouseBindings.clear();
 
@@ -153,4 +153,8 @@ public class InputManager {
     public int getWindowWidth() { return windowWidth; }
     public int getWindowHeight() { return windowHeight; }
     public void setTypingMode(boolean typingMode) { this.typingMode = typingMode; }
+
+    public void consumeAction(String action) {
+        previousActionStates.put(action, true);
+    }
 }

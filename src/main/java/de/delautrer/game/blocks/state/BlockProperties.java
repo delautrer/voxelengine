@@ -7,4 +7,5 @@ public class BlockProperties {
     public enum SlabType { BOTTOM, TOP, DOUBLE }
     public enum StairShape { STRAIGHT, INNER_LEFT, INNER_RIGHT, OUTER_LEFT, OUTER_RIGHT }
     public enum BlockFace { UP, DOWN, NORTH, SOUTH, EAST, WEST }
+    public enum DoorHinge { LEFT, RIGHT }
 }

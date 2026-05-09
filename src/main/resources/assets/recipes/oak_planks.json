@@ -1,10 +1,10 @@
 {
   "type": "shapeless",
   "ingredients": [
-    "engine:log"
+    "engine:oak_log"
   ],
   "result": {
-    "item": "engine:planks",
+    "item": "engine:oak_planks",
     "count": 4
   }
 }

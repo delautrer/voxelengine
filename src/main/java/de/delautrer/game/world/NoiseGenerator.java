@@ -59,8 +59,8 @@ public class NoiseGenerator {
     public float getNoise(float x, float z) {
         int X = (int)Math.floor(x) & 255;
         int Z = (int)Math.floor(z) & 255;
-        x -= Math.floor(x);
-        z -= Math.floor(z);
+        x -= (float) Math.floor(x);
+        z -= (float) Math.floor(z);
         float u = fade(x), v = fade(z);
         int A = P[X]+Z, AA = P[A], AB = P[A+1];
         int B = P[X+1]+Z, BA = P[B], BB = P[B+1];
@@ -70,7 +70,7 @@ public class NoiseGenerator {
 
     public float getNoise(float x, float y, float z) {
         int X = (int)Math.floor(x) & 255, Y = (int)Math.floor(y) & 255, Z = (int)Math.floor(z) & 255;
-        x -= Math.floor(x); y -= Math.floor(y); z -= Math.floor(z);
+        x -= (float) Math.floor(x); y -= (float) Math.floor(y); z -= (float) Math.floor(z);
         float u = fade(x), v = fade(y), w = fade(z);
         int A = P[X]+Y, AA = P[A]+Z, AB = P[A+1]+Z;
         int B = P[X+1]+Y, BA = P[B]+Z, BB = P[B+1]+Z;

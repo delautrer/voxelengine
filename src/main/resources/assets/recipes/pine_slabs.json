@@ -1,0 +1,13 @@
+{
+  "type": "shaped",
+  "pattern": [
+    "AAA"
+  ],
+  "keys": {
+    "A": "engine:pine_planks"
+  },
+  "result": {
+    "item": "engine:pine_slabs",
+    "count": 6
+  }
+}

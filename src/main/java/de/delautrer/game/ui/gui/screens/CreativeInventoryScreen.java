@@ -1,5 +1,6 @@
 package de.delautrer.game.ui.gui.screens;
 
+import de.delautrer.Constants;
 import de.delautrer.game.items.Item;
 import de.delautrer.game.items.ItemStack;
 import de.delautrer.game.ui.UIMeshBuilder;
@@ -17,15 +18,15 @@ public class CreativeInventoryScreen extends ContainerScreen {
 
     public CreativeInventoryScreen(CreativeContainer container) {
         super(container);
-        // FIX 1: Richtige Parameter für UIInputField (x, y, w, h, placeholder, maxLength)
-        this.searchField = new UIInputField(0, 0, 100, 12, "Suchen...", 20);
+        this.searchField = new UIInputField(0, 0, 100, 12, "Search...", 20);
     }
 
     @Override
     protected void onInit() {
         slotSize = 24f * pixelScale;
         float gridW = 24f * 9f * pixelScale;
-        float gridH = 34f * pixelScale + (5 * 24f * pixelScale);
+        // Abstand 34px wie im Survival-Inventar
+        float gridH = 34f * pixelScale + (6 * 24f * pixelScale);
 
         guiX = (float) Math.floor((width - gridW) / 2.0f);
         guiY = (height - gridH) / 2.0f;
@@ -35,62 +36,127 @@ public class CreativeInventoryScreen extends ContainerScreen {
         panelX = guiX - 10.0f * pixelScale;
         panelY = guiY - 10.0f * pixelScale;
 
-        // Suchfeld positionieren (Nutzt jetzt die neue setSize Methode!)
-        searchField.setPosition(guiX + gridW - (80.0f * pixelScale), panelY + panelH - (20.0f * pixelScale));
-        searchField.setSize(80.0f * pixelScale, 12.0f * pixelScale);
+        // Suchfeld positionieren (Oben rechts)
+        searchField.setPosition(guiX + gridW - (80.0f * pixelScale), guiY + (6 * 24f * pixelScale) + 35.0f * pixelScale);
+        searchField.setSize(80.0f * pixelScale, 14.0f * pixelScale);
     }
 
     @Override
     public void handleInput(InputManager input) {
-        // 1. Klick in oder außerhalb der Suchleiste
+        float mouseX = input.getMouseX();
+        float mouseY = height - input.getMouseY();
+        CreativeContainer cc = (CreativeContainer) container;
+
+        // 1. ESC Handling für Suchfeld Fokus
+        if (searchField.isFocused() && input.isActionJustPressed("PAUSE")) {
+            searchField.setFocused(false);
+            input.setTypingMode(false);
+            input.consumeAction("PAUSE"); // Verhindert das Schließen des Inventars
+            return;
+        }
+
+        // 2. Tab-Klicks abfangen
         if (input.isActionJustPressed("INTERACT_BREAK")) {
-            float invertedY = height - input.getMouseY();
-            boolean hovered = searchField.isHovered(input.getMouseX(), invertedY);
+            float tabW = 28 * pixelScale;
+            float tabH = 32 * pixelScale;
+            float startY = panelY + panelH;
 
-            // Wenn sich der Fokus ändert, TypingMode aktivieren/deaktivieren
-            if (hovered != searchField.isFocused()) {
-                searchField.setFocused(hovered);
-                input.setTypingMode(hovered);
+            for (int i = 0; i < CreativeContainer.CreativeTab.values().length; i++) {
+                CreativeContainer.CreativeTab tab = CreativeContainer.CreativeTab.values()[i];
+                float tx = (tab == CreativeContainer.CreativeTab.SEARCH) ? (panelX + panelW - tabW) : (panelX + i * (tabW + 2 * pixelScale));
+                
+                if (mouseX >= tx && mouseX <= tx + tabW && mouseY >= startY && mouseY <= startY + tabH) {
+                    cc.setTab(tab);
+                    return;
+                }
             }
-
-            if (hovered) return; // Klick im Suchfeld abfangen
         }
 
-        // 2. Wenn das Suchfeld aktiv ist, tippen wir!
-        if (searchField.isFocused()) {
-            searchField.handleInput(input);
-            ((CreativeContainer)container).setSearchText(searchField.getText());
+        // 3. Suche (nur im SEARCH Tab)
+        if (cc.getCurrentTab() == CreativeContainer.CreativeTab.SEARCH) {
+            if (input.isActionJustPressed("INTERACT_BREAK")) {
+                boolean hovered = searchField.isHovered(mouseX, mouseY);
+                if (hovered != searchField.isFocused()) {
+                    searchField.setFocused(hovered);
+                    input.setTypingMode(hovered);
+                }
+                if (hovered) return;
+            }
 
-            // "PAUSE" ist die Escape-Taste in deinem InputManager
-            if (input.isActionJustPressed("PAUSE")) {
+            if (searchField.isFocused()) {
+                searchField.handleInput(input);
+                cc.setSearchText(searchField.getText());
+                return;
+            }
+        } else {
+            if (searchField.isFocused()) {
                 searchField.setFocused(false);
-                input.setTypingMode(false); // TypingMode wieder aus!
+                input.setTypingMode(false);
             }
-            return; // Blockiert Inventar-Klicks und das Schließen des Inventars
         }
 
-        // 3. Standard Container-Input (Klicken auf Slots)
         super.handleInput(input);
 
-        // 4. Scrollen im Creative Inventar
+        // 4. Scrollen
         double scroll = input.consumeScroll();
         if (scroll != 0) {
-            CreativeContainer cc = (CreativeContainer) container;
-            cc.scrollTo(cc.getScrollOffset() - (float)scroll);
+            cc.setScrollOffset(cc.getScrollOffset() - (int) Math.signum(scroll));
         }
     }
 
     @Override
     protected void drawBackground(UIMeshBuilder builder, float mouseX, float mouseY) {
-        // Basis-Hintergrund
         builder.add9Slice(panelX, panelY, 0.0f, panelW, panelH, 4, 0, 8.0f * pixelScale);
 
+        drawTabs(builder, mouseX, mouseY);
+
+        CreativeContainer cc = (CreativeContainer) container;
         if (font != null) {
-            builder.drawText("Creative Mode", panelX + 10.0f * pixelScale, panelY + panelH - (18.0f * pixelScale), 0.1f, font);
+            builder.drawText(cc.getCurrentTab().title, panelX + 10.0f * pixelScale, guiY + (6 * 24f * pixelScale) + 39.0f * pixelScale, 0.1f, font);
         }
 
-        // Suchfeld zeichnen
-        searchField.render(builder, font, mouseX, mouseY);
+        if (cc.getCurrentTab() == CreativeContainer.CreativeTab.SEARCH) {
+            searchField.render(builder, font, mouseX, mouseY);
+        }
+        
+        // Delete Slot Visualisierung (Premium Look)
+        for (Slot slot : cc.slots) {
+            if (slot.slotIndex == -1) {
+                float sx = guiX + slot.x * pixelScale;
+                float sy = guiY + slot.y * pixelScale;
+                
+                // Hintergrund: Standard Slot-Hintergrund (9-Slice)
+                builder.add9Slice(sx, sy, 0.1f, slotSize, slotSize, 0, 0, 2 * pixelScale);
+                
+                // Rote Füllung (Semi-transparentes Dunkelrot)
+                builder.addRect(sx + 2 * pixelScale, sy + 2 * pixelScale, 0.11f, slotSize - 4 * pixelScale, slotSize - 4 * pixelScale, 0.5f, 0.05f, 0.05f, 0.7f);
+                
+                if (font != null) {
+                    // Das X etwas dicker und zentrierter
+                    builder.drawText("X", sx + 9 * pixelScale, sy + 8 * pixelScale, 0.2f, font);
+                }
+            }
+        }
+    }
+
+    private void drawTabs(UIMeshBuilder builder, float mouseX, float mouseY) {
+        CreativeContainer cc = (CreativeContainer) container;
+        float tabW = 28 * pixelScale;
+        float tabH = 28 * pixelScale;
+        float startY = panelY + panelH;
+
+        for (int i = 0; i < CreativeContainer.CreativeTab.values().length; i++) {
+            CreativeContainer.CreativeTab tab = CreativeContainer.CreativeTab.values()[i];
+            float x = (tab == CreativeContainer.CreativeTab.SEARCH) ? (panelX + panelW - tabW) : (panelX + i * (tabW - 1 * pixelScale));
+            boolean active = cc.getCurrentTab() == tab;
+
+            builder.add9Slice(x, startY, 0.1f, tabW, tabH, active ? 14 : 13, 0, 8 * pixelScale);
+
+            Item iconItem = ItemRegistry.get(Constants.NAMESPACE + ":" + tab.iconId);
+            if (iconItem != null) {
+                builder.drawItem(new ItemStack(iconItem, 1), x + 8 * pixelScale, startY + 8 * pixelScale, 0.2f, 12 * pixelScale);
+            }
+        }
     }
 
     @Override
@@ -99,26 +165,39 @@ public class CreativeInventoryScreen extends ContainerScreen {
 
         CreativeContainer cc = (CreativeContainer) container;
 
-        // 1. Virtuelle Items zeichnen
         for (Slot slot : cc.slots) {
-            if (slot.inventory == null) {
+            if (slot.inventory == null && slot.slotIndex != -1) {
                 Item item = cc.getItemInGrid(slot.slotIndex);
                 if (item != null) {
                     float slotX = guiX + (slot.x * pixelScale);
                     float slotY = guiY + (slot.y * pixelScale);
-                    builder.drawItem(new ItemStack(item, 1), slotX + 3 * pixelScale, slotY + 3 * pixelScale, 0.3f, slotSize - 6 * pixelScale);
+                    if (slotX >= -100) { // Sichtbarkeits-Check
+                        builder.drawItem(new ItemStack(item, 1), slotX + 3 * pixelScale, slotY + 3 * pixelScale, 0.3f, slotSize - 6 * pixelScale);
+                    }
                 }
             }
         }
 
-        // 2. Manueller Tooltip für Creative-Slots
+        float tabW = 28 * pixelScale;
+        float tabH = 32 * pixelScale;
+        float startY = panelY + panelH;
+        for (int i = 0; i < CreativeContainer.CreativeTab.values().length; i++) {
+            CreativeContainer.CreativeTab tab = CreativeContainer.CreativeTab.values()[i];
+            float tx = (tab == CreativeContainer.CreativeTab.SEARCH) ? (panelX + panelW - tabW) : (panelX + i * (tabW + 2 * pixelScale));
+            if (mouseX >= tx && mouseX <= tx + tabW && mouseY >= startY && mouseY <= startY + tabH) {
+                drawTooltip(builder, tab.title, mouseX, mouseY);
+            }
+        }
+
         Slot hoveredSlot = getHoveredSlotObj(mouseX, mouseY);
-        if (hoveredSlot != null && hoveredSlot.inventory == null && container.getMouseStack() == null && font != null) {
+        if (hoveredSlot != null && hoveredSlot.inventory == null && hoveredSlot.slotIndex != -1 && container.getMouseStack() == null && font != null) {
             Item item = cc.getItemInGrid(hoveredSlot.slotIndex);
             if (item != null) {
                 String name = UIUtils.formatItemName(ItemRegistry.getId(item));
                 drawTooltip(builder, name, mouseX, mouseY);
             }
+        } else if (hoveredSlot != null && hoveredSlot.slotIndex == -1) {
+            drawTooltip(builder, "Delete Item", mouseX, mouseY);
         }
     }
 }

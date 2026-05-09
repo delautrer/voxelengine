@@ -33,20 +33,20 @@ public class ItemRegistry {
         register("stone_slabs", new BlockItem("Stone Slabs", "stone_slabs", Registries.BLOCKS.get(Constants.NAMESPACE + ":stone_slabs")));
         register("stone_stairs", new BlockItem("Stone Stairs", "stone_stairs", Registries.BLOCKS.get(Constants.NAMESPACE + ":stone_stairs")));
 
-        register("water_bucket", new BlockItem("Water bucket", "water_bucket", Registries.BLOCKS.get(Constants.NAMESPACE + ":water")).setMaxStackSize(1));
-        register("empty_bucket", new EmptyBucketItem("Bucket", "empty_bucket").setMaxStackSize(1));
+        register("water_bucket", new BlockItem("Water bucket", "water_bucket", Registries.BLOCKS.get(Constants.NAMESPACE + ":water")).setMaxStackSize(1).setCategory("misc"));
+        register("empty_bucket", new EmptyBucketItem("Bucket", "empty_bucket").setMaxStackSize(1).setCategory("misc"));
 
         register("glass", new BlockItem("Glass", "glass", Registries.BLOCKS.get(Constants.NAMESPACE + ":glass")));
-        register("leaves", new BlockItem("Leaves", "leaves", Registries.BLOCKS.get(Constants.NAMESPACE + ":leaves")));
+        register("oak_leaves", new BlockItem("Oak Leaves", "oak_leaves", Registries.BLOCKS.get(Constants.NAMESPACE + ":oak_leaves")));
         register("torch", new BlockItem("Torch", "torch", Registries.BLOCKS.get(Constants.NAMESPACE + ":torch")));
         register("bedrock", new BlockItem("Bedrock", "bedrock", Registries.BLOCKS.get(Constants.NAMESPACE + ":bedrock")));
         register("gravel", new BlockItem("Gravel", "gravel", Registries.BLOCKS.get(Constants.NAMESPACE + ":gravel")));
         register("sand", new BlockItem("Sand", "sand", Registries.BLOCKS.get(Constants.NAMESPACE + ":sand")));
-        register("log", new BlockItem("Log", "log", Registries.BLOCKS.get(Constants.NAMESPACE + ":log")));
+        register("oak_log", new BlockItem("Oak Log", "oak_log", Registries.BLOCKS.get(Constants.NAMESPACE + ":oak_log")));
 
-        register("planks", new BlockItem("Planks", "planks", Registries.BLOCKS.get(Constants.NAMESPACE + ":planks")));
-        register("stairs", new BlockItem("Stairs", "stairs", Registries.BLOCKS.get(Constants.NAMESPACE + ":stairs")));
-        register("slabs", new BlockItem("Slabs", "slabs", Registries.BLOCKS.get(Constants.NAMESPACE + ":slabs")));
+        register("oak_planks", new BlockItem("Oak Planks", "oak_planks", Registries.BLOCKS.get(Constants.NAMESPACE + ":oak_planks")));
+        register("oak_stairs", new BlockItem("Oak Stairs", "oak_stairs", Registries.BLOCKS.get(Constants.NAMESPACE + ":oak_stairs")));
+        register("oak_slabs", new BlockItem("Oak Slabs", "oak_slabs", Registries.BLOCKS.get(Constants.NAMESPACE + ":oak_slabs")));
 
         register("bricks", new BlockItem("Bricks", "bricks_block", Registries.BLOCKS.get(Constants.NAMESPACE + ":bricks")));
         register("bricks_stairs", new BlockItem("Bricks Stairs", "bricks_stairs", Registries.BLOCKS.get(Constants.NAMESPACE + ":bricks_stairs")));
@@ -62,14 +62,76 @@ public class ItemRegistry {
         register("purple_tulip", new BlockItem("Purple Tulip", "purple_tulip", Registries.BLOCKS.get(Constants.NAMESPACE + ":purple_tulip")));
         register("mavvinilia", new BlockItem("Mavvinilia", "mavvinilia", Registries.BLOCKS.get(Constants.NAMESPACE + ":mavvinilia")));
 
-        register("chest", new BlockItem("Chest", "chest", Registries.BLOCKS.get(Constants.NAMESPACE + ":chest")));
+        register("oak_chest", new BlockItem("Oak Chest", "oak_chest", Registries.BLOCKS.get(Constants.NAMESPACE + ":oak_chest")));
+        register("oak_trapdoor", new BlockItem("Oak Trapdoor", "oak_trapdoor", Registries.BLOCKS.get(Constants.NAMESPACE + ":oak_trapdoor")));
+        register("oak_door", new BlockItem("Oak Door", "oak_door", Registries.BLOCKS.get(Constants.NAMESPACE + ":oak_door")));
+
+        // Birch
+        register("birch_log", new BlockItem("Birch Log", "birch_log", Registries.BLOCKS.get(Constants.NAMESPACE + ":birch_log")));
+        register("birch_planks", new BlockItem("Birch Planks", "birch_planks", Registries.BLOCKS.get(Constants.NAMESPACE + ":birch_planks")));
+        register("birch_leaves", new BlockItem("Birch Leaves", "birch_leaves", Registries.BLOCKS.get(Constants.NAMESPACE + ":birch_leaves")));
+        register("birch_stairs", new BlockItem("Birch Stairs", "birch_stairs", Registries.BLOCKS.get(Constants.NAMESPACE + ":birch_stairs")));
+        register("birch_slabs", new BlockItem("Birch Slabs", "birch_slabs", Registries.BLOCKS.get(Constants.NAMESPACE + ":birch_slabs")));
+        register("birch_chest", new BlockItem("Birch Chest", "birch_chest", Registries.BLOCKS.get(Constants.NAMESPACE + ":birch_chest")));
+        register("birch_trapdoor", new BlockItem("Birch Trapdoor", "birch_trapdoor", Registries.BLOCKS.get(Constants.NAMESPACE + ":birch_trapdoor")));
+        register("birch_door", new BlockItem("Birch Door", "birch_door", Registries.BLOCKS.get(Constants.NAMESPACE + ":birch_door")));
+
+        // Pine
+        register("pine_log", new BlockItem("Pine Log", "pine_log", Registries.BLOCKS.get(Constants.NAMESPACE + ":pine_log")));
+        register("pine_planks", new BlockItem("Pine Planks", "pine_planks", Registries.BLOCKS.get(Constants.NAMESPACE + ":pine_planks")));
+        register("pine_leaves", new BlockItem("Pine Leaves", "pine_leaves", Registries.BLOCKS.get(Constants.NAMESPACE + ":pine_leaves")));
+        register("pine_stairs", new BlockItem("Pine Stairs", "pine_stairs", Registries.BLOCKS.get(Constants.NAMESPACE + ":pine_stairs")));
+        register("pine_slabs", new BlockItem("Pine Slabs", "pine_slabs", Registries.BLOCKS.get(Constants.NAMESPACE + ":pine_slabs")));
+        register("pine_chest", new BlockItem("Pine Chest", "pine_chest", Registries.BLOCKS.get(Constants.NAMESPACE + ":pine_chest")));
+        register("pine_trapdoor", new BlockItem("Pine Trapdoor", "pine_trapdoor", Registries.BLOCKS.get(Constants.NAMESPACE + ":pine_trapdoor")));
+        register("pine_door", new BlockItem("Pine Door", "pine_door", Registries.BLOCKS.get(Constants.NAMESPACE + ":pine_door")));
+
+        // Willow
+        register("willow_log", new BlockItem("Willow Log", "willow_log", Registries.BLOCKS.get(Constants.NAMESPACE + ":willow_log")));
+        register("willow_planks", new BlockItem("Willow Planks", "willow_planks", Registries.BLOCKS.get(Constants.NAMESPACE + ":willow_planks")));
+        register("willow_leaves", new BlockItem("Willow Leaves", "willow_leaves", Registries.BLOCKS.get(Constants.NAMESPACE + ":willow_leaves")));
+        register("willow_stairs", new BlockItem("Willow Stairs", "willow_stairs", Registries.BLOCKS.get(Constants.NAMESPACE + ":willow_stairs")));
+        register("willow_slabs", new BlockItem("Willow Slabs", "willow_slabs", Registries.BLOCKS.get(Constants.NAMESPACE + ":willow_slabs")));
+        register("willow_chest", new BlockItem("Willow Chest", "willow_chest", Registries.BLOCKS.get(Constants.NAMESPACE + ":willow_chest")));
+        register("willow_trapdoor", new BlockItem("Willow Trapdoor", "willow_trapdoor", Registries.BLOCKS.get(Constants.NAMESPACE + ":willow_trapdoor")));
+        register("willow_door", new BlockItem("Willow Door", "willow_door", Registries.BLOCKS.get(Constants.NAMESPACE + ":willow_door")));
+
+        // Baobab
+        register("baobab_log", new BlockItem("Baobab Log", "baobab_log", Registries.BLOCKS.get(Constants.NAMESPACE + ":baobab_log")));
+        register("baobab_planks", new BlockItem("Baobab Planks", "baobab_planks", Registries.BLOCKS.get(Constants.NAMESPACE + ":baobab_planks")));
+        register("baobab_leaves", new BlockItem("Baobab Leaves", "baobab_leaves", Registries.BLOCKS.get(Constants.NAMESPACE + ":baobab_leaves")));
+        register("baobab_stairs", new BlockItem("Baobab Stairs", "baobab_stairs", Registries.BLOCKS.get(Constants.NAMESPACE + ":baobab_stairs")));
+        register("baobab_slabs", new BlockItem("Baobab Slabs", "baobab_slabs", Registries.BLOCKS.get(Constants.NAMESPACE + ":baobab_slabs")));
+        register("baobab_chest", new BlockItem("Baobab Chest", "baobab_chest", Registries.BLOCKS.get(Constants.NAMESPACE + ":baobab_chest")));
+        register("baobab_trapdoor", new BlockItem("Baobab Trapdoor", "baobab_trapdoor", Registries.BLOCKS.get(Constants.NAMESPACE + ":baobab_trapdoor")));
+        register("baobab_door", new BlockItem("Baobab Door", "baobab_door", Registries.BLOCKS.get(Constants.NAMESPACE + ":baobab_door")));
+
+        // Mahogany
+        register("mahogany_log", new BlockItem("Mahogany Log", "mahogany_log", Registries.BLOCKS.get(Constants.NAMESPACE + ":mahogany_log")));
+        register("mahogany_planks", new BlockItem("Mahogany Planks", "mahogany_planks", Registries.BLOCKS.get(Constants.NAMESPACE + ":mahogany_planks")));
+        register("mahogany_leaves", new BlockItem("Mahogany Leaves", "mahogany_leaves", Registries.BLOCKS.get(Constants.NAMESPACE + ":mahogany_leaves")));
+        register("mahogany_stairs", new BlockItem("Mahogany Stairs", "mahogany_stairs", Registries.BLOCKS.get(Constants.NAMESPACE + ":mahogany_stairs")));
+        register("mahogany_slabs", new BlockItem("Mahogany Slabs", "mahogany_slabs", Registries.BLOCKS.get(Constants.NAMESPACE + ":mahogany_slabs")));
+        register("mahogany_chest", new BlockItem("Mahogany Chest", "mahogany_chest", Registries.BLOCKS.get(Constants.NAMESPACE + ":mahogany_chest")));
+        register("mahogany_trapdoor", new BlockItem("Mahogany Trapdoor", "mahogany_trapdoor", Registries.BLOCKS.get(Constants.NAMESPACE + ":mahogany_trapdoor")));
+        register("mahogany_door", new BlockItem("Mahogany Door", "mahogany_door", Registries.BLOCKS.get(Constants.NAMESPACE + ":mahogany_door")));
+
+        // Palm
+        register("palm_log", new BlockItem("Palm Log", "palm_log", Registries.BLOCKS.get(Constants.NAMESPACE + ":palm_log")));
+        register("palm_planks", new BlockItem("Palm Planks", "palm_planks", Registries.BLOCKS.get(Constants.NAMESPACE + ":palm_planks")));
+        register("palm_leaves", new BlockItem("Palm Leaves", "palm_leaves", Registries.BLOCKS.get(Constants.NAMESPACE + ":palm_leaves")));
+        register("palm_stairs", new BlockItem("Palm Stairs", "palm_stairs", Registries.BLOCKS.get(Constants.NAMESPACE + ":palm_stairs")));
+        register("palm_slabs", new BlockItem("Palm Slabs", "palm_slabs", Registries.BLOCKS.get(Constants.NAMESPACE + ":palm_slabs")));
+        register("palm_chest", new BlockItem("Palm Chest", "palm_chest", Registries.BLOCKS.get(Constants.NAMESPACE + ":palm_chest")));
+        register("palm_trapdoor", new BlockItem("Palm Trapdoor", "palm_trapdoor", Registries.BLOCKS.get(Constants.NAMESPACE + ":palm_trapdoor")));
+        register("palm_door", new BlockItem("Palm Door", "palm_door", Registries.BLOCKS.get(Constants.NAMESPACE + ":palm_door")));
 
         register("sticks", new Item("Sticks", "sticks") {
             @Override
             public boolean onUseRightClick(World world, LocalPlayer localPlayer, Vector3i targetBlock, Vector3i adjacentBlock, PlayerInteraction interaction) {
                 return false;
             }
-        });
+        }.setCategory("misc"));
 
         System.out.println("[ItemRegistry] " + REGISTRY.size() + " Items loaded.");
     }

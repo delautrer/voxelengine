@@ -1,0 +1,9 @@
+{
+  "parent": "blocks/trapdoor",
+  "directional_textures": true,
+  "textures": {
+    "side_top": "planks/palm",
+    "side_bottom": "planks/palm",
+    "all": "planks/palm"
+  }
+}

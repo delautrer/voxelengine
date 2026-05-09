@@ -21,6 +21,7 @@ public class ChatOverlay implements EventListener<ChatMessageEvent> {
     private static final int MAX_MESSAGES = 100; // Mehr Nachrichten für die Historie speichern
     private int scrollOffset = 0;
 
+    @SuppressWarnings("this-escape")
     public ChatOverlay(EventBus eventBus) {
         eventBus.subscribe(ChatMessageEvent.class, this);
     }

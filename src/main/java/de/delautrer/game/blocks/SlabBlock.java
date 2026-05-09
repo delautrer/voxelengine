@@ -52,9 +52,9 @@ public class SlabBlock extends CubeBlock {
         BlockState state = chunk.getBlockState(x, y, z);
         SlabType type = state.getValue(TYPE);
 
-        if (type == SlabType.DOUBLE) renderBox(state, x, y, z, 0, 0, 0, 1, 1, 1, true, true, true, true, true, true, chunk, cm);
-        else if (type == SlabType.TOP) renderBox(state, x, y, z, 0, 0.5f, 0, 1, 1, 1, true, true, true, true, true, true, chunk, cm);
-        else renderBox(state, x, y, z, 0, 0, 0, 1, 0.5f, 1, true, true, true, true, true, true, chunk, cm);
+        if (type == SlabType.DOUBLE) renderBox(state, x, y, z, 0, 0, 0, 1, 1, 1, true, true, true, true, true, true, false, chunk, cm);
+        else if (type == SlabType.TOP) renderBox(state, x, y, z, 0, 0.5f, 0, 1, 1, 1, true, true, true, true, true, true, false, chunk, cm);
+        else renderBox(state, x, y, z, 0, 0, 0, 1, 0.5f, 1, true, true, true, true, true, true, false, chunk, cm);
     }
 
     @Override

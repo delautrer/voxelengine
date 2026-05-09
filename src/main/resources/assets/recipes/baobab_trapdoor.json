@@ -1,0 +1,14 @@
+{
+  "type": "shaped",
+  "pattern": [
+    "AAA",
+    "AAA"
+  ],
+  "keys": {
+    "A": "engine:baobab_planks"
+  },
+  "result": {
+    "item": "engine:baobab_trapdoor",
+    "count": 2
+  }
+}

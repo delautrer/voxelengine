@@ -1,0 +1,15 @@
+{
+  "type": "shaped",
+  "pattern": [
+    "AA",
+    "AA",
+    "AA"
+  ],
+  "keys": {
+    "A": "engine:mahogany_planks"
+  },
+  "result": {
+    "item": "engine:mahogany_door",
+    "count": 3
+  }
+}

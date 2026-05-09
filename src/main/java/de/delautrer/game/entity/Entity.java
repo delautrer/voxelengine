@@ -35,12 +35,12 @@ public abstract class Entity {
 
         AABB currentBB = getAABB();
         AABB searchBounds = new AABB(
-                new Vector3f((float) (Math.min(currentBB.min.x, currentBB.min.x + dx)),
-                        (float) (Math.min(currentBB.min.y, currentBB.min.y + dy) - stepHeight),
-                        (float) (Math.min(currentBB.min.z, currentBB.min.z + dz))),
-                new Vector3f((float) (Math.max(currentBB.max.x, currentBB.max.x + dx)),
-                        (float) (Math.max(currentBB.max.y, currentBB.max.y + dy) + stepHeight),
-                        (float) (Math.max(currentBB.max.z, currentBB.max.z + dz)))
+                new Vector3f(Math.min(currentBB.min.x, currentBB.min.x + dx),
+                        Math.min(currentBB.min.y, currentBB.min.y + dy) - stepHeight,
+                        Math.min(currentBB.min.z, currentBB.min.z + dz)),
+                new Vector3f(Math.max(currentBB.max.x, currentBB.max.x + dx),
+                        Math.max(currentBB.max.y, currentBB.max.y + dy) + stepHeight,
+                        Math.max(currentBB.max.z, currentBB.max.z + dz))
         );
 
         List<AABB> nearbyBoxes = getNearbyBoxes(chunkManager, searchBounds);
@@ -132,7 +132,7 @@ public abstract class Entity {
         }
     }
 
-    private List<AABB> getNearbyBoxes(ChunkManager chunkManager, AABB bounds) {
+    protected List<AABB> getNearbyBoxes(ChunkManager chunkManager, AABB bounds) {
         List<AABB> boxes = new java.util.ArrayList<>();
         int minX = (int)Math.floor(bounds.min.x - 1.0f); int maxX = (int)Math.floor(bounds.max.x + 1.0f);
         int minY = (int)Math.floor(bounds.min.y - 1.0f); int maxY = (int)Math.floor(bounds.max.y + 1.0f);
@@ -149,14 +149,11 @@ public abstract class Entity {
                     byte blockId = c.getBlock(Math.floorMod(x, Chunk.SIZE), y, Math.floorMod(z, Chunk.SIZE));
                     if (blockId != 0 && !BlockRegistry.get(blockId).isPassable) {
                         BlockState state = c.getBlockState(Math.floorMod(x, Chunk.SIZE), y, Math.floorMod(z, Chunk.SIZE));
-                        List<AABB> blockBoxes = BlockRegistry.get(blockId).getBoundingBoxes(state);
-                        if (blockBoxes != null) {
-                            for (AABB box : blockBoxes) {
-                                boxes.add(new AABB(
-                                        new Vector3f(box.min).add(x, y, z),
-                                        new Vector3f(box.max).add(x, y, z)
-                                ));
-                            }
+                        for (AABB box : BlockRegistry.get(blockId).getCollisionBoxes(state)) {
+                            boxes.add(new AABB(
+                                    new Vector3f(box.min).add(x, y, z),
+                                    new Vector3f(box.max).add(x, y, z)
+                            ));
                         }
                     }
                 }

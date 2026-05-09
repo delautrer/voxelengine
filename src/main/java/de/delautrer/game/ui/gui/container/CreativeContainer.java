@@ -1,5 +1,6 @@
 package de.delautrer.game.ui.gui.container;
 
+import de.delautrer.Constants;
 import de.delautrer.game.inventory.PlayerInventory;
 import de.delautrer.game.items.Item;
 import de.delautrer.game.items.ItemRegistry;
@@ -11,16 +12,40 @@ import java.util.stream.Collectors;
 
 public class CreativeContainer extends BaseContainer {
 
-    @SuppressWarnings("unused")
+    public enum CreativeTab {
+        NATURAL("Natural Blocks", "grass_block"),
+        WOOD("Wood & Forestry", "oak_log"),
+        BUILDING("Building Blocks", "bricks"),
+        MISC("Miscellaneous", "sticks"),
+        INVENTORY("Player Inventory", "grass_block"),
+        SEARCH("Search Items", "torch");
+
+        public final String title;
+        public final String iconId;
+        CreativeTab(String title, String iconId) {
+            this.title = title;
+            this.iconId = iconId;
+        }
+    }
+
+    private static CreativeTab lastTab = CreativeTab.NATURAL;
+
     private final PlayerInventory playerInventory;
     private final List<Item> allItems;
     private List<Item> filteredItems;
 
     private int scrollOffset = 0;
     private String searchText = "";
+    private CreativeTab currentTab;
 
+    private final List<Slot> creativeGridSlots = new ArrayList<>();
+    private final List<Slot> playerInvSlots = new ArrayList<>();
+
+    @SuppressWarnings("this-escape")
     public CreativeContainer(PlayerInventory playerInv) {
         this.playerInventory = playerInv;
+        this.currentTab = lastTab; // Merk dir den letzten Tab!
+        
         this.allItems = new ArrayList<>(ItemRegistry.getAll().values());
 
         this.allItems.sort(java.util.Comparator.comparing(item -> {
@@ -30,11 +55,14 @@ public class CreativeContainer extends BaseContainer {
 
         this.filteredItems = new ArrayList<>(allItems);
 
-        // 1. Creative-Grid Slots (9x5 sichtbare Slots)
-        final int rows = 5;
+        // 1. Creative-Grid Slots (9x6 sichtbare Slots)
+        final int rows = 6;
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < 9; col++) {
-                addSlot(new Slot(null, row * 9 + col, col * 24, 34 + (((rows - 1) - row) * 24)));
+                // Y-Offset auf 34 angepasst (wie im Survival Inventar)
+                Slot s = new Slot(null, row * 9 + col, col * 24, 34 + (((rows - 1) - row) * 24));
+                addSlot(s);
+                creativeGridSlots.add(s);
             }
         }
 
@@ -42,33 +70,102 @@ public class CreativeContainer extends BaseContainer {
         for (int col = 0; col < 9; col++) {
             addSlot(new Slot(playerInv, col, col * 24, 0));
         }
+        
+        // 3. Delete-Slot
+        addSlot(new Slot(null, -1, 9 * 24 + 4, 0));
+
+        // 4. Spieler-Inventar Slots (9x3)
+        for (int row = 0; row < 3; row++) {
+            for (int col = 0; col < 9; col++) {
+                Slot s = new Slot(playerInv, 9 + row * 9 + col, -1000, -1000);
+                addSlot(s);
+                playerInvSlots.add(s);
+            }
+        }
 
         updateFilteredItems();
+        updateSlotPositions();
+    }
+
+    private void updateSlotPositions() {
+        boolean isInv = currentTab == CreativeTab.INVENTORY;
+        
+        for (Slot s : creativeGridSlots) {
+            if (isInv) {
+                s.x = -1000;
+            } else {
+                int row = s.slotIndex / 9;
+                int col = s.slotIndex % 9;
+                s.x = col * 24;
+                s.y = 34 + ((5 - row) * 24);
+            }
+        }
+
+        for (int i = 0; i < playerInvSlots.size(); i++) {
+            Slot s = playerInvSlots.get(i);
+            if (!isInv) {
+                s.x = -1000;
+            } else {
+                int row = i / 9;
+                int col = i % 9;
+                s.x = col * 24;
+                // Im Inventory-Tab nutzen wir die unteren 3 Reihen des 6er-Grids
+                s.y = 34 + ((2 - row) * 24);
+            }
+        }
+    }
+
+    public void setTab(CreativeTab tab) {
+        this.currentTab = tab;
+        lastTab = tab; // Speichere für das nächste Mal
+        this.scrollOffset = 0;
+        updateFilteredItems();
+        updateSlotPositions();
+    }
+
+    public CreativeTab getCurrentTab() {
+        return currentTab;
     }
 
     public void setSearchText(String text) {
         this.searchText = text.toLowerCase();
-        this.scrollOffset = 0;
-        updateFilteredItems();
+        if (currentTab == CreativeTab.SEARCH) {
+            this.scrollOffset = 0;
+            updateFilteredItems();
+        }
     }
 
     private void updateFilteredItems() {
-        if (searchText.isEmpty()) {
-            filteredItems = new ArrayList<>(allItems);
+        if (currentTab == CreativeTab.SEARCH) {
+            if (searchText.isEmpty()) {
+                filteredItems = new ArrayList<>(allItems);
+            } else {
+                filteredItems = allItems.stream()
+                        .filter(item -> {
+                            String id = ItemRegistry.getId(item);
+                            return id != null && id.toLowerCase().contains(searchText);
+                        })
+                        .collect(Collectors.toList());
+            }
+        } else if (currentTab == CreativeTab.INVENTORY) {
+            filteredItems = new ArrayList<>();
         } else {
+            String cat = currentTab.name().toLowerCase();
             filteredItems = allItems.stream()
-                    .filter(item -> ItemRegistry.getId(item).toLowerCase().contains(searchText))
+                    .filter(item -> item.getCategory().equalsIgnoreCase(cat))
                     .collect(Collectors.toList());
         }
     }
 
-    public void scrollTo(float progress) {
-        int rows = (int) Math.ceil(filteredItems.size() / 9.0);
-        int maxScroll = Math.max(0, rows - 5);
-        this.scrollOffset = Math.round(progress * maxScroll);
+    public void setScrollOffset(int rows) {
+        if (currentTab == CreativeTab.INVENTORY) return;
+        int totalRows = (int) Math.ceil(filteredItems.size() / 9.0);
+        int maxScroll = Math.max(0, totalRows - 6);
+        this.scrollOffset = Math.max(0, Math.min(maxScroll, rows));
     }
 
     public Item getItemInGrid(int slotIndex) {
+        if (currentTab == CreativeTab.INVENTORY) return null;
         int actualIndex = (scrollOffset * 9) + slotIndex;
         if (actualIndex >= 0 && actualIndex < filteredItems.size()) {
             return filteredItems.get(actualIndex);
@@ -78,21 +175,22 @@ public class CreativeContainer extends BaseContainer {
 
     @Override
     public void clickSlot(Slot slot, int button, ClickType clickType) {
+        if (slot.slotIndex == -1) {
+            setMouseStack(null);
+            return;
+        }
+
         if (slot.inventory == null) {
             Item item = getItemInGrid(slot.slotIndex);
             if (item != null) {
                 if (clickType == ClickType.QUICK_MOVE) {
-                    // GEÄNDERT: Direkt ins Inventar schieben, statt auf die Maus!
                     ItemStack fullStack = new ItemStack(item, item.getMaxStackSize());
                     pushToPlayerInventory(fullStack);
                 } else if (clickType == ClickType.PICKUP || clickType == ClickType.SPLIT) {
-                    // Normaler Linksklick oder Rechtsklick
                     ItemStack currentMouse = getMouseStack();
                     if (currentMouse == null || currentMouse.type != item) {
-                        // Leer oder anderes Item -> Komplett überschreiben mit 1 Item!
                         setMouseStack(new ItemStack(item, 1));
                     } else if (currentMouse.amount < 64) {
-                        // Gleiches Item in der Hand -> Anzahl +1
                         currentMouse.amount++;
                     }
                 }
@@ -100,6 +198,13 @@ public class CreativeContainer extends BaseContainer {
         } else {
             super.clickSlot(slot, button, clickType);
         }
+    }
+
+    @Override
+    protected void quickMove(Slot clickedSlot) {
+        // Im Creative-Inventar wollen wir das Quick-Moving nur erlauben, wenn beide Regionen sichtbar sind
+        // oder wenn von/zu der Hotbar verschoben wird.
+        super.quickMove(clickedSlot);
     }
 
     public int getMaxRows() {

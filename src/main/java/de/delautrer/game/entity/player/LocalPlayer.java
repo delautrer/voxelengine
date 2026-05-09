@@ -4,8 +4,10 @@ import de.delautrer.engine.audio.SoundManager;
 import de.delautrer.engine.events.EventBus;
 import de.delautrer.engine.graphics.Camera;
 import de.delautrer.engine.input.InputManager;
+import de.delautrer.engine.physics.AABB;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
+import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.entity.ItemEntity;
 import de.delautrer.game.events.HotbarSlotChangeEvent;
 import de.delautrer.game.events.InventoryToggleEvent;
@@ -23,6 +25,10 @@ import de.delautrer.game.events.InventoryClosedEvent;
 import de.delautrer.game.events.InventoryOpenedEvent;
 import de.delautrer.game.items.BlockItem;
 import de.delautrer.game.registry.Registries;
+import de.delautrer.game.blocks.state.BlockState;
+import de.delautrer.engine.physics.AABB;
+
+import java.util.List;
 
 public class LocalPlayer extends Player {
 
@@ -274,7 +280,7 @@ public class LocalPlayer extends Player {
             if (isSprinting)
                 currentSpeed *= 3.0f; // Schneller fliegen beim Sprinten
             else
-                currentSpeed *= isSneaking ? 0.5f : 1.5f; // Sneaken macht langsamer, default fliegen ist 1.5x
+                currentSpeed *= 1.5f; // Default fliegen ist 1.5x
         } else if (isSwimming) {
             currentSpeed *= 1.3f;
         } else if (isInWater) {
@@ -489,63 +495,40 @@ public class LocalPlayer extends Player {
     }
 
     protected void pushOutOfBlocks(ChunkManager cm, InputManager input, float deltaTime) {
-        int byFeet = (int) Math.floor(position.y + 0.1f);
-        int byHead = (int) Math.floor(position.y + height * 0.8f);
-        boolean isStuck = false;
+        AABB playerBB = getAABB();
+        // Minimale Toleranz, um Jitter zu vermeiden, aber sensibel genug für Türen
+        AABB checkBB = new AABB(
+            new Vector3f(playerBB.min).add(0.001f, 0.001f, 0.001f),
+            new Vector3f(playerBB.max).sub(0.001f, 0.001f, 0.001f)
+        );
 
-        float checkW = 0.3f - 0.01f;
-
-        int minX = (int) Math.floor(position.x - checkW);
-        int maxX = (int) Math.floor(position.x + checkW);
-        int minZ = (int) Math.floor(position.z - checkW);
-        int maxZ = (int) Math.floor(position.z + checkW);
-
-        for (int x = minX; x <= maxX; x++) {
-            for (int z = minZ; z <= maxZ; z++) {
-                if (BlockRegistry.get(cm.getWorld().getBlockAt(x, byFeet, z)).isSolid ||
-                        BlockRegistry.get(cm.getWorld().getBlockAt(x, byHead, z)).isSolid) {
-                    isStuck = true;
-                    break;
-                }
+        List<AABB> potentialCollisions = getNearbyBoxes(cm, checkBB);
+        AABB stuckBox = null;
+        for (AABB box : potentialCollisions) {
+            if (AABB.isColliding(checkBB, box)) {
+                stuckBox = box;
+                break;
             }
         }
+        
+        if (stuckBox == null) return;
+        
+        // Block-Koordinate bestimmen, zu der diese Box gehört
+        int cx = (int) Math.floor(stuckBox.min.x + (stuckBox.max.x - stuckBox.min.x) * 0.5f);
+        int cy = (int) Math.floor(stuckBox.min.y + (stuckBox.max.y - stuckBox.min.y) * 0.5f);
+        int cz = (int) Math.floor(stuckBox.min.z + (stuckBox.max.z - stuckBox.min.z) * 0.5f);
 
-        if (!isStuck)
-            return;
+        // Wir stecken fest! Jetzt den kürzesten Weg aus dem Block (cx, cy, cz) finden.
+        double distLeft = position.x - cx;
+        double distRight = (cx + 1.0) - position.x;
+        double distBack = position.z - cz;
+        double distFront = (cz + 1.0) - position.z;
 
-        int bx = (int) Math.floor(position.x);
-        int bz = (int) Math.floor(position.z);
-
-        if (input.isActionActive("JUMP")) {
-            Block blockAboveHead = BlockRegistry.get(cm.getWorld().getBlockAt(bx, byHead + 1, bz));
-            if (!blockAboveHead.isSolid) {
-                position.y += 4.5f * deltaTime;
-                return;
-            }
-        }
-        boolean leftFree = !BlockRegistry.get(cm.getWorld().getBlockAt(bx - 1, byFeet, bz)).isSolid &&
-                !BlockRegistry.get(cm.getWorld().getBlockAt(bx - 1, byHead, bz)).isSolid;
-        boolean rightFree = !BlockRegistry.get(cm.getWorld().getBlockAt(bx + 1, byFeet, bz)).isSolid &&
-                !BlockRegistry.get(cm.getWorld().getBlockAt(bx + 1, byHead, bz)).isSolid;
-        boolean backFree = !BlockRegistry.get(cm.getWorld().getBlockAt(bx, byFeet, bz - 1)).isSolid &&
-                !BlockRegistry.get(cm.getWorld().getBlockAt(bx, byHead, bz - 1)).isSolid;
-        boolean frontFree = !BlockRegistry.get(cm.getWorld().getBlockAt(bx, byFeet, bz + 1)).isSolid &&
-                !BlockRegistry.get(cm.getWorld().getBlockAt(bx, byHead, bz + 1)).isSolid;
-
-        double distLeft = position.x - bx;
-        double distRight = (bx + 1.0) - position.x;
-        double distBack = position.z - bz;
-        double distFront = (bz + 1.0) - position.z;
-
-        float intentBonus = 10.0f;
-        if (velocity.x < -0.1f)
-            distLeft -= intentBonus;
-        if (velocity.x > 0.1f)
-            distRight -= intentBonus;
-        if (velocity.z < -0.1f)
-            distBack -= intentBonus;
-        if (velocity.z > 0.1f)
-            distFront -= intentBonus;
+        // Wir prüfen die Nachbarn. Ein Nachbar ist "frei", wenn er nicht voll-solid ist.
+        boolean leftFree = isFreeForPush(cm, cx - 1, cy, cz);
+        boolean rightFree = isFreeForPush(cm, cx + 1, cy, cz);
+        boolean backFree = isFreeForPush(cm, cx, cy, cz - 1);
+        boolean frontFree = isFreeForPush(cm, cx, cy, cz + 1);
 
         double minScore = 999.0;
         int escapeDir = -1;
@@ -567,18 +550,25 @@ public class LocalPlayer extends Player {
             escapeDir = 3;
         }
 
-        if (escapeDir != -1) {
-            float pushSpeed = 4.5f * deltaTime;
-
-            if (escapeDir == 0)
-                position.x -= pushSpeed;
-            if (escapeDir == 1)
-                position.x += pushSpeed;
-            if (escapeDir == 2)
-                position.z -= pushSpeed;
-            if (escapeDir == 3)
-                position.z += pushSpeed;
+        // Fallback: Wenn kein Nachbar "frei" ist, trotzdem in die kürzeste Richtung schieben
+        if (escapeDir == -1) {
+            minScore = distLeft; escapeDir = 0;
+            if (distRight < minScore) { minScore = distRight; escapeDir = 1; }
+            if (distBack < minScore) { minScore = distBack; escapeDir = 2; }
+            if (distFront < minScore) { minScore = distFront; escapeDir = 3; }
         }
+
+        float pushSpeed = 4.0f * deltaTime;
+        if (escapeDir == 0) position.x -= pushSpeed;
+        if (escapeDir == 1) position.x += pushSpeed;
+        if (escapeDir == 2) position.z -= pushSpeed;
+        if (escapeDir == 3) position.z += pushSpeed;
+    }
+
+    private boolean isFreeForPush(ChunkManager cm, int x, int y, int z) {
+        Block b = BlockRegistry.get(cm.getWorld().getBlockAt(x, y, z));
+        // Frei für Push-Out sind alle Blöcke, die keine vollen undurchsichtigen Blöcke sind.
+        return !b.isSolid || b.isTransparent || b.isPassable;
     }
 
     public void updateCamera(long windowHandle, float deltaTime) {
