@@ -47,7 +47,10 @@ public class MainMenuScene extends Scene {
                 }));
 
                 menuBox.addChild(new UIButton(0, 0, btnWidth, btnHeight, "Options", () -> {
-                    OptionsScreen optionsScreen = new OptionsScreen(() -> activeScreen = mainScreen);
+                    OptionsScreen optionsScreen = new OptionsScreen(() -> {
+                        engine.getInputManager().reloadBindings();
+                        activeScreen = mainScreen;
+                    });
                     optionsScreen.init(engine.getWindow().getWidth(), engine.getWindow().getHeight());
                     optionsScreen.setFont(menuRenderer.getFont());
                     activeScreen = optionsScreen;

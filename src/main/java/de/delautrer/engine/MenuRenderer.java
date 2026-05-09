@@ -45,7 +45,7 @@ public class MenuRenderer {
 
     private void initResources() {
         guiTexture = factory.createTexture("menu_gui.png");
-        font = factory.createFont("MinecraftRegular-Bmg3.otf", 24.0f);
+        font = factory.createFont(de.delautrer.Constants.GUI_FONT_NAME, de.delautrer.Constants.GUI_FONT_HEIGHT);
         if (font.getRgbaPixels() != null) {
             fontTexture = factory.createTexture(font.getRgbaPixels(), font.getBitmapSize(), font.getBitmapSize());
         }

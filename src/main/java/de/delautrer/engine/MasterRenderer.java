@@ -6,7 +6,6 @@ import de.delautrer.engine.graphics.vulkan.core.VulkanContext;
 import de.delautrer.engine.graphics.vulkan.core.VulkanGraphicsFactory;
 import de.delautrer.engine.graphics.utils.TextureStitcher;
 import de.delautrer.engine.input.InputManager;
-import de.delautrer.engine.graphics.Camera;
 import de.delautrer.engine.window.Window;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
@@ -75,7 +74,7 @@ public class MasterRenderer {
         itemTexture = graphicsFactory.createTexture(itemAtlas);
         blockUITexture = graphicsFactory.createTexture(blockAtlas);
 
-        font = graphicsFactory.createFont("MinecraftRegular-Bmg3.otf", 24.0f);
+        font = graphicsFactory.createFont(de.delautrer.Constants.GUI_FONT_NAME, de.delautrer.Constants.GUI_FONT_HEIGHT);
         if (font.getRgbaPixels() != null) {
             fontTexture = graphicsFactory.createTexture(font.getRgbaPixels(), font.getBitmapSize(),
                     font.getBitmapSize());

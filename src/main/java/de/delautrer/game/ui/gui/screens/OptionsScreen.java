@@ -2,6 +2,7 @@ package de.delautrer.game.ui.gui.screens;
 
 import de.delautrer.game.settings.GameSettings;
 import de.delautrer.game.settings.SettingsManager;
+import de.delautrer.engine.audio.SoundManager;
 import de.delautrer.game.ui.UIMeshBuilder;
 import de.delautrer.game.ui.elements.*;
 import org.lwjgl.glfw.GLFW;
@@ -78,18 +79,42 @@ public class OptionsScreen extends MenuScreen {
         }));
         contentBox.addChild(mouseBox);
 
+        // --- BEREICH: AUDIO ---
+        contentBox.addChild(new UISeparator(fullWidth, 30.0f, "Audio", 2.0f, 0.5f, 0.5f, 0.5f, 1.0f));
+
+        UIHBox masterBox = new UIHBox(0, 0, spacingHBox);
+        masterBox.addChild(new UISlider(0, 0, fullWidth, btnHeight, "Master Volume",
+                GameSettings.MIN_VOLUME, GameSettings.MAX_VOLUME, 0.05f, tempSettings.masterVolume,
+                val -> {
+                    tempSettings.masterVolume = val;
+                    SoundManager.updateVolume();
+                }));
+
+        UIHBox sfxAmbientBox = new UIHBox(0, 0, spacingHBox);
+        sfxAmbientBox.addChild(new UISlider(0, 0, halfWidth, btnHeight, "SFX",
+                GameSettings.MIN_VOLUME, GameSettings.MAX_VOLUME, 0.05f, tempSettings.sfxVolume,
+                val -> tempSettings.sfxVolume = val));
+        sfxAmbientBox.addChild(new UISlider(0, 0, halfWidth, btnHeight, "Ambient",
+                GameSettings.MIN_VOLUME, GameSettings.MAX_VOLUME, 0.05f, tempSettings.ambientVolume,
+                val -> tempSettings.ambientVolume = val));
+
+        contentBox.addChild(masterBox);
+        contentBox.addChild(sfxAmbientBox);
+
         // --- BEREICH: KEYBINDS ---
         contentBox.addChild(new UISeparator(fullWidth, 30.0f, "Keybinds", 2.0f, 0.5f, 0.5f, 0.5f, 1.0f));
 
-        for (Map.Entry<String, Integer> bind : tempSettings.keyBinds.entrySet()) {
-            contentBox.addChild(new UIKeybindButton(fullWidth, btnHeight, bind.getKey(), bind.getValue(), newKey -> {
-                if (newKey == GLFW.GLFW_KEY_ESCAPE) {
-                    tempSettings.keyBinds.put(bind.getKey(), -1);
-                    return;
-                }
-                tempSettings.keyBinds.put(bind.getKey(), newKey);
-            }));
-        }
+        tempSettings.keyBinds.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .forEach(bind -> {
+                    contentBox.addChild(new UIKeybindButton(fullWidth, btnHeight, bind.getKey(), bind.getValue(), newKey -> {
+                        if (newKey == GLFW.GLFW_KEY_ESCAPE) {
+                            tempSettings.keyBinds.put(bind.getKey(), -1);
+                            return;
+                        }
+                        tempSettings.keyBinds.put(bind.getKey(), newKey);
+                    }));
+                });
 
         // Alles verpackt ab in die ScrollList
         float spacingX = 8.0f * pixelScale;

@@ -86,4 +86,10 @@ public class SoundManager {
         // Du kannst hier optional einen Print lassen fürs Debugging
         // System.out.println("[SoundManager] Missing Sound: " + materialName + " -> " + action);
     }
+
+    public static void updateVolume() {
+        if (audioEngine != null) {
+            audioEngine.updateListener();
+        }
+    }
 }

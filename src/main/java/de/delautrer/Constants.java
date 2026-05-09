@@ -8,6 +8,9 @@ public class Constants {
 
     public static final boolean IS_DEV = checkIsDev();
 
+    public static final String GUI_FONT_NAME = "monogram-extended.ttf";
+    public static final float GUI_FONT_HEIGHT = 24.0f;
+
     private static boolean checkIsDev() {
         if (new File("src/main").exists()) {
             return true;
