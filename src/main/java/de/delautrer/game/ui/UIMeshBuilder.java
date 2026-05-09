@@ -165,7 +165,7 @@ public class UIMeshBuilder {
         STBTTBakedChar.Buffer charData = font.getCharData();
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
-            if (c >= 32 && c < 128) {
+            if (c >= 32 && c < 256) {
                 STBTTBakedChar bakedChar = charData.get(c - 32);
                 float x0 = currentX + bakedChar.xoff();
                 float yTop = currentY - bakedChar.yoff();
@@ -186,7 +186,7 @@ public class UIMeshBuilder {
         STBTTBakedChar.Buffer charData = font.getCharData();
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
-            if (c >= 32 && c < 128)
+            if (c >= 32 && c < 256)
                 textWidth += charData.get(c - 32).xadvance();
         }
         return textWidth;

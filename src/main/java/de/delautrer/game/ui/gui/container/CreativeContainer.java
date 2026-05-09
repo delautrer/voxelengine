@@ -13,11 +13,12 @@ import java.util.stream.Collectors;
 public class CreativeContainer extends BaseContainer {
 
     public enum CreativeTab {
+        INVENTORY("Player Inventory", "grass_block"),
         NATURAL("Natural Blocks", "grass_block"),
         WOOD("Wood & Forestry", "oak_log"),
         BUILDING("Building Blocks", "bricks"),
         MISC("Miscellaneous", "sticks"),
-        INVENTORY("Player Inventory", "grass_block"),
+
         SEARCH("Search Items", "torch");
 
         public final String title;

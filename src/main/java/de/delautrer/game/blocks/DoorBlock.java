@@ -8,6 +8,7 @@ import de.delautrer.game.blocks.state.EnumProperty;
 import de.delautrer.game.blocks.state.Property;
 import de.delautrer.game.entity.player.LocalPlayer;
 import de.delautrer.game.entity.player.Player;
+import de.delautrer.game.items.BlockItem;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
 import de.delautrer.game.world.World;
@@ -28,6 +29,11 @@ public class DoorBlock extends CubeBlock implements IInteractable {
         super(false, true); // Nicht voll-solid, transparent
         setSoundMaterialName("wood");
         setHardness(2.0f);
+    }
+
+    @Override
+    public boolean canBeReplaced(BlockState state, BlockItem item, Vector3i hitFace, Vector3f exactHit) {
+        return false;
     }
 
     @Override

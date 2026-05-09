@@ -2,8 +2,8 @@
   "parent": "blocks/trapdoor",
   "directional_textures": true,
   "textures": {
-    "side_top": "planks/oak",
-    "side_bottom": "planks/oak",
+    "side_top": "chest/oak/top",
+    "side_bottom": "chest/oak/top",
     "all": "planks/oak"
   }
 }

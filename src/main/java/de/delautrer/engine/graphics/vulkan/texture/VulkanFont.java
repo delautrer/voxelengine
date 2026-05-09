@@ -14,13 +14,13 @@ public class VulkanFont implements de.delautrer.engine.graphics.IFont {
     public final int BITMAP_SIZE = 512;
 
     public VulkanFont(String fontPath, float fontHeight) {
-        charData = STBTTBakedChar.malloc(96);
+        charData = STBTTBakedChar.malloc(224);
         try {
             ByteBuffer ttfBuffer = AssetManager.loadResource(fontPath);
 
             ByteBuffer alphaBitmap = BufferUtils.createByteBuffer(BITMAP_SIZE * BITMAP_SIZE);
             STBTruetype.stbtt_BakeFontBitmap(ttfBuffer, fontHeight, alphaBitmap, BITMAP_SIZE, BITMAP_SIZE, 32,
-                    charData);
+                    charData); // Bake chars (up to 256)
 
             rgbaBitmap = MemoryUtil.memAlloc(BITMAP_SIZE * BITMAP_SIZE * 4);
             for (int i = 0; i < BITMAP_SIZE * BITMAP_SIZE; i++) {

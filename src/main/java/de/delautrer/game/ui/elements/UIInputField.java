@@ -9,6 +9,7 @@ public class UIInputField extends UIElement {
     private String placeholder;
     private boolean isFocused = false;
     private int maxLength;
+    private int cursorIndex = 0;
 
     private static final int GRID_X_NORMAL = 0;
     private static final int GRID_Y_NORMAL = 0;
@@ -32,6 +33,7 @@ public class UIInputField extends UIElement {
 
     public void setText(String text) {
         this.text = text;
+        this.cursorIndex = text.length();
     }
 
     public String getText() {
@@ -41,14 +43,22 @@ public class UIInputField extends UIElement {
     // Wird vom InputManager aufgerufen, wenn Buchstaben getippt werden
     public void typeChar(char c) {
         if (isFocused && text.length() < maxLength) {
-            text += c;
+            text = text.substring(0, cursorIndex) + c + text.substring(cursorIndex);
+            cursorIndex++;
         }
     }
 
     // Wird vom InputManager aufgerufen bei "Backspace"
     public void backspace() {
-        if (isFocused && text.length() > 0) {
-            text = text.substring(0, text.length() - 1);
+        if (isFocused && cursorIndex > 0) {
+            text = text.substring(0, cursorIndex - 1) + text.substring(cursorIndex);
+            cursorIndex--;
+        }
+    }
+
+    public void delete() {
+        if (isFocused && cursorIndex < text.length()) {
+            text = text.substring(0, cursorIndex) + text.substring(cursorIndex + 1);
         }
     }
 
@@ -71,8 +81,9 @@ public class UIInputField extends UIElement {
 
         // Blinkender Cursor (Nur wenn fokussiert)
         if (isFocused && (System.currentTimeMillis() % 1000 < 500)) {
-            float textWidth = builder.getTextWidth(text, font);
-            builder.addRect(x + 12.0f + textWidth, textY, 0.2f, 2.0f, 20.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+            String textBeforeCursor = text.substring(0, cursorIndex);
+            float cursorOffset = builder.getTextWidth(textBeforeCursor, font);
+            builder.addRect(x + 10.0f + cursorOffset, textY - 2.0f, 0.5f, 2.0f, 22.0f, 1.0f, 1.0f, 1.0f, 1.0f);
         }
     }
 
@@ -86,6 +97,16 @@ public class UIInputField extends UIElement {
 
         if (input.isActionJustPressed("UI_BACKSPACE")) {
             backspace();
+        }
+
+        // Pfeiltasten & Delete
+        int lastKey = input.consumeLastKey();
+        if (lastKey == org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT) {
+            if (cursorIndex > 0) cursorIndex--;
+        } else if (lastKey == org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT) {
+            if (cursorIndex < text.length()) cursorIndex++;
+        } else if (lastKey == org.lwjgl.glfw.GLFW.GLFW_KEY_DELETE) {
+            delete();
         }
     }
 }

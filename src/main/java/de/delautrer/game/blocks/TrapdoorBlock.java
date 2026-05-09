@@ -9,6 +9,7 @@ import de.delautrer.game.blocks.state.EnumProperty;
 import de.delautrer.game.blocks.state.Property;
 import de.delautrer.game.entity.player.LocalPlayer;
 import de.delautrer.game.entity.player.Player;
+import de.delautrer.game.items.BlockItem;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
 import de.delautrer.game.world.World;
@@ -26,6 +27,11 @@ public class TrapdoorBlock extends CubeBlock implements IInteractable {
         super(false, true); // nicht voll-solid, transparent (da Löcher in der Textur sein könnten)
         setSoundMaterialName("wood");
         setHardness(2.0f);
+    }
+
+    @Override
+    public boolean canBeReplaced(BlockState state, BlockItem item, Vector3i hitFace, Vector3f exactHit) {
+        return false;
     }
 
     @Override
@@ -151,12 +157,11 @@ public class TrapdoorBlock extends CubeBlock implements IInteractable {
         
         int rotN = 0, rotS = 0, rotE = 0, rotW = 0, rotUp = 0, rotDown = 0;
         
-        // Wir drehen die Textur um 90 Grad (Rotation 1), wenn das Facing EAST oder WEST ist.
-        // Das sorgt dafür, dass die Maserung (z.B. Planks) mit der Block-Drehung mitwandert.
+        // Wir drehen die Textur nur im GESCHLOSSENEN Zustand, wenn das Facing EAST oder WEST ist.
+        // Im OFFENEN Zustand sind die Seitenflächen (die jetzt breit sind) von Natur aus
+        // vertikal (Y-Achse), was dem Wunsch "|||" entspricht.
         if (facing == Direction.EAST || facing == Direction.WEST) {
-            if (open) {
-                rotE = 1; rotW = 1;
-            } else {
+            if (!open) {
                 rotUp = 1; rotDown = 1;
             }
         }

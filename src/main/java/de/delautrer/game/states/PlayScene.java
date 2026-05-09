@@ -42,7 +42,6 @@ public class PlayScene extends Scene {
     private boolean isPaused = false;
     private boolean isSavingAndQuitting = false;
     private int saveWaitFrames = 2;
-
     private final String worldName;
     private final String worldSave;
     private long seed;
@@ -54,6 +53,8 @@ public class PlayScene extends Scene {
     private final float AUTOSAVE_INTERVAL = 300.0f;
 
     private boolean hideUI = false;
+    private boolean isUIHiddenByUser = false;
+    private boolean wasFocused = true;
     private float screenshotCooldown = 0.0f;
 
     private boolean isTakingIsometric = false;
@@ -240,7 +241,11 @@ public class PlayScene extends Scene {
             uiNeedsRebuild = true;
         }
 
-        // --- 1. SPEICHERN & BEENDEN ---
+        // --- 1. UI-Hiding Logik (Muss vor dem early return stehen!) ---
+        boolean anyMenuOpen = isPaused || isChatOpen || localPlayer.getInventory().isOpen() || localPlayer.getOpenedInventory() != null;
+        hideUI = isUIHiddenByUser && !anyMenuOpen;
+
+        // --- 2. SPEICHERN & BEENDEN ---
         if (isSavingAndQuitting) {
             saveWaitFrames--;
             if (saveWaitFrames <= 0) {
@@ -302,6 +307,13 @@ public class PlayScene extends Scene {
             }
         }
 
+        // Auto-Pause bei Focus-Verlust
+        boolean isFocused = org.lwjgl.glfw.GLFW.glfwGetWindowAttrib(engine.getWindow().getHandle(), org.lwjgl.glfw.GLFW.GLFW_FOCUSED) == org.lwjgl.glfw.GLFW.GLFW_TRUE;
+        if (wasFocused && !isFocused && !isPaused && world.getChunkManager().isInitialLoadComplete()) {
+            pauseGame();
+        }
+        wasFocused = isFocused;
+
         if (isPaused) {
             float uiMouseY = engine.getWindow().getHeight() - engine.getInputManager().getMouseY();
             pauseScreen.handleMenuInput(engine.getInputManager(), engine.getInputManager().getMouseX(), uiMouseY);
@@ -315,9 +327,8 @@ public class PlayScene extends Scene {
             screenshotCooldown -= deltaTime;
 
         // F1 - UI Toggle
-        if (engine.getInputManager().isActionJustPressed("TOGGLE_UI")) { // Stell sicher, dass du F1 als "TOGGLE_UI"
-                                                                         // bindest!
-            hideUI = !hideUI;
+        if (engine.getInputManager().isActionJustPressed("TOGGLE_UI")) {
+            isUIHiddenByUser = !isUIHiddenByUser;
             uiNeedsRebuild = true;
         }
 

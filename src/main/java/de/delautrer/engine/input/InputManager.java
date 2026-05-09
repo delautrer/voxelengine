@@ -139,9 +139,13 @@ public class InputManager {
             }
         }
 
-        if (keyBindings.containsKey(action)) return GLFW.glfwGetKey(windowHandle, keyBindings.get(action)) == GLFW.GLFW_PRESS;
+        if (keyBindings.containsKey(action)) return isKeyDown(keyBindings.get(action));
         if (mouseBindings.containsKey(action)) return GLFW.glfwGetMouseButton(windowHandle, mouseBindings.get(action)) == GLFW.GLFW_PRESS;
         return false;
+    }
+
+    public boolean isKeyDown(int keycode) {
+        return GLFW.glfwGetKey(windowHandle, keycode) == GLFW.GLFW_PRESS;
     }
 
     public boolean isActionJustPressed(String action) {

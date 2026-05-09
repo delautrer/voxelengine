@@ -41,6 +41,12 @@ public class BlockItem extends Item {
             placePos = targetBlock;
         } else {
             placePos = adjacentBlock;
+            // Wichtig: Wir müssen prüfen, ob der Block an der adjacentBlock-Position
+            // ebenfalls ersetzbar ist (meistens Luft)!
+            BlockState adjState = world.getBlockState(placePos.x, placePos.y, placePos.z);
+            if (!adjState.getBlock().canBeReplaced(adjState, this, rayHit.hitFace, rayHit.exactHit)) {
+                return false; // Hier ist schon was im Weg, das nicht ersetzt werden kann!
+            }
         }
 
         BlockState newState = null;

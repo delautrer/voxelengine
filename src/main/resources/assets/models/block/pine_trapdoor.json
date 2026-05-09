@@ -2,8 +2,8 @@
   "parent": "blocks/trapdoor",
   "directional_textures": true,
   "textures": {
-    "side_top": "planks/pine",
-    "side_bottom": "planks/pine",
+    "side_top": "chest/pine/top",
+    "side_bottom": "chest/pine/top",
     "all": "planks/pine"
   }
 }
