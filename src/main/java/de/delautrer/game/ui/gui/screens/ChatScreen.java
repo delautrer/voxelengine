@@ -72,13 +72,13 @@ public class ChatScreen extends MenuScreen {
     // --- NEU: Input für das Mausrad UND für Tastatur/Tippen ---
     @Override
     public void handleInput(InputManager input) {
-        // EXTREM WICHTIG: Das super.handleInput feuert onCharTyped! Ohne das geht
-        // Tippen nicht!
         super.handleInput(input);
+
+        inputField.handleInput(input); // Pfeiltasten, Backspace, Entf etc.
 
         double scroll = input.consumeScroll();
         if (scroll != 0) {
-            chatOverlay.scroll((int) Math.signum(scroll) * 3); // Scrollt 3 Zeilen auf einmal
+            chatOverlay.scroll((int) Math.signum(scroll) * 3);
         }
     }
 
@@ -103,10 +103,8 @@ public class ChatScreen extends MenuScreen {
 
     @Override
     protected void onKeyPressed(InputManager input) {
-        if (input.isActionJustPressed("UI_BACKSPACE")) {
-            inputField.backspace();
-            isTabCycling = false;
-        }
+        // HINWEIS: UI_BACKSPACE, Pfeiltasten etc. werden jetzt direkt im inputField.handleInput(input)
+        // innerhalb von handleInput(input) verarbeitet. Hier nur noch Logik, die den Screen-State ändert.
 
         // HINWEIS: Die PAUSE (ESC) Abfrage ist hier raus, weil deine PlayScene das
         // jetzt global und viel sauberer managt!

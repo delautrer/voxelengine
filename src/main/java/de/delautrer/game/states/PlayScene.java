@@ -242,7 +242,7 @@ public class PlayScene extends Scene {
         }
 
         // --- 1. UI-Hiding Logik (Muss vor dem early return stehen!) ---
-        boolean anyMenuOpen = isPaused || isChatOpen || localPlayer.getInventory().isOpen() || localPlayer.getOpenedInventory() != null;
+        boolean anyMenuOpen = isPaused || isChatOpen || localPlayer.getInventory().isOpen() || localPlayer.getOpenedInventory() != null || localPlayer.isDead();
         hideUI = isUIHiddenByUser && !anyMenuOpen;
 
         // --- 2. SPEICHERN & BEENDEN ---
@@ -290,7 +290,6 @@ public class PlayScene extends Scene {
             } else if (localPlayer.getOpenedInventory() != null) {
                 eventBus.publish(new InventoryClosedEvent(localPlayer, localPlayer.getOpenedInventory()));
                 localPlayer.closeInventory();
-
                 engine.getWindow().disableCursor();
                 localPlayer.getCamera().resetMouseTracking();
                 uiNeedsRebuild = true;
@@ -501,7 +500,6 @@ public class PlayScene extends Scene {
             engine.getWindow().disableCursor();
         }
         uiNeedsRebuild = true;
-
         localPlayer.getInteraction().resetCooldown();
     }
 
@@ -516,11 +514,11 @@ public class PlayScene extends Scene {
         localPlayer.setChatOpen(true);
         chatScreen.open(startWithSlash);
 
-        engine.getInputManager().setTypingMode(true);
-        engine.getInputManager().consumeTypedChars();
-
         engine.getWindow().enableCursor();
         localPlayer.getCamera().resetMouseTracking();
+
+        engine.getInputManager().setTypingMode(true);
+        engine.getInputManager().consumeTypedChars();
         uiNeedsRebuild = true;
     }
 
