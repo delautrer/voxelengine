@@ -59,6 +59,8 @@ public class EntitySystem implements WorldSystem {
                         }
                     }
                 }
+            } else if (entity instanceof de.delautrer.game.entity.FallingBlockEntity fallingBlock) {
+                fallingBlock.update(deltaTime, chunkManager, world);
             } else {
                 entity.update(deltaTime, chunkManager);
             }

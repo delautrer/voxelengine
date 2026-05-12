@@ -53,45 +53,58 @@ public class EntityRenderSystem implements IRenderSystem {
         double t = System.currentTimeMillis() / 1000.0;
 
         for (Entity e : packet.entities) {
-            if (!(e instanceof ItemEntity itemEntity) || itemEntity.isDead())
-                continue;
+            if (e.isDead()) continue;
 
-            Item itemType = itemEntity.stack.type;
-            int count = itemEntity.stack.amount;
+            if (e instanceof ItemEntity itemEntity) {
+                Item itemType = itemEntity.stack.type;
+                int count = itemEntity.stack.amount;
 
-            int visualCount = 1;
-            if (count > 1)
-                visualCount = 2;
-            if (count > 15)
-                visualCount = 3;
-            if (count > 31)
-                visualCount = 4;
+                int visualCount = 1;
+                if (count > 1) visualCount = 2;
+                if (count > 15) visualCount = 3;
+                if (count > 31) visualCount = 4;
 
-            float hoverY = (float) Math.sin(t * 3.0) * 0.1f + 0.15f;
+                float hoverY = (float) Math.sin(t * 3.0) * 0.1f + 0.15f;
 
-            for (int v = 0; v < visualCount; v++) {
-                float pileOffsetX = v * 0.04f;
-                float pileOffsetY = v * 0.04f;
-                float pileOffsetZ = v * -0.04f;
+                for (int v = 0; v < visualCount; v++) {
+                    float pileOffsetX = v * 0.04f;
+                    float pileOffsetY = v * 0.04f;
+                    float pileOffsetZ = v * -0.04f;
 
-                Matrix4f modelMat = new Matrix4f()
-                        .translate((float) (e.position.x - packet.cameraPos.x) + pileOffsetX,
-                                (float) (e.position.y - packet.cameraPos.y) + hoverY + pileOffsetY,
-                                (float) (e.position.z - packet.cameraPos.z) + pileOffsetZ)
-                        .rotateY((float) (t * 1.5));
+                    Matrix4f modelMat = new Matrix4f()
+                            .translate((float) (e.position.x - packet.cameraPos.x) + pileOffsetX,
+                                    (float) (e.position.y - packet.cameraPos.y) + hoverY + pileOffsetY,
+                                    (float) (e.position.z - packet.cameraPos.z) + pileOffsetZ)
+                            .rotateY((float) (t * 1.5));
 
-                if (itemType instanceof BlockItem blockItem && blockItem.getBlock() instanceof CubeBlock cubeBlock
-                        && !(cubeBlock instanceof TorchBlock)) {
-                    modelMat.scale(0.25f);
+                    if (itemType instanceof BlockItem blockItem && blockItem.getBlock() instanceof CubeBlock cubeBlock
+                            && !(cubeBlock instanceof TorchBlock)) {
+                        modelMat.scale(0.25f);
+                        build3DBlock(blockVerts, blockInds, blockOffset, modelMat, cubeBlock);
+                        blockOffset = blockVerts.size() / 12;
+                    } else {
+                        AtlasRegion reg = itemType.getIconRegion();
+                        if (reg != null) {
+                            modelMat.scale(0.5f);
+                            buildThickItem(itemVerts, itemInds, itemOffset, modelMat, reg);
+                            itemOffset = itemVerts.size() / 12;
+                        }
+                    }
+                }
+            } else if (e instanceof de.delautrer.game.entity.FallingBlockEntity fallingBlock) {
+                de.delautrer.game.blocks.Block block = de.delautrer.game.blocks.BlockRegistry.get(fallingBlock.getBlockId());
+                if (block instanceof CubeBlock cubeBlock) {
+                    Matrix4f modelMat = new Matrix4f()
+                            .translate((float) (e.position.x - packet.cameraPos.x),
+                                    (float) (e.position.y - packet.cameraPos.y + 0.5f), // Offset because build3DBlock centers it?
+                                    (float) (e.position.z - packet.cameraPos.z));
+                    
+                    // Note: build3DBlock in this class seems to subtract 0.5 from coords (lines 215-220)
+                    // so it expects the matrix to be at the CENTER of the block.
+                    // FallingBlockEntity position is usually the bottom-center.
+                    
                     build3DBlock(blockVerts, blockInds, blockOffset, modelMat, cubeBlock);
                     blockOffset = blockVerts.size() / 12;
-                } else {
-                    AtlasRegion reg = itemType.getIconRegion();
-                    if (reg != null) {
-                        modelMat.scale(0.5f);
-                        buildThickItem(itemVerts, itemInds, itemOffset, modelMat, reg);
-                        itemOffset = itemVerts.size() / 12;
-                    }
                 }
             }
         }

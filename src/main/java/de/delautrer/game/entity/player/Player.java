@@ -1,6 +1,8 @@
 package de.delautrer.game.entity.player;
 
+import de.delautrer.game.blocks.Block;
 import de.delautrer.game.entity.Entity;
+import de.delautrer.game.entity.player.GameMode;
 import de.delautrer.game.inventory.IInventory;
 import de.delautrer.game.inventory.PlayerInventory;
 import de.delautrer.game.world.ChunkManager;
@@ -10,6 +12,7 @@ public class Player extends Entity {
 
     protected final PlayerInventory inventory;
     protected IInventory openedExternalInventory = null;
+    protected GameMode gameMode = GameMode.SURVIVAL;
 
     protected final float maxHealth = 20.0f;
     protected float currentHealth = 20.0f;
@@ -26,6 +29,7 @@ public class Player extends Entity {
     protected boolean wasInWater = false;
 
     protected float swimProgress = 0.0f;
+    protected float suffocationTimer = 0.0f;
 
     public Player(Vector3d spawnPosition) {
         super(spawnPosition);
@@ -38,6 +42,31 @@ public class Player extends Entity {
             velocity.y += gravity * deltaTime;
         }
         moveAndCollide(chunkManager, deltaTime, isSneaking);
+
+        if (gameMode != GameMode.SPECTATOR && !isDead) {
+            handleSuffocation(chunkManager, deltaTime);
+        }
+    }
+
+    private void handleSuffocation(ChunkManager cm, float deltaTime) {
+        int bx = (int) Math.floor(position.x);
+        int byHead = (int) Math.floor(getEyePosition().y);
+        int bz = (int) Math.floor(position.z);
+
+        byte headBlockId = cm.getWorld().getBlockAt(bx, byHead, bz);
+        Block headBlock = de.delautrer.game.blocks.BlockRegistry.get(headBlockId);
+
+        if (headBlock.isSolid && !headBlock.isTransparent) {
+            suffocationTimer += deltaTime;
+            if (suffocationTimer >= 1.0f) {
+                damage(1.0f);
+                suffocationTimer = 0.0f;
+                // Optional: Event publish if we have access to eventBus here, 
+                // but usually it's handled in the damage method or subclass.
+            }
+        } else {
+            suffocationTimer = 0.0f;
+        }
     }
     public PlayerInventory getInventory() {
         return inventory;

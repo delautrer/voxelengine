@@ -94,6 +94,7 @@ public class World {
         this.systems.add(this.entitySystem);
         this.systems.add(new TerrainSystem(this.chunkManager));
         this.systems.add(new WeatherSystem(this.cloudSystem, this.skyManager));
+        this.systems.add(new de.delautrer.game.world.systems.BlockTickSystem());
 
         PlayerData pData = storageManager.loadPlayerData("lokaler-spieler");
         if (pData != null) {

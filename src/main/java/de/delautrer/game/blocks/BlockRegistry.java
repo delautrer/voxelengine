@@ -112,6 +112,8 @@ public class BlockRegistry {
                 return new TrapdoorBlock();
             case "door":
                 return new DoorBlock();
+            case "gravity":
+                return new GravityBlock();
             default:
                 System.err.println("[BlockRegistry] Unbekannter Block Type: " + def.type + " bei " + def.name);
                 return null;

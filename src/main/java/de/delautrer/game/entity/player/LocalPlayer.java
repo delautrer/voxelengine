@@ -36,7 +36,6 @@ public class LocalPlayer extends Player {
     private PlayerInteraction interaction;
     private EventBus eventBus;
 
-    private GameMode gameMode = GameMode.SURVIVAL;
     private boolean isChatOpen = false;
     private float lastSpacePressTime = 0.0f;
     private double cameraVisualYOffset = 0.0;

@@ -111,14 +111,14 @@
     {
         "id":  9,
         "name":  "gravel",
-        "type":  "cube",
+        "type":  "gravity",
         "hardness":  0.6,
         "category":  "natural"
     },
     {
         "id":  10,
         "name":  "sand",
-        "type":  "cube",
+        "type":  "gravity",
         "hardness":  0.5,
         "category":  "natural"
     },
