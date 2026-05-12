@@ -12,25 +12,16 @@ import de.delautrer.game.items.ItemStack;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class RecipeManager {
     private static final List<IRecipe> RECIPES = new ArrayList<>();
     private static final Gson GSON = new Gson();
-
-    // WICHTIG: Hier muss ein Slash (/) am Anfang stehen!
     private static final String RECIPE_PATH = "/assets/recipes";
 
     public static void loadRecipes() {
         RECIPES.clear();
-        // Pfad für ResourceUtils (mit oder ohne Slash, die Utility bügelt das glatt)
-        String path = "/assets/recipes";
-
-        List<String> fileNames = ResourceUtils.listResourceFolder(path);
-
+        List<String> fileNames = ResourceUtils.listResourceFolder(RECIPE_PATH);
         for (String fileName : fileNames) {
             if (fileName.endsWith(".json")) {
                 loadRecipe(fileName);
@@ -40,14 +31,8 @@ public class RecipeManager {
     }
 
     public static void loadRecipe(String filename) {
-        // InputStream holt sich die JSON direkt aus dem RAM/Archiv
         try (InputStream is = RecipeManager.class.getResourceAsStream(RECIPE_PATH + "/" + filename)) {
-            if (is == null) {
-                System.err.println("[RecipeManager] Recipe file not found: " + filename);
-                return;
-            }
-
-            // StandardCharsets.UTF_8 ist extrem wichtig für gepackte Exe-Dateien!
+            if (is == null) return;
             JsonObject json = GSON.fromJson(new InputStreamReader(is, StandardCharsets.UTF_8), JsonObject.class);
             String type = json.get("type").getAsString();
 
@@ -68,12 +53,12 @@ public class RecipeManager {
         int width = patternArray.get(0).getAsString().length();
 
         JsonObject keysObj = json.getAsJsonObject("keys");
-        Map<Character, Item> keyMap = new HashMap<>();
+        Map<Character, List<Item>> keyMap = new HashMap<>();
         for (Map.Entry<String, JsonElement> entry : keysObj.entrySet()) {
-            keyMap.put(entry.getKey().charAt(0), ItemRegistry.get(entry.getValue().getAsString()));
+            keyMap.put(entry.getKey().charAt(0), parseIngredient(entry.getValue()));
         }
 
-        Item[] ingredients = new Item[width * height];
+        List<Item>[] ingredients = new List[width * height];
         for (int y = 0; y < height; y++) {
             String row = patternArray.get(y).getAsString();
             for (int x = 0; x < width; x++) {
@@ -87,11 +72,23 @@ public class RecipeManager {
 
     private static void loadShapeless(JsonObject json) {
         JsonArray ingredientsArray = json.getAsJsonArray("ingredients");
-        List<Item> ingredients = new ArrayList<>();
+        List<List<Item>> ingredients = new ArrayList<>();
         for (JsonElement el : ingredientsArray) {
-            ingredients.add(ItemRegistry.get(el.getAsString()));
+            ingredients.add(parseIngredient(el));
         }
         RECIPES.add(new ShapelessRecipe(ingredients, parseResult(json.getAsJsonObject("result"))));
+    }
+
+    private static List<Item> parseIngredient(JsonElement el) {
+        List<Item> items = new ArrayList<>();
+        if (el.isJsonArray()) {
+            for (JsonElement subEl : el.getAsJsonArray()) {
+                items.add(ItemRegistry.get(subEl.getAsString()));
+            }
+        } else {
+            items.add(ItemRegistry.get(el.getAsString()));
+        }
+        return items;
     }
 
     private static ItemStack parseResult(JsonObject resultObj) {

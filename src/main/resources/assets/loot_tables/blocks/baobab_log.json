@@ -4,7 +4,7 @@
       "rolls": 1,
       "entries": [
         {
-          "item": "engine:oak_stairs",
+          "item": "engine:baobab_log",
           "chance": 1.0,
           "min": 1,
           "max": 1

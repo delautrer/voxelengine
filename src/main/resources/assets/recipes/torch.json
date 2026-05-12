@@ -5,7 +5,15 @@
     "B"
   ],
   "keys": {
-    "A": "engine:oak_planks",
+    "A": [
+      "engine:oak_planks",
+      "engine:birch_planks",
+      "engine:pine_planks",
+      "engine:willow_planks",
+      "engine:baobab_planks",
+      "engine:mahogany_planks",
+      "engine:palm_planks"
+    ],
     "B": "engine:sticks"
   },
   "result": {
