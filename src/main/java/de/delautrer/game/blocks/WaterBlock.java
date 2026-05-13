@@ -326,7 +326,7 @@ public class WaterBlock extends Block {
         }
 
         Block bottomNeighbor = BlockRegistry.get(chunk.getBlockAt(x, y - 1, z, cm));
-        if (shouldRenderFaceAgainst(bottomNeighbor, h, 1.0f) && y > 0) {
+        if (shouldRenderFaceAgainst(bottomNeighbor, h, 1.0f) && y > Chunk.MIN_Y) {
             float sl0 = chunk.getSmoothSkyLight(x, y - 1, z, -1, 0, 0, 0, 0, 1, cm);
             float sl1 = chunk.getSmoothSkyLight(x, y - 1, z, -1, 0, 0, 0, 0, -1, cm);
             float sl2 = chunk.getSmoothSkyLight(x, y - 1, z, 1, 0, 0, 0, 0, -1, cm);

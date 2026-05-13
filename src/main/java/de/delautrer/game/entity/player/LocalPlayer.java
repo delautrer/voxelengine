@@ -173,15 +173,7 @@ public class LocalPlayer extends Player {
 
                 Vector3d spawnPos = new Vector3d(this.position).add(0, 1.5, 0);
 
-                float yawRad = (float) Math.toRadians(this.getCamera().getYaw());
-                float pitchRad = (float) Math.toRadians(this.getCamera().getPitch());
-                float adjustedYaw = yawRad;
-
-                float vx = (float) (Math.cos(adjustedYaw) * Math.cos(pitchRad));
-                float vy = (float) (-Math.sin(pitchRad));
-                float vz = (float) (Math.sin(adjustedYaw) * Math.cos(pitchRad));
-
-                Vector3f lookDir = new Vector3f(vx, vy, vz).normalize();
+                Vector3f lookDir = new Vector3f(this.getCamera().getFront());
                 Vector3f throwVelocity = new Vector3f(lookDir).mul(5.0f).add(0, 1.5f, 0);
 
                 ItemEntity itemEntity = new ItemEntity(dropStack, spawnPos, throwVelocity);

@@ -1,7 +1,7 @@
 package de.delautrer.game.world.persistence;
 
 import de.delautrer.game.world.Chunk;
-import de.delautrer.game.world.generation.biome.Biome;
+import de.delautrer.game.world.ChunkSection;
 import java.io.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -16,12 +16,18 @@ public class ChunkSerializer {
             dos.writeInt(chunk.getWorldX());
             dos.writeInt(chunk.getWorldZ());
 
-            dos.write(chunk.getBlocks());
-            dos.write(chunk.getStates());
-            dos.write(chunk.getLightMap());
+            ChunkSection[] sections = chunk.getSections();
+            for (int i = 0; i < sections.length; i++) {
+                if (sections[i] != null && !sections[i].isAir()) {
+                    dos.writeBoolean(true);
+                    dos.write(sections[i].getBlocks());
+                    dos.write(sections[i].getStates());
+                    dos.write(sections[i].getLightMap());
+                } else {
+                    dos.writeBoolean(false);
+                }
+            }
 
-            // Biome werden nicht mehr gespeichert (spart Platz!).
-            // Wir schreiben Nullen, um das Dateiformat für alte Versionen beizubehalten.
             byte[] biomeBytes = new byte[Chunk.SIZE * Chunk.SIZE];
             dos.write(biomeBytes);
         }
@@ -39,18 +45,24 @@ public class ChunkSerializer {
                 throw new IOException("Chunk-Coordinates are not equal!");
             }
 
-            dis.readFully(chunk.getBlocks());
-            dis.readFully(chunk.getStates());
-            dis.readFully(chunk.getLightMap());
+            ChunkSection[] sections = chunk.getSections();
+            for (int i = 0; i < sections.length; i++) {
+                boolean hasData = dis.readBoolean();
+                if (hasData) {
+                    sections[i] = new ChunkSection();
+                    dis.readFully(sections[i].getBlocks());
+                    dis.readFully(sections[i].getStates());
+                    dis.readFully(sections[i].getLightMap());
+                    sections[i].recalculateAir();
+                } else {
+                    sections[i] = null;
+                }
+            }
 
             try {
-                // Wir lesen die Biome-Bytes aus der Datei, damit der Stream nicht kaputt geht.
-                // Wir werfen sie danach aber weg, da Biome jetzt dynamisch aus dem Multi-Noise-Seed berechnet werden.
                 byte[] biomeBytes = new byte[Chunk.SIZE * Chunk.SIZE];
                 dis.readFully(biomeBytes);
-            } catch (EOFException e) {
-                // Rückwärtskompatibilität, falls die Datei unerwartet endet
-            }
+            } catch (EOFException e) {}
         }
         chunk.clearDirty();
     }

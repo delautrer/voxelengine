@@ -5,6 +5,7 @@ import de.delautrer.game.entity.ItemEntity;
 import de.delautrer.game.entity.player.LocalPlayer;
 import de.delautrer.game.world.World;
 import de.delautrer.game.world.ChunkManager;
+import de.delautrer.game.world.Chunk;
 import de.delautrer.game.events.PlayerItemPickupEvent;
 import de.delautrer.game.events.InventoryChangeEvent;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -33,6 +34,12 @@ public class EntitySystem implements WorldSystem {
         // --- ENTITIES UPDATEN ---
         for (Entity entity : entities) {
             if (entity.isDead()) {
+                entitiesToRemove.add(entity);
+                continue;
+            }
+
+            if (entity.position.y < Chunk.MIN_Y - 10) {
+                entity.setDead(true);
                 entitiesToRemove.add(entity);
                 continue;
             }

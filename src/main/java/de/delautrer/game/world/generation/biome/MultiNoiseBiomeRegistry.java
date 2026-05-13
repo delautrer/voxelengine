@@ -63,7 +63,7 @@ public class MultiNoiseBiomeRegistry {
      */
     public static float[] getBlendedTerrainParameters(Climate.TargetPoint point) {
         List<Biome> currentBiomes = BIOMES;
-        if (currentBiomes.isEmpty()) return new float[]{64.0f, 15.0f};
+        if (currentBiomes.isEmpty()) return new float[]{0.0f, 15.0f};
 
         float totalWeight = 0.0f;
         float blendedBase = 0.0f;
@@ -82,6 +82,6 @@ public class MultiNoiseBiomeRegistry {
         if (totalWeight > 0) {
             return new float[]{blendedBase / totalWeight, blendedVar / totalWeight};
         }
-        return new float[]{64.0f, 15.0f};
+        return new float[]{0.0f, 15.0f};
     }
 }

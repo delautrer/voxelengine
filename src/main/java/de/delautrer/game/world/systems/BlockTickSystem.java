@@ -36,7 +36,7 @@ public class BlockTickSystem implements WorldSystem {
         for (Chunk chunk : world.getChunkManager().getLoadedChunks()) {
             for (int i = 0; i < RANDOM_TICKS_PER_CHUNK; i++) {
                 int x = random.nextInt(Chunk.SIZE);
-                int y = random.nextInt(Chunk.HEIGHT);
+                int y = Chunk.MIN_Y + random.nextInt(Chunk.HEIGHT);
                 int z = random.nextInt(Chunk.SIZE);
 
                 int globalX = chunk.getWorldX() * Chunk.SIZE + x;
@@ -53,7 +53,7 @@ public class BlockTickSystem implements WorldSystem {
     }
 
     private void handleGrassDecay(World world, int x, int y, int z) {
-        if (y < Chunk.HEIGHT - 1) {
+        if (y < Chunk.MAX_Y - 1) {
             byte blockAbove = world.getBlockAt(x, y + 1, z);
             Block bAbove = BlockRegistry.get(blockAbove);
             if (bAbove.isSolid && !bAbove.isTransparent) {

@@ -99,7 +99,7 @@ public class MultiNoiseSurfaceBuilder {
                     currentSurfaceDepth = 3 + random.nextInt(2);
                 }
 
-                for (int y = Chunk.HEIGHT - 1; y >= 0; y--) {
+                for (int y = Chunk.MAX_Y - 1; y >= Chunk.MIN_Y; y--) {
                     byte blockId = chunk.getBlock(lx, y, lz);
 
                     // Skip Air. Kein Reset von solidBlocksHit!
@@ -132,7 +132,7 @@ public class MultiNoiseSurfaceBuilder {
 
                                 // --- FLORA LOGIK ---
                                 if (currentTop == sandId) {
-                                    if (random.nextFloat() < 0.05f && y + 1 < Chunk.HEIGHT && chunk.getBlock(lx, y + 1, lz) == air) {
+                                    if (random.nextFloat() < 0.05f && y + 1 < Chunk.MAX_Y && chunk.getBlock(lx, y + 1, lz) == air) {
                                         chunk.setBlock(lx, y + 1, lz, sandyGrassId);
                                     }
                                 } else if (biome.floraProbability > 0 || "SAVANNA".equals(biome.id)) {
@@ -142,7 +142,7 @@ public class MultiNoiseSurfaceBuilder {
                                     if (patchN > patchThreshold) {
                                         float density = (biome.floraDensity != 0) ? biome.floraDensity : 0.8f;
                                         if (random.nextFloat() < (density * (biome.floraProbability > 0 ? biome.floraProbability * 2.0f : 1.0f))) {
-                                            if (y + 1 < Chunk.HEIGHT && chunk.getBlock(lx, y + 1, lz) == air) {
+                                            if (y + 1 < Chunk.MAX_Y && chunk.getBlock(lx, y + 1, lz) == air) {
                                                 byte floraToSet = grassId;
                                                 float flowerChance = "FLOWER_PLAINS".equals(biome.id) ? 0.6f : 0.45f;
 
@@ -235,16 +235,16 @@ public class MultiNoiseSurfaceBuilder {
 
         if (climate.continentalness < -0.2f) {
             float oceanFactor = Math.min(1.0f, (-0.2f - climate.continentalness) * 5.0f);
-            baseHeight = (baseHeight * (1.0f - oceanFactor)) + (40.0f * oceanFactor);
+            baseHeight = (baseHeight * (1.0f - oceanFactor)) + (-24.0f * oceanFactor);
             jaggedness *= (1.0f - oceanFactor);
         }
 
-        for (int y = Chunk.HEIGHT - 1; y >= 0; y--) {
+        for (int y = Chunk.MAX_Y - 1; y >= Chunk.MIN_Y; y--) {
             float density = baseHeight - y;
             float noise3D = shapeNoise3D.getFractalNoise3D(worldX * 0.01f, y * 0.015f, worldZ * 0.01f, 3, 0.5f, 2.0f);
             density += noise3D * jaggedness;
             if (density > 0) return y;
         }
-        return 0;
+        return Chunk.MIN_Y;
     }
 }

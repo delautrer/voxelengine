@@ -71,8 +71,8 @@ public class CaveCarver {
 
             int minX = Math.max(0, (int) (x - w) - cx * Chunk.SIZE);
             int maxX = Math.min(Chunk.SIZE - 1, (int) (x + w) - cx * Chunk.SIZE);
-            int minY = Math.max(3, (int) (y - h)); // Bedrock Schutz
-            int maxY = Math.min(Chunk.HEIGHT - 1, (int) (y + h));
+            int minY = Math.max(Chunk.MIN_Y + 4, (int) (y - h)); // Bedrock Schutz
+            int maxY = Math.min(Chunk.MAX_Y - 1, (int) (y + h));
             int minZ = Math.max(0, (int) (z - w) - cz * Chunk.SIZE);
             int maxZ = Math.min(Chunk.SIZE - 1, (int) (z + w) - cz * Chunk.SIZE);
 
@@ -85,7 +85,7 @@ public class CaveCarver {
                     for (int ly = maxY; ly >= minY; ly--) {
                         double dY = (ly + 0.5 - y) / h;
                         if (dX * dX + dY * dY + dZ * dZ < 1.0) {
-                            if (ly + 1 < Chunk.HEIGHT && chunk.getBlock(lx, ly + 1, lz) == water) continue; // Fliegendes Wasser verhindern
+                            if (ly + 1 < Chunk.MAX_Y && chunk.getBlock(lx, ly + 1, lz) == water) continue; // Fliegendes Wasser verhindern
                             if (chunk.getBlock(lx, ly, lz) == stone) chunk.setBlock(lx, ly, lz, air);
                         }
                     }

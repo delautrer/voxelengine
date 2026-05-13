@@ -10,7 +10,7 @@ public class CloudSystem {
     public static float CLOUD_ALPHA = 0.60f;
     private static final int MAP_SIZE = 128;
     private static final float CLOUD_SCALE = 12.0f;
-    private static final float CLOUD_HEIGHT = 160.0f;
+    private static final float CLOUD_HEIGHT = 96.0f;
     private static final float SPEED = 1.5f;
 
     private float offsetX = 0.0f;

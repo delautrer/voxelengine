@@ -134,19 +134,19 @@ public class World {
 
         tickScheduler.update(deltaTime);
 
-        if (localPlayer.position.y < -50) {
+        if (localPlayer.position.y < Chunk.MIN_Y - 50) {
             if (worldSpawnpoint != null) {
                 localPlayer.position.set(worldSpawnpoint);
                 localPlayer.velocity.set(0);
             } else {
-                localPlayer.position.y = -49.0;
+                localPlayer.position.y = Chunk.MIN_Y - 49.0;
                 localPlayer.velocity.y = 0.0f;
             }
         }
     }
 
     public void setBlock(int x, int y, int z, byte newBlockId) {
-        if (y < 0 || y >= Chunk.HEIGHT)
+        if (y < Chunk.MIN_Y || y >= Chunk.MAX_Y)
             return;
         Chunk targetChunk = chunkManager.getChunkAtBlock(x, y, z);
         if (targetChunk == null)
@@ -202,7 +202,7 @@ public class World {
     }
 
     public void setBlockWithState(int x, int y, int z, byte newBlockId, byte newState) {
-        if (y < 0 || y >= Chunk.HEIGHT)
+        if (y < Chunk.MIN_Y || y >= Chunk.MAX_Y)
             return;
         Chunk targetChunk = chunkManager.getChunkAtBlock(x, y, z);
         if (targetChunk == null)
@@ -325,7 +325,7 @@ public class World {
             return null;
         }
 
-        for (int y = Chunk.HEIGHT - 3; y > 0; y--) {
+        for (int y = Chunk.MAX_Y - 3; y > Chunk.MIN_Y; y--) {
             if (getBlockAt(x, y, z) != 0) {
                 if (getBlockAt(x, y + 1, z) == 0 && getBlockAt(x, y + 2, z) == 0) {
                     return new Vector3f(x + 0.5f, y + 1.0f, z + 0.5f);

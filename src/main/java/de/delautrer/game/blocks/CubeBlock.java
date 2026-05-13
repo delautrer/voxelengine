@@ -211,7 +211,7 @@ public class CubeBlock extends Block {
                     bilerp(bl0, bl3, bl2, bl1, maxX, minZ), bilerp(bl0, bl3, bl2, bl1, minX, minZ), rotTop);
         }
         BlockState sBot = getNeighborState(chunk, cm, x, y - 1, z);
-        if (rBot && (minY > 0.0f || (y > 0 && shouldRenderFaceAgainstState(state, sBot, BlockFace.DOWN)))) {
+        if (rBot && (minY > 0.0f || (y > Chunk.MIN_Y && shouldRenderFaceAgainstState(state, sBot, BlockFace.DOWN)))) {
             float ao0 = chunk.getAO(x, y - 1, z, -1, 0, 0, 0, 0, 1, cm);
             float ao1 = chunk.getAO(x, y - 1, z, -1, 0, 0, 0, 0, -1, cm);
             float ao2 = chunk.getAO(x, y - 1, z, 1, 0, 0, 0, 0, -1, cm);

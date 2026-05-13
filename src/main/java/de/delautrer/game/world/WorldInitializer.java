@@ -15,7 +15,7 @@ public class WorldInitializer {
         int spawnX = 8;
         int spawnZ = 8;
 
-        for (int y = Chunk.HEIGHT - 2; y > 0; y--) {
+        for (int y = Chunk.MAX_Y - 2; y > Chunk.MIN_Y; y--) {
             if (spawnChunk.getBlock(spawnX, y, spawnZ) != 0) { // 0 = Air
                 // Wir spawnen den Spieler mittig auf dem Block (X+0.5, Z+0.5)
                 // y+1 ist der erste leere Block, y+1.5f gibt etwas Puffer, damit er nicht im Boden steckt

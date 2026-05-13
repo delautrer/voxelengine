@@ -22,7 +22,7 @@ public class Biome {
     public String deepBlock;  // deepMaterialId
 
     // Terrain-Parameter
-    public float baseHeight = 64.0f;
+    public float baseHeight = 0.0f;
     public float heightVariation = 15.0f;
 
     // Bäume

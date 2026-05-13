@@ -18,7 +18,7 @@ public class MultiNoiseChunkGenerator {
 //    private final NoiseGenerator caveCheeseNoise;
 //    private final NoiseGenerator caveSpaghettiNoise;
 
-    public static final int WATER_LEVEL = 64;
+    public static final int WATER_LEVEL = 0;
 
     public MultiNoiseChunkGenerator(long seed) {
         this.seed = seed;
@@ -71,18 +71,18 @@ public class MultiNoiseChunkGenerator {
 
                 if (climate.continentalness < -0.2f) {
                     float oceanFactor = Math.min(1.0f, (-0.2f - climate.continentalness) * 5.0f);
-                    baseHeight = (baseHeight * (1.0f - oceanFactor)) + (40.0f * oceanFactor);
+                    baseHeight = (baseHeight * (1.0f - oceanFactor)) + (-24.0f * oceanFactor);
                     jaggedness *= (1.0f - oceanFactor);
                 }
 
                 long brSeed = seed ^ ((long) worldX * 314159L ^ (long) worldZ * 271828L);
                 Random brRand = new Random(brSeed);
-                int bedrockLimit = 1 + brRand.nextInt(4);
+                int bedrockLimit = Chunk.MIN_Y + brRand.nextInt(4);
 
                 // --- FIX: TOP-DOWN SCHLEIFE & WASSER-SCHUTZ ---
                 int waterProtection = 0;
 
-                for (int y = Chunk.HEIGHT - 1; y >= 0; y--) {
+                for (int y = Chunk.MAX_Y - 1; y >= Chunk.MIN_Y; y--) {
                     float baseDensity = baseHeight - y;
                     float noise3D = shapeNoise3D.getFractalNoise3D(worldX * 0.01f, y * 0.015f, worldZ * 0.01f, 3, 0.5f, 2.0f);
                     baseDensity += noise3D * jaggedness;
@@ -109,7 +109,7 @@ public class MultiNoiseChunkGenerator {
                         float cheese = caveCheeseNoise.getFractalNoise3D(worldX * 0.012f, y * 0.012f, worldZ * 0.012f, 2, 0.5f, 2.0f);
 
                         // Dynamischer Threshold: Unten leicht (0.35), Oben schwer (0.6) -> Macht sanfte Höhleneingänge
-                        float depthFactor = (float) y / Chunk.HEIGHT;
+                        float depthFactor = (float) (y - Chunk.MIN_Y) / Chunk.HEIGHT;
                         float currentThreshold = 0.35f + (depthFactor * 0.25f);
 
                         boolean isCheese = cheese > currentThreshold;

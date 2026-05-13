@@ -3,7 +3,7 @@
     "id": "OCEAN",
     "temperature": [-1.0, 1.0], "humidity": [-1.0, 1.0], "continentalness": [-1.0, -0.3], "erosion": [-1.0, 1.0], "weirdness": [-1.0, 1.0],
     "topBlock": "gravel", "underBlock": "gravel", "underwaterBlock": "gravel", "deepBlock": "stone",
-    "baseHeight": 35.0, "heightVariation": 10.0,
+    "baseHeight": -29.0, "heightVariation": 10.0,
     "floraProbability": 0.0, "treeProbability": 0.0,
     "undergroundBlobs": {"dirt": 0.05}, "underwaterBlobScale": 0.05, "underwaterBlobs": {"sand": 0.7, "gravel": 0.3}
   },
@@ -11,7 +11,7 @@
     "id": "DESERT",
     "temperature": [0.3, 1.0], "humidity": [-1.0, -0.2], "continentalness": [-0.1, 1.0], "erosion": [-1.0, 0.4], "weirdness": [-1.0, 1.0],
     "topBlock": "sand", "underBlock": "sand", "underwaterBlock": "sand", "deepBlock": "sand",
-    "baseHeight": 65.0, "heightVariation": 15.0,
+    "baseHeight": 1.0, "heightVariation": 15.0,
     "floraProbability": 0.08, "treeProbability": 0.0,
     "undergroundBlobs": {"gravel": 0.05}
   },
@@ -19,7 +19,7 @@
     "id": "SAVANNA",
     "temperature": [0.4, 1.0], "humidity": [-0.2, 0.2], "continentalness": [-0.1, 1.0], "erosion": [-1.0, 0.4], "weirdness": [-1.0, 1.0],
     "topBlock": "grass_block", "underBlock": "dirt", "underwaterBlock": "sand", "shoreBlock": "sand", "deepBlock": "stone",
-    "baseHeight": 65.0, "heightVariation": 15.0,
+    "baseHeight": 1.0, "heightVariation": 15.0,
     "floraProbability": 0.2, "floraPatchThreshold": 0.0, "floraDensity": 0.4,
     "flora": {"grass": 100, "dandelion": 10},
     "treeProbability": 0.01, "trees": {"alpha_baobab": 1},
@@ -29,7 +29,7 @@
     "id": "JUNGLE",
     "temperature": [0.3, 1.0], "humidity": [0.4, 1.0], "continentalness": [-0.1, 1.0], "erosion": [-1.0, 1.0], "weirdness": [-1.0, 1.0],
     "topBlock": "grass_block", "underBlock": "dirt", "underwaterBlock": "sand", "shoreBlock": "grass_block", "deepBlock": "stone",
-    "baseHeight": 70.0, "heightVariation": 30.0,
+    "baseHeight": 6.0, "heightVariation": 30.0,
     "floraProbability": 0.5, "floraPatchThreshold": -0.3, "floraDensity": 0.7,
     "flora": {"grass": 300, "mavvinilia": 25},
     "treeProbability": 0.08, "trees": {"alpha_mahogany": 1},
@@ -39,7 +39,7 @@
     "id": "MOUNTAINS",
     "temperature": [-1.0, 1.0], "humidity": [-1.0, 1.0], "continentalness": [-0.1, 1.0], "erosion": [0.3, 1.0], "weirdness": [-1.0, 1.0],
     "topBlock": "stone", "underBlock": "stone", "underwaterBlock": "stone", "shoreBlock": "stone", "deepBlock": "stone",
-    "baseHeight": 110.0, "heightVariation": 140.0,
+    "baseHeight": 46.0, "heightVariation": 140.0,
     "floraProbability": 0.0, "treeProbability": 0.0,
     "undergroundBlobs": {"gravel": 0.1}, "underwaterBlobScale": 0.08, "underwaterBlobs": {"gravel": 0.8, "stone": 0.2}
   },
@@ -47,7 +47,7 @@
     "id": "BIRCH_PLAINS",
     "temperature": [0.1, 0.4], "humidity": [0.0, 0.2], "continentalness": [-0.1, 1.0], "erosion": [-1.0, 0.2], "weirdness": [-1.0, 1.0],
     "topBlock": "grass_block", "underBlock": "dirt", "underwaterBlock": "sand", "shoreBlock": "grass_block", "deepBlock": "stone",
-    "baseHeight": 64.0, "heightVariation": 10.0,
+    "baseHeight": 0.0, "heightVariation": 10.0,
     "floraProbability": 0.25, "flora": {"grass": 200, "poppy": 15, "purple_tulip": 5},
     "treeProbability": 0.002, "trees": {"alpha_birch": 1}
   },
@@ -55,7 +55,7 @@
     "id": "FLOWER_PLAINS",
     "temperature": [0.0, 0.3], "humidity": [0.3, 0.6], "continentalness": [-0.1, 1.0], "erosion": [-1.0, 0.2], "weirdness": [-1.0, 1.0],
     "topBlock": "grass_block", "underBlock": "dirt", "underwaterBlock": "sand", "shoreBlock": "grass_block", "deepBlock": "stone",
-    "baseHeight": 64.0, "heightVariation": 10.0,
+    "baseHeight": 0.0, "heightVariation": 10.0,
     "floraProbability": 0.55, "floraPatchThreshold": -0.5, "floraDensity": 0.9,
     "flora": {"grass": 300, "dotty": 40, "red_tulip": 40, "purple_tulip": 40, "poppy": 25, "dandelion": 25, "fairy_bell": 10},
     "treeProbability": 0.001, "trees": {"alpha_oak": 1}
@@ -64,7 +64,7 @@
     "id": "BIRCH_FOREST",
     "temperature": [0.1, 0.4], "humidity": [0.3, 0.7], "continentalness": [-0.1, 1.0], "erosion": [-1.0, 1.0], "weirdness": [-1.0, 1.0],
     "topBlock": "grass_block", "underBlock": "dirt", "underwaterBlock": "sand", "shoreBlock": "grass_block", "deepBlock": "stone",
-    "baseHeight": 66.0, "heightVariation": 15.0,
+    "baseHeight": 2.0, "heightVariation": 15.0,
     "floraProbability": 0.4, "flora": {"grass": 200, "purple_tulip": 12, "dotty": 8},
     "treeProbability": 0.06, "trees": {"alpha_birch": 1}
   },
@@ -72,7 +72,7 @@
     "id": "FOREST",
     "temperature": [-0.2, 0.2], "humidity": [0.2, 0.5], "continentalness": [-0.1, 1.0], "erosion": [-1.0, 1.0], "weirdness": [-1.0, 1.0],
     "topBlock": "grass_block", "underBlock": "dirt", "underwaterBlock": "sand", "shoreBlock": "grass_block", "deepBlock": "stone",
-    "baseHeight": 66.0, "heightVariation": 15.0,
+    "baseHeight": 2.0, "heightVariation": 15.0,
     "floraProbability": 0.4, "flora": {"grass": 200, "poppy": 12, "red_tulip": 8},
     "treeProbability": 0.06, "trees": {"alpha_oak": 1}
   },
@@ -80,7 +80,7 @@
     "id": "BIRCH_HILLS",
     "temperature": [0.1, 0.4], "humidity": [-1.0, 1.0], "continentalness": [-0.1, 1.0], "erosion": [0.15, 0.3], "weirdness": [-1.0, 1.0],
     "topBlock": "grass_block", "underBlock": "dirt", "underwaterBlock": "sand", "shoreBlock": "sand", "deepBlock": "stone",
-    "baseHeight": 85.0, "heightVariation": 50.0,
+    "baseHeight": 21.0, "heightVariation": 50.0,
     "floraProbability": 0.4, "flora": {"grass": 150, "purple_tulip": 10},
     "treeProbability": 0.015, "trees": {"alpha_birch": 1}
   },
@@ -88,7 +88,7 @@
     "id": "HILLS",
     "temperature": [-1.0, 0.4], "humidity": [-1.0, 1.0], "continentalness": [-0.1, 1.0], "erosion": [0.15, 0.3], "weirdness": [-1.0, 1.0],
     "topBlock": "grass_block", "underBlock": "dirt", "underwaterBlock": "sand", "shoreBlock": "sand", "deepBlock": "stone",
-    "baseHeight": 85.0, "heightVariation": 50.0,
+    "baseHeight": 21.0, "heightVariation": 50.0,
     "floraProbability": 0.4, "flora": {"grass": 150, "red_tulip": 10},
     "treeProbability": 0.015, "trees": {"alpha_oak": 1}
   },
@@ -96,7 +96,7 @@
     "id": "SWAMP",
     "temperature": [0.2, 1.0], "humidity": [0.3, 1.0], "continentalness": [-0.1, 1.0], "erosion": [-1.0, 0.3], "weirdness": [0.3, 1.0],
     "topBlock": "grass_block", "underBlock": "dirt", "underwaterBlock": "water", "shoreBlock": "dirt", "deepBlock": "stone",
-    "baseHeight": 62.0, "heightVariation": 5.0,
+    "baseHeight": -2.0, "heightVariation": 5.0,
     "floraProbability": 0.6, "floraPatchThreshold": -0.3, "floraDensity": 0.6,
     "flora": {"grass": 200, "fairy_bell": 40, "dotty": 15},
     "treeProbability": 0.15, "trees": {"alpha_willow": 1}
@@ -105,7 +105,7 @@
     "id": "PINE_FOREST",
     "temperature": [-1.0, -0.1], "humidity": [0.1, 1.0], "continentalness": [-0.1, 1.0], "erosion": [-1.0, 1.0], "weirdness": [-1.0, 1.0],
     "topBlock": "grass_block", "underBlock": "dirt", "underwaterBlock": "sand", "shoreBlock": "grass_block", "deepBlock": "stone",
-    "baseHeight": 66.0, "heightVariation": 15.0,
+    "baseHeight": 2.0, "heightVariation": 15.0,
     "floraProbability": 0.4, "flora": {"grass": 200, "dotty": 15, "fairy_bell": 5},
     "treeProbability": 0.07, "trees": {"alpha_pine": 1}
   },
@@ -113,7 +113,7 @@
     "id": "PLAINS",
     "temperature": [-0.1, 0.1], "humidity": [-0.2, 0.1], "continentalness": [-0.1, 1.0], "erosion": [-1.0, 0.15], "weirdness": [-1.0, 1.0],
     "topBlock": "grass_block", "underBlock": "dirt", "underwaterBlock": "sand", "shoreBlock": "grass_block", "deepBlock": "stone",
-    "baseHeight": 64.0, "heightVariation": 10.0,
+    "baseHeight": 0.0, "heightVariation": 10.0,
     "floraProbability": 0.2, "flora": {"grass": 200, "dandelion": 20, "red_tulip": 5},
     "treeProbability": 0.0015, "trees": {"alpha_oak": 1}
   }

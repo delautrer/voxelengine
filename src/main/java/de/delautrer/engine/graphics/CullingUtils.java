@@ -46,11 +46,11 @@ public class CullingUtils {
                 double chunkWorldZ = cz * (double) Chunk.SIZE;
 
                 float startX = (float) (chunkWorldX - camX);
-                float startY = (float) (0.0 - camY);
+                float startY = (float) (Chunk.MIN_Y - camY);
                 float startZ = (float) (chunkWorldZ - camZ);
 
                 float endX = (float) ((chunkWorldX + Chunk.SIZE) - camX);
-                float endY = (float) (Chunk.HEIGHT - camY);
+                float endY = (float) (Chunk.MAX_Y - camY);
                 float endZ = (float) ((chunkWorldZ + Chunk.SIZE) - camZ);
 
                 if (frustum.testAab(startX, startY, startZ, endX, endY, endZ)) {

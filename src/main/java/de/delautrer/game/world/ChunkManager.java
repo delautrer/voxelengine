@@ -52,11 +52,12 @@ public class ChunkManager {
     private final IGraphicsFactory graphicsFactory;
 
     private boolean initialLoadComplete = false;
-    private final int requiredInitialRadius = 4;
+    private final int requiredInitialRadius;
     private boolean isCleanedUp = false;
 
     @SuppressWarnings("this-escape")
     public ChunkManager(World world, IGraphicsFactory graphicsFactory) {
+        this.requiredInitialRadius = SettingsManager.get().renderDistance;
         this.world = world;
         this.worldGenerator = new WorldGenerator(this.world.getSeed());
         this.graphicsFactory = graphicsFactory;
@@ -138,6 +139,8 @@ public class ChunkManager {
                 nZ1.requestMeshUpdate();
             if (nZ2 != null)
                 nZ2.requestMeshUpdate();
+
+            loadedChunk.requestMeshUpdate();
 
             chunksIntegratedThisFrame++;
         }

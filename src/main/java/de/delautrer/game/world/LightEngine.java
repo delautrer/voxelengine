@@ -36,7 +36,7 @@ public class LightEngine {
 
     private long pack(int x, int y, int z, int light) {
         return ((long)(light & 0xF)) |
-                (((long)(y & 0x3FF)) << 4) |
+                (((long)((y - Chunk.MIN_Y) & 0x3FF)) << 4) |
                 (((long)(x & 0x1FFFFFF)) << 14) |
                 (((long)(z & 0x1FFFFFF)) << 39);
     }
@@ -46,7 +46,7 @@ public class LightEngine {
     }
 
     private int unpackY(long node) {
-        return (int)((node >> 4) & 0x3FF);
+        return (int)((node >> 4) & 0x3FF) + Chunk.MIN_Y;
     }
 
     private int unpackX(long node) {
@@ -100,7 +100,7 @@ public class LightEngine {
 
         for (int x = 0; x < Chunk.SIZE; x++) {
             for (int z = 0; z < Chunk.SIZE; z++) {
-                for (int y = 0; y < Chunk.HEIGHT; y++) {
+                for (int y = Chunk.MIN_Y; y < Chunk.MAX_Y; y++) {
                     if (chunk.getSkyLight(x, y, z) == 15) {
                         skyLightQueue.add(pack(cx + x, y, cz + z, 0));
                     }
@@ -116,7 +116,7 @@ public class LightEngine {
 
         // X Borders (x=0 und x=15) mit den Nachbar-Chunks abgleichen
         for (int z = 0; z < Chunk.SIZE; z++) {
-            for (int y = 0; y < Chunk.HEIGHT; y++) {
+            for (int y = Chunk.MIN_Y; y < Chunk.MAX_Y; y++) {
                 if (getSkyLight(cx, y, cz + z) > 0) skyLightQueue.add(pack(cx, y, cz + z, 0));
                 if (getSkyLight(cx - 1, y, cz + z) > 0) skyLightQueue.add(pack(cx - 1, y, cz + z, 0));
                 if (getBlockLight(cx, y, cz + z) > 0) blockLightQueue.add(pack(cx, y, cz + z, 0));
@@ -130,7 +130,7 @@ public class LightEngine {
         }
         // Z Borders (z=0 und z=15) mit den Nachbar-Chunks abgleichen
         for (int x = 0; x < Chunk.SIZE; x++) {
-            for (int y = 0; y < Chunk.HEIGHT; y++) {
+            for (int y = Chunk.MIN_Y; y < Chunk.MAX_Y; y++) {
                 if (getSkyLight(cx + x, y, cz) > 0) skyLightQueue.add(pack(cx + x, y, cz, 0));
                 if (getSkyLight(cx + x, y, cz - 1) > 0) skyLightQueue.add(pack(cx + x, y, cz - 1, 0));
                 if (getBlockLight(cx + x, y, cz) > 0) blockLightQueue.add(pack(cx + x, y, cz, 0));
@@ -146,7 +146,7 @@ public class LightEngine {
     }
 
     public void initSkyLightForColumn(int worldX, int worldZ) {
-        for (int y = 0; y < Chunk.HEIGHT; y++) {
+        for (int y = Chunk.MIN_Y; y < Chunk.MAX_Y; y++) {
             if (getSkyLight(worldX, y, worldZ) == 15) {
                 skyLightQueue.add(pack(worldX, y, worldZ, 0));
             }
@@ -261,13 +261,13 @@ public class LightEngine {
     }
 
     public int getBlockLight(int worldX, int worldY, int worldZ) {
-        if (worldY < 0 || worldY >= Chunk.HEIGHT) return 0;
+        if (worldY < Chunk.MIN_Y || worldY >= Chunk.MAX_Y) return 0;
         Chunk c = chunkManager.getChunkAtBlock(worldX, worldY, worldZ);
         return c != null ? c.getBlockLight(Math.floorMod(worldX, Chunk.SIZE), worldY, Math.floorMod(worldZ, Chunk.SIZE)) : 0;
     }
 
     public void setBlockLight(int worldX, int worldY, int worldZ, int level) {
-        if (worldY < 0 || worldY >= Chunk.HEIGHT) return;
+        if (worldY < Chunk.MIN_Y || worldY >= Chunk.MAX_Y) return;
         Chunk c = chunkManager.getChunkAtBlock(worldX, worldY, worldZ);
         if (c != null) {
             int old = c.getBlockLight(Math.floorMod(worldX, Chunk.SIZE), worldY, Math.floorMod(worldZ, Chunk.SIZE));
@@ -280,14 +280,14 @@ public class LightEngine {
     }
 
     public int getSkyLight(int worldX, int worldY, int worldZ) {
-        if (worldY >= Chunk.HEIGHT) return 15;
-        if (worldY < 0) return 0;
+        if (worldY >= Chunk.MAX_Y) return 15;
+        if (worldY < Chunk.MIN_Y) return 0;
         Chunk c = chunkManager.getChunkAtBlock(worldX, worldY, worldZ);
         return c != null ? c.getSkyLight(Math.floorMod(worldX, Chunk.SIZE), worldY, Math.floorMod(worldZ, Chunk.SIZE)) : 0;
     }
 
     public void setSkyLight(int worldX, int worldY, int worldZ, int level) {
-        if (worldY < 0 || worldY >= Chunk.HEIGHT) return;
+        if (worldY < Chunk.MIN_Y || worldY >= Chunk.MAX_Y) return;
         Chunk c = chunkManager.getChunkAtBlock(worldX, worldY, worldZ);
         if (c != null) {
             int old = c.getSkyLight(Math.floorMod(worldX, Chunk.SIZE), worldY, Math.floorMod(worldZ, Chunk.SIZE));
@@ -300,7 +300,7 @@ public class LightEngine {
     }
 
     private boolean isTransparent(int worldX, int worldY, int worldZ) {
-        if (worldY < 0 || worldY >= Chunk.HEIGHT) return true;
+        if (worldY < Chunk.MIN_Y || worldY >= Chunk.MAX_Y) return true;
         Chunk c = chunkManager.getChunkAtBlock(worldX, worldY, worldZ);
         if (c == null) return false;
         byte id = c.getBlock(Math.floorMod(worldX, Chunk.SIZE), worldY, Math.floorMod(worldZ, Chunk.SIZE));

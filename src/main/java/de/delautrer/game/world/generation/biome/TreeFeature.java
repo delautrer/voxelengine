@@ -23,7 +23,7 @@ public class TreeFeature {
 
     public static void generate(World world, int worldX, int worldY, int worldZ, long worldSeed, String treeType, byte logId, byte leavesId) {
         BlockSetter setter = (x, y, z, id, state) -> {
-            if (y >= 0 && y < Chunk.HEIGHT) {
+            if (y >= Chunk.MIN_Y && y < Chunk.MAX_Y) {
                 byte existing = world.getBlockAt(x, y, z);
                 if (canReplace(existing)) world.setBlockWithState(x, y, z, id, state);
             }
@@ -229,7 +229,7 @@ public class TreeFeature {
     private static void setBlockIfInChunk(Chunk chunk, int worldX, int worldY, int worldZ, byte blockId, byte state) {
         int lx = worldX - chunk.getWorldX() * Chunk.SIZE;
         int lz = worldZ - chunk.getWorldZ() * Chunk.SIZE;
-        if (lx >= 0 && lx < Chunk.SIZE && lz >= 0 && lz < Chunk.SIZE && worldY >= 0 && worldY < Chunk.HEIGHT) {
+        if (lx >= 0 && lx < Chunk.SIZE && lz >= 0 && lz < Chunk.SIZE && worldY >= Chunk.MIN_Y && worldY < Chunk.MAX_Y) {
             if (canReplace(chunk.getBlock(lx, worldY, lz))) chunk.setBlock(lx, worldY, lz, blockId, state);
         }
     }

@@ -22,7 +22,7 @@ public class GravityBlock extends CubeBlock {
     }
 
     private void checkFalling(World world, int x, int y, int z) {
-        if (y > 0 && world.getBlockAt(x, y - 1, z) == 0) {
+        if (y > Chunk.MIN_Y && world.getBlockAt(x, y - 1, z) == 0) {
             byte blockId = world.getBlockAt(x, y, z);
             byte state = world.getChunkManager().getChunkAtBlock(x, y, z).getState(Math.floorMod(x, Chunk.SIZE), y, Math.floorMod(z, Chunk.SIZE));
             

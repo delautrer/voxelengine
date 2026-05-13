@@ -76,15 +76,22 @@ public class ChunkMesher {
         MeshBuffers buf = MESH_BUFFER.get();
         buf.reset();
 
-        byte[] blocks = chunk.getBlocks();
-        for (int x = 0; x < Chunk.SIZE; x++) {
-            for (int y = 0; y < Chunk.HEIGHT; y++) {
-                for (int z = 0; z < Chunk.SIZE; z++) {
-                    int index = (x << 12) | (z << 8) | y;
-                    byte id = blocks[index];
-                    if (id != 0) {
-                        Block block = BlockRegistry.get(id);
-                        block.generateMesh(x, y, z, chunk, cm);
+        de.delautrer.game.world.ChunkSection[] sections = chunk.getSections();
+        for (int i = 0; i < sections.length; i++) {
+            de.delautrer.game.world.ChunkSection sec = sections[i];
+            if (sec == null || sec.isAir()) continue;
+            
+            byte[] blocks = sec.getBlocks();
+            int startY = Chunk.MIN_Y + (i * de.delautrer.game.world.ChunkSection.SIZE);
+            for (int x = 0; x < Chunk.SIZE; x++) {
+                for (int y = 0; y < de.delautrer.game.world.ChunkSection.SIZE; y++) {
+                    for (int z = 0; z < Chunk.SIZE; z++) {
+                        int index = (x << 8) | (z << 4) | y;
+                        byte id = blocks[index];
+                        if (id != 0) {
+                            Block block = BlockRegistry.get(id);
+                            block.generateMesh(x, startY + y, z, chunk, cm);
+                        }
                     }
                 }
             }
