@@ -13,6 +13,7 @@ public class MultiNoiseSurfaceBuilder {
     private final NoiseGenerator patchNoise;
     private final NoiseGenerator blobNoise;
     private final NoiseGenerator shapeNoise3D;
+    private final NoiseGenerator riverNoise;
     private final long seed;
 
     public MultiNoiseSurfaceBuilder(MultiNoiseSampler sampler, long seed) {
@@ -21,6 +22,7 @@ public class MultiNoiseSurfaceBuilder {
         this.patchNoise = new NoiseGenerator(seed * 99);
         this.blobNoise = new NoiseGenerator(seed * 123);
         this.shapeNoise3D = new NoiseGenerator(seed * 31);
+        this.riverNoise = new NoiseGenerator(seed * 234);
     }
 
     public void buildSurface(Chunk chunk, int chunkX, int chunkZ) {
@@ -68,10 +70,10 @@ public class MultiNoiseSurfaceBuilder {
                     }
                 }
 
-                int solidBlocksHit = -1;
+                int solidBlocksHit = 0;
                 boolean isUnderwater = false;
+                boolean surfaceFound = false;
                 boolean forceSand = false;
-                int currentSurfaceDepth = 3 + random.nextInt(2);
 
                 byte topBlock = biome.getTopBlockId();
                 byte underBlock = biome.getUnderBlockId();
@@ -89,17 +91,31 @@ public class MultiNoiseSurfaceBuilder {
                     }
                 }
 
+                int currentSurfaceDepth;
+                if (topBlock == sandId) {
+                    currentSurfaceDepth = 5 + random.nextInt(6);
+                    deepBlock = stoneId;
+                } else {
+                    currentSurfaceDepth = 3 + random.nextInt(2);
+                }
+
                 for (int y = Chunk.HEIGHT - 1; y >= 0; y--) {
                     byte blockId = chunk.getBlock(lx, y, lz);
 
+                    // Skip Air. Kein Reset von solidBlocksHit!
                     if (blockId == air) {
-                        solidBlocksHit = -1;
-                    } else if (blockId == waterId) {
-                        solidBlocksHit = -1;
+                        continue;
+                    }
+
+                    if (blockId == waterId && !surfaceFound) {
                         isUnderwater = true;
-                    } else if (blockId == stoneId) {
-                        if (solidBlocksHit == -1) {
-                            solidBlocksHit = 0;
+                        continue;
+                    }
+
+                    if (blockId == stoneId) {
+                        if (!surfaceFound) {
+                            // ERSTER TREFFER = OBERFLÄCHE
+                            surfaceFound = true;
                             heightCache[lx * Chunk.SIZE + lz] = y;
 
                             if (isUnderwater) {
@@ -116,30 +132,23 @@ public class MultiNoiseSurfaceBuilder {
 
                                 // --- FLORA LOGIK ---
                                 if (currentTop == sandId) {
-                                    // SANDY GRASS: Immer nur als einzelne Büsche, keine Gruppen!
-                                    if (random.nextFloat() < 0.05f) { // Seltene, einzelne Büsche
-                                        if (y + 1 < Chunk.HEIGHT && chunk.getBlock(lx, y + 1, lz) == air) {
-                                            chunk.setBlock(lx, y + 1, lz, sandyGrassId);
-                                        }
+                                    if (random.nextFloat() < 0.05f && y + 1 < Chunk.HEIGHT && chunk.getBlock(lx, y + 1, lz) == air) {
+                                        chunk.setBlock(lx, y + 1, lz, sandyGrassId);
                                     }
                                 } else if (biome.floraProbability > 0 || "SAVANNA".equals(biome.id)) {
-                                    // NORMALE FLORA: In Gruppierungen
                                     float patchN = patchNoise.getFractalNoise2D(worldX * 0.12f, worldZ * 0.12f, 2, 0.5f, 2.0f);
                                     float patchThreshold = (biome.floraPatchThreshold != 0) ? biome.floraPatchThreshold : -0.4f;
-                                    
+
                                     if (patchN > patchThreshold) {
                                         float density = (biome.floraDensity != 0) ? biome.floraDensity : 0.8f;
                                         if (random.nextFloat() < (density * (biome.floraProbability > 0 ? biome.floraProbability * 2.0f : 1.0f))) {
                                             if (y + 1 < Chunk.HEIGHT && chunk.getBlock(lx, y + 1, lz) == air) {
                                                 byte floraToSet = grassId;
-                                                float flowerChance = 0.45f;
-                                                if ("FLOWER_PLAINS".equals(biome.id)) flowerChance = 0.6f;
+                                                float flowerChance = "FLOWER_PLAINS".equals(biome.id) ? 0.6f : 0.45f;
 
                                                 if (random.nextFloat() < flowerChance) {
                                                     String flowerName = WeightedRandomHelper.getRandom(biome.flora, random);
-                                                    if (flowerName != null) {
-                                                        floraToSet = BlockRegistry.get(Constants.NAMESPACE + ":" + flowerName).getId();
-                                                    }
+                                                    if (flowerName != null) floraToSet = BlockRegistry.get(Constants.NAMESPACE + ":" + flowerName).getId();
                                                 }
                                                 chunk.setBlock(lx, y + 1, lz, floraToSet);
                                             }
@@ -148,10 +157,12 @@ public class MultiNoiseSurfaceBuilder {
                                 }
                             }
                         } else if (solidBlocksHit < currentSurfaceDepth) {
+                            // DIRT SCHICHT UNTER OBERFLÄCHE
                             solidBlocksHit++;
                             byte currentUnder = isUnderwater ? underwaterBlock : (forceSand ? sandId : underBlock);
                             chunk.setBlock(lx, y, lz, currentUnder);
                         } else {
+                            // TIEFE HÖHLE -> BLEIBT DEEPBLOCK (Oder Stein)
                             chunk.setBlock(lx, y, lz, deepBlock);
                         }
                     }
@@ -206,6 +217,21 @@ public class MultiNoiseSurfaceBuilder {
 
         float baseHeight = biomeBaseHeight + (climate.continentalness * biomeVar * 1.5f);
         float jaggedness = (biomeVar * 0.15f) + (climate.erosion * biomeVar * 0.25f);
+
+        // --- FLUSS CARVE SYNC ---
+        float warpX = riverNoise.getFractalNoise2D(worldX * 0.02f, worldZ * 0.02f, 2, 0.5f, 2.0f) * 25.0f;
+        float warpZ = riverNoise.getFractalNoise2D(worldX * 0.02f + 100, worldZ * 0.02f + 100, 2, 0.5f, 2.0f) * 25.0f;
+
+        float rNoise = riverNoise.getFractalNoise2D((worldX + warpX) * 0.003f, (worldZ + warpZ) * 0.003f, 3, 0.5f, 2.0f);
+        float riverVal = Math.abs(rNoise);
+        float riverThreshold = 0.06f;
+
+        if (riverVal < riverThreshold) {
+            float riverBlend = 1.0f - (riverVal / riverThreshold);
+            riverBlend = riverBlend * riverBlend * (3.0f - 2.0f * riverBlend);
+            baseHeight = (baseHeight * (1.0f - riverBlend)) + ((MultiNoiseChunkGenerator.WATER_LEVEL - 3) * riverBlend);
+            jaggedness *= (1.0f - riverBlend);
+        }
 
         if (climate.continentalness < -0.2f) {
             float oceanFactor = Math.min(1.0f, (-0.2f - climate.continentalness) * 5.0f);

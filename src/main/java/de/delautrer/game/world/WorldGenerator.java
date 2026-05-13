@@ -1,5 +1,6 @@
 package de.delautrer.game.world;
 
+// import de.delautrer.game.world.generation.biome.CaveCarver;
 import de.delautrer.game.world.generation.biome.MultiNoiseBiomeRegistry;
 import de.delautrer.game.world.generation.biome.MultiNoiseChunkGenerator;
 import de.delautrer.game.world.generation.biome.MultiNoiseSurfaceBuilder;
@@ -26,10 +27,10 @@ public class WorldGenerator {
         int chunkX = chunk.getWorldX();
         int chunkZ = chunk.getWorldZ();
 
-        // 1. Stein, Wasser und verrückte Alpha-Höhlen/Überhänge generieren
         terrainGenerator.generateBaseTerrain(chunk, chunkX, chunkZ);
 
-        // 2. Biome auswerten, Gras/Sand bemalen und Bäume pflanzen
+//        CaveCarver.carve(chunk, seed);
+
         surfaceBuilder.buildSurface(chunk, chunkX, chunkZ);
     }
 
