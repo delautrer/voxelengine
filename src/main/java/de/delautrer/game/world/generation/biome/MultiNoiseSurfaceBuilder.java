@@ -102,7 +102,7 @@ public class MultiNoiseSurfaceBuilder {
                 for (int y = Chunk.MAX_Y - 1; y >= Chunk.MIN_Y; y--) {
                     byte blockId = chunk.getBlock(lx, y, lz);
 
-                    // Skip Air. Kein Reset von solidBlocksHit!
+                    // Skip Air & Reset solidBlocksHit
                     if (blockId == air) {
                         continue;
                     }
@@ -156,14 +156,17 @@ public class MultiNoiseSurfaceBuilder {
                                     }
                                 }
                             }
-                        } else if (solidBlocksHit < currentSurfaceDepth) {
-                            // DIRT SCHICHT UNTER OBERFLÄCHE
-                            solidBlocksHit++;
-                            byte currentUnder = isUnderwater ? underwaterBlock : (forceSand ? sandId : underBlock);
-                            chunk.setBlock(lx, y, lz, currentUnder);
                         } else {
-                            // TIEFE HÖHLE -> BLEIBT DEEPBLOCK (Oder Stein)
-                            chunk.setBlock(lx, y, lz, deepBlock);
+                            // WIR SIND UNTER DER OBERFLÄCHE
+                            int depth = heightCache[lx * Chunk.SIZE + lz] - y;
+                            if (depth < currentSurfaceDepth) {
+                                // DIRT SCHICHT UNTER OBERFLÄCHE
+                                byte currentUnder = isUnderwater ? underwaterBlock : (forceSand ? sandId : underBlock);
+                                chunk.setBlock(lx, y, lz, currentUnder);
+                            } else {
+                                // TIEFE HÖHLE -> BLEIBT DEEPBLOCK (Oder Stein)
+                                chunk.setBlock(lx, y, lz, deepBlock);
+                            }
                         }
                     }
                 }
