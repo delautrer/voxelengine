@@ -47,6 +47,7 @@ public class RecipeManager {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private static void loadShaped(JsonObject json) {
         JsonArray patternArray = json.getAsJsonArray("pattern");
         int height = patternArray.size();
@@ -58,6 +59,7 @@ public class RecipeManager {
             keyMap.put(entry.getKey().charAt(0), parseIngredient(entry.getValue()));
         }
 
+        @SuppressWarnings("unchecked")
         List<Item>[] ingredients = new List[width * height];
         for (int y = 0; y < height; y++) {
             String row = patternArray.get(y).getAsString();

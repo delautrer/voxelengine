@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 public class InputManager {
+    public static InputManager INSTANCE;
     private final long windowHandle;
 
     private final List<Character> typedChars = new ArrayList<>();
@@ -26,6 +27,7 @@ public class InputManager {
     private final long handCursor;
 
     public InputManager(long windowHandle) {
+        INSTANCE = this;
         this.windowHandle = windowHandle;
 
         this.normalCursor = GLFW.glfwCreateStandardCursor(GLFW.GLFW_ARROW_CURSOR);
@@ -160,5 +162,17 @@ public class InputManager {
 
     public void consumeAction(String action) {
         previousActionStates.put(action, true);
+    }
+
+    public boolean isControlDown() {
+        return isKeyDown(GLFW.GLFW_KEY_LEFT_CONTROL) || isKeyDown(GLFW.GLFW_KEY_RIGHT_CONTROL);
+    }
+
+    public String getClipboardString() {
+        return GLFW.glfwGetClipboardString(windowHandle);
+    }
+
+    public void setClipboardString(String text) {
+        GLFW.glfwSetClipboardString(windowHandle, text);
     }
 }

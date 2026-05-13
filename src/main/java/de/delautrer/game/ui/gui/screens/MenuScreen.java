@@ -76,12 +76,7 @@ public abstract class MenuScreen extends Screen {
         }
 
         if (focusedField != null) {
-            for (char c : input.consumeTypedChars()) {
-                focusedField.typeChar(c);
-            }
-            if (input.isActionJustPressed("UI_BACKSPACE")) {
-                focusedField.backspace();
-            }
+            focusedField.handleInput(input);
         } else {
             input.consumeTypedChars();
         }

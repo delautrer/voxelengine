@@ -1,31 +1,39 @@
 package de.delautrer.game.world;
 
-import de.delautrer.game.world.generation.*;
-import java.util.ArrayList;
-import java.util.List;
+import de.delautrer.game.world.generation.biome.MultiNoiseBiomeRegistry;
+import de.delautrer.game.world.generation.biome.MultiNoiseChunkGenerator;
+import de.delautrer.game.world.generation.biome.MultiNoiseSurfaceBuilder;
 
 public class WorldGenerator {
 
     private final long seed;
-    private final List<IGenerationPass> passes = new ArrayList<>();
+    private final MultiNoiseChunkGenerator terrainGenerator;
+    private final MultiNoiseSurfaceBuilder surfaceBuilder;
 
     public WorldGenerator(long seed) {
         this.seed = seed;
 
-        // Hier definieren wir die exakte Reihenfolge der Weltgenerierung!
-        passes.add(new TerrainPass(seed));
-        passes.add(new CavePass());
-        passes.add(new SurfacePass(seed));
-        passes.add(new DecoratorPass(seed));
+        // GANZ WICHTIG: Die Biome-Registry initialisieren,
+        // damit unsere Biome im Speicher geladen sind!
+        MultiNoiseBiomeRegistry.init();
+
+        // Neues Multi-Noise System initialisieren
+        this.terrainGenerator = new MultiNoiseChunkGenerator(seed);
+        this.surfaceBuilder = new MultiNoiseSurfaceBuilder(terrainGenerator.getSampler(), seed);
     }
 
     public void generate(Chunk chunk) {
-        // Dieses Array wandert von Pass zu Pass, damit z.B. der Höhlen-Pass
-        // weiß, wo die Oberfläche ist, ohne den Chunk neu scannen zu müssen.
-        int[][] heightMap = new int[Chunk.SIZE][Chunk.SIZE];
+        int chunkX = chunk.getWorldX();
+        int chunkZ = chunk.getWorldZ();
 
-        for (IGenerationPass pass : passes) {
-            pass.process(chunk, seed, heightMap);
-        }
+        // 1. Stein, Wasser und verrückte Alpha-Höhlen/Überhänge generieren
+        terrainGenerator.generateBaseTerrain(chunk, chunkX, chunkZ);
+
+        // 2. Biome auswerten, Gras/Sand bemalen und Bäume pflanzen
+        surfaceBuilder.buildSurface(chunk, chunkX, chunkZ);
+    }
+
+    public MultiNoiseChunkGenerator getTerrainGenerator() {
+        return terrainGenerator;
     }
 }

@@ -200,7 +200,8 @@ public class MasterRenderer {
 
         if (isIsoFrame) {
             packet.hideUI = true;
-            packet.clipY = (float) Math.min(54f, interaction.getPlayer().getEyePosition().y - 15.0f);
+            //packet.clipY = (float) Math.min(54f, interaction.getPlayer().getEyePosition().y - 15.0f);
+            packet.clipY = 42;
             packet.renderDistance = 10000.0f;
             float zoom = 80.0f;
 

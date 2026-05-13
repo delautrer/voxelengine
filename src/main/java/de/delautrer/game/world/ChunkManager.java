@@ -386,4 +386,8 @@ public class ChunkManager {
     public Map<Vector2i, ChunkMeshPair> getChunkMeshes() {
         return meshes;
     }
+
+    public WorldGenerator getWorldGenerator() {
+        return worldGenerator;
+    }
 }

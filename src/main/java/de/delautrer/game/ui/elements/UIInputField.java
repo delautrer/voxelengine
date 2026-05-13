@@ -99,6 +99,21 @@ public class UIInputField extends UIElement {
             backspace();
         }
 
+        // Kopieren & Einfügen
+        if (input.isControlDown()) {
+            int lastKey = input.consumeLastKey();
+            if (lastKey == org.lwjgl.glfw.GLFW.GLFW_KEY_V) {
+                String clipboard = input.getClipboardString();
+                if (clipboard != null) {
+                    for (char c : clipboard.toCharArray()) {
+                        typeChar(c);
+                    }
+                }
+            } else if (lastKey == org.lwjgl.glfw.GLFW.GLFW_KEY_C) {
+                input.setClipboardString(text);
+            }
+        }
+
         // Pfeiltasten & Delete
         int lastKey = input.consumeLastKey();
         if (lastKey == org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT) {

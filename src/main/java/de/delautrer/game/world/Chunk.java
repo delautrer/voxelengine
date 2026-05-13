@@ -5,6 +5,7 @@ import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.engine.graphics.ChunkMesher;
+import de.delautrer.game.world.generation.biome.Biome;
 
 public class Chunk {
     public static final int SIZE = 16;
@@ -272,13 +273,11 @@ public class Chunk {
     }
 
     public Biome getBiome(int x, int z) {
-        // Sicherstellen, dass die Koordinaten lokal sind, um IndexOutOfBounds zu
-        // vermeiden
+        // Sicherstellen, dass die Koordinaten lokal sind, um IndexOutOfBounds zu vermeiden
         if (x < 0 || x >= SIZE || z < 0 || z >= SIZE) {
-            return Biome.PLAINS;
+            return null;
         }
-        Biome b = this.biomeMap[getBiomeIndex(x, z)];
-        return b != null ? b : Biome.PLAINS;
+        return this.biomeMap[getBiomeIndex(x, z)];
     }
 
     // Rendering

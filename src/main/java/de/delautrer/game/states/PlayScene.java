@@ -16,6 +16,7 @@ import de.delautrer.game.ui.ChatOverlay;
 import de.delautrer.game.ui.DebugOverlay;
 import de.delautrer.game.ui.gui.screens.*;
 import de.delautrer.game.world.*;
+import de.delautrer.game.world.generation.biome.Biome;
 import org.joml.Vector3d;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -158,7 +159,7 @@ public class PlayScene extends Scene {
             Chunk c = world.getChunkManager().getChunkAtBlock(px, (int) Math.max(0, localPlayer.position.y), pz);
             if (c != null) {
                 Biome b = c.getBiome(Math.floorMod(px, Chunk.SIZE), Math.floorMod(pz, Chunk.SIZE));
-                return b != null ? b.name() : "None";
+                return b != null ? b.getName() : "None";
             }
             return "Unloaded";
         });
@@ -308,7 +309,7 @@ public class PlayScene extends Scene {
 
         // Auto-Pause bei Focus-Verlust
         boolean isFocused = org.lwjgl.glfw.GLFW.glfwGetWindowAttrib(engine.getWindow().getHandle(), org.lwjgl.glfw.GLFW.GLFW_FOCUSED) == org.lwjgl.glfw.GLFW.GLFW_TRUE;
-        if (wasFocused && !isFocused && !isPaused && world.getChunkManager().isInitialLoadComplete()) {
+        if (wasFocused && !isFocused && !anyMenuOpen && world.getChunkManager().isInitialLoadComplete()) {
             pauseGame();
         }
         wasFocused = isFocused;

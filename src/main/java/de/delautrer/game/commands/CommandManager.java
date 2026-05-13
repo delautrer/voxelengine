@@ -27,8 +27,10 @@ public class CommandManager implements EventListener<CommandExecutedEvent> {
         register(new TeleportCommand());
         register(new ClearCommand());
         register(new TimeCommand());
-        register(new DebugBlocksCommand());
+        register(new DebugCommand());
         register(new WeatherCommand());
+        register(new FindCommand());
+        register(new TestBiomesCommand());
     }
 
     public void register(ICommand command) {

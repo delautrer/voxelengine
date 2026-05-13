@@ -1,7 +1,7 @@
 package de.delautrer.game.world.persistence;
 
-import de.delautrer.game.world.Biome;
 import de.delautrer.game.world.Chunk;
+import de.delautrer.game.world.generation.biome.Biome;
 import java.io.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -20,11 +20,9 @@ public class ChunkSerializer {
             dos.write(chunk.getStates());
             dos.write(chunk.getLightMap());
 
+            // Biome werden nicht mehr gespeichert (spart Platz!).
+            // Wir schreiben Nullen, um das Dateiformat für alte Versionen beizubehalten.
             byte[] biomeBytes = new byte[Chunk.SIZE * Chunk.SIZE];
-            Biome[] biomeMap = chunk.getBiomeMap();
-            for (int i = 0; i < biomeMap.length; i++) {
-                biomeBytes[i] = biomeMap[i] != null ? (byte) biomeMap[i].ordinal() : 0;
-            }
             dos.write(biomeBytes);
         }
         return baos.toByteArray();
@@ -45,24 +43,13 @@ public class ChunkSerializer {
             dis.readFully(chunk.getStates());
             dis.readFully(chunk.getLightMap());
 
-            Biome[] biomeMap = chunk.getBiomeMap();
             try {
+                // Wir lesen die Biome-Bytes aus der Datei, damit der Stream nicht kaputt geht.
+                // Wir werfen sie danach aber weg, da Biome jetzt dynamisch aus dem Multi-Noise-Seed berechnet werden.
                 byte[] biomeBytes = new byte[Chunk.SIZE * Chunk.SIZE];
                 dis.readFully(biomeBytes);
-                Biome[] biomeValues = Biome.values();
-                for (int i = 0; i < biomeBytes.length; i++) {
-                    int ordinal = biomeBytes[i] & 0xFF;
-                    if (ordinal >= 0 && ordinal < biomeValues.length) {
-                        biomeMap[i] = biomeValues[ordinal];
-                    } else {
-                        biomeMap[i] = Biome.PLAINS;
-                    }
-                }
             } catch (EOFException e) {
-                // Backward compatibility
-                for (int i = 0; i < biomeMap.length; i++) {
-                    biomeMap[i] = Biome.PLAINS;
-                }
+                // Rückwärtskompatibilität, falls die Datei unerwartet endet
             }
         }
         chunk.clearDirty();
