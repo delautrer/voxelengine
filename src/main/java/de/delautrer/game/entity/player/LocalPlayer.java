@@ -216,7 +216,7 @@ public class LocalPlayer extends Player {
                 swimLock = false;
             }
 
-            if (isInWater) {
+            if (isInWater && gameMode != GameMode.SPECTATOR) {
                 if (isSprinting && input.isActionActive("MOVE_FORWARD") && !swimLock && blockWaist == waterId) {
                     isSwimming = true;
                 }
@@ -268,7 +268,9 @@ public class LocalPlayer extends Player {
         float currentSpeed = speed;
         if (isFlying) {
             // --- NEU: Sprinten modifiziert auch die Fluggeschwindigkeit ---
-            if (isSprinting)
+            if (gameMode == GameMode.SPECTATOR && isSprinting)
+                currentSpeed *= 6.0f; // Extra schnell im Spectator
+            else if (isSprinting)
                 currentSpeed *= 3.0f; // Schneller fliegen beim Sprinten
             else
                 currentSpeed *= 1.5f; // Default fliegen ist 1.5x
@@ -427,7 +429,6 @@ public class LocalPlayer extends Player {
                     if (eventBus != null) {
                         eventBus.publish(new PlayerDamageEvent(this, dmg));
                     }
-                    System.out.println("[Damage] Falldamage: " + dmg + " | HP left: " + getHealth());
                 }
             }
             fallDistance = 0.0f;

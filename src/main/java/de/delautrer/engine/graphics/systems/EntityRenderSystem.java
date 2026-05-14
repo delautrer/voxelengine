@@ -64,7 +64,8 @@ public class EntityRenderSystem implements IRenderSystem {
                 if (count > 15) visualCount = 3;
                 if (count > 31) visualCount = 4;
 
-                float hoverY = (float) Math.sin(t * 3.0) * 0.1f + 0.15f;
+                float phaseOffset = itemEntity.renderPhase * 0.5f; // 4 Phasen à 10 Ticks (0.5s)
+                float hoverY = (float) Math.sin((t + phaseOffset) * Math.PI) * 0.1f + 0.15f;
 
                 for (int v = 0; v < visualCount; v++) {
                     float pileOffsetX = v * 0.04f;
@@ -75,7 +76,7 @@ public class EntityRenderSystem implements IRenderSystem {
                             .translate((float) (e.position.x - packet.cameraPos.x) + pileOffsetX,
                                     (float) (e.position.y - packet.cameraPos.y) + hoverY + pileOffsetY,
                                     (float) (e.position.z - packet.cameraPos.z) + pileOffsetZ)
-                            .rotateY((float) (t * 1.5));
+                            .rotateY((float) ((t + phaseOffset) * 1.0));
 
                     if (itemType instanceof BlockItem blockItem && blockItem.getBlock() instanceof CubeBlock cubeBlock
                             && !(cubeBlock instanceof TorchBlock)) {

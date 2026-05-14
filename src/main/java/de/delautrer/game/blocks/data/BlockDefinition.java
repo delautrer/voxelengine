@@ -7,6 +7,7 @@ public class BlockDefinition {
 
     public boolean isSolid = true;
     public boolean isTransparent = false;
+    public int opacity = -1; // -1 means use default based on isTransparent
     public float hardness = 1.0f;
     public int lightEmission = 0;
     public String soundMaterial = null;

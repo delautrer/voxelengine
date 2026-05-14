@@ -2,6 +2,7 @@ package de.delautrer.game.world;
 
 import org.joml.Vector3i;
 import de.delautrer.game.blocks.Block;
+import de.delautrer.game.entity.player.LocalPlayer;
 import java.util.HashSet;
 import java.util.PriorityQueue;
 import java.util.Set;
@@ -35,11 +36,12 @@ public class TickScheduler {
 
     public TickScheduler(World world) { this.world = world; }
 
-    public void update(float deltaTime) {
+    public void update(float deltaTime, LocalPlayer localPlayer) {
         tickTimer += deltaTime;
         while (tickTimer >= TICK_RATE) {
             tickTimer -= TICK_RATE;
             currentTick++;
+            world.onTick(localPlayer);
             executeTicks();
         }
     }

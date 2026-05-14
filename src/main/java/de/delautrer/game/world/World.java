@@ -132,7 +132,7 @@ public class World {
             system.update(this, deltaTime, localPlayer);
         }
 
-        tickScheduler.update(deltaTime);
+        tickScheduler.update(deltaTime, localPlayer);
 
         if (localPlayer.position.y < Chunk.MIN_Y - 50) {
             if (worldSpawnpoint != null) {
@@ -142,6 +142,19 @@ public class World {
                 localPlayer.position.y = Chunk.MIN_Y - 49.0;
                 localPlayer.velocity.y = 0.0f;
             }
+        }
+    }
+
+    public void onTick(LocalPlayer localPlayer) {
+        for (WorldSystem system : systems) {
+            system.onTick(this, localPlayer);
+        }
+    }
+
+    public void scheduleBlockUpdate(int x, int y, int z) {
+        byte blockId = getBlockAt(x, y, z);
+        if (blockId != 0) {
+            tickScheduler.scheduleTick(new Vector3i(x, y, z), BlockRegistry.get(blockId), 1);
         }
     }
 
@@ -171,11 +184,27 @@ public class World {
         }
 
         if (oldBlockId != 0 && oldBlockId != newBlockId) {
-            BlockRegistry.get(oldBlockId).onBlockRemoved(this, pos, BlockRegistry.get(oldBlockId).getStateForId(oldState));
+            Block oldBlock = BlockRegistry.get(oldBlockId);
+            oldBlock.onBlockRemoved(this, pos, oldBlock.getStateForId(oldState));
+            // NEU: Break Sound abspielen
+            de.delautrer.engine.audio.SoundManager.playEvent(oldBlock.getSoundMaterialName(), "jump_land", 0.8f, 0.6f, 1.2f, x + 0.5f, y + 0.5f, z + 0.5f);
+        }
+
+        int oldLightEmission = BlockRegistry.get(oldBlockId).getLightEmission();
+        int newLightEmission = BlockRegistry.get(newBlockId).getLightEmission();
+
+        if (oldLightEmission > 0) {
+            chunkManager.getLightEngine().removeBlockLight(x, y, z, oldLightEmission);
         }
 
         targetChunk.recalculateSunlightColumn(localX, localZ, chunkManager.getLightEngine());
         chunkManager.getLightEngine().notifyBlockChanged(x, y, z);
+
+        if (newLightEmission > 0) {
+            chunkManager.getLightEngine().addBlockLightSource(x, y, z, newLightEmission);
+        }
+
+        chunkManager.getLightEngine().processLightUpdates();
 
         eventBus.publish(new BlockChangeEvent(pos, oldBlockId, newBlockId, targetChunk));
 
@@ -228,12 +257,28 @@ public class World {
         }
 
         if (oldBlockId != 0 && oldBlockId != newBlockId) {
-            BlockRegistry.get(oldBlockId).onBlockRemoved(this, pos, BlockRegistry.get(oldBlockId).getStateForId(oldState));
+            Block oldBlock = BlockRegistry.get(oldBlockId);
+            oldBlock.onBlockRemoved(this, pos, oldBlock.getStateForId(oldState));
+            // NEU: Break Sound abspielen
+            de.delautrer.engine.audio.SoundManager.playEvent(oldBlock.getSoundMaterialName(), "jump_land", 0.8f, 0.6f, 1.2f, x + 0.5f, y + 0.5f, z + 0.5f);
+        }
+
+        int oldLightEmission = BlockRegistry.get(oldBlockId).getLightEmission();
+        int newLightEmission = BlockRegistry.get(newBlockId).getLightEmission();
+
+        if (oldLightEmission > 0) {
+            chunkManager.getLightEngine().removeBlockLight(x, y, z, oldLightEmission);
         }
 
         // Licht-Updates
         targetChunk.recalculateSunlightColumn(localX, localZ, chunkManager.getLightEngine());
         chunkManager.getLightEngine().notifyBlockChanged(x, y, z);
+
+        if (newLightEmission > 0) {
+            chunkManager.getLightEngine().addBlockLightSource(x, y, z, newLightEmission);
+        }
+
+        chunkManager.getLightEngine().processLightUpdates();
 
         // Events
         eventBus.publish(new BlockChangeEvent(pos, oldBlockId, newBlockId, targetChunk));

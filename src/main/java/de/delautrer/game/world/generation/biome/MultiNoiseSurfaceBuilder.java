@@ -31,6 +31,7 @@ public class MultiNoiseSurfaceBuilder {
         byte sandId = BlockRegistry.get(Constants.NAMESPACE + ":sand").getId();
         byte dirtId = BlockRegistry.get(Constants.NAMESPACE + ":dirt").getId();
         byte stoneId = BlockRegistry.get(Constants.NAMESPACE + ":stone").getId();
+        byte grassBlockId = BlockRegistry.get(Constants.NAMESPACE + ":grass_block").getId();
         byte grassId = BlockRegistry.get(Constants.NAMESPACE + ":grass").getId();
         byte sandyGrassId = BlockRegistry.get(Constants.NAMESPACE + ":sandy_grass").getId();
 
@@ -38,6 +39,8 @@ public class MultiNoiseSurfaceBuilder {
         Random random = new Random(chunkSeed);
 
         int[] heightCache = new int[Chunk.SIZE * Chunk.SIZE];
+        for (int i = 0; i < heightCache.length; i++)
+            heightCache[i] = -1;
 
         for (int lx = 0; lx < Chunk.SIZE; lx++) {
             for (int lz = 0; lz < Chunk.SIZE; lz++) {
@@ -46,14 +49,14 @@ public class MultiNoiseSurfaceBuilder {
 
                 Climate.TargetPoint climate = sampler.sample(worldX, worldZ);
                 Biome biome = MultiNoiseBiomeRegistry.getBiomeFor(climate);
-                if (biome == null) continue;
+                if (biome == null)
+                    continue;
 
                 chunk.setBiome(lx, lz, biome);
 
-                // --- DYNAMISCHE STRAND-BREITE ---
                 float beachNoise = patchNoise.getFractalNoise2D(worldX * 0.05f, worldZ * 0.05f, 2, 0.5f, 2.0f);
-                int beachRadius = 1 + (int) ((beachNoise + 1.0f) * 3.5f); 
-                
+                int beachRadius = 1 + (int) ((beachNoise + 1.0f) * 3.5f);
+
                 boolean isNearWater = false;
                 int myHeight = getExpectedHeight(worldX, worldZ);
                 if (myHeight <= MultiNoiseChunkGenerator.WATER_LEVEL) {
@@ -61,19 +64,14 @@ public class MultiNoiseSurfaceBuilder {
                 } else {
                     for (int r = 1; r <= beachRadius; r += 2) {
                         if (getExpectedHeight(worldX + r, worldZ) <= MultiNoiseChunkGenerator.WATER_LEVEL ||
-                            getExpectedHeight(worldX - r, worldZ) <= MultiNoiseChunkGenerator.WATER_LEVEL ||
-                            getExpectedHeight(worldX, worldZ + r) <= MultiNoiseChunkGenerator.WATER_LEVEL ||
-                            getExpectedHeight(worldX, worldZ - r) <= MultiNoiseChunkGenerator.WATER_LEVEL) {
+                                getExpectedHeight(worldX - r, worldZ) <= MultiNoiseChunkGenerator.WATER_LEVEL ||
+                                getExpectedHeight(worldX, worldZ + r) <= MultiNoiseChunkGenerator.WATER_LEVEL ||
+                                getExpectedHeight(worldX, worldZ - r) <= MultiNoiseChunkGenerator.WATER_LEVEL) {
                             isNearWater = true;
                             break;
                         }
                     }
                 }
-
-                int solidBlocksHit = 0;
-                boolean isUnderwater = false;
-                boolean surfaceFound = false;
-                boolean forceSand = false;
 
                 byte topBlock = biome.getTopBlockId();
                 byte underBlock = biome.getUnderBlockId();
@@ -91,64 +89,134 @@ public class MultiNoiseSurfaceBuilder {
                     }
                 }
 
-                int currentSurfaceDepth;
-                if (topBlock == sandId) {
-                    currentSurfaceDepth = 5 + random.nextInt(6);
+                int currentSurfaceDepth = (topBlock == sandId) ? (5 + random.nextInt(6)) : (3 + random.nextInt(2));
+                if (topBlock == sandId)
                     deepBlock = stoneId;
-                } else {
-                    currentSurfaceDepth = 3 + random.nextInt(2);
-                }
+
+                boolean isUnderwater = false;
+                boolean foundAbsoluteTop = false;
+                int solidRun = -1;
+                int expectedSurfaceY = myHeight;
+                byte columnUnderBlock = underBlock;
 
                 for (int y = Chunk.MAX_Y - 1; y >= Chunk.MIN_Y; y--) {
                     byte blockId = chunk.getBlock(lx, y, lz);
 
-                    // Skip Air & Reset solidBlocksHit
                     if (blockId == air) {
+                        solidRun = -1;
+                        isUnderwater = false; // LUFT = TROCKEN
                         continue;
                     }
 
-                    if (blockId == waterId && !surfaceFound) {
-                        isUnderwater = true;
+                    if (blockId == waterId) {
+                        solidRun = -1;
+                        isUnderwater = true; // WASSER = NASS
                         continue;
                     }
 
                     if (blockId == stoneId) {
-                        if (!surfaceFound) {
-                            // ERSTER TREFFER = OBERFLÄCHE
-                            surfaceFound = true;
-                            heightCache[lx * Chunk.SIZE + lz] = y;
-
-                            if (isUnderwater) {
-                                chunk.setBlock(lx, y, lz, underwaterBlock);
+                        if (solidRun == -1) {
+                            if (!foundAbsoluteTop) {
+                                solidRun = 0;
+                                foundAbsoluteTop = true;
+                                heightCache[lx * Chunk.SIZE + lz] = y;
                             } else {
+                                // CAHNGE: In einer Höhle? Dann behandeln wir es sofort als tiefen Stein.
+                                solidRun = 999;
+                                continue;
+                            }
+
+                            int depth = expectedSurfaceY - y;
+
+                            // FIX 1: HARTER CUTOFF. Tief in der Höhle? IMMER Stein. Kein Gras, Kein Sand.
+                            if (depth > 8) {
+                                chunk.setBlock(lx, y, lz, deepBlock);
+                                solidRun = 999;
+                                continue;
+                            }
+
+                            // --- OBERFLÄCHE ODER FLACHER EINGANG ---
+                            if (isUnderwater) {
+                                // NASS: See- / Flussgrund
+                                byte currentBottom = underwaterBlock;
+                                if (biome.underwaterBlobs != null && !biome.underwaterBlobs.isEmpty()) {
+                                    float bottomN = blobNoise.getFractalNoise2D(worldX * 0.08f, worldZ * 0.08f, 2, 0.5f,
+                                            2.0f);
+                                    for (java.util.Map.Entry<String, Float> entry : biome.underwaterBlobs.entrySet()) {
+                                        if (Math.abs(bottomN) > entry.getValue()) {
+                                            byte patchId = BlockRegistry.get(Constants.NAMESPACE + ":" + entry.getKey())
+                                                    .getId();
+                                            if (patchId != 0) {
+                                                currentBottom = patchId;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                                chunk.setBlock(lx, y, lz, currentBottom);
+                                columnUnderBlock = currentBottom;
+                            } else {
+                                // TROCKEN: Gras / Strand
                                 byte currentTop = topBlock;
+                                columnUnderBlock = underBlock;
+
                                 if (isNearWater && y <= MultiNoiseChunkGenerator.WATER_LEVEL + 2) {
-                                    currentTop = sandId;
-                                    forceSand = true;
-                                    currentSurfaceDepth = 3 + random.nextInt(2);
+                                    currentTop = biome.getShoreBlockId();
+                                    if (currentTop != grassBlockId) {
+                                        columnUnderBlock = currentTop;
+                                    }
+                                }
+
+                                if (biome.surfaceBlobs != null && !biome.surfaceBlobs.isEmpty()) {
+                                    float patchN = patchNoise.getFractalNoise2D(worldX * 0.06f, worldZ * 0.06f, 3, 0.5f,
+                                            2.0f);
+                                    for (java.util.Map.Entry<String, Float> entry : biome.surfaceBlobs.entrySet()) {
+                                        if (Math.abs(patchN) > entry.getValue()) {
+                                            byte patchId = BlockRegistry.get(Constants.NAMESPACE + ":" + entry.getKey())
+                                                    .getId();
+                                            if (patchId != 0) {
+                                                currentTop = patchId;
+                                                columnUnderBlock = patchId;
+                                                break;
+                                            }
+                                        }
+                                    }
                                 }
 
                                 chunk.setBlock(lx, y, lz, currentTop);
 
-                                // --- FLORA LOGIK ---
-                                if (currentTop == sandId) {
-                                    if (random.nextFloat() < 0.05f && y + 1 < Chunk.MAX_Y && chunk.getBlock(lx, y + 1, lz) == air) {
-                                        chunk.setBlock(lx, y + 1, lz, sandyGrassId);
+                                if (currentTop == grassBlockId) {
+                                    if (y - 1 >= Chunk.MIN_Y && chunk.getBlock(lx, y - 1, lz) == grassBlockId) {
+                                        chunk.setBlock(lx, y - 1, lz, dirtId);
                                     }
-                                } else if (biome.floraProbability > 0 || "SAVANNA".equals(biome.id)) {
-                                    float patchN = patchNoise.getFractalNoise2D(worldX * 0.12f, worldZ * 0.12f, 2, 0.5f, 2.0f);
-                                    float patchThreshold = (biome.floraPatchThreshold != 0) ? biome.floraPatchThreshold : -0.4f;
+                                }
 
-                                    if (patchN > patchThreshold) {
-                                        float density = (biome.floraDensity != 0) ? biome.floraDensity : 0.8f;
-                                        if (random.nextFloat() < (density * (biome.floraProbability > 0 ? biome.floraProbability * 2.0f : 1.0f))) {
-                                            if (y + 1 < Chunk.MAX_Y && chunk.getBlock(lx, y + 1, lz) == air) {
+                                // FLORA LOGIK (NUR WENN DRÜBER LUFT IST)
+                                if (y + 1 < Chunk.MAX_Y && chunk.getBlock(lx, y + 1, lz) == air) {
+                                    if (currentTop == sandId) {
+                                        if (random.nextFloat() < 0.05f) {
+                                            chunk.setBlock(lx, y + 1, lz, sandyGrassId);
+                                        }
+                                    } else if (biome.floraProbability > 0 || "SAVANNA".equals(biome.id)) {
+                                        float patchN = patchNoise.getFractalNoise2D(worldX * 0.12f, worldZ * 0.12f, 2,
+                                                0.5f, 2.0f);
+                                        float patchThreshold = (biome.floraPatchThreshold != 0)
+                                                ? biome.floraPatchThreshold
+                                                : -0.4f;
+
+                                        if (patchN > patchThreshold) {
+                                            float density = (biome.floraDensity != 0) ? biome.floraDensity : 0.8f;
+                                            if (random.nextFloat() < (density
+                                                    * (biome.floraProbability > 0 ? biome.floraProbability * 2.0f
+                                                            : 1.0f))) {
                                                 byte floraToSet = grassId;
                                                 float flowerChance = "FLOWER_PLAINS".equals(biome.id) ? 0.6f : 0.45f;
-
                                                 if (random.nextFloat() < flowerChance) {
-                                                    String flowerName = WeightedRandomHelper.getRandom(biome.flora, random);
-                                                    if (flowerName != null) floraToSet = BlockRegistry.get(Constants.NAMESPACE + ":" + flowerName).getId();
+                                                    String flowerName = WeightedRandomHelper.getRandom(biome.flora,
+                                                            random);
+                                                    if (flowerName != null)
+                                                        floraToSet = BlockRegistry
+                                                                .get(Constants.NAMESPACE + ":" + flowerName).getId();
                                                 }
                                                 chunk.setBlock(lx, y + 1, lz, floraToSet);
                                             }
@@ -156,29 +224,39 @@ public class MultiNoiseSurfaceBuilder {
                                     }
                                 }
                             }
+                        } else if (solidRun < currentSurfaceDepth) {
+                            solidRun++;
+                            chunk.setBlock(lx, y, lz, columnUnderBlock);
                         } else {
-                            // WIR SIND UNTER DER OBERFLÄCHE
-                            int depth = heightCache[lx * Chunk.SIZE + lz] - y;
-                            if (depth < currentSurfaceDepth) {
-                                // DIRT SCHICHT UNTER OBERFLÄCHE
-                                byte currentUnder = isUnderwater ? underwaterBlock : (forceSand ? sandId : underBlock);
-                                chunk.setBlock(lx, y, lz, currentUnder);
-                            } else {
-                                // TIEFE HÖHLE -> BLEIBT DEEPBLOCK (Oder Stein)
-                                chunk.setBlock(lx, y, lz, deepBlock);
+                            byte currentDeep = deepBlock;
+                            if (biome.undergroundBlobs != null && !biome.undergroundBlobs.isEmpty()) {
+                                float blobN = blobNoise.getFractalNoise3D(worldX * 0.04f, y * 0.04f, worldZ * 0.04f, 2,
+                                        0.5f, 2.0f);
+                                for (java.util.Map.Entry<String, Float> entry : biome.undergroundBlobs.entrySet()) {
+                                    if (Math.abs(blobN) > (1.0f - entry.getValue())) {
+                                        byte blobId = BlockRegistry.get(Constants.NAMESPACE + ":" + entry.getKey())
+                                                .getId();
+                                        if (blobId != 0) {
+                                            currentDeep = blobId;
+                                            break;
+                                        }
+                                    }
+                                }
                             }
+                            chunk.setBlock(lx, y, lz, currentDeep);
                         }
                     }
                 }
             }
         }
 
-        // BÄUME PASS
+        // --- BÄUME ---
         for (int ox = -6; ox < Chunk.SIZE + 6; ox++) {
             for (int oz = -6; oz < Chunk.SIZE + 6; oz++) {
                 int worldX = chunkX * Chunk.SIZE + ox;
                 int worldZ = chunkZ * Chunk.SIZE + oz;
-                if (worldX % 2 != 0 || worldZ % 2 != 0) continue;
+                if (worldX % 2 != 0 || worldZ % 2 != 0)
+                    continue;
 
                 long treeSeed = seed ^ ((long) worldX * 341873128712L ^ (long) worldZ * 132897987541L);
                 Random checkRandom = new Random(treeSeed);
@@ -187,15 +265,13 @@ public class MultiNoiseSurfaceBuilder {
 
                 if (biome != null && biome.treeProbability > 0) {
                     if (checkRandom.nextFloat() < biome.treeProbability) {
-                        int surfaceY = (ox >= 0 && ox < Chunk.SIZE && oz >= 0 && oz < Chunk.SIZE) ? heightCache[ox * Chunk.SIZE + oz] : getExpectedHeight(worldX, worldZ);
+                        int surfaceY = getExpectedHeight(worldX, worldZ);
                         if (surfaceY != -1 && surfaceY > MultiNoiseChunkGenerator.WATER_LEVEL + 2) {
-                            if (ox >= 0 && ox < Chunk.SIZE && oz >= 0 && oz < Chunk.SIZE) {
-                                if (chunk.getBlock(ox, surfaceY + 1, oz) == waterId) continue;
-                            }
                             String treeType = WeightedRandomHelper.getRandom(biome.trees, checkRandom);
                             byte[] ids = getIdsForTree(treeType);
                             if (ids != null) {
-                                TreeFeature.generate(chunk, worldX, surfaceY + 1, worldZ, seed, treeType, ids[0], ids[1]);
+                                TreeFeature.generate(chunk, worldX, surfaceY + 1, worldZ, seed, treeType, ids[0],
+                                        ids[1]);
                             }
                         }
                     }
@@ -208,7 +284,8 @@ public class MultiNoiseSurfaceBuilder {
         String base = treeType.replace("alpha_tall_", "alpha_").replace("alpha_", "");
         byte logId = BlockRegistry.get(Constants.NAMESPACE + ":" + base + "_log").getId();
         byte leavesId = BlockRegistry.get(Constants.NAMESPACE + ":" + base + "_leaves").getId();
-        if (logId != 0 && leavesId != 0) return new byte[]{logId, leavesId};
+        if (logId != 0 && leavesId != 0)
+            return new byte[] { logId, leavesId };
         return null;
     }
 
@@ -218,14 +295,27 @@ public class MultiNoiseSurfaceBuilder {
         float biomeBaseHeight = params[0];
         float biomeVar = params[1];
 
-        float baseHeight = biomeBaseHeight + (climate.continentalness * biomeVar * 1.5f);
-        float jaggedness = (biomeVar * 0.15f) + (climate.erosion * biomeVar * 0.25f);
+        float cont = climate.continentalness;
+        float erosion = climate.erosion;
 
-        // --- FLUSS CARVE SYNC ---
+        float baseHeight = biomeBaseHeight;
+        if (cont > 0.0f) {
+            float mountainFactor = cont * Math.max(0.0f, erosion);
+            baseHeight += (mountainFactor * mountainFactor * 120.0f) * (biomeVar / 10.0f);
+        } else {
+            baseHeight += cont * biomeVar * 1.5f;
+        }
+
+        float jaggedness = (biomeVar * 0.15f) + (erosion * biomeVar * 0.8f);
+        if (cont > 0.4f && erosion > 0.5f) {
+            jaggedness += (cont - 0.4f) * (erosion - 0.5f) * 150.0f;
+        }
+
         float warpX = riverNoise.getFractalNoise2D(worldX * 0.02f, worldZ * 0.02f, 2, 0.5f, 2.0f) * 25.0f;
         float warpZ = riverNoise.getFractalNoise2D(worldX * 0.02f + 100, worldZ * 0.02f + 100, 2, 0.5f, 2.0f) * 25.0f;
 
-        float rNoise = riverNoise.getFractalNoise2D((worldX + warpX) * 0.003f, (worldZ + warpZ) * 0.003f, 3, 0.5f, 2.0f);
+        float rNoise = riverNoise.getFractalNoise2D((worldX + warpX) * 0.003f, (worldZ + warpZ) * 0.003f, 3, 0.5f,
+                2.0f);
         float riverVal = Math.abs(rNoise);
         float riverThreshold = 0.06f;
 
@@ -246,7 +336,8 @@ public class MultiNoiseSurfaceBuilder {
             float density = baseHeight - y;
             float noise3D = shapeNoise3D.getFractalNoise3D(worldX * 0.01f, y * 0.015f, worldZ * 0.01f, 3, 0.5f, 2.0f);
             density += noise3D * jaggedness;
-            if (density > 0) return y;
+            if (density > 0)
+                return y;
         }
         return Chunk.MIN_Y;
     }

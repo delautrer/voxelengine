@@ -37,7 +37,6 @@ public class LootTableManager {
                 if (table == null || table.pools == null) {
                     System.err.println("[LootTableManager] Failed to parse JSON (empty table): " + fullPath);
                 } else {
-                    System.out.println("[LootTableManager] Successfully loaded: " + fullPath + " (" + table.pools.size() + " pools)");
                 }
 
                 CACHE.put(path, table);

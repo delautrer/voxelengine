@@ -5,4 +5,5 @@ import de.delautrer.game.world.World;
 
 public interface WorldSystem {
     void update(World world, float deltaTime, LocalPlayer localPlayer);
+    default void onTick(World world, LocalPlayer localPlayer) {}
 }

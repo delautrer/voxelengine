@@ -93,9 +93,9 @@ public class BlockRegistry {
             case "cube":
                 return new CubeBlock(def.isSolid, def.isTransparent);
             case "slab":
-                return new SlabBlock();
+                return new SlabBlock(def.isSolid, def.isTransparent);
             case "stair":
-                return new StairBlock();
+                return new StairBlock(def.isSolid, def.isTransparent);
             case "plant":
                 return new PlantBlock();
             case "water":
@@ -127,6 +127,10 @@ public class BlockRegistry {
 
         if (def.lightEmission > 0) {
             block.setLightEmission(def.lightEmission);
+        }
+
+        if (def.opacity != -1) {
+            block.setOpacity(def.opacity);
         }
 
         // Sound und Loot-Table (Nutzt die überschriebenen Werte, falls vorhanden, sonst

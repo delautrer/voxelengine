@@ -46,7 +46,7 @@ public class DoorBlock extends CubeBlock implements IInteractable {
 
     @Override
     public BlockState getStateForPlacement(World world, Player player, Vector3i hitPos, Vector3i hitFace, Vector3f exactHit) {
-        if (hitPos.y >= Chunk.HEIGHT - 1) return null;
+        if (hitPos.y >= Chunk.MAX_Y - 1) return null;
         if (world.getBlockAt(hitPos.x, hitPos.y + 1, hitPos.z) != 0) return null;
 
         float yaw = ((LocalPlayer) player).getCamera().getYaw();

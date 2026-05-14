@@ -54,14 +54,16 @@ public class FallingBlockEntity extends Entity {
         int y = (int) Math.floor(position.y + 0.1);
         int z = (int) Math.floor(position.z);
 
-        if (world.getBlockAt(x, y, z) == 0) {
-            world.setBlockWithState(x, y, z, blockId, blockState);
-            this.setDead(true);
-        } else if (world.getBlockAt(x, y + 1, z) == 0) {
-            world.setBlockWithState(x, y + 1, z, blockId, blockState);
+        if (world.getBlockAt(x, y, z) == 0 || world.getBlockAt(x, y + 1, z) == 0) {
+            int targetY = world.getBlockAt(x, y, z) == 0 ? y : y + 1;
+            world.setBlockWithState(x, targetY, z, blockId, blockState);
+
+            // NEU: Lande-Sound abspielen (3D)
+            de.delautrer.engine.audio.SoundManager.playEvent(BlockRegistry.get(blockId).getSoundMaterialName(), "jump_land", 0.7f, 0.8f, 1.2f, x + 0.5f, targetY + 0.5f, z + 0.5f);
+
             this.setDead(true);
         } else {
-            // Cannot land here, just die (or drop as item?)
+            // Cannot land here, just die
             this.setDead(true);
         }
     }

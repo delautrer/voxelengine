@@ -11,6 +11,8 @@
         "id":  24,
         "name":  "grass_block_slabs",
         "type":  "slab",
+        "isTransparent": true,
+        "opacity": 15,
         "hardness":  0.6,
         "soundMaterial":  "grass",
         "category":  "natural"
@@ -19,6 +21,8 @@
         "id":  25,
         "name":  "grass_block_stairs",
         "type":  "stair",
+        "isTransparent": true,
+        "opacity": 15,
         "hardness":  0.6,
         "soundMaterial":  "grass",
         "category":  "natural"
@@ -56,6 +60,8 @@
         "id":  28,
         "name":  "stone_slabs",
         "type":  "slab",
+        "isTransparent": true,
+        "opacity": 15,
         "hardness":  1.5,
         "soundMaterial":  "rock",
         "category":  "natural"
@@ -64,6 +70,8 @@
         "id":  29,
         "name":  "stone_stairs",
         "type":  "stair",
+        "isTransparent": true,
+        "opacity": 15,
         "hardness":  1.5,
         "soundMaterial":  "rock",
         "category":  "natural"
@@ -214,6 +222,8 @@
         "id":  21,
         "name":  "oak_stairs",
         "type":  "stair",
+        "isTransparent": true,
+        "opacity": 15,
         "hardness":  2.0,
         "soundMaterial":  "wood",
         "category":  "wood"
@@ -222,6 +232,8 @@
         "id":  22,
         "name":  "oak_slabs",
         "type":  "slab",
+        "isTransparent": true,
+        "opacity": 15,
         "hardness":  2.0,
         "soundMaterial":  "wood",
         "category":  "wood"
@@ -302,6 +314,8 @@
         "id":  103,
         "name":  "birch_stairs",
         "type":  "stair",
+        "isTransparent": true,
+        "opacity": 15,
         "hardness":  2.0,
         "soundMaterial":  "wood",
         "category":  "wood"
@@ -310,6 +324,8 @@
         "id":  104,
         "name":  "birch_slabs",
         "type":  "slab",
+        "isTransparent": true,
+        "opacity": 15,
         "hardness":  2.0,
         "soundMaterial":  "wood",
         "category":  "wood"
@@ -369,6 +385,8 @@
         "id":  113,
         "name":  "pine_stairs",
         "type":  "stair",
+        "isTransparent": true,
+        "opacity": 15,
         "hardness":  2.0,
         "soundMaterial":  "wood",
         "category":  "wood"
@@ -377,6 +395,8 @@
         "id":  114,
         "name":  "pine_slabs",
         "type":  "slab",
+        "isTransparent": true,
+        "opacity": 15,
         "hardness":  2.0,
         "soundMaterial":  "wood",
         "category":  "wood"

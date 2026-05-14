@@ -116,7 +116,7 @@ public class MasterRenderer {
         Matrix4f viewRotOnly = new Matrix4f(view).setTranslation(0, 0, 0);
 
         float fov = SettingsManager.get().fov;
-        Matrix4f proj = new Matrix4f().perspective((float) Math.toRadians(fov), aspect, 0.01f, 1000.0f);
+        Matrix4f proj = new Matrix4f().perspective((float) Math.toRadians(fov), aspect, 0.05f, 1000.0f);
         proj.m11(proj.m11() * -1); // Vulkan Y-Flip
 
         Matrix4f mvpCameraRelative = new Matrix4f(proj).mul(viewRotOnly);

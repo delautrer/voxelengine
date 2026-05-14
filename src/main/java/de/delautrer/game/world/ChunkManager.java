@@ -1,7 +1,9 @@
 package de.delautrer.game.world;
 
+import de.delautrer.Constants;
 import de.delautrer.engine.graphics.*;
 import de.delautrer.engine.graphics.vulkan.buffer.VulkanMesh;
+import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.settings.SettingsManager;
 import org.joml.Vector2i;
 import java.util.*;
@@ -115,10 +117,45 @@ public class ChunkManager {
         int chunksIntegratedThisFrame = 0;
         int maxChunksToIntegrate = initialLoadComplete ? 1 : 10;
 
+        // IDs einmalig holen, um Performance in der Schleife zu sparen
+        byte waterId = BlockRegistry.get(Constants.NAMESPACE + ":water").getId();
+        byte airId = BlockRegistry.get(Constants.NAMESPACE + ":air").getId();
+
         while (chunksIntegratedThisFrame < maxChunksToIntegrate && (loadedChunk = newlyLoadedQueue.poll()) != null) {
             Vector2i pos = new Vector2i(loadedChunk.getWorldX(), loadedChunk.getWorldZ());
             chunks.put(pos, loadedChunk);
             chunksLoading.remove(pos);
+
+            // --- NEU: WASSER-PHYSIK AUFWECKEN (Fluid Ticks) ---
+            // Scannt den Chunk einmalig beim Einfügen. Finden wir Wasser neben Luft,
+            // wird dieser exakte Block für ein Physik-Update im Main-Thread vorgemerkt.
+            for (int x = 0; x < Chunk.SIZE; x++) {
+                for (int z = 0; z < Chunk.SIZE; z++) {
+                    for (int y = Chunk.MIN_Y; y < Chunk.MAX_Y; y++) {
+                        if (loadedChunk.getBlock(x, y, z) == waterId) {
+
+                            boolean touchesAir = false;
+                            // Check oben/unten
+                            if (y < Chunk.MAX_Y - 1 && loadedChunk.getBlock(x, y + 1, z) == airId) touchesAir = true;
+                            else if (y > Chunk.MIN_Y && loadedChunk.getBlock(x, y - 1, z) == airId) touchesAir = true;
+                                // Check Seiten (Wir prüfen nur innerhalb des Chunks für max. Performance)
+                                // Chunk-Grenzen werden automatisch geupdatet, wenn benachbarte Chunks laden!
+                            else if (x > 0 && loadedChunk.getBlock(x - 1, y, z) == airId) touchesAir = true;
+                            else if (x < Chunk.SIZE - 1 && loadedChunk.getBlock(x + 1, y, z) == airId) touchesAir = true;
+                            else if (z > 0 && loadedChunk.getBlock(x, y, z - 1) == airId) touchesAir = true;
+                            else if (z < Chunk.SIZE - 1 && loadedChunk.getBlock(x, y, z + 1) == airId) touchesAir = true;
+
+                            if (touchesAir) {
+                                int worldBlockX = loadedChunk.getWorldX() * Chunk.SIZE + x;
+                                int worldBlockZ = loadedChunk.getWorldZ() * Chunk.SIZE + z;
+                                // Triggert die Update-Schleife der Welt
+                                world.scheduleBlockUpdate(worldBlockX, y, worldBlockZ);
+                            }
+                        }
+                    }
+                }
+            }
+            // ---------------------------------------------------
 
             if (loadedChunk.isDirty()) {
                 lightEngine.initSkyLightForChunk(loadedChunk);
@@ -131,14 +168,10 @@ public class ChunkManager {
             Chunk nZ1 = chunks.get(new Vector2i(pos.x, pos.y + 1));
             Chunk nZ2 = chunks.get(new Vector2i(pos.x, pos.y - 1));
 
-            if (nX1 != null)
-                nX1.requestMeshUpdate();
-            if (nX2 != null)
-                nX2.requestMeshUpdate();
-            if (nZ1 != null)
-                nZ1.requestMeshUpdate();
-            if (nZ2 != null)
-                nZ2.requestMeshUpdate();
+            if (nX1 != null) nX1.requestMeshUpdate();
+            if (nX2 != null) nX2.requestMeshUpdate();
+            if (nZ1 != null) nZ1.requestMeshUpdate();
+            if (nZ2 != null) nZ2.requestMeshUpdate();
 
             loadedChunk.requestMeshUpdate();
 

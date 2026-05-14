@@ -243,4 +243,17 @@ public abstract class Block {
     public String getCategory() {
         return category;
     }
+
+    protected int opacityValue = -1;
+
+    public void setOpacity(int opacity) {
+        this.opacityValue = opacity;
+    }
+
+    public int getOpacity(BlockState state) {
+        if (opacityValue >= 0) return opacityValue;
+        return isTransparent ? 0 : 15;
+    }
 }
+
+

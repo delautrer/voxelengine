@@ -51,14 +51,14 @@ public class LightEngine {
 
     private int unpackX(long node) {
         int x = (int)((node >> 14) & 0x1FFFFFF);
-        // Vorzeichen-Erweiterung für negative Koordinaten
+        // Vorzeichen-Erweiterung für 25-Bit (Bit 24 ist Vorzeichen)
         if ((x & 0x1000000) != 0) x |= 0xFE000000;
         return x;
     }
 
     private int unpackZ(long node) {
         int z = (int)((node >> 39) & 0x1FFFFFF);
-        // Vorzeichen-Erweiterung für negative Koordinaten
+        // Vorzeichen-Erweiterung für 25-Bit (Bit 24 ist Vorzeichen)
         if ((z & 0x1000000) != 0) z |= 0xFE000000;
         return z;
     }
@@ -82,10 +82,12 @@ public class LightEngine {
 
             for (int[] dir : DIRS) {
                 int adjX = nx + dir[0], adjY = ny + dir[1], adjZ = nz + dir[2];
-                if (isTransparent(adjX, adjY, adjZ)) {
+                int opacity = getOpacity(adjX, adjY, adjZ);
+                if (opacity < 15) {
                     int neighborLight = getBlockLight(adjX, adjY, adjZ);
-                    if (neighborLight + 2 <= currentLight) {
-                        setBlockLight(adjX, adjY, adjZ, currentLight - 1);
+                    int attenuation = Math.max(1, opacity);
+                    if (neighborLight + attenuation + 1 <= currentLight) {
+                        setBlockLight(adjX, adjY, adjZ, currentLight - attenuation);
                         blockLightQueue.add(pack(adjX, adjY, adjZ, 0));
                     }
                 }
@@ -166,10 +168,12 @@ public class LightEngine {
 
             for (int[] dir : DIRS) {
                 int adjX = nx + dir[0], adjY = ny + dir[1], adjZ = nz + dir[2];
-                if (isTransparent(adjX, adjY, adjZ)) {
+                int opacity = getOpacity(adjX, adjY, adjZ);
+                if (opacity < 15) {
                     int neighborLight = getSkyLight(adjX, adjY, adjZ);
-                    if (neighborLight + 2 <= currentLight) {
-                        setSkyLight(adjX, adjY, adjZ, currentLight - 1);
+                    int attenuation = Math.max(1, opacity);
+                    if (neighborLight + attenuation + 1 <= currentLight) {
+                        setSkyLight(adjX, adjY, adjZ, currentLight - attenuation);
                         skyLightQueue.add(pack(adjX, adjY, adjZ, 0));
                     }
                 }
@@ -270,11 +274,19 @@ public class LightEngine {
         if (worldY < Chunk.MIN_Y || worldY >= Chunk.MAX_Y) return;
         Chunk c = chunkManager.getChunkAtBlock(worldX, worldY, worldZ);
         if (c != null) {
-            int old = c.getBlockLight(Math.floorMod(worldX, Chunk.SIZE), worldY, Math.floorMod(worldZ, Chunk.SIZE));
+            int lx = Math.floorMod(worldX, Chunk.SIZE);
+            int lz = Math.floorMod(worldZ, Chunk.SIZE);
+            int old = c.getBlockLight(lx, worldY, lz);
             if (old != level) {
-                c.setBlockLight(Math.floorMod(worldX, Chunk.SIZE), worldY, Math.floorMod(worldZ, Chunk.SIZE), level);
+                c.setBlockLight(lx, worldY, lz, level);
                 c.markDirty();
                 dirtiedChunks.add(c);
+                
+                // Nachbar-Chunks markieren, wenn an der Grenze (wegen Smooth Lighting/AO)
+                if (lx == 0) markChunkDirty(worldX - 1, worldZ);
+                else if (lx == 15) markChunkDirty(worldX + 1, worldZ);
+                if (lz == 0) markChunkDirty(worldX, worldZ - 1);
+                else if (lz == 15) markChunkDirty(worldX, worldZ + 1);
             }
         }
     }
@@ -290,21 +302,38 @@ public class LightEngine {
         if (worldY < Chunk.MIN_Y || worldY >= Chunk.MAX_Y) return;
         Chunk c = chunkManager.getChunkAtBlock(worldX, worldY, worldZ);
         if (c != null) {
-            int old = c.getSkyLight(Math.floorMod(worldX, Chunk.SIZE), worldY, Math.floorMod(worldZ, Chunk.SIZE));
+            int lx = Math.floorMod(worldX, Chunk.SIZE);
+            int lz = Math.floorMod(worldZ, Chunk.SIZE);
+            int old = c.getSkyLight(lx, worldY, lz);
             if (old != level) {
-                c.setSkyLight(Math.floorMod(worldX, Chunk.SIZE), worldY, Math.floorMod(worldZ, Chunk.SIZE), level);
+                c.setSkyLight(lx, worldY, lz, level);
                 c.markDirty();
                 dirtiedChunks.add(c);
+                
+                // Nachbar-Chunks markieren
+                if (lx == 0) markChunkDirty(worldX - 1, worldZ);
+                else if (lx == 15) markChunkDirty(worldX + 1, worldZ);
+                if (lz == 0) markChunkDirty(worldX, worldZ - 1);
+                else if (lz == 15) markChunkDirty(worldX, worldZ + 1);
             }
         }
     }
 
-    private boolean isTransparent(int worldX, int worldY, int worldZ) {
-        if (worldY < Chunk.MIN_Y || worldY >= Chunk.MAX_Y) return true;
+    private void markChunkDirty(int worldX, int worldZ) {
+        Chunk c = chunkManager.getChunkAtBlock(worldX, Chunk.MIN_Y, worldZ);
+        if (c != null) {
+            c.markDirty();
+            dirtiedChunks.add(c);
+        }
+    }
+
+    private int getOpacity(int worldX, int worldY, int worldZ) {
+        if (worldY < Chunk.MIN_Y || worldY >= Chunk.MAX_Y) return 0;
         Chunk c = chunkManager.getChunkAtBlock(worldX, worldY, worldZ);
-        if (c == null) return false;
-        byte id = c.getBlock(Math.floorMod(worldX, Chunk.SIZE), worldY, Math.floorMod(worldZ, Chunk.SIZE));
-        return BlockRegistry.get(id).isTransparent;
+        if (c == null) return 15;
+        int lx = Math.floorMod(worldX, Chunk.SIZE);
+        int lz = Math.floorMod(worldZ, Chunk.SIZE);
+        return BlockRegistry.get(c.getBlock(lx, worldY, lz)).getOpacity(c.getBlockState(lx, worldY, lz));
     }
 
     // ==========================================

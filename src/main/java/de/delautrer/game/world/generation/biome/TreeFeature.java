@@ -230,7 +230,47 @@ public class TreeFeature {
         int lx = worldX - chunk.getWorldX() * Chunk.SIZE;
         int lz = worldZ - chunk.getWorldZ() * Chunk.SIZE;
         if (lx >= 0 && lx < Chunk.SIZE && lz >= 0 && lz < Chunk.SIZE && worldY >= Chunk.MIN_Y && worldY < Chunk.MAX_Y) {
-            if (canReplace(chunk.getBlock(lx, worldY, lz))) chunk.setBlock(lx, worldY, lz, blockId, state);
+            byte existing = chunk.getBlock(lx, worldY, lz);
+            
+            if (state == LOG_VERTICAL) {
+                byte grassId = BlockRegistry.get(Constants.NAMESPACE + ":grass").getId();
+                byte sGrassId = BlockRegistry.get(Constants.NAMESPACE + ":sandy_grass").getId();
+                byte dirtId = BlockRegistry.get(Constants.NAMESPACE + ":dirt").getId();
+                byte sandId = BlockRegistry.get(Constants.NAMESPACE + ":sand").getId();
+                
+                if (existing == grassId || existing == sGrassId || existing == dirtId || existing == sandId) {
+                    chunk.setBlock(lx, worldY, lz, blockId, state);
+                    // Gras unter dem Stamm immer zu Dirt machen
+                    if (worldY - 1 >= Chunk.MIN_Y) {
+                        byte below = chunk.getBlock(lx, worldY - 1, lz);
+                        if (below == grassId || below == sGrassId) {
+                            chunk.setBlock(lx, worldY - 1, lz, dirtId);
+                        }
+                    }
+                } else if (canReplace(existing)) {
+                    chunk.setBlock(lx, worldY, lz, blockId, state);
+                    
+                    // STABILITÄT: Wenn der Stamm in der Luft hängt (z.B. Baobab Rand), fülle nach unten auf
+                    for (int d = 1; d <= 256; d++) {
+                        int dy = worldY - d;
+                        if (dy < Chunk.MIN_Y) break;
+                        byte below = chunk.getBlock(lx, dy, lz);
+                        if (below == blockId) break; // Bereits gefüllt
+                        
+                        if (canReplace(below)) {
+                            chunk.setBlock(lx, dy, lz, blockId, state);
+                        } else {
+                            // Boden erreicht -> Gras zu Dirt
+                            if (below == grassId || below == sGrassId) {
+                                chunk.setBlock(lx, dy, lz, dirtId);
+                            }
+                            break;
+                        }
+                    }
+                }
+            } else {
+                if (canReplace(existing)) chunk.setBlock(lx, worldY, lz, blockId, state);
+            }
         }
     }
 

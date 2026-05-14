@@ -17,8 +17,8 @@ import de.delautrer.game.items.BlockItem;
 public class SlabBlock extends CubeBlock {
     public static final EnumProperty<SlabType> TYPE = EnumProperty.create("type", SlabType.class);
 
-    public SlabBlock() {
-        super(false, true);
+    public SlabBlock(boolean isSolid, boolean isTransparent) {
+        super(isSolid, isTransparent);
     }
 
     @Override

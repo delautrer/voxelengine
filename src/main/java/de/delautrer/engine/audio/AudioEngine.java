@@ -45,9 +45,15 @@ public class AudioEngine {
     }
 
     public void updateListener() {
+        updateListener(0, 0, 0, 0, 0, -1, 0, 1, 0);
+    }
+
+    public void updateListener(float x, float y, float z, float fX, float fY, float fZ, float uX, float uY, float uZ) {
         float masterVolume = SettingsManager.get().masterVolume;
         AL10.alListenerf(AL10.AL_GAIN, masterVolume);
-        AL10.alListener3f(AL10.AL_POSITION, 0, 0, 0);
+        AL10.alListener3f(AL10.AL_POSITION, x, y, z);
+        float[] orientation = {fX, fY, fZ, uX, uY, uZ};
+        AL10.alListenerfv(AL10.AL_ORIENTATION, orientation);
     }
 
     public void loadSound(String filepath) {
@@ -77,6 +83,10 @@ public class AudioEngine {
     }
 
     private void playBuffer(int bufferId, float volume, float pitch) {
+        playBuffer(bufferId, volume, pitch, 0, 0, 0, true);
+    }
+
+    private void playBuffer(int bufferId, float volume, float pitch, float x, float y, float z, boolean relative) {
         float sfxVolume = SettingsManager.get().sfxVolume;
         if (sfxVolume <= 0.01f) return;
 
@@ -105,22 +115,30 @@ public class AudioEngine {
         AL10.alSourcei(chosenSource, AL10.AL_BUFFER, bufferId);
         AL10.alSourcef(chosenSource, AL10.AL_GAIN, sfxVolume * volume);
         AL10.alSourcef(chosenSource, AL10.AL_PITCH, pitch);
+        AL10.alSourcei(chosenSource, AL10.AL_SOURCE_RELATIVE, relative ? AL10.AL_TRUE : AL10.AL_FALSE);
+        AL10.alSource3f(chosenSource, AL10.AL_POSITION, x, y, z);
+        AL10.alSourcef(chosenSource, AL10.AL_REFERENCE_DISTANCE, 1.0f);
+        AL10.alSourcef(chosenSource, AL10.AL_ROLLOFF_FACTOR, 1.0f);
         AL10.alSourcePlay(chosenSource);
     }
 
     public void playRandomFromList(List<String> filepaths, float volumeMult) {
+        playRandomFromList(filepaths, volumeMult, 0.9f, 1.1f, 0, 0, 0, true);
+    }
+
+    public void playRandomFromList(List<String> filepaths, float volumeMult, float minPitch, float maxPitch, float x, float y, float z, boolean relative) {
         if (filepaths == null || filepaths.isEmpty()) return;
 
         String chosenPath = filepaths.get(random.nextInt(filepaths.size()));
 
         Integer bufferId = soundBuffers.get(chosenPath);
         if (bufferId != null) {
-            float randomPitch = 0.9f + (random.nextFloat() * 0.2f);
-            playBuffer(bufferId, volumeMult, randomPitch);
+            float randomPitch = minPitch + (random.nextFloat() * (maxPitch - minPitch));
+            playBuffer(bufferId, volumeMult, randomPitch, x, y, z, relative);
         } else {
             loadSound(chosenPath);
             bufferId = soundBuffers.get(chosenPath);
-            if (bufferId != null) playBuffer(bufferId, volumeMult, 1.0f);
+            if (bufferId != null) playBuffer(bufferId, volumeMult, 1.0f, x, y, z, relative);
         }
     }
 

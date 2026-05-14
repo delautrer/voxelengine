@@ -20,8 +20,8 @@ public class StairBlock extends CubeBlock {
     public static final EnumProperty<Half> HALF = EnumProperty.create("half", Half.class);
     public static final EnumProperty<StairShape> SHAPE = EnumProperty.create("shape", StairShape.class);
 
-    public StairBlock() {
-        super(false, true);
+    public StairBlock(boolean isSolid, boolean isTransparent) {
+        super(isSolid, isTransparent);
     }
 
     @Override

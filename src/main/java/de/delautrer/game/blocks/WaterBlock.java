@@ -207,14 +207,14 @@ public class WaterBlock extends Block {
     }
 
     private boolean isSolid(World world, int x, int y, int z) {
-        if (y < 0 || y >= Chunk.HEIGHT)
+        if (y < Chunk.MIN_Y || y >= Chunk.MAX_Y)
             return true;
         Block b = world.getBlockState(x, y, z).getBlock();
         return !isWaterReplaceable(b) && b != this;
     }
 
     private boolean canFallInto(World world, int x, int y, int z) {
-        if (y < 0 || y >= Chunk.HEIGHT)
+        if (y < Chunk.MIN_Y || y >= Chunk.MAX_Y)
             return false;
         BlockState state = world.getBlockState(x, y, z);
         Block b = state.getBlock();
@@ -267,7 +267,7 @@ public class WaterBlock extends Block {
 
     // --- RENDER LOGIK (UNVERÄNDERT) ---
     private float getWaterHeight(int x, int y, int z, Chunk chunk, ChunkManager cm) {
-        if (y < 0 || y >= Chunk.HEIGHT)
+        if (y < Chunk.MIN_Y || y >= Chunk.MAX_Y)
             return 1.0f;
         int globalX = chunk.getWorldX() * Chunk.SIZE + x;
         int globalZ = chunk.getWorldZ() * Chunk.SIZE + z;
@@ -279,7 +279,7 @@ public class WaterBlock extends Block {
         BlockState state = targetChunk.getBlockState(localX, y, localZ);
         if (state.getBlock() != this)
             return 1.0f;
-        if (y + 1 < Chunk.HEIGHT) {
+        if (y + 1 < Chunk.MAX_Y) {
             BlockState topState = targetChunk.getBlockState(localX, y + 1, localZ);
             if (topState.getBlock() == this)
                 return 1.0f;
@@ -423,4 +423,10 @@ public class WaterBlock extends Block {
     public boolean canBeReplaced(BlockState state, BlockItem item, Vector3i hitFace, Vector3f exactHit) {
         return true;
     }
+
+    @Override
+    public int getOpacity(BlockState state) {
+        return 2;
+    }
 }
+

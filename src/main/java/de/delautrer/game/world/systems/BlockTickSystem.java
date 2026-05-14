@@ -2,17 +2,27 @@ package de.delautrer.game.world.systems;
 
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
+import de.delautrer.game.blocks.LeavesBlock;
+import de.delautrer.game.blocks.LogBlock;
+import de.delautrer.game.blocks.state.BlockState;
+import de.delautrer.game.entity.ItemEntity;
 import de.delautrer.game.entity.player.LocalPlayer;
+import de.delautrer.game.items.ItemStack;
+import de.delautrer.game.loot.LootTable;
+import de.delautrer.game.loot.LootTableManager;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.World;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
 import org.joml.Vector3i;
 
+import java.util.List;
 import java.util.Random;
 
 public class BlockTickSystem implements WorldSystem {
 
     private final Random random = new Random();
-    private static final int RANDOM_TICKS_PER_CHUNK = 3;
+    private static final int RANDOM_TICKS_PER_CHUNK = 12;
 
     private byte grassId = -1;
     private byte dirtId = -1;
@@ -21,18 +31,23 @@ public class BlockTickSystem implements WorldSystem {
 
     private void initIds() {
         if (grassId == -1) {
-            grassId = BlockRegistry.get("grass_block").getId();
-            dirtId = BlockRegistry.get("dirt").getId();
-            sandId = BlockRegistry.get("sand").getId();
-            gravelId = BlockRegistry.get("gravel").getId();
+            grassId = BlockRegistry.get(de.delautrer.Constants.NAMESPACE + ":grass_block").getId();
+            dirtId = BlockRegistry.get(de.delautrer.Constants.NAMESPACE + ":dirt").getId();
+            sandId = BlockRegistry.get(de.delautrer.Constants.NAMESPACE + ":sand").getId();
+            gravelId = BlockRegistry.get(de.delautrer.Constants.NAMESPACE + ":gravel").getId();
         }
     }
 
     @Override
     public void update(World world, float deltaTime, LocalPlayer localPlayer) {
+        // Die Logik wurde in onTick verschoben, damit sie FPS-unabhängig 20-mal pro Sekunde läuft.
+    }
+
+    @Override
+    public void onTick(World world, LocalPlayer localPlayer) {
         initIds();
         
-        // Random Ticks
+        // Random Ticks (3 pro Chunk pro Spiel-Tick)
         for (Chunk chunk : world.getChunkManager().getLoadedChunks()) {
             for (int i = 0; i < RANDOM_TICKS_PER_CHUNK; i++) {
                 int x = random.nextInt(Chunk.SIZE);
@@ -47,6 +62,11 @@ public class BlockTickSystem implements WorldSystem {
                     handleGrassDecay(world, globalX, y, globalZ);
                 } else if (blockId == dirtId) {
                     handleGrassSpread(world, globalX, y, globalZ, chunk);
+                } else {
+                    Block block = BlockRegistry.get(blockId);
+                    if (block instanceof LeavesBlock) {
+                        handleLeavesDecay(world, globalX, y, globalZ);
+                    }
                 }
             }
         }
@@ -89,6 +109,55 @@ public class BlockTickSystem implements WorldSystem {
                         world.setBlock(x, y, z, grassId);
                         return;
                     }
+                }
+            }
+        }
+    }
+    private void handleLeavesDecay(World world, int x, int y, int z) {
+        BlockState state = world.getBlockState(x, y, z);
+        if (!(state.getBlock() instanceof LeavesBlock)) return;
+
+        // Spieler-platziertes Laub zerfällt nicht
+        if (state.getValue(LeavesBlock.PERSISTENT)) return;
+
+        // Prüfe nach Holz in der Nähe (Radius 6 für große Bäume wie Baobab)
+        if (isLogNearby(world, x, y, z, 6)) return;
+
+        // Kein Holz -> Drop Items und löschen
+        dropBlockAsItem(world, x, y, z, state);
+        world.setBlock(x, y, z, (byte) 0);
+    }
+
+    private boolean isLogNearby(World world, int x, int y, int z, int radius) {
+        for (int dx = -radius; dx <= radius; dx++) {
+            for (int dy = -radius; dy <= radius; dy++) {
+                for (int dz = -radius; dz <= radius; dz++) {
+                    // Manhattan-Distanz Optimierung
+                    if (Math.abs(dx) + Math.abs(dy) + Math.abs(dz) > radius + 2) continue;
+
+                    Block b = world.getBlockState(x + dx, y + dy, z + dz).getBlock();
+                    if (b instanceof LogBlock) return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private void dropBlockAsItem(World world, int x, int y, int z, BlockState state) {
+        Block block = state.getBlock();
+        String lootPath = block.getLootTable();
+
+        if (lootPath != null) {
+            LootTable table = LootTableManager.load(lootPath);
+            if (table != null) {
+                List<ItemStack> drops = table.generateLoot();
+                for (ItemStack stack : drops) {
+                    Vector3d dropPos = new Vector3d(x + 0.5, y + 0.5, z + 0.5);
+                    Vector3f dropVel = new Vector3f(
+                            (float) (Math.random() - 0.5) * 1.5f,
+                            1.5f,
+                            (float) (Math.random() - 0.5) * 1.5f);
+                    world.spawnEntity(new de.delautrer.game.entity.ItemEntity(stack, dropPos, dropVel));
                 }
             }
         }

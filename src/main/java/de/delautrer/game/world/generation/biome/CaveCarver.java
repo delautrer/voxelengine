@@ -10,7 +10,6 @@ public class CaveCarver {
 
     private static byte AIR = 0;
     private static byte WATER = 0;
-    private static byte LAVA = 0;
     private static byte BEDROCK = 0;
 
     private static boolean initialized = false;
@@ -20,7 +19,6 @@ public class CaveCarver {
         if (initialized) return;
         AIR = BlockRegistry.get(Constants.NAMESPACE + ":air").getId();
         WATER = BlockRegistry.get(Constants.NAMESPACE + ":water").getId();
-        LAVA = BlockRegistry.get(Constants.NAMESPACE + ":lava").getId();
         BEDROCK = BlockRegistry.get(Constants.NAMESPACE + ":bedrock").getId();
 
         whitelist[BlockRegistry.get(Constants.NAMESPACE + ":stone").getId() & 0xFF] = true;
@@ -36,8 +34,7 @@ public class CaveCarver {
         init();
         int chunkX = targetChunk.getWorldX();
         int chunkZ = targetChunk.getWorldZ();
-
-        int radius = 8;
+        int radius = 12;
 
         for (int nx = chunkX - radius; nx <= chunkX + radius; nx++) {
             for (int nz = chunkZ - radius; nz <= chunkZ + radius; nz++) {
@@ -50,11 +47,12 @@ public class CaveCarver {
 
                 for (int i = 0; i < numCaves; i++) {
                     double startX = nx * Chunk.SIZE + rand.nextInt(Chunk.SIZE);
-                    double startY = Chunk.MIN_Y + 10 + rand.nextInt(238); 
                     double startZ = nz * Chunk.SIZE + rand.nextInt(Chunk.SIZE);
 
+                    int range = (Chunk.MAX_Y / 2) - Chunk.MIN_Y;
+                    double startY = Chunk.MIN_Y + 10 + rand.nextInt(range);
+
                     int numNodes = 1;
-                    
                     if (rand.nextInt(4) == 0) {
                         float roomRadius = 1.5f + rand.nextFloat() * 6.0f;
                         carveSphere(targetChunk, startX, startY, startZ, roomRadius);
@@ -63,14 +61,14 @@ public class CaveCarver {
 
                     for (int n = 0; n < numNodes; n++) {
                         float startYaw = rand.nextFloat() * (float) Math.PI * 2.0f;
-                        float startPitch = (rand.nextFloat() - 0.5f) * 1.5f; // Deutlich steiler, damit sie öfter die Oberfläche durchbrechen!
+                        float startPitch = (rand.nextFloat() - 0.5f) * 1.5f;
+
+                        if (startY > 80 && rand.nextInt(3) == 0) startPitch = -1.0f - rand.nextFloat() * 0.5f;
+
                         float startRadius = 1.5f + rand.nextFloat() * 2.0f;
+                        if (rand.nextInt(10) == 0) startRadius *= 2.0f;
 
-                        if (rand.nextInt(10) == 0) {
-                            startRadius *= 2.0f; 
-                        }
-
-                        int length = 112 - rand.nextInt(28); 
+                        int length = 100 + rand.nextInt(80);
                         derivePath(targetChunk, rand, startX, startY, startZ, startRadius, startYaw, startPitch, length);
                     }
                 }
@@ -80,101 +78,106 @@ public class CaveCarver {
 
     private static void derivePath(Chunk targetChunk, Random rand, double x, double y, double z, float baseRadius, float yaw, float pitch, int length) {
         for (int i = 0; i < length; i++) {
-            float currentRadius = baseRadius + (float)(Math.sin(i * Math.PI / length) * baseRadius * 0.5f);
+            float currentRadius = baseRadius + (rand.nextFloat() - 0.5f) * 0.5f;
 
-            double dx = Math.cos(yaw) * Math.cos(pitch);
-            double dy = Math.sin(pitch);
-            double dz = Math.sin(yaw) * Math.cos(pitch);
-
-            x += dx;
-            y += dy;
-            z += dz;
+            x += Math.cos(yaw) * Math.cos(pitch);
+            y += Math.sin(pitch);
+            z += Math.sin(yaw) * Math.cos(pitch);
 
             pitch *= 0.9f;
-            pitch += (rand.nextFloat() - rand.nextFloat()) * rand.nextFloat() * 0.5f;
-            yaw += (rand.nextFloat() - rand.nextFloat()) * rand.nextFloat() * 1.0f;
+            yaw += (rand.nextFloat() - 0.5f) * 0.5f;
+            pitch += (rand.nextFloat() - 0.5f) * 0.5f;
 
             if (i == length / 2 && rand.nextInt(4) == 0) {
                 derivePath(targetChunk, rand, x, y, z, baseRadius, yaw - 1.0f, pitch, length / 2);
                 derivePath(targetChunk, rand, x, y, z, baseRadius, yaw + 1.0f, pitch, length / 2);
-                return; 
+                return;
             }
-
-            if (rand.nextInt(4) == 0) continue; 
 
             double chunkMidX = targetChunk.getWorldX() * Chunk.SIZE + 8.0;
             double chunkMidZ = targetChunk.getWorldZ() * Chunk.SIZE + 8.0;
-            
-            if (x < chunkMidX - 16 - currentRadius*2 || x > chunkMidX + 16 + currentRadius*2 || 
-                z < chunkMidZ - 16 - currentRadius*2 || z > chunkMidZ + 16 + currentRadius*2) {
-                continue; 
-            }
 
+            if (x < chunkMidX - 16 - currentRadius * 2 || x > chunkMidX + 16 + currentRadius * 2 ||
+                    z < chunkMidZ - 16 - currentRadius * 2 || z > chunkMidZ + 16 + currentRadius * 2) {
+                continue;
+            }
             carveSphere(targetChunk, x, y, z, currentRadius);
         }
     }
 
     private static void carveSphere(Chunk chunk, double cx, double cy, double cz, double radius) {
-        double radiusY = radius * 0.7; 
+        double radiusY = radius * 0.7;
+        int chunkOffX = chunk.getWorldX() * Chunk.SIZE;
+        int chunkOffZ = chunk.getWorldZ() * Chunk.SIZE;
 
-        int minX = Math.max(0, (int) Math.floor(cx - radius) - chunk.getWorldX() * Chunk.SIZE);
-        int maxX = Math.min(Chunk.SIZE - 1, (int) Math.floor(cx + radius) - chunk.getWorldX() * Chunk.SIZE);
-        int minY = Math.max(Chunk.MIN_Y + 4, (int) Math.floor(cy - radiusY)); 
+        int minX = Math.max(0, (int) Math.floor(cx - radius) - chunkOffX);
+        int maxX = Math.min(Chunk.SIZE - 1, (int) Math.floor(cx + radius) - chunkOffX);
+        int minY = Math.max(Chunk.MIN_Y + 4, (int) Math.floor(cy - radiusY));
         int maxY = Math.min(Chunk.MAX_Y - 1, (int) Math.floor(cy + radiusY));
-        int minZ = Math.max(0, (int) Math.floor(cz - radius) - chunk.getWorldZ() * Chunk.SIZE);
-        int maxZ = Math.min(Chunk.SIZE - 1, (int) Math.floor(cz + radius) - chunk.getWorldZ() * Chunk.SIZE);
+        int minZ = Math.max(0, (int) Math.floor(cz - radius) - chunkOffZ);
+        int maxZ = Math.min(Chunk.SIZE - 1, (int) Math.floor(cz + radius) - chunkOffZ);
 
         if (minX > maxX || minY > maxY || minZ > maxZ) return;
 
-        boolean hasWaterAbove = false;
-        for (int x = minX; x <= maxX; x++) {
-            for (int z = minZ; z <= maxZ; z++) {
-                if (maxY + 1 < Chunk.MAX_Y) {
-                    byte above = chunk.getBlock(x, maxY + 1, z);
-                    if (above == WATER || above == LAVA) {
-                        hasWaterAbove = true;
-                        break;
-                    }
-                }
-            }
-            if (hasWaterAbove) break;
-        }
-
-        if (hasWaterAbove) return;
-
         ChunkSection[] sections = chunk.getSections();
+        byte WATER_STATE = 8;
 
-        for (int ly = minY; ly <= maxY; ly++) {
-            int secIdx = (ly - Chunk.MIN_Y) >> 4;
-            ChunkSection section = sections[secIdx];
-            if (section == null) continue; // Skip air sections completely
+        for (int lx = minX; lx <= maxX; lx++) {
+            double dX = ((lx + chunkOffX) + 0.5 - cx) / radius;
+            for (int lz = minZ; lz <= maxZ; lz++) {
+                double dZ = ((lz + chunkOffZ) + 0.5 - cz) / radius;
+                if (dX * dX + dZ * dZ >= 1.0) continue;
 
-            byte[] blocks = section.getBlocks();
-            byte[] states = section.getStates();
-            int localY = (ly - Chunk.MIN_Y) & 15;
-            double dY = (ly + 0.5 - cy) / radiusY;
+                // Zieht Ozeanwasser senkrecht nach unten, wenn die Decke durchbrochen wird
+                boolean waterFalling = false;
+                if (maxY + 1 < Chunk.MAX_Y && chunk.getBlock(lx, maxY + 1, lz) == WATER) {
+                    waterFalling = true;
+                }
 
-            for (int lx = minX; lx <= maxX; lx++) {
-                double dX = ((lx + chunk.getWorldX() * Chunk.SIZE) + 0.5 - cx) / radius;
-                if (dX * dX + dY * dY >= 1.0) continue;
+                for (int ly = maxY; ly >= minY; ly--) {
+                    double dY = (ly + 0.5 - cy) / radiusY;
 
-                for (int lz = minZ; lz <= maxZ; lz++) {
-                    double dZ = ((lz + chunk.getWorldZ() * Chunk.SIZE) + 0.5 - cz) / radius;
+                    int secIdx = (ly - Chunk.MIN_Y) >> 4;
+                    if (secIdx < 0 || secIdx >= sections.length) continue;
+                    ChunkSection section = sections[secIdx];
+                    if (section == null) continue;
+
+                    byte[] blocks = section.getBlocks();
+                    byte[] states = section.getStates();
+                    int localY = (ly - Chunk.MIN_Y) & 15;
+                    int idx = (lx << 8) | (lz << 4) | localY;
+                    byte currentBlock = blocks[idx];
+
                     if (dX * dX + dY * dY + dZ * dZ < 1.0) {
-                        
-                        int idx = (lx << 8) | (lz << 4) | localY;
-                        byte currentBlock = blocks[idx];
-                        
-                        if (currentBlock != AIR && currentBlock != BEDROCK) {
-                            if (whitelist[currentBlock & 0xFF]) {
-                                blocks[idx] = AIR;
-                                states[idx] = 0;
-                            }
+                        if (currentBlock == BEDROCK) {
+                            waterFalling = false;
+                            continue;
                         }
+
+                        boolean canCarve = whitelist[currentBlock & 0xFF] || currentBlock == AIR || currentBlock == WATER;
+
+                        if (canCarve) {
+                            if (waterFalling) {
+                                blocks[idx] = WATER;
+                                states[idx] = WATER_STATE;
+                            } else {
+                                if (currentBlock != WATER) {
+                                    blocks[idx] = AIR;
+                                    states[idx] = 0;
+                                } else {
+                                    waterFalling = true;
+                                }
+                            }
+                        } else {
+                            waterFalling = false;
+                        }
+                    } else {
+                        if (currentBlock == WATER) waterFalling = true;
+                        else if (currentBlock != AIR) waterFalling = false;
                     }
                 }
             }
-            section.recalculateAir();
         }
+        for (ChunkSection sec : sections) if (sec != null) sec.recalculateAir();
     }
 }

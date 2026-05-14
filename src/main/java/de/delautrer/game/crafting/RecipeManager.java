@@ -59,8 +59,8 @@ public class RecipeManager {
             keyMap.put(entry.getKey().charAt(0), parseIngredient(entry.getValue()));
         }
 
-        @SuppressWarnings("unchecked")
-        List<Item>[] ingredients = new List[width * height];
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        List<Item>[] ingredients = (List<Item>[]) new List[width * height];
         for (int y = 0; y < height; y++) {
             String row = patternArray.get(y).getAsString();
             for (int x = 0; x < width; x++) {

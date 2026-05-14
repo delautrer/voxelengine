@@ -47,8 +47,22 @@ public class MultiNoiseChunkGenerator {
                 float biomeBaseHeight = params[0];
                 float biomeVar = params[1];
 
-                float baseHeight = biomeBaseHeight + (climate.continentalness * biomeVar * 1.5f);
-                float jaggedness = (biomeVar * 0.15f) + (climate.erosion * biomeVar * 0.25f);
+                float cont = climate.continentalness;
+                float erosion = climate.erosion;
+
+                float baseHeight = biomeBaseHeight;
+                if (cont > 0.0f) {
+                    // Berge entstehen nur, wenn Continentalness UND Erosion hoch sind
+                    float mountainFactor = cont * Math.max(0.0f, erosion);
+                    baseHeight += (mountainFactor * mountainFactor * 120.0f) * (biomeVar / 10.0f);
+                } else {
+                    baseHeight += cont * biomeVar * 1.5f;
+                }
+
+                float jaggedness = (biomeVar * 0.15f) + (erosion * biomeVar * 0.8f);
+                if (cont > 0.4f && erosion > 0.5f) {
+                    jaggedness += (cont - 0.4f) * (erosion - 0.5f) * 150.0f; // Extreme Klippen nur im Gebirge
+                }
 
                 // --- MINECRAFT FLUSS LOGIK ---
                 // 1. Domain Warping (Verbiegt Grid für natürliche Kurven)

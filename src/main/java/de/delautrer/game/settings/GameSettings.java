@@ -20,6 +20,10 @@ public class GameSettings {
     public static final float MIN_VOLUME = 0.0f;
     public static final float MAX_VOLUME = 1.0f;
 
+    public static final int MIN_FPS = 30;
+    public static final int MAX_FPS = 240;
+    public static final int UNLIMITED_FPS = 1000;
+
     // Grafik / Kamera
     @SerializedName("fov")
     public float fov = 70.0f;
@@ -30,6 +34,9 @@ public class GameSettings {
     // Steuerung
     @SerializedName("mouse_sensitivity")
     public float mouseSensitivity = 0.5f;
+
+    @SerializedName("max_fps")
+    public int maxFps = 120;
 
     @SerializedName("mouse_invert_y")
     public boolean invertY = false;
@@ -69,6 +76,10 @@ public class GameSettings {
         fov = Math.max(MIN_FOV, Math.min(MAX_FOV, fov));
         renderDistance = Math.max(MIN_RENDER_DISTANCE, Math.min(MAX_RENDER_DISTANCE, renderDistance));
         mouseSensitivity = Math.max(MIN_SENSITIVITY, Math.min(MAX_SENSITIVITY, mouseSensitivity));
+        
+        if (maxFps != UNLIMITED_FPS) {
+            maxFps = Math.max(MIN_FPS, Math.min(MAX_FPS, maxFps));
+        }
 
         masterVolume = Math.max(MIN_VOLUME, Math.min(MAX_VOLUME, masterVolume));
         sfxVolume = Math.max(MIN_VOLUME, Math.min(MAX_VOLUME, sfxVolume));

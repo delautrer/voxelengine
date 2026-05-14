@@ -13,18 +13,26 @@ public class GravityBlock extends CubeBlock {
 
     @Override
     public void onNeighborChanged(World world, int x, int y, int z, Vector3i neighborPos, byte newNeighborId) {
-        checkFalling(world, x, y, z);
+        world.getTickScheduler().scheduleTick(new Vector3i(x, y, z), this, 2);
     }
 
     @Override
     public void onBlockPlaced(World world, Vector3i pos, BlockState state, de.delautrer.game.entity.player.Player player) {
-        checkFalling(world, pos.x, pos.y, pos.z);
+        world.getTickScheduler().scheduleTick(pos, this, 2);
+    }
+
+    @Override
+    public void scheduledTick(World world, int x, int y, int z) {
+        checkFalling(world, x, y, z);
     }
 
     private void checkFalling(World world, int x, int y, int z) {
         if (y > Chunk.MIN_Y && world.getBlockAt(x, y - 1, z) == 0) {
             byte blockId = world.getBlockAt(x, y, z);
-            byte state = world.getChunkManager().getChunkAtBlock(x, y, z).getState(Math.floorMod(x, Chunk.SIZE), y, Math.floorMod(z, Chunk.SIZE));
+            if (blockId != getId()) return;
+
+            BlockState stateObj = world.getBlockState(x, y, z);
+            byte state = stateObj.getStateId();
             
             world.setBlock(x, y, z, (byte) 0);
             

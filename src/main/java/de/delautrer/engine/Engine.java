@@ -85,6 +85,29 @@ public class Engine {
 
     private void loop() {
         while (!window.shouldClose()) {
+            // --- FPS LIMITER ---
+            int targetFps = de.delautrer.game.settings.SettingsManager.get().maxFps;
+            boolean isFocused = GLFW.glfwGetWindowAttrib(window.getHandle(), GLFW.GLFW_FOCUSED) == GLFW.GLFW_TRUE;
+            
+            // Wenn das Fenster nicht im Fokus ist (z.B. ein anderes Spiel ist offen), 
+            // drosseln wir die Engine massiv auf 20 FPS, um Ressourcen zu sparen.
+            if (!isFocused) {
+                targetFps = 20;
+            }
+
+            if (targetFps < de.delautrer.game.settings.GameSettings.UNLIMITED_FPS) {
+                double targetFrameTime = 1.0 / targetFps;
+                while (GLFW.glfwGetTime() - lastFrame < targetFrameTime) {
+                    try {
+                        // Kurzes Sleep um CPU zu entlasten
+                        Thread.sleep(1);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+                }
+            }
+
             float currentFrameTime = (float) GLFW.glfwGetTime();
             float deltaTime = currentFrameTime - lastFrame;
             lastFrame = currentFrameTime;

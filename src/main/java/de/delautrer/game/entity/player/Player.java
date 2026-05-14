@@ -29,7 +29,7 @@ public class Player extends Entity {
     protected boolean wasInWater = false;
 
     protected float swimProgress = 0.0f;
-    protected float suffocationTimer = 0.0f;
+    protected int tickCounter = 0;
 
     public Player(Vector3d spawnPosition) {
         super(spawnPosition);
@@ -42,32 +42,42 @@ public class Player extends Entity {
             velocity.y += gravity * deltaTime;
         }
         moveAndCollide(chunkManager, deltaTime, isSneaking);
+    }
+
+    @Override
+    public void onTick(de.delautrer.game.world.World world) {
+        tickCounter++;
 
         if (gameMode != GameMode.SPECTATOR && !isDead) {
-            handleSuffocation(chunkManager, deltaTime);
+            handleTickSuffocation(world);
+            handleRegeneration();
         }
     }
 
-    private void handleSuffocation(ChunkManager cm, float deltaTime) {
+    private void handleTickSuffocation(de.delautrer.game.world.World world) {
         int bx = (int) Math.floor(position.x);
         int byHead = (int) Math.floor(getEyePosition().y);
         int bz = (int) Math.floor(position.z);
 
-        byte headBlockId = cm.getWorld().getBlockAt(bx, byHead, bz);
+        byte headBlockId = world.getBlockAt(bx, byHead, bz);
         Block headBlock = de.delautrer.game.blocks.BlockRegistry.get(headBlockId);
 
         if (headBlock.isSolid && !headBlock.isTransparent) {
-            suffocationTimer += deltaTime;
-            if (suffocationTimer >= 1.0f) {
+            if (tickCounter % 20 == 0) {
                 damage(1.0f);
-                suffocationTimer = 0.0f;
-                // Optional: Event publish if we have access to eventBus here, 
-                // but usually it's handled in the damage method or subclass.
             }
-        } else {
-            suffocationTimer = 0.0f;
         }
     }
+
+    private void handleRegeneration() {
+        if (currentHealth < maxHealth && !isDead) {
+            // Alle 4 Sekunden (80 Ticks) einen halben Herzschlag (1 HP) heilen
+            if (tickCounter % 80 == 0) {
+                currentHealth = Math.min(maxHealth, currentHealth + 1.0f);
+            }
+        }
+    }
+
     public PlayerInventory getInventory() {
         return inventory;
     }

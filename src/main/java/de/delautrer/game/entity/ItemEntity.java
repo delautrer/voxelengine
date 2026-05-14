@@ -15,6 +15,7 @@ public class ItemEntity extends Entity {
     public ItemStack stack;
     public float pickupDelay = 1.0f;
     public AABB boundingBox;
+    public int renderPhase;
 
     private float age = 0.0f;
     private float stackCheckTimer = 0.0f;
@@ -24,6 +25,7 @@ public class ItemEntity extends Entity {
         this.stack = stack;
         this.velocity = new Vector3f(initialVelocity);
         this.boundingBox = new AABB(new Vector3f(-0.125f, 0, -0.125f), new Vector3f(0.125f, 0.25f, 0.125f));
+        this.renderPhase = (int)(Math.random() * 4);
     }
 
     @Override
@@ -49,8 +51,10 @@ public class ItemEntity extends Entity {
 
         Chunk c = cm.getChunkAtBlock((int) Math.floor(nextX), (int) Math.floor(nextY), (int) Math.floor(nextZ));
         if (c != null) {
-            byte blockBelow = c.getBlock(Math.floorMod((int) Math.floor(nextX), Chunk.SIZE), (int) Math.floor(nextY), Math.floorMod((int) Math.floor(nextZ), Chunk.SIZE));
-            if (BlockRegistry.get(blockBelow).isSolid) {
+            byte blockBelowId = c.getBlock(Math.floorMod((int) Math.floor(nextX), Chunk.SIZE), (int) Math.floor(nextY), Math.floorMod((int) Math.floor(nextZ), Chunk.SIZE));
+            de.delautrer.game.blocks.Block blockBelow = BlockRegistry.get(blockBelowId);
+            
+            if (blockBelow.isSolid) {
                 nextY = Math.floor(nextY) + 1.001f;
                 velocity.y = 0;
                 velocity.x *= 0.5f;

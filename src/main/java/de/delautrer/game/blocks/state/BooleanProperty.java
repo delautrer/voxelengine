@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.List;
 
 public class BooleanProperty extends Property<Boolean> {
-    private static final List<Boolean> VALUES = Arrays.asList(true, false);
+    private static final List<Boolean> VALUES = Arrays.asList(false, true);
 
     protected BooleanProperty(String name) {
         super(name, Boolean.class);

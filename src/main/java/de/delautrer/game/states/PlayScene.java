@@ -12,6 +12,7 @@ import de.delautrer.engine.utils.GamePaths;
 import de.delautrer.game.commands.CommandManager;
 import de.delautrer.game.entity.player.LocalPlayer;
 import de.delautrer.game.events.*;
+import de.delautrer.game.registry.Registries;
 import de.delautrer.game.ui.ChatOverlay;
 import de.delautrer.game.ui.DebugOverlay;
 import de.delautrer.game.ui.gui.screens.*;
@@ -20,6 +21,7 @@ import de.delautrer.game.world.generation.biome.Biome;
 import org.joml.Vector3d;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.events.InventoryClosedEvent;
 
@@ -49,6 +51,7 @@ public class PlayScene extends Scene {
 
     private boolean uiNeedsRebuild = true;
     private boolean wasLoading = true;
+    private int loadingWarmup = 15; // Frames zum "Einschwingen" (Licht/Kamera)
 
     private float autosaveTimer = 0;
     private final float AUTOSAVE_INTERVAL = 300.0f;
@@ -169,23 +172,37 @@ public class PlayScene extends Scene {
             if (target != null) {
                 byte blockId = world.getBlockAt(target);
                 BlockState state = world.getBlockState(target.x, target.y, target.z);
-                return String.format("[%d %d %d] ID: %d, State: %d",
-                        target.x, target.y, target.z, blockId, state.getStateId());
+                String name = Registries.BLOCKS.getKey(state.getBlock()).getKey();
+                return String.format("[%d %d %d] Name: %s (ID: %d, State: %d)",
+                        target.x, target.y, target.z, name, Byte.toUnsignedInt(blockId), state.getStateId());
             }
             return "-";
         });
 
         debugOverlay.addLine("Target Light", () -> {
             org.joml.Vector3i target = localPlayer.getInteraction().getSelectedBlockPos();
+            org.joml.Vector3i adjacent = localPlayer.getInteraction().getAdjacentBlockPos();
             if (target != null) {
+                int lx = Math.floorMod(target.x, Chunk.SIZE);
+                int lz = Math.floorMod(target.z, Chunk.SIZE);
                 Chunk c = world.getChunkManager().getChunkAtBlock(target.x, target.y, target.z);
+                
+                int skyInside = 0, blockInside = 0;
                 if (c != null) {
-                    int lx = Math.floorMod(target.x, Chunk.SIZE);
-                    int lz = Math.floorMod(target.z, Chunk.SIZE);
-                    int sky = c.getSkyLight(lx, target.y, lz);
-                    int block = c.getBlockLight(lx, target.y, lz);
-                    return String.format("Sky: %d, Block: %d", sky, block);
+                    skyInside = c.getSkyLight(lx, target.y, lz);
+                    blockInside = c.getBlockLight(lx, target.y, lz);
                 }
+
+                int skyAdj = 0, blockAdj = 0;
+                if (adjacent != null) {
+                    Chunk ac = world.getChunkManager().getChunkAtBlock(adjacent.x, adjacent.y, adjacent.z);
+                    if (ac != null) {
+                        skyAdj = ac.getSkyLight(Math.floorMod(adjacent.x, Chunk.SIZE), adjacent.y, Math.floorMod(adjacent.z, Chunk.SIZE));
+                        blockAdj = ac.getBlockLight(Math.floorMod(adjacent.x, Chunk.SIZE), adjacent.y, Math.floorMod(adjacent.z, Chunk.SIZE));
+                    }
+                }
+                
+                return String.format("Sky: %d (%d), Block: %d (%d)", skyAdj, skyInside, blockAdj, blockInside);
             }
             return "-";
         });
@@ -230,16 +247,28 @@ public class PlayScene extends Scene {
     @Override
     public void update(float deltaTime) {
         // --- 0. LADEBILDSCHIRM LOGIK ---
-        if (!world.getChunkManager().isInitialLoadComplete()) {
+        if (!world.getChunkManager().isInitialLoadComplete() || loadingWarmup > 0) {
             world.getChunkManager().update(localPlayer.position.x, localPlayer.position.z);
             float progress = world.getChunkManager().getLoadingProgress(localPlayer.position.x, localPlayer.position.z);
 
             loadingScreen.setProgress(progress);
             uiNeedsRebuild = true;
-            return;
-        } else if (wasLoading) {
+            
+            // Wenn Chunks fertig, aber Warmup läuft: Update trotzdem durchführen!
+            if (world.getChunkManager().isInitialLoadComplete()) {
+                loadingWarmup--;
+                // Wir führen hier KEIN return aus, damit die Welt-Systeme (Licht, Sky, Kamera)
+                // bereits im Hintergrund "warmlaufen" können.
+            } else {
+                return;
+            }
+        }
+        
+        if (wasLoading && loadingWarmup <= 0) {
             wasLoading = false;
             uiNeedsRebuild = true;
+            // Kamera-Input zurücksetzen, damit es keinen Sprung gibt
+            localPlayer.getCamera().resetMouseTracking();
         }
 
         // --- 1. UI-Hiding Logik (Muss vor dem early return stehen!) ---
@@ -399,6 +428,13 @@ public class PlayScene extends Scene {
         localPlayer.updateLocal(engine.getInputManager(), world.getChunkManager(), deltaTime);
         localPlayer.updateCamera(engine.getWindow().getHandle(), deltaTime);
 
+        // NEU: Audio Listener synchronisieren
+        de.delautrer.engine.audio.SoundManager.updateListener(
+                localPlayer.getCamera().getPosition(),
+                localPlayer.getCamera().getFront(),
+                localPlayer.getCamera().getUp()
+        );
+
         if (localPlayer.getInventory().isOpen() || localPlayer.getOpenedInventory() != null
                 || debugOverlay.isVisible()) {
             uiNeedsRebuild = true;
@@ -416,7 +452,7 @@ public class PlayScene extends Scene {
         if (uiNeedsRebuild) {
             MenuScreen activeScreen = null;
 
-            if (!world.getChunkManager().isInitialLoadComplete()) {
+            if (!world.getChunkManager().isInitialLoadComplete() || loadingWarmup > 0) {
                 activeScreen = loadingScreen;
             } else if (localPlayer.isDead()) {
                 activeScreen = deathScreen;

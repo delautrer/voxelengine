@@ -12,7 +12,9 @@ import de.delautrer.game.world.generation.biome.Biome;
 import java.util.ArrayList;
 import java.util.List;
 import de.delautrer.Constants;
-import de.delautrer.game.registry.Registries;
+import de.delautrer.game.blocks.state.BlockProperties.Axis;
+import de.delautrer.game.blocks.state.BlockProperties.Half;
+import de.delautrer.game.blocks.state.BlockState;
 import org.joml.Vector2i;
 
 public class DebugCommand implements ICommand {
@@ -117,12 +119,16 @@ public class DebugCommand implements ICommand {
                 if (b.getId() == 0) continue;
                 
                 if (b instanceof LogBlock) {
-                    world.setBlockWithState(bx, targetY, bz, b.getId(), TreeFeature.LOG_VERTICAL);
+                    BlockState logState = b.getDefaultState().with(LogBlock.AXIS, Axis.Y);
+                    world.setBlockState(bx, targetY, bz, logState);
+                } else if (b instanceof DoorBlock) {
+                    BlockState bottomState = b.getDefaultState().with(DoorBlock.HALF, Half.BOTTOM);
+                    world.setBlockState(bx, targetY, bz, bottomState);
+                    
+                    BlockState topState = b.getDefaultState().with(DoorBlock.HALF, Half.TOP);
+                    world.setBlockState(bx, targetY + 1, bz, topState);
                 } else {
                     world.setBlock(bx, targetY, bz, b.getId());
-                }
-                if (b instanceof DoorBlock) {
-                    world.setBlockWithState(bx, targetY + 1, bz, b.getId(), (byte) 8);
                 }
             }
         }
@@ -165,6 +171,15 @@ public class DebugCommand implements ICommand {
             byte logId = BlockRegistry.get(Constants.NAMESPACE + ":" + target[1]).getId();
             byte leavesId = BlockRegistry.get(Constants.NAMESPACE + ":" + target[2]).getId();
             
+            byte floorId = BlockRegistry.get(Constants.NAMESPACE + ":grass_block").getId();
+            byte airId = 0;
+            for (int gx = -8; gx <= 24; gx++) {
+                for (int gz = -8; gz <= 24; gz++) {
+                    world.setBlock(startX + gx, targetY - 1, startZ + gz, floorId);
+                    for (int y = 0; y < 15; y++) world.setBlock(startX + gx, targetY + y, startZ + gz, airId);
+                }
+            }
+
             for (int i = 0; i < 6; i++) {
                 int bx = startX + (i % 3 * 8);
                 int bz = startZ + (i / 3 * 8);
@@ -179,6 +194,15 @@ public class DebugCommand implements ICommand {
             player.position.set(startX, targetY + 2.0f, startZ);
             int spacing = 12;
             int gridSize = (int) Math.ceil(Math.sqrt(treeTypes.length));
+
+            byte floorId = BlockRegistry.get(Constants.NAMESPACE + ":grass_block").getId();
+            byte airId = 0;
+            for (int gx = -spacing; gx <= gridSize * spacing; gx++) {
+                for (int gz = -spacing; gz <= gridSize * spacing; gz++) {
+                    world.setBlock(startX + gx, targetY - 1, startZ + gz, floorId);
+                    for (int y = 0; y < 20; y++) world.setBlock(startX + gx, targetY + y, startZ + gz, airId);
+                }
+            }
 
             for (int i = 0; i < treeTypes.length; i++) {
                 int bx = startX + (i % gridSize * spacing);

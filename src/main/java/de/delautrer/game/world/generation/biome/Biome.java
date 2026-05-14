@@ -36,7 +36,8 @@ public class Biome {
     public Map<String, Integer> flora;
 
     // Blobs & Patches
-    public Map<String, Float> undergroundBlobs; // Früher auch für Oberfläche genutzt
+    public Map<String, Float> surfaceBlobs;     // Für Oberflächen-Patches (z.B. Gravel in Bergen)
+    public Map<String, Float> undergroundBlobs; // Für Taschen im Stein (Erze, Erde, Kies)
     public float underwaterBlobScale = 0.1f;
     public Map<String, Float> underwaterBlobs;
 

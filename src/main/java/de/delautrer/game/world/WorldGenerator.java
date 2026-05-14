@@ -1,9 +1,6 @@
 package de.delautrer.game.world;
 
-import de.delautrer.game.world.generation.biome.CaveCarver;
-import de.delautrer.game.world.generation.biome.MultiNoiseBiomeRegistry;
-import de.delautrer.game.world.generation.biome.MultiNoiseChunkGenerator;
-import de.delautrer.game.world.generation.biome.MultiNoiseSurfaceBuilder;
+import de.delautrer.game.world.generation.biome.*;
 
 public class WorldGenerator {
 
@@ -28,9 +25,7 @@ public class WorldGenerator {
         int chunkZ = chunk.getWorldZ();
 
         terrainGenerator.generateBaseTerrain(chunk, chunkX, chunkZ);
-
         CaveCarver.carve(chunk, seed);
-
         surfaceBuilder.buildSurface(chunk, chunkX, chunkZ);
     }
 

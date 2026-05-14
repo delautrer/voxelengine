@@ -28,6 +28,11 @@ public abstract class Entity {
 
     public abstract void update(float deltaTime, ChunkManager chunkManager);
 
+    /**
+     * Wird 20 mal pro Sekunde vom Ticksystem aufgerufen.
+     */
+    public void onTick(de.delautrer.game.world.World world) {}
+
     protected void moveAndCollide(ChunkManager chunkManager, float deltaTime, boolean avoidFall) {
         float dx = velocity.x * deltaTime;
         float dy = velocity.y * deltaTime;

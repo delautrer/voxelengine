@@ -102,4 +102,8 @@ public class Camera {
         this.pitch = pitch;
     }
 
+    public Vector3f getUp() {
+        return up;
+    }
+
 }

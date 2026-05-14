@@ -43,6 +43,7 @@ public class PlayerInteraction {
 
     private Vector3i currentlyMiningPos = null;
     private float miningProgress = 0.0f;
+    private float miningSoundTimer = 0.0f;
 
     public PlayerInteraction(World world, Camera camera, LocalPlayer player, EventBus eventBus) {
         this.world = world;
@@ -128,11 +129,6 @@ public class PlayerInteraction {
                         byte blockId = world.getBlockAt(selectedBlockPos);
                         Block targetBlock = BlockRegistry.get(blockId);
 
-                        // 2. Sound abspielen (bevor er gelöscht wird)
-                        if (targetBlock != null && blockId != 0) {
-                            // Wir nutzen "walk" als Platzhalter für den Break-Sound
-                            SoundManager.playEvent(targetBlock.getSoundMaterialName(), "walk", 0.4f);
-                        }
                     }
 
                     // 3. Erst jetzt den Block löschen
@@ -160,11 +156,14 @@ public class PlayerInteraction {
                         // deltaTime * toolMultiplier)
                         float requiredTime = targetBlock.getHardness() * 1.5f;
 
-                        if (miningProgress >= requiredTime) {
+                        // Abbau-Sound (periodisch)
+                        miningSoundTimer += deltaTime;
+                        if (miningSoundTimer >= 0.25f) {
+                            SoundManager.playEvent(targetBlock.getSoundMaterialName(), "walk", 0.3f, 0.7f, 0.9f);
+                            miningSoundTimer = 0.0f;
+                        }
 
-                            if (targetBlock != null && blockId != 0) {
-                                SoundManager.playEvent(targetBlock.getSoundMaterialName(), "walk", 0.4f);
-                            }
+                        if (miningProgress >= requiredTime) {
                             handleSurvivalBreak(targetBlock, blockId);
                             miningProgress = 0.0f;
                             currentlyMiningPos = null;
@@ -316,6 +315,10 @@ public class PlayerInteraction {
 
     public Vector3i getSelectedBlockPos() {
         return selectedBlockPos;
+    }
+
+    public Vector3i getAdjacentBlockPos() {
+        return adjacentBlockPos;
     }
 
     public PlayerInventory getInventory() {

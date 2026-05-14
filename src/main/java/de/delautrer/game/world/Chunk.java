@@ -172,17 +172,38 @@ public class Chunk {
     }
 
     public float getAO(int x, int y, int z, int dx1, int dy1, int dz1, int dx2, int dy2, int dz2, ChunkManager cm) {
-        boolean side1 = !BlockRegistry.get(getBlockAt(x + dx1, y + dy1, z + dz1, cm)).isTransparent;
-        boolean side2 = !BlockRegistry.get(getBlockAt(x + dx2, y + dy2, z + dz2, cm)).isTransparent;
-        boolean corner = !BlockRegistry.get(getBlockAt(x + dx1 + dx2, y + dy1 + dy2, z + dz1 + dz2, cm)).isTransparent;
-        if (side1 && side2) return 0.75f;
+        int o1 = getOpacityAt(x + dx1, y + dy1, z + dz1, cm);
+        int o2 = getOpacityAt(x + dx2, y + dy2, z + dz2, cm);
+        int oC = getOpacityAt(x + dx1 + dx2, y + dy1 + dy2, z + dz1 + dz2, cm);
+
+        boolean side1 = o1 >= 15;
+        boolean side2 = o2 >= 15;
+        boolean corner = oC >= 15;
+
+        if (side1 && side2) return 0.5f;
         int count = (side1 ? 1 : 0) + (side2 ? 1 : 0) + (corner ? 1 : 0);
         return switch (count) {
             case 0 -> 1.0f;
-            case 1 -> 0.90f;
-            case 2 -> 0.82f;
-            default -> 0.75f;
+            case 1 -> 0.8f;
+            case 2 -> 0.65f;
+            default -> 0.5f;
         };
+    }
+
+    private int getOpacityAt(int x, int y, int z, ChunkManager cm) {
+        if (y < MIN_Y || y >= MAX_Y) return 0;
+        if (x >= 0 && x < SIZE && z >= 0 && z < SIZE) {
+            return BlockRegistry.get(getBlock(x, y, z)).getOpacity(getBlockState(x, y, z));
+        }
+        if (cm != null) {
+            Chunk neighbor = cm.getChunkAtBlock(worldX * SIZE + x, y, worldZ * SIZE + z);
+            if (neighbor != null) {
+                int lx = Math.floorMod(worldX * SIZE + x, SIZE);
+                int lz = Math.floorMod(worldZ * SIZE + z, SIZE);
+                return BlockRegistry.get(neighbor.getBlock(lx, y, lz)).getOpacity(neighbor.getBlockState(lx, y, lz));
+            }
+        }
+        return 0;
     }
 
     private float lightToBrightness(float lightLevel) {
@@ -193,18 +214,14 @@ public class Chunk {
     public void recalculateSunlightColumn(int x, int z, LightEngine lightEngine) {
         int currentLight = 15;
         for (int y = MAX_Y - 1; y >= MIN_Y; y--) {
-            byte blockId = getBlock(x, y, z);
+            BlockState state = getBlockState(x, y, z);
             int oldLight = getSkyLight(x, y, z);
+            int opacity = state.getBlock().getOpacity(state);
 
-            if (blockId != 0) {
-                Block block = BlockRegistry.get(blockId);
-                if (block != null && block.isTransparent) {
-                    if (block.getId() == BlockRegistry.get(Constants.NAMESPACE + ":water").getId()) {
-                        currentLight = Math.max(0, currentLight - 2);
-                    }
-                } else {
-                    currentLight = 0;
-                }
+            if (opacity > 0) {
+                // Sonnenlicht wird senkrecht nach unten gedämpft.
+                // Wasser/Blätter etc. ziehen den Wert ab.
+                currentLight = Math.max(0, currentLight - Math.max(1, opacity));
             }
 
             if (currentLight != oldLight) {
