@@ -231,6 +231,47 @@ public class WaterBlock extends Block {
         };
     }
 
+    public Vector3f getFlowDirection(World world, int x, int y, int z) {
+        BlockState state = world.getBlockState(x, y, z);
+        if (state.getBlock() != this) return new Vector3f(0, 0, 0);
+
+        int level = state.getValue(LEVEL);
+        if (level == 8) {
+            // Check if falling from above
+            if (world.getBlockState(x, y + 1, z).getBlock() == this) {
+                return new Vector3f(0, -1, 0);
+            }
+            return new Vector3f(0, 0, 0);
+        }
+
+        Vector3f flow = new Vector3f(0, 0, 0);
+        for (int i = 0; i < 4; i++) {
+            int nx = x + DIRS[i][0];
+            int nz = z + DIRS[i][1];
+            BlockState nState = world.getBlockState(nx, y, nz);
+            
+            int nLevel = -1;
+            if (nState.getBlock() == this) {
+                nLevel = nState.getValue(LEVEL);
+            } else if (isSolid(world, nx, y, nz)) {
+                continue;
+            }
+
+            if (nLevel < level) {
+                flow.add(-DIRS[i][0], 0, -DIRS[i][1]);
+            } else if (nLevel > level) {
+                flow.add(DIRS[i][0], 0, DIRS[i][1]);
+            }
+        }
+        
+        if (world.getBlockState(x, y + 1, z).getBlock() == this) {
+            flow.y = -1;
+        }
+
+        if (flow.lengthSquared() > 0) flow.normalize();
+        return flow;
+    }
+
     /**
      * Zerstört den aktuellen Block und droppt sein Item basierend auf der
      * hinterlegten Loot-Tabelle.

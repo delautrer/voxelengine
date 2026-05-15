@@ -143,7 +143,12 @@ public abstract class BaseContainer {
                         int toAdd = Math.min(space, stack.amount);
                         targetStack.amount += toAdd;
                         stack.amount -= toAdd;
-                        if (stack.amount == 0) return;
+                        target.onSlotChanged();
+
+                        if (stack.amount <= 0) {
+                            clickedSlot.putStack(null);
+                            return;
+                        }
                     }
                 }
             }
@@ -151,7 +156,7 @@ public abstract class BaseContainer {
 
         // 2. Durchlauf: Wenn noch was übrig ist, suche komplett leere Slots
         for (Slot target : slots) {
-            if (isTargetRegion(clickedSlot, target)) {
+            if (isTargetRegion(clickedSlot, target) && target.isItemValid(stack)) {
                 if (target.getStack() == null) {
                     target.putStack(new ItemStack(stack.type, stack.amount));
                     clickedSlot.putStack(null);
@@ -268,6 +273,8 @@ public abstract class BaseContainer {
         java.util.List<Slot> validSlots = new java.util.ArrayList<>();
         for (Slot s : draggedSlots) {
             if (s.inventory == null) continue;
+            if (!s.isItemValid(mouseStack)) continue; // NEU: Check ob Item erlaubt ist
+
             ItemStack st = s.getStack();
             if (st == null || (st.type == mouseStack.type && st.amount < st.type.getMaxStackSize())) {
                 validSlots.add(s);

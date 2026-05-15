@@ -159,6 +159,10 @@ public class World {
     }
 
     public void setBlock(int x, int y, int z, byte newBlockId) {
+        setBlock(x, y, z, newBlockId, true);
+    }
+
+    public void setBlock(int x, int y, int z, byte newBlockId, boolean playSound) {
         if (y < Chunk.MIN_Y || y >= Chunk.MAX_Y)
             return;
         Chunk targetChunk = chunkManager.getChunkAtBlock(x, y, z);
@@ -186,8 +190,10 @@ public class World {
         if (oldBlockId != 0 && oldBlockId != newBlockId) {
             Block oldBlock = BlockRegistry.get(oldBlockId);
             oldBlock.onBlockRemoved(this, pos, oldBlock.getStateForId(oldState));
-            // NEU: Break Sound abspielen
-            de.delautrer.engine.audio.SoundManager.playEvent(oldBlock.getSoundMaterialName(), "jump_land", 0.8f, 0.6f, 1.2f, x + 0.5f, y + 0.5f, z + 0.5f);
+            // NEU: Break Sound abspielen (Leiser)
+            if (playSound) {
+                de.delautrer.engine.audio.SoundManager.playEvent(oldBlock.getSoundMaterialName(), "jump_land", 0.35f, 0.6f, 1.2f, x + 0.5f, y + 0.5f, z + 0.5f);
+            }
         }
 
         int oldLightEmission = BlockRegistry.get(oldBlockId).getLightEmission();
@@ -231,6 +237,10 @@ public class World {
     }
 
     public void setBlockWithState(int x, int y, int z, byte newBlockId, byte newState) {
+        setBlockWithState(x, y, z, newBlockId, newState, true);
+    }
+
+    public void setBlockWithState(int x, int y, int z, byte newBlockId, byte newState, boolean playSound) {
         if (y < Chunk.MIN_Y || y >= Chunk.MAX_Y)
             return;
         Chunk targetChunk = chunkManager.getChunkAtBlock(x, y, z);
@@ -259,8 +269,10 @@ public class World {
         if (oldBlockId != 0 && oldBlockId != newBlockId) {
             Block oldBlock = BlockRegistry.get(oldBlockId);
             oldBlock.onBlockRemoved(this, pos, oldBlock.getStateForId(oldState));
-            // NEU: Break Sound abspielen
-            de.delautrer.engine.audio.SoundManager.playEvent(oldBlock.getSoundMaterialName(), "jump_land", 0.8f, 0.6f, 1.2f, x + 0.5f, y + 0.5f, z + 0.5f);
+            // NEU: Break Sound abspielen (Leiser)
+            if (playSound) {
+                de.delautrer.engine.audio.SoundManager.playEvent(oldBlock.getSoundMaterialName(), "jump_land", 0.35f, 0.6f, 1.2f, x + 0.5f, y + 0.5f, z + 0.5f);
+            }
         }
 
         int oldLightEmission = BlockRegistry.get(oldBlockId).getLightEmission();

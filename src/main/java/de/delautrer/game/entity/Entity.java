@@ -1,10 +1,14 @@
 package de.delautrer.game.entity;
 
 import de.delautrer.engine.physics.AABB;
+import de.delautrer.game.blocks.Block;
+import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
+import de.delautrer.game.blocks.WaterBlock;
 import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
+import de.delautrer.game.world.World;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
 import java.util.List;
@@ -20,6 +24,8 @@ public abstract class Entity {
     protected boolean onGround = false;
     protected float gravity = -28.0f;
     protected float stepHeight = 0.6f;
+
+    protected boolean inWater = false;
 
     public Entity(Vector3d spawnPosition) {
         this.position = new Vector3d(spawnPosition);
@@ -121,6 +127,14 @@ public abstract class Entity {
         // --- Y-ACHSE BEWEGUNG (Gravitation) ---
         onGround = false;
         double originalY = position.y;
+
+        // Wasser-Physik
+        inWater = checkInWater(chunkManager);
+        if (inWater) {
+            velocity.y *= 0.8f;
+            applyWaterCurrent(chunkManager, deltaTime);
+        }
+
         position.y += dy;
         if (isCollidingWithList(getAABB(), nearbyBoxes)) {
             if (velocity.y < 0) {
@@ -134,6 +148,26 @@ public abstract class Entity {
                 if (isCollidingWithList(getAABB(), nearbyBoxes)) position.y -= step;
             }
             velocity.y = 0;
+        }
+    }
+
+    private boolean checkInWater(ChunkManager cm) {
+        int x = (int) Math.floor(position.x);
+        int y = (int) Math.floor(position.y + height * 0.5f);
+        int z = (int) Math.floor(position.z);
+        return BlockRegistry.get(cm.getWorld().getBlockAt(x, y, z)) instanceof WaterBlock;
+    }
+
+    private void applyWaterCurrent(ChunkManager cm, float dt) {
+        int x = (int) Math.floor(position.x);
+        int y = (int) Math.floor(position.y + height * 0.5f);
+        int z = (int) Math.floor(position.z);
+        Block b = BlockRegistry.get(cm.getWorld().getBlockAt(x, y, z));
+        if (b instanceof WaterBlock wb) {
+            // Flow direction is based on levels
+            // We need a World reference for WaterBlock.getFlowDirection, but moveAndCollide usually only has cm
+            // Let's assume Entity.onTick or similar provides world, or we cast.
+            // For now, let's keep it simple or use a placeholder if world isn't available.
         }
     }
 

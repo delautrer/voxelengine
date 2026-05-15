@@ -159,7 +159,7 @@ public class PlayerInteraction {
                         // Abbau-Sound (periodisch)
                         miningSoundTimer += deltaTime;
                         if (miningSoundTimer >= 0.25f) {
-                            SoundManager.playEvent(targetBlock.getSoundMaterialName(), "walk", 0.3f, 0.7f, 0.9f);
+                            SoundManager.playEvent(targetBlock.getSoundMaterialName(), "walk", 0.3f, 0.7f, 0.9f, "Player");
                             miningSoundTimer = 0.0f;
                         }
 

@@ -15,8 +15,11 @@ public class CaveCarver {
     private static boolean initialized = false;
     private static boolean[] whitelist = new boolean[256];
 
-    private static void init() {
-        if (initialized) return;
+    private static de.delautrer.game.world.NoiseGenerator riverNoise;
+    private static long currentSeed = -1;
+
+    private static void init(long seed) {
+        if (initialized && currentSeed == seed) return;
         AIR = BlockRegistry.get(Constants.NAMESPACE + ":air").getId();
         WATER = BlockRegistry.get(Constants.NAMESPACE + ":water").getId();
         BEDROCK = BlockRegistry.get(Constants.NAMESPACE + ":bedrock").getId();
@@ -27,11 +30,13 @@ public class CaveCarver {
         whitelist[BlockRegistry.get(Constants.NAMESPACE + ":gravel").getId() & 0xFF] = true;
         whitelist[BlockRegistry.get(Constants.NAMESPACE + ":sand").getId() & 0xFF] = true;
 
+        riverNoise = new de.delautrer.game.world.NoiseGenerator(seed * 234);
+        currentSeed = seed;
         initialized = true;
     }
 
-    public static void carve(Chunk targetChunk, long worldSeed) {
-        init();
+    public static void carve(Chunk targetChunk, long worldSeed, MultiNoiseSampler sampler) {
+        init(worldSeed);
         int chunkX = targetChunk.getWorldX();
         int chunkZ = targetChunk.getWorldZ();
         int radius = 12;
@@ -55,7 +60,7 @@ public class CaveCarver {
                     int numNodes = 1;
                     if (rand.nextInt(4) == 0) {
                         float roomRadius = 1.5f + rand.nextFloat() * 6.0f;
-                        carveSphere(targetChunk, startX, startY, startZ, roomRadius);
+                        carveSphere(targetChunk, startX, startY, startZ, roomRadius, sampler);
                         numNodes += rand.nextInt(4);
                     }
 
@@ -69,14 +74,14 @@ public class CaveCarver {
                         if (rand.nextInt(10) == 0) startRadius *= 2.0f;
 
                         int length = 100 + rand.nextInt(80);
-                        derivePath(targetChunk, rand, startX, startY, startZ, startRadius, startYaw, startPitch, length);
+                        derivePath(targetChunk, rand, startX, startY, startZ, startRadius, startYaw, startPitch, length, sampler);
                     }
                 }
             }
         }
     }
 
-    private static void derivePath(Chunk targetChunk, Random rand, double x, double y, double z, float baseRadius, float yaw, float pitch, int length) {
+    private static void derivePath(Chunk targetChunk, Random rand, double x, double y, double z, float baseRadius, float yaw, float pitch, int length, MultiNoiseSampler sampler) {
         for (int i = 0; i < length; i++) {
             float currentRadius = baseRadius + (rand.nextFloat() - 0.5f) * 0.5f;
 
@@ -89,8 +94,8 @@ public class CaveCarver {
             pitch += (rand.nextFloat() - 0.5f) * 0.5f;
 
             if (i == length / 2 && rand.nextInt(4) == 0) {
-                derivePath(targetChunk, rand, x, y, z, baseRadius, yaw - 1.0f, pitch, length / 2);
-                derivePath(targetChunk, rand, x, y, z, baseRadius, yaw + 1.0f, pitch, length / 2);
+                derivePath(targetChunk, rand, x, y, z, baseRadius, yaw - 1.0f, pitch, length / 2, sampler);
+                derivePath(targetChunk, rand, x, y, z, baseRadius, yaw + 1.0f, pitch, length / 2, sampler);
                 return;
             }
 
@@ -101,11 +106,30 @@ public class CaveCarver {
                     z < chunkMidZ - 16 - currentRadius * 2 || z > chunkMidZ + 16 + currentRadius * 2) {
                 continue;
             }
-            carveSphere(targetChunk, x, y, z, currentRadius);
+            carveSphere(targetChunk, x, y, z, currentRadius, sampler);
         }
     }
 
-    private static void carveSphere(Chunk chunk, double cx, double cy, double cz, double radius) {
+    private static void carveSphere(Chunk chunk, double cx, double cy, double cz, double radius, MultiNoiseSampler sampler) {
+        // --- STARKER WASSER-SCHUTZ ---
+        int wx = (int)cx;
+        int wz = (int)cz;
+        Climate.TargetPoint climate = sampler.sample(wx, wz);
+        
+        // River check
+        float warpX = riverNoise.getFractalNoise2D(wx * 0.02f, wz * 0.02f, 2, 0.5f, 2.0f) * 25.0f;
+        float warpZ = riverNoise.getFractalNoise2D(wx * 0.02f + 100, wz * 0.02f + 100, 2, 0.5f, 2.0f) * 25.0f;
+        float rNoise = riverNoise.getFractalNoise2D((wx + warpX) * 0.003f, (wz + warpZ) * 0.003f, 3, 0.5f, 2.0f);
+        float riverVal = Math.abs(rNoise);
+
+        boolean inWetZone = (climate.continentalness < 0.05f) || (riverVal < 0.12f);
+        
+        if (inWetZone) {
+            // In nassen Gebieten: Mindestens 20 Blöcke unter dem Meeresspiegel bleiben (Sicherheitspuffer)
+            double surfaceSafetyY = 10; 
+            if (cy > surfaceSafetyY - 25) return; 
+        }
+
         double radiusY = radius * 0.7;
         int chunkOffX = chunk.getWorldX() * Chunk.SIZE;
         int chunkOffZ = chunk.getWorldZ() * Chunk.SIZE;
@@ -120,19 +144,12 @@ public class CaveCarver {
         if (minX > maxX || minY > maxY || minZ > maxZ) return;
 
         ChunkSection[] sections = chunk.getSections();
-        byte WATER_STATE = 8;
 
         for (int lx = minX; lx <= maxX; lx++) {
             double dX = ((lx + chunkOffX) + 0.5 - cx) / radius;
             for (int lz = minZ; lz <= maxZ; lz++) {
                 double dZ = ((lz + chunkOffZ) + 0.5 - cz) / radius;
                 if (dX * dX + dZ * dZ >= 1.0) continue;
-
-                // Zieht Ozeanwasser senkrecht nach unten, wenn die Decke durchbrochen wird
-                boolean waterFalling = false;
-                if (maxY + 1 < Chunk.MAX_Y && chunk.getBlock(lx, maxY + 1, lz) == WATER) {
-                    waterFalling = true;
-                }
 
                 for (int ly = maxY; ly >= minY; ly--) {
                     double dY = (ly + 0.5 - cy) / radiusY;
@@ -149,31 +166,14 @@ public class CaveCarver {
                     byte currentBlock = blocks[idx];
 
                     if (dX * dX + dY * dY + dZ * dZ < 1.0) {
-                        if (currentBlock == BEDROCK) {
-                            waterFalling = false;
-                            continue;
-                        }
-
+                        if (currentBlock == BEDROCK) continue;
                         boolean canCarve = whitelist[currentBlock & 0xFF] || currentBlock == AIR || currentBlock == WATER;
-
                         if (canCarve) {
-                            if (waterFalling) {
-                                blocks[idx] = WATER;
-                                states[idx] = WATER_STATE;
-                            } else {
-                                if (currentBlock != WATER) {
-                                    blocks[idx] = AIR;
-                                    states[idx] = 0;
-                                } else {
-                                    waterFalling = true;
-                                }
+                            if (currentBlock != WATER) {
+                                blocks[idx] = AIR;
+                                states[idx] = 0;
                             }
-                        } else {
-                            waterFalling = false;
                         }
-                    } else {
-                        if (currentBlock == WATER) waterFalling = true;
-                        else if (currentBlock != AIR) waterFalling = false;
                     }
                 }
             }

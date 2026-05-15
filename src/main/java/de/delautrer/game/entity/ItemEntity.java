@@ -2,6 +2,7 @@ package de.delautrer.game.entity;
 
 import de.delautrer.engine.physics.AABB;
 import de.delautrer.game.blocks.BlockRegistry;
+import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.items.ItemRegistry;
 import de.delautrer.game.items.ItemStack;
 import de.delautrer.game.world.Chunk;
@@ -43,7 +44,35 @@ public class ItemEntity extends Entity {
         if (pickupDelay > 0) pickupDelay -= deltaTime;
 
         // 1. SCHWERKRAFT & KOLLISION
-        velocity.y -= 20.0f * deltaTime;
+        int bx = (int) Math.floor(position.x);
+        int by = (int) Math.floor(position.y + 0.1f);
+        int bz = (int) Math.floor(position.z);
+        BlockState blockState = world.getBlockState(bx, by, bz);
+        de.delautrer.game.blocks.Block blockIn = blockState.getBlock();
+        
+        if (blockIn instanceof de.delautrer.game.blocks.WaterBlock wb) {
+            int level = blockState.getValue(de.delautrer.game.blocks.WaterBlock.LEVEL);
+            if (level == 8) {
+                // Source: Slowly rise
+                velocity.y += 1.5f * deltaTime;
+                if (velocity.y > 0.5f) velocity.y = 0.5f;
+            } else {
+                // Flowing: Wash away
+                Vector3f flow = wb.getFlowDirection(world, bx, by, bz);
+                float speed = (float)level / 7.0f * 6.0f; // More level = more push
+                velocity.x += flow.x * speed * deltaTime;
+                velocity.z += flow.z * speed * deltaTime;
+                velocity.y += flow.y * speed * deltaTime;
+                
+                // Buoyancy in flowing water
+                velocity.y += 3.5f * deltaTime;
+            }
+            // Friction in water
+            velocity.mul(0.92f);
+        } else {
+            // Air: Gravity
+            velocity.y -= 20.0f * deltaTime;
+        }
 
         double nextX = position.x + velocity.x * deltaTime;
         double nextY = position.y + velocity.y * deltaTime;
@@ -55,6 +84,10 @@ public class ItemEntity extends Entity {
             de.delautrer.game.blocks.Block blockBelow = BlockRegistry.get(blockBelowId);
             
             if (blockBelow.isSolid) {
+                // NEU: Lande-Sound abspielen, wenn wir von oben kommen
+                if (velocity.y < -1.0f) {
+                    de.delautrer.engine.audio.SoundManager.playEvent(blockBelow.getSoundMaterialName(), "jump_land", 0.15f, 1.4f, 1.6f, (float)nextX, (float)nextY, (float)nextZ);
+                }
                 nextY = Math.floor(nextY) + 1.001f;
                 velocity.y = 0;
                 velocity.x *= 0.5f;

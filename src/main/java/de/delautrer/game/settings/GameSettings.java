@@ -51,6 +51,9 @@ public class GameSettings {
     @SerializedName("sound_ambient_volume")
     public float ambientVolume = 1.0f;
 
+    @SerializedName("sound_debug")
+    public boolean soundDebug = false;
+
     // Tastenbelegungen
 
     @SerializedName("key_binds")

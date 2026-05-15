@@ -77,7 +77,7 @@ public class BlockTickSystem implements WorldSystem {
             byte blockAbove = world.getBlockAt(x, y + 1, z);
             Block bAbove = BlockRegistry.get(blockAbove);
             if (bAbove.isSolid && !bAbove.isTransparent) {
-                world.setBlock(x, y, z, dirtId);
+                world.setBlock(x, y, z, dirtId, false);
             }
         }
     }
@@ -106,7 +106,7 @@ public class BlockTickSystem implements WorldSystem {
                     
                     if (world.getBlockAt(x + dx, y + dy, z + dz) == grassId) {
                         // Found grass neighbor!
-                        world.setBlock(x, y, z, grassId);
+                        world.setBlock(x, y, z, grassId, false);
                         return;
                     }
                 }

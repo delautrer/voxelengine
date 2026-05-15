@@ -59,7 +59,7 @@ public class FallingBlockEntity extends Entity {
             world.setBlockWithState(x, targetY, z, blockId, blockState);
 
             // NEU: Lande-Sound abspielen (3D)
-            de.delautrer.engine.audio.SoundManager.playEvent(BlockRegistry.get(blockId).getSoundMaterialName(), "jump_land", 0.7f, 0.8f, 1.2f, x + 0.5f, targetY + 0.5f, z + 0.5f);
+            // de.delautrer.engine.audio.SoundManager.playEvent(BlockRegistry.get(blockId).getSoundMaterialName(), "jump_land", 0.7f, 0.8f, 1.2f, x + 0.5f, targetY + 0.5f, z + 0.5f);
 
             this.setDead(true);
         } else {

@@ -125,37 +125,8 @@ public class ChunkManager {
             Vector2i pos = new Vector2i(loadedChunk.getWorldX(), loadedChunk.getWorldZ());
             chunks.put(pos, loadedChunk);
             chunksLoading.remove(pos);
-
-            // --- NEU: WASSER-PHYSIK AUFWECKEN (Fluid Ticks) ---
-            // Scannt den Chunk einmalig beim Einfügen. Finden wir Wasser neben Luft,
-            // wird dieser exakte Block für ein Physik-Update im Main-Thread vorgemerkt.
-            for (int x = 0; x < Chunk.SIZE; x++) {
-                for (int z = 0; z < Chunk.SIZE; z++) {
-                    for (int y = Chunk.MIN_Y; y < Chunk.MAX_Y; y++) {
-                        if (loadedChunk.getBlock(x, y, z) == waterId) {
-
-                            boolean touchesAir = false;
-                            // Check oben/unten
-                            if (y < Chunk.MAX_Y - 1 && loadedChunk.getBlock(x, y + 1, z) == airId) touchesAir = true;
-                            else if (y > Chunk.MIN_Y && loadedChunk.getBlock(x, y - 1, z) == airId) touchesAir = true;
-                                // Check Seiten (Wir prüfen nur innerhalb des Chunks für max. Performance)
-                                // Chunk-Grenzen werden automatisch geupdatet, wenn benachbarte Chunks laden!
-                            else if (x > 0 && loadedChunk.getBlock(x - 1, y, z) == airId) touchesAir = true;
-                            else if (x < Chunk.SIZE - 1 && loadedChunk.getBlock(x + 1, y, z) == airId) touchesAir = true;
-                            else if (z > 0 && loadedChunk.getBlock(x, y, z - 1) == airId) touchesAir = true;
-                            else if (z < Chunk.SIZE - 1 && loadedChunk.getBlock(x, y, z + 1) == airId) touchesAir = true;
-
-                            if (touchesAir) {
-                                int worldBlockX = loadedChunk.getWorldX() * Chunk.SIZE + x;
-                                int worldBlockZ = loadedChunk.getWorldZ() * Chunk.SIZE + z;
-                                // Triggert die Update-Schleife der Welt
-                                world.scheduleBlockUpdate(worldBlockX, y, worldBlockZ);
-                            }
-                        }
-                    }
-                }
-            }
-            // ---------------------------------------------------
+            // --- PHYSIK-UPDATES BEIM LADEN DEAKTIVIERT ---
+            // Blöcke bleiben eingefroren, bis ein Nachbar-Update erfolgt.
 
             if (loadedChunk.isDirty()) {
                 lightEngine.initSkyLightForChunk(loadedChunk);

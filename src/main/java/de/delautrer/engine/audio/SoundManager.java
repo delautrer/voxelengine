@@ -62,28 +62,43 @@ public class SoundManager {
     }
 
     public static void playEvent(String materialName, String action, float volume) {
-        playEvent(materialName, action, volume, 0.9f, 1.1f);
+        playEvent(materialName, action, volume, 0.9f, 1.1f, "Environment");
     }
 
-    public static void playEvent(String materialName, String action, float volume, float x, float y, float z) {
-        playEvent(materialName, action, volume, 0.9f, 1.1f, x, y, z);
+    public static void playEvent(String materialName, String action, float volume, String source) {
+        playEvent(materialName, action, volume, 0.9f, 1.1f, source);
     }
 
     public static void playEvent(String materialName, String action, float volume, float minPitch, float maxPitch) {
-        playEvent(materialName, action, volume, minPitch, maxPitch, 0, 0, 0, true);
+        playEvent(materialName, action, volume, minPitch, maxPitch, 0, 0, 0, true, "Environment");
+    }
+
+    public static void playEvent(String materialName, String action, float volume, float minPitch, float maxPitch, String source) {
+        playEvent(materialName, action, volume, minPitch, maxPitch, 0, 0, 0, true, source);
     }
 
     public static void playEvent(String materialName, String action, float volume, float minPitch, float maxPitch, float x, float y, float z) {
-        playEvent(materialName, action, volume, minPitch, maxPitch, x, y, z, false);
+        playEvent(materialName, action, volume, minPitch, maxPitch, x, y, z, false, "Environment");
     }
 
-    private static void playEvent(String materialName, String action, float volume, float minPitch, float maxPitch, float x, float y, float z, boolean relative) {
+    public static void playEvent(String materialName, String action, float volume, float minPitch, float maxPitch, float x, float y, float z, String source) {
+        playEvent(materialName, action, volume, minPitch, maxPitch, x, y, z, false, source);
+    }
+
+    private static void playEvent(String materialName, String action, float volume, float minPitch, float maxPitch, float x, float y, float z, boolean relative, String source) {
         if (audioEngine == null) return;
 
         materialName = (materialName != null) ? materialName.toLowerCase() : "default";
         action = action.toLowerCase();
 
         SoundMaterialDefinition def = materialDefinitions.get(materialName);
+
+        // Debug Logging
+        if (de.delautrer.game.settings.SettingsManager.get().soundDebug) {
+            float dist = (float) Math.sqrt((x-lastListenerPos.x)*(x-lastListenerPos.x) + (y-lastListenerPos.y)*(y-lastListenerPos.y) + (z-lastListenerPos.z)*(z-lastListenerPos.z));
+            System.out.printf("[SoundDebug] [%-11s] Action: %-12s | Mat: %-8s | Vol: %.2f | Dist: %4.1f\n",
+                source, action, materialName, volume, dist);
+        }
 
         // 1. Versuch: Hat das spezifische Material genau diese Aktion definiert?
         if (def != null && def.actions.containsKey(action) && !def.actions.get(action).isEmpty()) {
@@ -108,6 +123,9 @@ public class SoundManager {
     public static void updateListener(org.joml.Vector3d pos, org.joml.Vector3f forward, org.joml.Vector3f up) {
         if (audioEngine != null) {
             audioEngine.updateListener((float) pos.x, (float) pos.y, (float) pos.z, forward.x, forward.y, forward.z, up.x, up.y, up.z);
+            lastListenerPos.set(pos);
         }
     }
+
+    private static final org.joml.Vector3d lastListenerPos = new org.joml.Vector3d();
 }

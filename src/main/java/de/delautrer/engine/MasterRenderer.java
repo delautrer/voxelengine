@@ -239,8 +239,8 @@ public class MasterRenderer {
     // gespeichertes Mesh ---
     private void updateCrackingMesh(Vector3i pos, float layer) {
         float x = pos.x, y = pos.y, z = pos.z;
-        float e = -0.005f;
-        float s = 1.0f + 0.005f;
+        float e = -0.001f;
+        float s = 1.001f;
 
         float r = 1.0f, g = 1.0f, b = 1.0f, a = 1.0f;
         float sl = 1.0f, bl = 1.0f;

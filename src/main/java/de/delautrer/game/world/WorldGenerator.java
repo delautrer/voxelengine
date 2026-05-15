@@ -25,7 +25,7 @@ public class WorldGenerator {
         int chunkZ = chunk.getWorldZ();
 
         terrainGenerator.generateBaseTerrain(chunk, chunkX, chunkZ);
-        CaveCarver.carve(chunk, seed);
+        CaveCarver.carve(chunk, seed, terrainGenerator.getSampler());
         surfaceBuilder.buildSurface(chunk, chunkX, chunkZ);
     }
 

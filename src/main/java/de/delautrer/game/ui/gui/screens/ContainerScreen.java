@@ -48,6 +48,28 @@ public abstract class ContainerScreen extends MenuScreen {
         drawBackground(builder, mouseX, mouseY);
 
         Slot hoveredSlot = getHoveredSlotObj(mouseX, mouseY);
+        ItemStack mouseStack = container.getMouseStack();
+
+        // --- Drag-Vorschau Logik ---
+        int amountPerSlot = 0;
+        int remainingMouseAmount = (mouseStack != null) ? mouseStack.amount : 0;
+        java.util.List<Slot> validDragSlots = new java.util.ArrayList<>();
+
+        if (isDragging && mouseStack != null) {
+            for (Slot s : dragSlots) {
+                if (s.inventory == null) continue;
+                if (!s.isItemValid(mouseStack)) continue;
+
+                ItemStack st = s.getStack();
+                if (st == null || (st.type == mouseStack.type && st.amount < st.type.getMaxStackSize())) {
+                    validDragSlots.add(s);
+                }
+            }
+            if (!validDragSlots.isEmpty()) {
+                amountPerSlot = mouseStack.amount / validDragSlots.size();
+                remainingMouseAmount = mouseStack.amount - (amountPerSlot * validDragSlots.size());
+            }
+        }
 
         // 2. Slots & Items rendern
         for (Slot slot : container.slots) {
@@ -62,46 +84,47 @@ public abstract class ContainerScreen extends MenuScreen {
                 builder.addAtlasQuad(slotX, slotY, 0.2f, slotSize, slotSize, 10, 1, 1, 1, false);
             }
 
-            /*
-             * // Drag-Highlight
-             * if (isDragging && dragSlots.contains(slot)) {
-             * builder.addRect(slotX, slotY, 0.25f, slotSize, slotSize, 0.8f, 0.8f, 1.0f,
-             * 0.4f);
-             * }
-             */
-
-            // Item im Slot
+            // Item im Slot (oder Drag-Preview)
             ItemStack stack = slot.getStack();
-            builder.drawItem(stack, slotX + 3 * pixelScale, slotY + 3 * pixelScale, 0.25f, slotSize - 6 * pixelScale);
+            int displayAmount = (stack != null) ? stack.amount : 0;
+            boolean isPreview = false;
 
-            // Anzahl
-            if (stack != null && stack.amount > 1 && font != null) {
-                if (stack.amount > 9) {
-                    builder.drawText(String.valueOf(stack.amount), slotX + slotSize - (12.0f * pixelScale),
-                            slotY + (2.0f * pixelScale), 0.3f, font);
-                } else {
-                    builder.drawText(String.valueOf(stack.amount), slotX + slotSize - (8 * pixelScale),
-                            slotY + (2.0f * pixelScale), 0.3f, font);
+            if (isDragging && validDragSlots.contains(slot) && amountPerSlot > 0) {
+                if (stack == null) {
+                    stack = new ItemStack(mouseStack.type, amountPerSlot);
+                    displayAmount = amountPerSlot;
+                    isPreview = true;
+                } else if (stack.type == mouseStack.type) {
+                    displayAmount = stack.amount + amountPerSlot;
+                    isPreview = true;
+                }
+            }
+
+            if (stack != null) {
+                builder.drawItem(stack, slotX + 3 * pixelScale, slotY + 3 * pixelScale, 0.25f, slotSize - 6 * pixelScale);
+
+                // Anzahl
+                if (displayAmount > 1 && font != null) {
+                    String amountStr = String.valueOf(displayAmount);
+                    float textX = slotX + slotSize - ((displayAmount > 9 ? 12.0f : 8.0f) * pixelScale);
+                    builder.drawText(amountStr, textX, slotY + (2.0f * pixelScale), 0.3f, font);
                 }
             }
         }
 
         // 3. Item an der Maus
-        ItemStack mouseStack = container.getMouseStack();
         if (mouseStack != null) {
             float itemSize = slotSize - 4 * pixelScale;
             float invertedMouseY = height - mouseY;
             builder.drawItem(mouseStack, mouseX - itemSize / 2.0f - 5 * pixelScale,
                     invertedMouseY - itemSize / 2.0f + 3 * pixelScale, 0.5f, itemSize);
 
-            if (mouseStack.amount > 1 && font != null) {
-                if (mouseStack.amount > 9)
-                    builder.drawText(String.valueOf(mouseStack.amount),
-                            mouseX + (itemSize / 2.0f) - (14.0f * pixelScale),
-                            invertedMouseY - (itemSize / 2.0f) + (3.0f * pixelScale), 0.55f, font);
-                else
-                    builder.drawText(String.valueOf(mouseStack.amount), mouseX + (itemSize / 2.0f) - (10f * pixelScale),
-                            invertedMouseY - (itemSize / 2.0f) + (3.0f * pixelScale), 0.55f, font);
+            int mouseDisplayAmount = isDragging ? remainingMouseAmount : mouseStack.amount;
+
+            if (mouseDisplayAmount > 1 && font != null) {
+                String amountStr = String.valueOf(mouseDisplayAmount);
+                float textX = mouseX + (itemSize / 2.0f) - ((mouseDisplayAmount > 9 ? 14.0f : 10.0f) * pixelScale);
+                builder.drawText(amountStr, textX, invertedMouseY - (itemSize / 2.0f) + (3.0f * pixelScale), 0.55f, font);
             }
         }
 

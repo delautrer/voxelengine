@@ -25,7 +25,7 @@ public class DebugCommand implements ICommand {
 
     @Override
     public String getUsage() {
-        return "/debug [blocks|trees|chunk] - General world/chunk debug info or grids";
+        return "/debug [blocks|trees|chunk|sound] - General world/chunk debug info or grids";
     }
 
     @Override
@@ -47,10 +47,20 @@ public class DebugCommand implements ICommand {
             case "chunk":
                 sendChunkDebug(player, world, manager);
                 break;
+            case "sound":
+                toggleSoundDebug(manager);
+                break;
             default:
                 manager.sendMessageInChat("Unknown debug subcommand: " + sub);
                 break;
         }
+    }
+
+    private void toggleSoundDebug(CommandManager manager) {
+        boolean current = de.delautrer.game.settings.SettingsManager.get().soundDebug;
+        de.delautrer.game.settings.SettingsManager.get().soundDebug = !current;
+        de.delautrer.game.settings.SettingsManager.save();
+        manager.sendMessageInChat("Sound Debug: " + (!current ? "ON" : "OFF"));
     }
 
     private void sendGeneralDebug(LocalPlayer player, World world, CommandManager manager) {
@@ -221,7 +231,7 @@ public class DebugCommand implements ICommand {
         String current = args[args.length - 1].toLowerCase();
 
         if (args.length == 1) {
-            String[] subs = {"blocks", "trees", "chunk"};
+            String[] subs = {"blocks", "trees", "chunk", "sound"};
             for (String s : subs) if (s.startsWith(current)) completions.add(s);
         } else if (args.length == 2 && args[0].equalsIgnoreCase("trees")) {
             String[] types = {"oak", "birch", "pine", "willow", "baobab", "mahogany", "palm", "tall_oak", "tall_birch", "tall_pine"};

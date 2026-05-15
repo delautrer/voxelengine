@@ -117,8 +117,8 @@ public class AudioEngine {
         AL10.alSourcef(chosenSource, AL10.AL_PITCH, pitch);
         AL10.alSourcei(chosenSource, AL10.AL_SOURCE_RELATIVE, relative ? AL10.AL_TRUE : AL10.AL_FALSE);
         AL10.alSource3f(chosenSource, AL10.AL_POSITION, x, y, z);
-        AL10.alSourcef(chosenSource, AL10.AL_REFERENCE_DISTANCE, 1.0f);
-        AL10.alSourcef(chosenSource, AL10.AL_ROLLOFF_FACTOR, 1.0f);
+        AL10.alSourcef(chosenSource, AL10.AL_REFERENCE_DISTANCE, 3.0f); // Max volume within 3 blocks
+        AL10.alSourcef(chosenSource, AL10.AL_ROLLOFF_FACTOR, 6.0f); // High rolloff for silent after ~9 blocks
         AL10.alSourcePlay(chosenSource);
     }
 
