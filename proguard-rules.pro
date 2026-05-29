@@ -76,6 +76,8 @@
 # -- Spielstände (World / Player Persistence) --
 -keepclassmembers class de.delautrer.game.world.persistence.** { *; }
 
+-keep class de.delautrer.game.world.generation.biome.Biome { *; }
+
 # ------------------------------------------------------------------------------
 # 6. Engine Internals (Reflection-Safe)
 # ------------------------------------------------------------------------------
