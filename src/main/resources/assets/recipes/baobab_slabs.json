@@ -1,13 +1,10 @@
-{
-  "type": "shaped",
-  "pattern": [
-    "AAA"
-  ],
-  "keys": {
-    "A": "engine:baobab_planks"
-  },
-  "result": {
-    "item": "engine:baobab_slabs",
-    "count": 6
-  }
+﻿{
+    "ingredients":  [
+                        "engine:baobab_planks"
+                    ],
+    "result":  {
+                   "count":  2,
+                   "item":  "engine:baobab_slabs"
+               },
+    "type":  "shapeless"
 }

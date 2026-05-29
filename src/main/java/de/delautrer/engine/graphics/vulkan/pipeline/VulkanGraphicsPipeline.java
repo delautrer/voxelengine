@@ -21,8 +21,8 @@ public class VulkanGraphicsPipeline {
 
     private void createPipelines(VulkanSwapchain swapchain, VulkanRenderPass renderPass) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
-            ByteBuffer vertShaderCode = ShaderUtils.readSPIRV("src/main/resources/shaders/vert.spv");
-            ByteBuffer fragShaderCode = ShaderUtils.readSPIRV("src/main/resources/shaders/frag.spv");
+            ByteBuffer vertShaderCode = ShaderUtils.readSPIRV("src/main/resources/shaders/main.vert.spv");
+            ByteBuffer fragShaderCode = ShaderUtils.readSPIRV("src/main/resources/shaders/main.frag.spv");
 
             long vertModule = createModule(vertShaderCode, stack);
             long fragModule = createModule(fragShaderCode, stack);

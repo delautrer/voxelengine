@@ -2,7 +2,8 @@
   "parent": "blocks/door",
   "directional_textures": true,
   "textures": {
-    "side_top": "stone",
+    "side_top": "door/willow_door_top",
+    "side_bottom": "door/willow_door_bottom",
     "all": "planks/willow"
   }
 }

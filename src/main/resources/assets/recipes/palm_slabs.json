@@ -1,13 +1,10 @@
-{
-  "type": "shaped",
-  "pattern": [
-    "AAA"
-  ],
-  "keys": {
-    "A": "engine:palm_planks"
-  },
-  "result": {
-    "item": "engine:palm_slabs",
-    "count": 6
-  }
+﻿{
+    "ingredients":  [
+                        "engine:palm_planks"
+                    ],
+    "result":  {
+                   "count":  2,
+                   "item":  "engine:palm_slabs"
+               },
+    "type":  "shapeless"
 }

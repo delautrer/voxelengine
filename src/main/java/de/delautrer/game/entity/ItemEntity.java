@@ -96,7 +96,24 @@ public class ItemEntity extends Entity {
         }
         position.set(nextX, nextY, nextZ);
 
-        // 2. STACKING LOGIK
+        // Update light sampling for rendering
+        int lx = (int) Math.floor(nextX);
+        int ly = (int) Math.floor(nextY);
+        int lz = (int) Math.floor(nextZ);
+        Chunk lightChunk = cm.getChunkAtBlock(lx, ly, lz);
+        if (lightChunk != null) {
+            int lxLocal = Math.floorMod(lx, Chunk.SIZE);
+            int lzLocal = Math.floorMod(lz, Chunk.SIZE);
+            int rawSky = lightChunk.getSkyLightAt(lxLocal, ly, lzLocal, cm);
+            int rawBlock = lightChunk.getBlockLightAt(lxLocal, ly, lzLocal, cm);
+            // Convert to brightness using same curve as shader (pow(v, 1.8) done in shader, here just normalize)
+            float targetSky = rawSky / 15.0f;
+            float targetBlock = rawBlock / 15.0f;
+            // Smooth the transition to avoid flickering
+            skyLightBrightness   = skyLightBrightness   + (targetSky   - skyLightBrightness)   * 0.2f;
+            blockLightBrightness = blockLightBrightness + (targetBlock - blockLightBrightness) * 0.2f;
+        }
+
         stackCheckTimer += deltaTime;
         if (stackCheckTimer >= 0.2f && velocity.lengthSquared() < 0.1f) { // Nur checken, wenn wir relativ still liegen
             stackCheckTimer = 0.0f;

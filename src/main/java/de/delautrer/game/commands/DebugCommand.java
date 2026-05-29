@@ -15,7 +15,13 @@ import de.delautrer.Constants;
 import de.delautrer.game.blocks.state.BlockProperties.Axis;
 import de.delautrer.game.blocks.state.BlockProperties.Half;
 import de.delautrer.game.blocks.state.BlockState;
+import de.delautrer.game.blocks.state.Property;
+import de.delautrer.engine.physics.Raycaster;
+import de.delautrer.engine.input.InputManager;
 import org.joml.Vector2i;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
+import java.util.Map;
 
 public class DebugCommand implements ICommand {
     @Override
@@ -25,7 +31,7 @@ public class DebugCommand implements ICommand {
 
     @Override
     public String getUsage() {
-        return "/debug [blocks|trees|chunk|sound] - General world/chunk debug info or grids";
+        return "/debug [blocks|trees|chunk|sound|block] - General world/chunk debug info or grids";
     }
 
     @Override
@@ -50,9 +56,55 @@ public class DebugCommand implements ICommand {
             case "sound":
                 toggleSoundDebug(manager);
                 break;
+            case "block":
+                debugBlock(player, world, manager);
+                break;
             default:
                 manager.sendMessageInChat("Unknown debug subcommand: " + sub);
                 break;
+        }
+    }
+
+    private void debugBlock(LocalPlayer player, World world, CommandManager manager) {
+        Vector3d pos = player.getCamera().getPosition();
+        Vector3f camPos = new Vector3f((float)pos.x, (float)pos.y, (float)pos.z);
+        Vector3f camFront = player.getCamera().getFront();
+        
+        Raycaster.RaycastResult result = Raycaster.raycast(world, camPos, camFront, 10.0f);
+        
+        if (result == null) {
+            manager.sendMessageInChat("No block in range!");
+            return;
+        }
+
+        BlockState state = world.getBlockState(result.hitPos.x, result.hitPos.y, result.hitPos.z);
+        Block block = state.getBlock();
+        String blockName = BlockRegistry.REGISTRY.getKey(block).toString();
+        
+        manager.sendMessageInChat("--- Block Analysis ---");
+        manager.sendMessageInChat("Type: " + blockName + " (" + block.getId() + ")");
+        manager.sendMessageInChat("Pos: " + result.hitPos.x + ", " + result.hitPos.y + ", " + result.hitPos.z);
+        
+        StringBuilder sb = new StringBuilder();
+        sb.append("Block: ").append(blockName).append("\n");
+        sb.append("Pos: ").append(result.hitPos.x).append(", ").append(result.hitPos.y).append(", ").append(result.hitPos.z).append("\n");
+        sb.append("States:\n");
+
+        Map<Property<?>, Comparable<?>> props = state.getProperties();
+        if (props.isEmpty()) {
+            manager.sendMessageInChat("No states available.");
+            sb.append("- none");
+        } else {
+            for (Map.Entry<Property<?>, Comparable<?>> entry : props.entrySet()) {
+                String line = entry.getKey().getName() + ": " + entry.getValue().toString();
+                manager.sendMessageInChat("- " + line);
+                sb.append("- ").append(line).append("\n");
+            }
+        }
+
+        if (InputManager.INSTANCE != null) {
+            InputManager.INSTANCE.setClipboardString(sb.toString());
+            manager.sendMessageInChat("Block info copied to clipboard!");
         }
     }
 
@@ -231,7 +283,7 @@ public class DebugCommand implements ICommand {
         String current = args[args.length - 1].toLowerCase();
 
         if (args.length == 1) {
-            String[] subs = {"blocks", "trees", "chunk", "sound"};
+            String[] subs = {"blocks", "trees", "chunk", "sound", "block"};
             for (String s : subs) if (s.startsWith(current)) completions.add(s);
         } else if (args.length == 2 && args[0].equalsIgnoreCase("trees")) {
             String[] types = {"oak", "birch", "pine", "willow", "baobab", "mahogany", "palm", "tall_oak", "tall_birch", "tall_pine"};

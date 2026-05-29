@@ -17,6 +17,11 @@ public abstract class Entity {
     public Vector3d position;
     public Vector3f velocity;
 
+    /** Smoothed sky-light brightness at this entity's position (0.0 - 1.0) */
+    public float skyLightBrightness = 1.0f;
+    /** Smoothed block-light brightness at this entity's position (0.0 - 1.0) */
+    public float blockLightBrightness = 0.0f;
+
     protected float width = 0.3f;
     protected float height = 1.8f;
 

@@ -338,10 +338,10 @@ public class LocalPlayer extends Player {
                 velocity.z = moveDir.z;
 
                 velocity.y = 0;
-                if (input.isActionActive("JUMP"))
-                    velocity.y = currentSpeed;
-                if (input.isActionActive("SNEAK"))
-                    velocity.y = -currentSpeed;
+                boolean jump = input.isActionActive("JUMP");
+                boolean sneak = input.isActionActive("SNEAK");
+                if (jump && !sneak) velocity.y = currentSpeed;
+                else if (sneak && !jump) velocity.y = -currentSpeed;
 
             } else {
                 if (input.isActionActive("MOVE_FORWARD"))
@@ -390,7 +390,7 @@ public class LocalPlayer extends Player {
                 } else if (onGround && input.isActionActive("JUMP")) {
                     velocity.y = jumpForce;
                     onGround = false;
-                    playMovementSound(chunkManager, "jump_start", 0.4f, "Player");
+                    playMovementSound(chunkManager, "jump_start", 0.4f, 0.8f, 1.2f, "Player");
                 }
             }
         } else {
@@ -430,12 +430,12 @@ public class LocalPlayer extends Player {
         double deltaY = position.y - prevY;
 
         if (!wasInWater && isInWater && !onGround) {
-            playMovementSound(chunkManager, "jump_land", 0.3f, "Player");
+            playMovementSound(chunkManager, "jump_land", 0.3f, 0.8f, 1.2f, "Player");
             fallDistance = 0.0f;
         }
 
         if (!wasOnGround && onGround && !isInWater) {
-            playMovementSound(chunkManager, "jump_land", 0.3f, "Player");
+            playMovementSound(chunkManager, "jump_land", 0.3f, 0.8f, 1.2f, "Player");
 
             if (fallDistance > 3.0f && gameMode == GameMode.SURVIVAL) {
                 float dmg = (float) Math.floor(fallDistance - 3.0f);
@@ -477,7 +477,7 @@ public class LocalPlayer extends Player {
 
                 String action = isSprinting ? "run" : "walk";
 
-                playMovementSound(chunkManager, action, 0.3f, "Player");
+                playMovementSound(chunkManager, action, 0.3f, 0.8f, 1.2f, "Player");
             }
         } else {
             distanceWalked = 0.0f;
@@ -650,7 +650,7 @@ public class LocalPlayer extends Player {
         return new Vector3d(position.x, position.y + (this.height * 0.9f), position.z);
     }
 
-    private void playMovementSound(ChunkManager chunkManager, String action, float volume, String source) {
+    private void playMovementSound(ChunkManager chunkManager, String action, float volume, float minPitch, float maxPitch, String source) {
         int bx = (int) Math.floor(position.x);
         int byFeet = (int) Math.floor(position.y + 0.1f);
         int bz = (int) Math.floor(position.z);
@@ -660,7 +660,7 @@ public class LocalPlayer extends Player {
 
         if (blockInsideId != 0 && (!blockInside.isSolid
                 || blockInside == Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "water"))) {
-            SoundManager.playEvent(blockInside.getSoundMaterialName(), action, volume, source);
+            SoundManager.playEvent(blockInside.getSoundMaterialName(), action, volume, minPitch, maxPitch, source);
             return;
         }
 
@@ -669,7 +669,7 @@ public class LocalPlayer extends Player {
 
         if (groundBlockId != 0) {
             Block groundBlock = BlockRegistry.get(groundBlockId);
-            SoundManager.playEvent(groundBlock.getSoundMaterialName(), action, volume, source);
+            SoundManager.playEvent(groundBlock.getSoundMaterialName(), action, volume, minPitch, maxPitch, source);
         }
     }
 }

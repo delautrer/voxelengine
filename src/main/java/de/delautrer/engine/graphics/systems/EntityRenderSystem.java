@@ -67,6 +67,10 @@ public class EntityRenderSystem implements IRenderSystem {
                 float phaseOffset = itemEntity.renderPhase * 0.5f; // 4 Phasen à 10 Ticks (0.5s)
                 float hoverY = (float) Math.sin((t + phaseOffset) * Math.PI) * 0.1f + 0.15f;
 
+                // Lighting from world
+                float sl = itemEntity.skyLightBrightness;
+                float bl = itemEntity.blockLightBrightness;
+
                 for (int v = 0; v < visualCount; v++) {
                     float pileOffsetX = v * 0.04f;
                     float pileOffsetY = v * 0.04f;
@@ -81,13 +85,13 @@ public class EntityRenderSystem implements IRenderSystem {
                     if (itemType instanceof BlockItem blockItem && blockItem.getBlock() instanceof CubeBlock cubeBlock
                             && !(cubeBlock instanceof TorchBlock)) {
                         modelMat.scale(0.25f);
-                        build3DBlock(blockVerts, blockInds, blockOffset, modelMat, cubeBlock);
+                        build3DBlock(blockVerts, blockInds, blockOffset, modelMat, cubeBlock, sl, bl);
                         blockOffset = blockVerts.size() / 12;
                     } else {
                         AtlasRegion reg = itemType.getIconRegion();
                         if (reg != null) {
                             modelMat.scale(0.5f);
-                            buildThickItem(itemVerts, itemInds, itemOffset, modelMat, reg);
+                            buildThickItem(itemVerts, itemInds, itemOffset, modelMat, reg, sl, bl);
                             itemOffset = itemVerts.size() / 12;
                         }
                     }
@@ -97,14 +101,11 @@ public class EntityRenderSystem implements IRenderSystem {
                 if (block instanceof CubeBlock cubeBlock) {
                     Matrix4f modelMat = new Matrix4f()
                             .translate((float) (e.position.x - packet.cameraPos.x),
-                                    (float) (e.position.y - packet.cameraPos.y + 0.5f), // Offset because build3DBlock centers it?
+                                    (float) (e.position.y - packet.cameraPos.y + 0.5f),
                                     (float) (e.position.z - packet.cameraPos.z));
-                    
-                    // Note: build3DBlock in this class seems to subtract 0.5 from coords (lines 215-220)
-                    // so it expects the matrix to be at the CENTER of the block.
-                    // FallingBlockEntity position is usually the bottom-center.
-                    
-                    build3DBlock(blockVerts, blockInds, blockOffset, modelMat, cubeBlock);
+                    float sl = e.skyLightBrightness;
+                    float bl = e.blockLightBrightness;
+                    build3DBlock(blockVerts, blockInds, blockOffset, modelMat, cubeBlock, sl, bl);
                     blockOffset = blockVerts.size() / 12;
                 }
             }
@@ -168,7 +169,7 @@ public class EntityRenderSystem implements IRenderSystem {
     }
 
     private void buildThickItem(List<Float> verts, List<Integer> inds, int offset, Matrix4f transform,
-            AtlasRegion reg) {
+            AtlasRegion reg, float sl, float bl) {
         float thickness = 0.03f;
         Vector3f[] posUp = {
                 new Vector3f(-0.5f, thickness, -0.5f), new Vector3f(0.5f, thickness, -0.5f),
@@ -184,14 +185,14 @@ public class EntityRenderSystem implements IRenderSystem {
 
         for (int i = 0; i < 4; i++) {
             Vector3f p = new Vector3f(posUp[i]).mulPosition(transform);
-            addVertex(verts, p.x, p.y, p.z, 1.0f, 1.0f, 1.0f, 1.0f, u[i], v[i], reg.layer, 1.0f, 0.0f);
+            addVertex(verts, p.x, p.y, p.z, 1.0f, 1.0f, 1.0f, 1.0f, u[i], v[i], reg.layer, sl, bl);
         }
         addIndices(inds, offset);
         offset += 4;
 
         for (int i = 0; i < 4; i++) {
             Vector3f p = new Vector3f(posDown[i]).mulPosition(transform);
-            addVertex(verts, p.x, p.y, p.z, 0.6f, 0.6f, 0.6f, 1.0f, u[i], v[i], reg.layer, 1.0f, 0.0f);
+            addVertex(verts, p.x, p.y, p.z, 0.6f, 0.6f, 0.6f, 1.0f, u[i], v[i], reg.layer, sl, bl);
         }
         addIndices(inds, offset);
         offset += 4;
@@ -206,14 +207,14 @@ public class EntityRenderSystem implements IRenderSystem {
         for (int e = 0; e < 4; e++) {
             for (int i = 0; i < 4; i++) {
                 Vector3f p = new Vector3f(edges[e][i]).mulPosition(transform);
-                addVertex(verts, p.x, p.y, p.z, 0.3f, 0.3f, 0.3f, 1.0f, reg.u0, reg.v0, reg.layer, 1.0f, 0.0f);
+                addVertex(verts, p.x, p.y, p.z, 0.3f, 0.3f, 0.3f, 1.0f, reg.u0, reg.v0, reg.layer, sl, bl);
             }
             addIndices(inds, offset);
             offset += 4;
         }
     }
 
-    private void build3DBlock(List<Float> verts, List<Integer> inds, int offset, Matrix4f transform, CubeBlock block) {
+    private void build3DBlock(List<Float> verts, List<Integer> inds, int offset, Matrix4f transform, CubeBlock block, float sl, float bl) {
         BlockFace[] faces = { BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST, BlockFace.UP,
                 BlockFace.DOWN };
         float[] shades = { 0.8f, 0.8f, 0.65f, 0.65f, 1.0f, 0.4f };
@@ -292,7 +293,7 @@ public class EntityRenderSystem implements IRenderSystem {
                     Vector3f tv = new Vector3f(p[j]).mulPosition(transform);
                     float finalU = reg.u0 + (u[j] * (reg.u1 - reg.u0));
                     float finalV = reg.v0 + (v[j] * (reg.v1 - reg.v0));
-                    addVertex(verts, tv.x, tv.y, tv.z, s, s, s, 1.0f, finalU, finalV, reg.layer, 1.0f, 0.0f);
+                    addVertex(verts, tv.x, tv.y, tv.z, s, s, s, 1.0f, finalU, finalV, reg.layer, sl, bl);
                 }
                 addIndices(inds, offset);
                 offset += 4;

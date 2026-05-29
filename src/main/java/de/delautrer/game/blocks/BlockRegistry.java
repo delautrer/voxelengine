@@ -93,9 +93,9 @@ public class BlockRegistry {
             case "cube":
                 return new CubeBlock(def.isSolid, def.isTransparent);
             case "slab":
-                return new SlabBlock(def.isSolid, def.isTransparent);
+                return new SlabBlock(def.isSolid, true);
             case "stair":
-                return new StairBlock(def.isSolid, def.isTransparent);
+                return new StairBlock(def.isSolid, true);
             case "plant":
                 return new PlantBlock();
             case "water":

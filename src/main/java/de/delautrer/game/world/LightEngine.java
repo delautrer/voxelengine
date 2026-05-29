@@ -171,9 +171,12 @@ public class LightEngine {
                 int opacity = getOpacity(adjX, adjY, adjZ);
                 if (opacity < 15) {
                     int neighborLight = getSkyLight(adjX, adjY, adjZ);
-                    int attenuation = Math.max(1, opacity);
-                    if (neighborLight + attenuation + 1 <= currentLight) {
-                        setSkyLight(adjX, adjY, adjZ, currentLight - attenuation);
+                    // Sky light propagates downward without loss (like Minecraft)
+                    // dir[1] == -1 means going down
+                    int attenuation = (dir[1] == -1 && opacity == 0) ? 0 : Math.max(1, opacity);
+                    int needed = currentLight - attenuation;
+                    if (neighborLight < needed) {
+                        setSkyLight(adjX, adjY, adjZ, needed);
                         skyLightQueue.add(pack(adjX, adjY, adjZ, 0));
                     }
                 }

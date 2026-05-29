@@ -22,6 +22,10 @@ import de.delautrer.game.registry.Registries;
 public class WaterBlock extends Block {
 
     private static final int[][] DIRS = { { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } };
+    private static final int[][] ALL_DIRS = {
+            {1, 0}, {-1, 0}, {0, 1}, {0, -1}, // Kardinal
+            {1, 1}, {1, -1}, {-1, 1}, {-1, -1} // Diagonal
+    };
 
     public static final IntProperty LEVEL = IntProperty.create("level", 0, 8);
 
@@ -245,9 +249,9 @@ public class WaterBlock extends Block {
         }
 
         Vector3f flow = new Vector3f(0, 0, 0);
-        for (int i = 0; i < 4; i++) {
-            int nx = x + DIRS[i][0];
-            int nz = z + DIRS[i][1];
+        for (int i = 0; i < ALL_DIRS.length; i++) {
+            int nx = x + ALL_DIRS[i][0];
+            int nz = z + ALL_DIRS[i][1];
             BlockState nState = world.getBlockState(nx, y, nz);
             
             int nLevel = -1;
@@ -257,10 +261,13 @@ public class WaterBlock extends Block {
                 continue;
             }
 
+            // Wir berechnen den Gradienten: Wasser fließt von HOCH nach NIEDRIG
             if (nLevel < level) {
-                flow.add(-DIRS[i][0], 0, -DIRS[i][1]);
+                // Wenn Nachbar niedriger -> fließe dorthin
+                flow.add(ALL_DIRS[i][0], 0, ALL_DIRS[i][1]);
             } else if (nLevel > level) {
-                flow.add(DIRS[i][0], 0, DIRS[i][1]);
+                // Wenn Nachbar höher -> fließe weg von ihm
+                flow.add(-ALL_DIRS[i][0], 0, -ALL_DIRS[i][1]);
             }
         }
         

@@ -137,7 +137,9 @@ public class MasterRenderer {
         packet.cloudMesh = this.cloudMesh;
         packet.cloudOffset = world.getCloudSystem().getRenderOffset(
                 (float) camera.getPosition().x,
+                (float) camera.getPosition().y,
                 (float) camera.getPosition().z);
+        packet.cloudGridSize = world.getCloudSystem().getTotalSize();
         packet.starMesh = this.starMesh;
         packet.starAlpha = skyManager.getStarAlpha();
         packet.timeOfDay = skyManager.getTimeOfDay();
@@ -226,13 +228,7 @@ public class MasterRenderer {
             packet.mvp = mvpCameraRelative;
         }
 
-        // Der Draw-Call wird ausgeführt...
-        boolean success = renderer.render(packet);
-
-        // ... und wir räumen NICHTS mehr auf! Das Cleanup am Ende des Frames entfällt
-        // komplett,
-        // da sich die Meshes im nächsten Frame von selbst überschreiben.
-        return success;
+        return renderer.render(packet);
     }
 
     // --- NEU: Diese Methode baut keine neuen Meshes mehr, sondern updatet unser

@@ -2,7 +2,8 @@
   "parent": "blocks/door",
   "directional_textures": true,
   "textures": {
-    "side_top": "stone",
-    "all": "wood_plank"
+    "side_top": "door/oak_door_top",
+    "side_bottom": "door/oak_door_bottom",
+    "all": "planks/oak"
   }
 }

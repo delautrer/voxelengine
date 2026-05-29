@@ -1,15 +1,14 @@
-{
-  "type": "shaped",
-  "pattern": [
-    "AAA",
-    "A A",
-    "AAA"
-  ],
-  "keys": {
-    "A": "engine:willow_planks"
-  },
-  "result": {
-    "item": "engine:willow_chest",
-    "count": 1
-  }
+﻿{
+    "pattern":  [
+                    "AA",
+                    "AA"
+                ],
+    "keys":  {
+                 "A":  "engine:willow_planks"
+             },
+    "type":  "shaped",
+    "result":  {
+                   "count":  1,
+                   "item":  "engine:willow_chest"
+               }
 }

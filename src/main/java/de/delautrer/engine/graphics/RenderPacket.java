@@ -23,6 +23,7 @@ public class RenderPacket {
 
     public IMesh cloudMesh;
     public Vector3f cloudOffset;
+    public float cloudGridSize;
     public Vector3f sunDirection;
     public IMesh celestialMesh;
     public IMesh starMesh;

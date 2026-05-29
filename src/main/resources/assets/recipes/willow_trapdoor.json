@@ -1,14 +1,13 @@
-{
-  "type": "shaped",
-  "pattern": [
-    "AAA",
-    "AAA"
-  ],
-  "keys": {
-    "A": "engine:willow_planks"
-  },
-  "result": {
-    "item": "engine:willow_trapdoor",
-    "count": 2
-  }
+﻿{
+    "pattern":  [
+                    "AA"
+                ],
+    "keys":  {
+                 "A":  "engine:willow_planks"
+             },
+    "type":  "shaped",
+    "result":  {
+                   "count":  2,
+                   "item":  "engine:willow_trapdoor"
+               }
 }

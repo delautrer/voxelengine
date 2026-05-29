@@ -219,10 +219,10 @@ public class Chunk {
             int opacity = state.getBlock().getOpacity(state);
 
             if (opacity > 0) {
-                // Sonnenlicht wird senkrecht nach unten gedämpft.
-                // Wasser/Blätter etc. ziehen den Wert ab.
+                // Opaque or semi-transparent block: attenuate
                 currentLight = Math.max(0, currentLight - Math.max(1, opacity));
             }
+            // opacity == 0 (air/transparent): no loss, currentLight stays the same
 
             if (currentLight != oldLight) {
                 setSkyLight(x, y, z, currentLight);

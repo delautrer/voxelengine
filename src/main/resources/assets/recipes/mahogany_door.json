@@ -1,15 +1,14 @@
-{
-  "type": "shaped",
-  "pattern": [
-    "AA",
-    "AA",
-    "AA"
-  ],
-  "keys": {
-    "A": "engine:mahogany_planks"
-  },
-  "result": {
-    "item": "engine:mahogany_door",
-    "count": 3
-  }
+﻿{
+    "pattern":  [
+                    "A",
+                    "A"
+                ],
+    "keys":  {
+                 "A":  "engine:mahogany_slabs"
+             },
+    "type":  "shaped",
+    "result":  {
+                   "count":  3,
+                   "item":  "engine:mahogany_door"
+               }
 }

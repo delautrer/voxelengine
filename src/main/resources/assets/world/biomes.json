@@ -50,7 +50,7 @@
     "topBlock": "grass_block", "underBlock": "dirt", "underwaterBlock": "sand", "shoreBlock": "grass_block", "deepBlock": "stone",
     "baseHeight": 0.0, "heightVariation": 10.0,
     "floraProbability": 0.25, "flora": {"grass": 200, "poppy": 15, "purple_tulip": 5},
-    "treeProbability": 0.002, "trees": {"alpha_birch": 1}
+    "treeProbability": 0.015, "trees": {"alpha_birch": 1}
   },
   {
     "id": "FLOWER_PLAINS",
@@ -59,7 +59,7 @@
     "baseHeight": 0.0, "heightVariation": 10.0,
     "floraProbability": 0.55, "floraPatchThreshold": -0.5, "floraDensity": 0.9,
     "flora": {"grass": 300, "dotty": 40, "red_tulip": 40, "purple_tulip": 40, "poppy": 25, "dandelion": 25, "fairy_bell": 10},
-    "treeProbability": 0.001, "trees": {"alpha_oak": 1}
+    "treeProbability": 0.000, "trees": {"alpha_oak": 1}
   },
   {
     "id": "BIRCH_FOREST",

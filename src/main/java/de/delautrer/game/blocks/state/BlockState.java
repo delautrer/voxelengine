@@ -26,6 +26,7 @@ public class BlockState {
 
     public Block getBlock() { return block; }
     public byte getStateId() { return stateId; }
+    public Map<Property<?>, Comparable<?>> getProperties() { return properties; }
 
     // Holt den Wert einer Eigenschaft, z.B.: int level = state.getValue(WaterBlock.LEVEL);
     @SuppressWarnings("unchecked")

@@ -19,6 +19,10 @@ public class CloudSystem {
         offsetX -= SPEED * deltaTime;
     }
 
+    public float getTotalSize() {
+        return MAP_SIZE * CLOUD_SCALE;
+    }
+
     public MeshData generateCloudMesh(long seed, float texLayer, Weather weather) {
         NoiseGenerator noise = new NoiseGenerator(seed * 777L);
         List<Float> verticesList = new ArrayList<>();
@@ -52,10 +56,10 @@ public class CloudSystem {
 
                     boolean drawTop = (cy == height - 1);
                     boolean drawBottom = (cy == 0);
-                    boolean drawLeft = (x == 0 || cloudMap[x - 1][z] <= cy);
-                    boolean drawRight = (x == MAP_SIZE - 1 || cloudMap[x + 1][z] <= cy);
-                    boolean drawFront = (z == MAP_SIZE - 1 || cloudMap[x][z + 1] <= cy);
-                    boolean drawBack = (z == 0 || cloudMap[x][z - 1] <= cy);
+                    boolean drawLeft = (cloudMap[(x - 1 + MAP_SIZE) % MAP_SIZE][z] <= cy);
+                    boolean drawRight = (cloudMap[(x + 1) % MAP_SIZE][z] <= cy);
+                    boolean drawFront = (cloudMap[x][(z + 1) % MAP_SIZE] <= cy);
+                    boolean drawBack = (cloudMap[x][(z - 1 + MAP_SIZE) % MAP_SIZE] <= cy);
 
                     if (drawTop) {
                         float ao0 = calcAO(x, cy + 1, z, -1, 0, -1, -1, 0, 0, 0, 0, -1, cloudMap);
@@ -220,12 +224,16 @@ public class CloudSystem {
         return offset + 4;
     }
 
-    public org.joml.Vector3f getRenderOffset(float playerX, float playerZ) {
+    public org.joml.Vector3f getRenderOffset(float cameraX, float cameraY, float cameraZ) {
         float totalSize = MAP_SIZE * CLOUD_SCALE;
-        float nX = Math.round((playerX - offsetX) / totalSize);
+        float nX = Math.round((cameraX - offsetX) / totalSize);
         float renderX = offsetX + (nX * totalSize) - (totalSize / 2f);
-        float nZ = Math.round(playerZ / totalSize);
+        float nZ = Math.round(cameraZ / totalSize);
         float renderZ = (nZ * totalSize) - (totalSize / 2f);
-        return new org.joml.Vector3f(renderX, 0, renderZ);
+
+        // Wir geben den Offset RELATIV zur Kamera zurück.
+        // Da die Wolken-Y-Koordinaten bereits im Mesh (ab CLOUD_HEIGHT) stecken,
+        // verschieben wir sie nur noch um -cameraY.
+        return new org.joml.Vector3f(renderX - cameraX, -cameraY, renderZ - cameraZ);
     }
 }

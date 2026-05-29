@@ -260,6 +260,46 @@ public class DoorBlock extends CubeBlock implements IInteractable {
     public void generateMesh(int x, int y, int z, Chunk chunk, ChunkManager cm) {
         BlockState state = chunk.getBlockState(x, y, z);
         AABB b = getBoundingBoxes(state).get(0);
-        renderBox(state, x, y, z, b.min.x, b.min.y, b.min.z, b.max.x, b.max.y, b.max.z, true, true, true, true, true, true, false, chunk, cm);
+        
+        Direction facing = state.getValue(FACING);
+        boolean open = state.getValue(OPEN);
+        boolean hingeLeft = state.getValue(HINGE) == DoorHinge.LEFT;
+        
+        boolean mirN = false, mirS = false, mirE = false, mirW = false;
+
+        if (!open) {
+            if (facing == Direction.NORTH) {
+                mirS = !hingeLeft; mirN = hingeLeft;
+            } else if (facing == Direction.SOUTH) {
+                mirS = hingeLeft; mirN = !hingeLeft;
+            } else if (facing == Direction.WEST) {
+                mirE = !hingeLeft; mirW = hingeLeft;
+            } else if (facing == Direction.EAST) {
+                mirE = hingeLeft; mirW = !hingeLeft;
+            }
+        } else {
+            if (facing == Direction.NORTH) {
+                mirE = hingeLeft; mirW = !hingeLeft;
+            } else if (facing == Direction.SOUTH) {
+                mirE = !hingeLeft; mirW = hingeLeft;
+            } else if (facing == Direction.WEST) {
+                mirS = !hingeLeft; mirN = hingeLeft;
+            } else if (facing == Direction.EAST) {
+                mirS = hingeLeft; mirN = !hingeLeft;
+            }
+        }
+
+        // If the hinge is on the right side, flip/invert all horizontal mirror settings
+        if (!hingeLeft && open) {
+            mirN = !mirN;
+            mirS = !mirS;
+            mirE = !mirE;
+            mirW = !mirW;
+        }
+
+        renderBox(state, x, y, z, b.min.x, b.min.y, b.min.z, b.max.x, b.max.y, b.max.z, 
+                true, true, true, true, true, true, false, chunk, cm, 
+                0, 0, 0, 0, 0, 0, 
+                false, false, mirN, mirS, mirE, mirW);
     }
 }

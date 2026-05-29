@@ -55,9 +55,28 @@ dependencies {
     // --- Math ---
     implementation "org.joml:joml:1.10.5"
 
-    // --- JSON ---
     implementation 'com.google.code.gson:gson:2.13.2'
 }
+
+task compileShaders {
+    group = 'build'
+    description = 'Compiles all GLSL shaders in src/main/resources/shaders to SPIR-V'
+
+    doLast {
+        def shaderDir = file("src/main/resources/shaders")
+        if (shaderDir.exists()) {
+            shaderDir.eachFileMatch(~/.*(\.vert|\.frag)/) { shaderFile ->
+                def outputFile = file("${shaderFile.absolutePath}.spv")
+                println "Compiling ${shaderFile.name} -> ${outputFile.name}"
+                exec {
+                    commandLine 'glslc', shaderFile.absolutePath, '-o', outputFile.absolutePath
+                }
+            }
+        }
+    }
+}
+
+processResources.dependsOn compileShaders
 
 shadowJar {
     archiveBaseName.set('VoxelEngine-Raw')

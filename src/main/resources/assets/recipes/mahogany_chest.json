@@ -1,15 +1,14 @@
-{
-  "type": "shaped",
-  "pattern": [
-    "AAA",
-    "A A",
-    "AAA"
-  ],
-  "keys": {
-    "A": "engine:mahogany_planks"
-  },
-  "result": {
-    "item": "engine:mahogany_chest",
-    "count": 1
-  }
+﻿{
+    "pattern":  [
+                    "AA",
+                    "AA"
+                ],
+    "keys":  {
+                 "A":  "engine:mahogany_planks"
+             },
+    "type":  "shaped",
+    "result":  {
+                   "count":  1,
+                   "item":  "engine:mahogany_chest"
+               }
 }

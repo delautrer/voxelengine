@@ -30,6 +30,17 @@ public class PlantBlock extends Block {
         if (reg == null)
             return;
 
+        // Deterministic offset based on coordinates
+        long seed = ((long) x * 3129871) ^ ((long) z * 116129781L) ^ ((long) y);
+        seed = seed * seed * 42317861L + seed * 11L;
+        float offX = (((float) (seed >> 16 & 15L) / 15.0f) - 0.5f) * 0.5f;
+        float offZ = (((float) (seed >> 24 & 15L) / 15.0f) - 0.5f) * 0.5f;
+
+        float x0 = x + offX;
+        float x1 = x + 1 + offX;
+        float z0 = z + offZ;
+        float z1 = z + 1 + offZ;
+
         float light = 1.0f;
         float sl = chunk.getSmoothSkyLight(x, y, z, 0, 0, 0, 0, 0, 0, cm);
         float bl = chunk.getSmoothBlockLight(x, y, z, 0, 0, 0, 0, 0, 0, cm);
@@ -37,18 +48,18 @@ public class PlantBlock extends Block {
         float blBottom = bl * 0.67f;
 
         // --- ERSTES KREUZ ---
-        chunk.addFace(x, y, z, 1.0f, x + 1, y, z + 1, 1.0f, x + 1, y + 1, z + 1, 1.0f, x, y + 1, z, 1.0f,
+        chunk.addFace(x0, y, z0, 1.0f, x1, y, z1, 1.0f, x1, y + 1, z1, 1.0f, x0, y + 1, z0, 1.0f,
                 reg.u0, reg.v0, reg.u1, reg.v1, reg.layer, light, this, slBottom, slBottom, sl, sl, blBottom, blBottom,
                 bl, bl);
-        chunk.addFace(x + 1, y, z + 1, 1.0f, x, y, z, 1.0f, x, y + 1, z, 1.0f, x + 1, y + 1, z + 1, 1.0f,
+        chunk.addFace(x1, y, z1, 1.0f, x0, y, z0, 1.0f, x0, y + 1, z0, 1.0f, x1, y + 1, z1, 1.0f,
                 reg.u0, reg.v0, reg.u1, reg.v1, reg.layer, light, this, slBottom, slBottom, sl, sl, blBottom, blBottom,
                 bl, bl);
 
         // --- ZWEITES KREUZ ---
-        chunk.addFace(x + 1, y, z, 1.0f, x, y, z + 1, 1.0f, x, y + 1, z + 1, 1.0f, x + 1, y + 1, z, 1.0f,
+        chunk.addFace(x1, y, z0, 1.0f, x0, y, z1, 1.0f, x0, y + 1, z1, 1.0f, x1, y + 1, z0, 1.0f,
                 reg.u0, reg.v0, reg.u1, reg.v1, reg.layer, light, this, slBottom, slBottom, sl, sl, blBottom, blBottom,
                 bl, bl);
-        chunk.addFace(x, y, z + 1, 1.0f, x + 1, y, z, 1.0f, x + 1, y + 1, z, 1.0f, x, y + 1, z + 1, 1.0f,
+        chunk.addFace(x0, y, z1, 1.0f, x1, y, z0, 1.0f, x1, y + 1, z0, 1.0f, x0, y + 1, z1, 1.0f,
                 reg.u0, reg.v0, reg.u1, reg.v1, reg.layer, light, this, slBottom, slBottom, sl, sl, blBottom, blBottom,
                 bl, bl);
     }

@@ -1,15 +1,14 @@
-{
-  "type": "shaped",
-  "pattern": [
-    "AA",
-    "AA",
-    "AA"
-  ],
-  "keys": {
-    "A": "engine:birch_planks"
-  },
-  "result": {
-    "item": "engine:birch_door",
-    "count": 3
-  }
+﻿{
+    "pattern":  [
+                    "A",
+                    "A"
+                ],
+    "keys":  {
+                 "A":  "engine:birch_slabs"
+             },
+    "type":  "shaped",
+    "result":  {
+                   "count":  3,
+                   "item":  "engine:birch_door"
+               }
 }

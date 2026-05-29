@@ -1,14 +1,14 @@
-{
-  "type": "shaped",
-  "pattern": [
-    "AA",
-    "BB"
-  ],
-  "keys": {
-    "A": "engine:oak_slabs",
-    "B": "engine:oak_stairs"
-  },
-  "result": {
-    "item": "engine:oak_chest"
-  }
+﻿{
+    "pattern":  [
+                    "AA",
+                    "AA"
+                ],
+    "keys":  {
+                 "A":  "engine:oak_planks"
+             },
+    "type":  "shaped",
+    "result":  {
+                   "count":  1,
+                   "item":  "engine:oak_chest"
+               }
 }

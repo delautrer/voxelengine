@@ -30,33 +30,41 @@ public class CloudRenderSystem implements IRenderSystem {
             VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayout(), 0,
                     stack.longs(((VulkanTextureArray) packet.worldTexture).getDescriptorSet()), null);
 
-            Matrix4f modelMatrix = new Matrix4f().translate(packet.cloudOffset);
-            Matrix4f finalMvp = new Matrix4f(packet.mvp).mul(modelMatrix);
-
-            // NEU: 26 Floats
+            // Wir nutzen packet.mvp direkt, da der Offset im Shader addiert wird.
             FloatBuffer mvpBuffer = stack.mallocFloat(28);
-            finalMvp.get(mvpBuffer);
+            packet.mvp.get(mvpBuffer);
             mvpBuffer.put(16, packet.globalLight);
             mvpBuffer.put(17, packet.renderDistance);
             mvpBuffer.put(18, 0.0f);
             mvpBuffer.put(19, (float) packet.cameraPos.x);
             mvpBuffer.put(20, (float) packet.cameraPos.y);
             mvpBuffer.put(21, (float) packet.cameraPos.z);
-            mvpBuffer.put(22, packet.cloudOffset.x);
             mvpBuffer.put(23, packet.cloudOffset.y);
-            mvpBuffer.put(24, packet.cloudOffset.z);
             mvpBuffer.put(25, 1.0f);
             mvpBuffer.put(26, 0.0f);
             mvpBuffer.put(27, -999.0f);
-
-            VK10.vkCmdPushConstants(cmd, pipeline.getPipelineLayout(),
-                    VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, mvpBuffer);
 
             VK10.vkCmdBindVertexBuffers(cmd, 0, stack.longs(((VulkanMesh) packet.cloudMesh).getVertexBuffer()),
                     stack.longs(0));
             VK10.vkCmdBindIndexBuffer(cmd, ((VulkanMesh) packet.cloudMesh).getIndexBuffer(), 0,
                     VK10.VK_INDEX_TYPE_UINT32);
-            VK10.vkCmdDrawIndexed(cmd, ((VulkanMesh) packet.cloudMesh).getIndexCount(), 1, 0, 0, 0);
+
+            float gridSize = packet.cloudGridSize;
+
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    float offsetX = packet.cloudOffset.x + dx * gridSize;
+                    float offsetZ = packet.cloudOffset.z + dz * gridSize;
+
+                    mvpBuffer.put(22, offsetX);
+                    mvpBuffer.put(24, offsetZ);
+
+                    VK10.vkCmdPushConstants(cmd, pipeline.getPipelineLayout(),
+                            VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, mvpBuffer);
+
+                    VK10.vkCmdDrawIndexed(cmd, ((VulkanMesh) packet.cloudMesh).getIndexCount(), 1, 0, 0, 0);
+                }
+            }
         }
     }
 

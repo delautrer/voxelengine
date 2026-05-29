@@ -31,6 +31,8 @@ public class CommandManager implements EventListener<CommandExecutedEvent> {
         register(new WeatherCommand());
         register(new FindCommand());
         register(new TestBiomesCommand());
+        register(new GiveCommand());
+        register(new SetCommand());
     }
 
     public void register(ICommand command) {

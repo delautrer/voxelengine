@@ -1,0 +1,8 @@
+{
+  "parent": "block/cube_bottom_top",
+  "textures": {
+    "top": "dirt",
+    "bottom": "glass",
+    "side": "gravel"
+  }
+}

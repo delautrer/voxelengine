@@ -155,6 +155,14 @@ public class PlayScene extends Scene {
         debugOverlay.addLine("Chunk Pos", () -> String.format("%d / %d",
                 (int) Math.floor(localPlayer.position.x / Chunk.SIZE),
                 (int) Math.floor(localPlayer.position.z / Chunk.SIZE)));
+        
+        debugOverlay.addLine("Facing", () -> {
+            float yaw = (localPlayer.getCamera().getYaw() % 360 + 360) % 360;
+            if (yaw >= 45 && yaw < 135) return "SOUTH (Towards positive Z)";
+            if (yaw >= 135 && yaw < 225) return "WEST (Towards negative X)";
+            if (yaw >= 225 && yaw < 315) return "NORTH (Towards negative Z)";
+            return "EAST (Towards positive X)";
+        });
 
         debugOverlay.addLine("Biome", () -> {
             int px = (int) Math.floor(localPlayer.position.x);

@@ -1,13 +1,10 @@
-{
-  "type": "shaped",
-  "pattern": [
-    "AAA"
-  ],
-  "keys": {
-    "A": "engine:birch_planks"
-  },
-  "result": {
-    "item": "engine:birch_slabs",
-    "count": 6
-  }
+﻿{
+    "ingredients":  [
+                        "engine:birch_planks"
+                    ],
+    "result":  {
+                   "count":  2,
+                   "item":  "engine:birch_slabs"
+               },
+    "type":  "shapeless"
 }

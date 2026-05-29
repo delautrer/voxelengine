@@ -1,15 +1,14 @@
-{
-  "type": "shaped",
-  "pattern": [
-    "AA",
-    "AA",
-    "AA"
-  ],
-  "keys": {
-    "A": "engine:palm_planks"
-  },
-  "result": {
-    "item": "engine:palm_door",
-    "count": 3
-  }
+﻿{
+    "pattern":  [
+                    "A",
+                    "A"
+                ],
+    "keys":  {
+                 "A":  "engine:palm_slabs"
+             },
+    "type":  "shaped",
+    "result":  {
+                   "count":  3,
+                   "item":  "engine:palm_door"
+               }
 }

@@ -54,21 +54,35 @@ void main() {
         float fadeFactor = clamp((fragFogDist - fadeStart) / (fadeEnd - fadeStart), 0.0, 1.0);
         alpha *= (1.0 - fadeFactor);
     } else {
-        float skyCurve = pow(fragLight.x, 1.8) * pc.globalLight;
-        float blockCurve = pow(fragLight.y, 1.5);
+        // Sky light: gentle gamma curve (was 1.8, now 1.5 for less darkness in shade)
+        float skyCurve = pow(fragLight.x, 1.5) * pc.globalLight;
+        // Block light: slightly softer curve
+        float blockCurve = pow(fragLight.y, 1.4);
 
-        vec3 blockLightColor = vec3(1.0, 0.85, 0.7) * blockCurve;
-        vec3 dayColor = vec3(0.95, 0.92, 0.88);
-        vec3 nightColor = vec3(0.15, 0.20, 0.35);
+        // Warmer block light color (torches/glowstone feel)
+        vec3 blockLightColor = vec3(1.0, 0.82, 0.6) * blockCurve;
+
+        // Day/night sky color tint
+        vec3 dayColor   = vec3(0.95, 0.93, 0.90);
+        // Slightly warmer blue for night (moonlight) instead of pure dark
+        vec3 nightColor = vec3(0.18, 0.22, 0.40);
 
         vec3 skyLightColor = mix(nightColor, dayColor, pc.globalLight) * skyCurve;
         vec3 totalLight = max(skyLightColor, blockLightColor);
-        totalLight = max(totalLight, vec3(0.045));
+
+        // Soft ambient floor so pure-shadow areas aren't pitch black
+        totalLight = max(totalLight, vec3(0.03));
 
         finalColor = textureColor.rgb * fragColor.rgb * totalLight;
 
+        // Subtle contrast enhancement (much softer than before to avoid plastic look)
+        // Only apply a small portion of the smoothstep to preserve texture detail
         vec3 contrastColor = smoothstep(0.0, 1.0, finalColor);
-        finalColor = mix(finalColor, contrastColor, pc.globalLight * 0.4);
+        finalColor = mix(finalColor, contrastColor, pc.globalLight * 0.15);
+
+        // Subtle film-grain-like desaturation at night for mood
+        float luma = dot(finalColor, vec3(0.299, 0.587, 0.114));
+        finalColor = mix(vec3(luma), finalColor, 0.85 + pc.globalLight * 0.15);
 
         float fogEnd = pc.renderDistance;
         float fogStart = fogEnd * 0.75;
