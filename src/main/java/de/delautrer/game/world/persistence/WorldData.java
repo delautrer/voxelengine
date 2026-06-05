@@ -8,4 +8,11 @@ public class WorldData {
     public float timeOfDay;
     public Vector3f worldSpawnpoint;
     public String weather;
+    
+    // Metadata
+    public long creationDate;
+    public long lastOpenedDate;
+    public long lastSavedDate;
+    public String creationVersion;
+    public String lastOpenedVersion;
 }

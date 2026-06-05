@@ -42,6 +42,12 @@ public class World {
     private final long seed;
     private boolean isCleanedUp = false;
     private final String worldName;
+    
+    // Metadata
+    private long creationDate;
+    private long lastOpenedDate;
+    private String creationVersion;
+    private String lastOpenedVersion;
 
     @SuppressWarnings("unused")
     private final String worldSave;
@@ -64,6 +70,8 @@ public class World {
         this.skyManager = new SkyManager();
 
         WorldData wData = storageManager.loadLevelMetadata();
+        long now = System.currentTimeMillis();
+        
         if (wData != null) {
             this.seed = wData.seed;
             this.skyManager.setTimeOfDay(wData.timeOfDay);
@@ -75,6 +83,14 @@ public class World {
             } catch (Exception e) {
                 skyManager.setCurrentWeather(Weather.PARTLY_CLOUDY);
             }
+            
+            this.creationDate = wData.creationDate == 0 ? now : wData.creationDate;
+            this.creationVersion = wData.creationVersion == null ? Constants.VERSION : wData.creationVersion;
+            this.lastOpenedDate = now;
+            this.lastOpenedVersion = Constants.VERSION;
+            
+            // Save immediately to update lastOpened
+            saveWorldData();
         } else {
             this.seed = defaultSeed;
             Vector3f sp = WorldInitializer.findSpawnPoint(this.seed);
@@ -82,6 +98,12 @@ public class World {
                 this.worldSpawnpoint = new Vector3d(sp);
             skyManager.setCurrentWeather(Weather.PARTLY_CLOUDY);
             skyManager.forceWeather(skyManager.getCurrentWeather());
+            
+            this.creationDate = now;
+            this.creationVersion = Constants.VERSION;
+            this.lastOpenedDate = now;
+            this.lastOpenedVersion = Constants.VERSION;
+            
             saveWorldData();
         }
 
@@ -351,6 +373,13 @@ public class World {
                     (float) worldSpawnpoint.z);
         }
         wData.weather = skyManager.getCurrentWeather().name();
+        
+        wData.creationDate = this.creationDate;
+        wData.creationVersion = this.creationVersion;
+        wData.lastOpenedDate = this.lastOpenedDate;
+        wData.lastOpenedVersion = this.lastOpenedVersion;
+        wData.lastSavedDate = System.currentTimeMillis();
+        
         storageManager.saveLevelMetadata(wData);
     }
 

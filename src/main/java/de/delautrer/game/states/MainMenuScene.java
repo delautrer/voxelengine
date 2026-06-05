@@ -78,22 +78,43 @@ public class MainMenuScene extends Scene {
                 }
 
                 // ── Background ──────────────────────────────────────────
-                // Minimalist dark slate
-                builder.addRect(0, 0, 0.0f, width, height, 0.08f, 0.08f, 0.09f, 1.0f);
+                long time = System.currentTimeMillis();
+                
+                // Minimalist dark slate base
+                builder.addRect(0, 0, 0.0f, width, height, 0.06f, 0.06f, 0.08f, 1.0f);
 
-                // Subtle modern accent lines (synth-wave minimalist grid)
-                float gridSpacing = 40.0f;
-                int lines = (int)(height / gridSpacing);
-                for (int i = 0; i < lines; i++) {
-                    float yPos = i * gridSpacing;
-                    float intensity = 0.1f + 0.05f * (yPos / height);
-                    builder.addRect(0, yPos, 0.01f, width, 1.0f, intensity, intensity, intensity + 0.02f, 1.0f);
+                // Animated drifting particles (Cyber-dust)
+                for (int i = 0; i < 60; i++) {
+                    float xBase = (i * 137.5f) % width;
+                    float yBase = (i * 93.1f) % height;
+                    float speed = 30.0f + (i % 40);
+                    float xPos = (xBase + (time / speed)) % width;
+                    float yPos = (yBase - (time / (speed * 1.5f))) % height;
+                    if (yPos < 0) yPos += height;
+                    
+                    float size = 2.0f + (i % 5);
+                    float alpha = 0.1f + 0.4f * (float)Math.sin((time + i * 1000) / 600.0);
+                    if (alpha > 0) {
+                        builder.addRect(xPos, yPos, 0.005f, size, size, 0.5f * alpha, 0.3f * alpha, 0.9f * alpha, 1.0f);
+                    }
                 }
 
-                // Horizontal accent strip
+                // Scrolling modern accent lines (synth-wave minimalist grid)
+                float gridSpacing = 50.0f;
+                int lines = (int)(height / gridSpacing) + 2;
+                float yOffset = (time / 40.0f) % gridSpacing;
+                for (int i = -1; i < lines; i++) {
+                    float yPos = (i * gridSpacing) + yOffset;
+                    if (yPos < 0 || yPos > height) continue;
+                    float intensity = 0.08f + 0.08f * (yPos / height);
+                    builder.addRect(0, yPos, 0.01f, width, 1.0f, intensity, intensity, intensity + 0.03f, 1.0f);
+                }
+
+                // Pulsing horizontal accent strip
                 float lineY = height * 0.65f;
-                builder.addRect(0, lineY, 0.02f, width, 2.0f, 0.4f, 0.2f, 0.8f, 1.0f);
-                builder.addRect(0, lineY + 2.0f, 0.02f, width, 1.0f, 0.2f, 0.1f, 0.4f, 1.0f);
+                float glow = 0.5f + 0.2f * (float)Math.sin(time / 500.0);
+                builder.addRect(0, lineY, 0.02f, width, 2.0f, glow, glow * 0.4f, glow * 1.8f, 1.0f);
+                builder.addRect(0, lineY + 2.0f, 0.02f, width, 1.0f, glow * 0.4f, glow * 0.1f, glow * 0.8f, 1.0f);
 
                 // ── Title ────────────────────────────────────────────────
                 if (font != null) {

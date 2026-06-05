@@ -180,20 +180,21 @@ public class MasterRenderer {
             }
             packet.highlightMesh = dynamicHighlightMesh;
 
-            // OVERLAY MESH UPDATE (Cracking)
-            float miningProgress = interaction.getMiningProgressPercent();
-            if (miningProgress > 0.0f) {
-                int stage = (int) Math.min(9, Math.floor(miningProgress * 10.0f));
-                String textureName = "destroy/destroy_stage_" + stage;
-
-                if (blockAtlas.regions.containsKey(textureName)) {
-                    float layer = blockAtlas.regions.get(textureName).layer;
-                    updateCrackingMesh(selectedBlockPos, layer);
-                    packet.overlayMesh = dynamicOverlayMesh;
-                }
-            }
         } else {
             packet.highlightMesh = highlightMesh;
+        }
+
+        // MULTI-BLOCK CRACKING OVERLAY
+        java.util.Map<Vector3i, Float> cracks = interaction.getAllMiningProgresses();
+        if (!cracks.isEmpty()) {
+            updateCrackingMesh(cracks);
+            packet.overlayMesh = dynamicOverlayMesh;
+        } else {
+            if (dynamicOverlayMesh != null) {
+                dynamicOverlayMesh.cleanup();
+                dynamicOverlayMesh = null;
+            }
+            packet.overlayMesh = null;
         }
 
         Vector3f skyColor = skyManager.getCurrentSkyColor();
@@ -348,60 +349,99 @@ public class MasterRenderer {
 
     // --- NEU: Diese Methode baut keine neuen Meshes mehr, sondern updatet unser
     // gespeichertes Mesh ---
-    private void updateCrackingMesh(Vector3i pos, float layer) {
-        float x = pos.x, y = pos.y, z = pos.z;
-        float e = -0.001f;
-        float s = 1.001f;
+    private void updateCrackingMesh(java.util.Map<Vector3i, Float> activeCracks) {
+        int count = activeCracks.size();
+        float[] verts = new float[count * 24 * 12];
+        int[] inds = new int[count * 36];
 
-        float r = 1.0f, g = 1.0f, b = 1.0f, a = 1.0f;
-        float sl = 1.0f, bl = 1.0f;
+        int vOffset = 0;
+        int iOffset = 0;
+        int indexOffset = 0;
 
-        float[] verts = {
-                // Front (-Z)
-                x + e, y + e, z + e, r, g, b, a, 0, 1, layer, sl, bl,
-                x + s, y + e, z + e, r, g, b, a, 1, 1, layer, sl, bl,
-                x + s, y + s, z + e, r, g, b, a, 1, 0, layer, sl, bl,
-                x + e, y + s, z + e, r, g, b, a, 0, 0, layer, sl, bl,
-                // Back (+Z)
-                x + e, y + e, z + s, r, g, b, a, 1, 1, layer, sl, bl,
-                x + s, y + e, z + s, r, g, b, a, 0, 1, layer, sl, bl,
-                x + s, y + s, z + s, r, g, b, a, 0, 0, layer, sl, bl,
-                x + e, y + s, z + s, r, g, b, a, 1, 0, layer, sl, bl,
-                // Left (-X)
-                x + e, y + e, z + e, r, g, b, a, 1, 1, layer, sl, bl,
-                x + e, y + e, z + s, r, g, b, a, 0, 1, layer, sl, bl,
-                x + e, y + s, z + s, r, g, b, a, 0, 0, layer, sl, bl,
-                x + e, y + s, z + e, r, g, b, a, 1, 0, layer, sl, bl,
-                // Right (+X)
-                x + s, y + e, z + e, r, g, b, a, 0, 1, layer, sl, bl,
-                x + s, y + e, z + s, r, g, b, a, 1, 1, layer, sl, bl,
-                x + s, y + s, z + s, r, g, b, a, 1, 0, layer, sl, bl,
-                x + s, y + s, z + e, r, g, b, a, 0, 0, layer, sl, bl,
-                // Top (+Y)
-                x + e, y + s, z + e, r, g, b, a, 0, 1, layer, sl, bl,
-                x + s, y + s, z + e, r, g, b, a, 1, 1, layer, sl, bl,
-                x + s, y + s, z + s, r, g, b, a, 1, 0, layer, sl, bl,
-                x + e, y + s, z + s, r, g, b, a, 0, 0, layer, sl, bl,
-                // Bottom (-Y)
-                x + e, y + e, z + e, r, g, b, a, 0, 0, layer, sl, bl,
-                x + s, y + e, z + e, r, g, b, a, 1, 0, layer, sl, bl,
-                x + s, y + e, z + s, r, g, b, a, 1, 1, layer, sl, bl,
-                x + e, y + e, z + s, r, g, b, a, 0, 1, layer, sl, bl,
-        };
+        for (java.util.Map.Entry<Vector3i, Float> entry : activeCracks.entrySet()) {
+            Vector3i pos = entry.getKey();
+            float progress = entry.getValue();
 
-        int[] inds = {
-                2, 1, 0, 0, 3, 2, // Front
-                6, 7, 4, 4, 5, 6, // Back
-                10, 11, 8, 8, 9, 10, // Left
-                14, 13, 12, 12, 15, 14, // Right
-                18, 17, 16, 16, 19, 18, // Top
-                22, 23, 20, 20, 21, 22 // Bottom
-        };
+            int stage = (int) Math.min(9, Math.floor(progress * 10.0f));
+            String textureName = "destroy/destroy_stage_" + stage;
+            if (!blockAtlas.regions.containsKey(textureName)) continue;
+            float layer = blockAtlas.regions.get(textureName).layer;
+
+            float x = pos.x, y = pos.y, z = pos.z;
+            float e = -0.001f;
+            float s = 1.001f;
+
+            float r = 1.0f, g = 1.0f, b = 1.0f, a = 1.0f;
+            float sl = 1.0f, bl = 1.0f;
+
+            float[] localVerts = {
+                    // Front (-Z)
+                    x + e, y + e, z + e, r, g, b, a, 0, 1, layer, sl, bl,
+                    x + s, y + e, z + e, r, g, b, a, 1, 1, layer, sl, bl,
+                    x + s, y + s, z + e, r, g, b, a, 1, 0, layer, sl, bl,
+                    x + e, y + s, z + e, r, g, b, a, 0, 0, layer, sl, bl,
+                    // Back (+Z)
+                    x + e, y + e, z + s, r, g, b, a, 1, 1, layer, sl, bl,
+                    x + s, y + e, z + s, r, g, b, a, 0, 1, layer, sl, bl,
+                    x + s, y + s, z + s, r, g, b, a, 0, 0, layer, sl, bl,
+                    x + e, y + s, z + s, r, g, b, a, 1, 0, layer, sl, bl,
+                    // Left (-X)
+                    x + e, y + e, z + e, r, g, b, a, 1, 1, layer, sl, bl,
+                    x + e, y + e, z + s, r, g, b, a, 0, 1, layer, sl, bl,
+                    x + e, y + s, z + s, r, g, b, a, 0, 0, layer, sl, bl,
+                    x + e, y + s, z + e, r, g, b, a, 1, 0, layer, sl, bl,
+                    // Right (+X)
+                    x + s, y + e, z + e, r, g, b, a, 0, 1, layer, sl, bl,
+                    x + s, y + e, z + s, r, g, b, a, 1, 1, layer, sl, bl,
+                    x + s, y + s, z + s, r, g, b, a, 1, 0, layer, sl, bl,
+                    x + s, y + s, z + e, r, g, b, a, 0, 0, layer, sl, bl,
+                    // Top (+Y)
+                    x + e, y + s, z + e, r, g, b, a, 0, 1, layer, sl, bl,
+                    x + s, y + s, z + e, r, g, b, a, 1, 1, layer, sl, bl,
+                    x + s, y + s, z + s, r, g, b, a, 1, 0, layer, sl, bl,
+                    x + e, y + s, z + s, r, g, b, a, 0, 0, layer, sl, bl,
+                    // Bottom (-Y)
+                    x + e, y + e, z + e, r, g, b, a, 0, 0, layer, sl, bl,
+                    x + s, y + e, z + e, r, g, b, a, 1, 0, layer, sl, bl,
+                    x + s, y + e, z + s, r, g, b, a, 1, 1, layer, sl, bl,
+                    x + e, y + e, z + s, r, g, b, a, 0, 1, layer, sl, bl,
+            };
+
+            int[] localInds = {
+                    2, 1, 0, 0, 3, 2, // Front
+                    6, 7, 4, 4, 5, 6, // Back
+                    10, 11, 8, 8, 9, 10, // Left
+                    14, 13, 12, 12, 15, 14, // Right
+                    18, 17, 16, 16, 19, 18, // Top
+                    22, 23, 20, 20, 21, 22 // Bottom
+            };
+
+            System.arraycopy(localVerts, 0, verts, vOffset, localVerts.length);
+            vOffset += localVerts.length;
+
+            for (int i = 0; i < localInds.length; i++) {
+                inds[iOffset++] = localInds[i] + indexOffset;
+            }
+            indexOffset += 24;
+        }
+
+        if (vOffset == 0) {
+            if (dynamicOverlayMesh != null) {
+                dynamicOverlayMesh.cleanup();
+                dynamicOverlayMesh = null;
+            }
+            return;
+        }
+
+        float[] finalVerts = new float[vOffset];
+        System.arraycopy(verts, 0, finalVerts, 0, vOffset);
+        int[] finalInds = new int[iOffset];
+        System.arraycopy(inds, 0, finalInds, 0, iOffset);
 
         if (dynamicOverlayMesh == null) {
-            dynamicOverlayMesh = graphicsFactory.createMesh(verts, inds);
+            dynamicOverlayMesh = graphicsFactory.createMesh(finalVerts, finalInds);
         } else {
-            dynamicOverlayMesh.updateMesh(verts, inds);
+            dynamicOverlayMesh.updateMesh(finalVerts, finalInds);
         }
     }
 

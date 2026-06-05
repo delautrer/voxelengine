@@ -439,12 +439,27 @@ public class PlayerInteraction {
         }
     }
 
+    public java.util.Map<Vector3i, Float> getAllMiningProgresses() {
+        java.util.Map<Vector3i, Float> progresses = new java.util.HashMap<>();
+        for (java.util.Map.Entry<Vector3i, MiningState> entry : miningStates.entrySet()) {
+            Vector3i pos = entry.getKey();
+            float progress = calculateProgressPercent(pos, entry.getValue().progress);
+            if (progress > 0.0f) {
+                progresses.put(pos, progress);
+            }
+        }
+        return progresses;
+    }
+
     public float getMiningProgressPercent() {
         if (selectedBlockPos == null) return 0.0f;
         MiningState state = miningStates.get(selectedBlockPos);
         if (state == null) return 0.0f;
+        return calculateProgressPercent(selectedBlockPos, state.progress);
+    }
 
-        byte blockId = world.getBlockAt(selectedBlockPos);
+    private float calculateProgressPercent(Vector3i pos, float currentProgress) {
+        byte blockId = world.getBlockAt(pos);
         Block targetBlock = BlockRegistry.get(blockId);
         if (targetBlock == Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air") || targetBlock.getHardness() < 0) {
             return 0.0f;
@@ -476,7 +491,7 @@ public class PlayerInteraction {
             requiredTime = targetBlock.getHardness() * 7.0f;
         }
 
-        return Math.min(1.0f, state.progress / requiredTime);
+        return Math.min(1.0f, currentProgress / requiredTime);
     }
     
     public float getSwingProgress() {
