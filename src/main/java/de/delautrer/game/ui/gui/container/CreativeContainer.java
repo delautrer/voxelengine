@@ -17,6 +17,7 @@ public class CreativeContainer extends BaseContainer {
         NATURAL("Natural Blocks", "grass_block"),
         WOOD("Wood & Forestry", "oak_log"),
         BUILDING("Building Blocks", "bricks"),
+        TOOLS("Tools", "iron_pickaxe"),
         MISC("Miscellaneous", "sticks"),
 
         SEARCH("Search Items", "torch");
