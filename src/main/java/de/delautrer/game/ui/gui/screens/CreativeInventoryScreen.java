@@ -10,6 +10,7 @@ import de.delautrer.game.ui.gui.container.Slot;
 import de.delautrer.engine.input.InputManager;
 import de.delautrer.game.items.ItemRegistry;
 import de.delautrer.game.ui.UIUtils;
+import de.delautrer.game.ui.gui.InventoryConstants;
 
 public class CreativeInventoryScreen extends ContainerScreen {
 
@@ -23,10 +24,10 @@ public class CreativeInventoryScreen extends ContainerScreen {
 
     @Override
     protected void onInit() {
-        slotSize = 24f * pixelScale;
-        float gridW = 24f * 9f * pixelScale;
+        slotSize = InventoryConstants.SLOT_SIZE * pixelScale;
+        float gridW = InventoryConstants.SLOT_SIZE * 9f * pixelScale;
         // Abstand 34px wie im Survival-Inventar
-        float gridH = 34f * pixelScale + (6 * 24f * pixelScale);
+        float gridH = 34f * pixelScale + (6 * InventoryConstants.SLOT_SIZE * pixelScale);
 
         guiX = (float) Math.floor((width - gridW) / 2.0f);
         guiY = (height - gridH) / 2.0f;
@@ -37,7 +38,7 @@ public class CreativeInventoryScreen extends ContainerScreen {
         panelY = guiY - 10.0f * pixelScale;
 
         // Suchfeld positionieren (Oben rechts)
-        searchField.setPosition(guiX + gridW - (80.0f * pixelScale), guiY + (6 * 24f * pixelScale) + 35.0f * pixelScale);
+        searchField.setPosition(guiX + gridW - (80.0f * pixelScale), guiY + (6 * InventoryConstants.SLOT_SIZE * pixelScale) + 35.0f * pixelScale);
         searchField.setSize(80.0f * pixelScale, 14.0f * pixelScale);
     }
 
@@ -112,7 +113,7 @@ public class CreativeInventoryScreen extends ContainerScreen {
 
         CreativeContainer cc = (CreativeContainer) container;
         if (font != null) {
-            builder.drawText(cc.getCurrentTab().title, panelX + 10.0f * pixelScale, guiY + (6 * 24f * pixelScale) + 39.0f * pixelScale, 0.1f, font);
+            builder.drawText(cc.getCurrentTab().title, panelX + 10.0f * pixelScale, guiY + (6 * InventoryConstants.SLOT_SIZE * pixelScale) + 39.0f * pixelScale, 0.1f, font);
         }
 
         if (cc.getCurrentTab() == CreativeContainer.CreativeTab.SEARCH) {
@@ -154,7 +155,9 @@ public class CreativeInventoryScreen extends ContainerScreen {
 
             Item iconItem = ItemRegistry.get(Constants.NAMESPACE + ":" + tab.iconId);
             if (iconItem != null) {
-                builder.drawItem(new ItemStack(iconItem, 1), x + 6 * pixelScale, startY + 6 * pixelScale, 0.2f, 16 * pixelScale);
+                float itemSize = InventoryConstants.CREATIVE_TAB_ITEM_SIZE * pixelScale;
+                builder.drawItem(new ItemStack(iconItem, 1), x + (tabW - itemSize) * 0.5f,
+                        startY + (tabH - itemSize) * 0.5f, 0.2f, itemSize);
             }
         }
     }
@@ -172,7 +175,7 @@ public class CreativeInventoryScreen extends ContainerScreen {
                     float slotX = guiX + (slot.x * pixelScale);
                     float slotY = guiY + (slot.y * pixelScale);
                     if (slotX >= -100) { // Sichtbarkeits-Check
-                        float itemSize = 16.0f * pixelScale;
+                        float itemSize = InventoryConstants.ITEM_SIZE * pixelScale;
                         builder.drawItem(new ItemStack(item, 1), slotX + (slotSize - itemSize) * 0.5f,
                                 slotY + (slotSize - itemSize) * 0.5f, 0.3f, itemSize);
                     }

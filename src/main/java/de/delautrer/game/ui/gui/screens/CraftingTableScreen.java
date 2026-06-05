@@ -2,6 +2,7 @@ package de.delautrer.game.ui.gui.screens;
 
 import de.delautrer.game.ui.gui.container.CraftingTableContainer;
 import de.delautrer.game.ui.UIMeshBuilder;
+import de.delautrer.game.ui.gui.InventoryConstants;
 
 public class CraftingTableScreen extends ContainerScreen {
     private float panelX, panelY, panelW, panelH, padding;
@@ -12,9 +13,9 @@ public class CraftingTableScreen extends ContainerScreen {
 
     @Override
     protected void onInit() {
-        slotSize = 24f * pixelScale;
+        slotSize = InventoryConstants.SLOT_SIZE * pixelScale;
 
-        float hotbarWidth = 24f * 9f * pixelScale;
+        float hotbarWidth = InventoryConstants.SLOT_SIZE * 9f * pixelScale;
         float containerPixelHeight = 188f * pixelScale;
 
         guiX = (float) Math.floor((width - hotbarWidth) / 2.0f);

@@ -2,6 +2,7 @@ package de.delautrer.game.ui.gui.screens;
 
 import de.delautrer.game.ui.gui.container.PlayerContainer;
 import de.delautrer.game.ui.UIMeshBuilder;
+import de.delautrer.game.ui.gui.InventoryConstants;
 
 public class InventoryScreen extends ContainerScreen {
 
@@ -13,10 +14,10 @@ public class InventoryScreen extends ContainerScreen {
 
     @Override
     protected void onInit() {
-        slotSize = 24f * pixelScale;
+        slotSize = InventoryConstants.SLOT_SIZE * pixelScale;
 
-        float hotbarWidth = 24f * 9f * pixelScale;
-        float hotbarHeight = 24f * pixelScale;
+        float hotbarWidth = InventoryConstants.SLOT_SIZE * 9f * pixelScale;
+        float hotbarHeight = InventoryConstants.SLOT_SIZE * pixelScale;
 
         // guiX und guiY legen fest, wo unser Container (Slot X/Y = 0) beginnt.
         guiX = (float) Math.floor((width - hotbarWidth) / 2.0f);
@@ -42,7 +43,7 @@ public class InventoryScreen extends ContainerScreen {
         // Titel zeichnen
         if (font != null) {
             // Inventar Titel (über den normalen Slots)
-            float invTitleY = guiY + (34f * pixelScale) + (3 * 24f * pixelScale) + (2.0f * pixelScale);
+            float invTitleY = guiY + (34f * pixelScale) + (3 * InventoryConstants.SLOT_SIZE * pixelScale) + (2.0f * pixelScale);
             builder.drawText("Inventory", panelX + padding, invTitleY, 0.1f, font);
 
             // Crafting Titel (ganz oben im Panel)

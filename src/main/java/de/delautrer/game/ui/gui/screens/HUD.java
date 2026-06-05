@@ -12,6 +12,7 @@ import de.delautrer.game.ui.ChatOverlay;
 import de.delautrer.game.ui.DebugOverlay;
 import de.delautrer.game.ui.UIUtils;
 import de.delautrer.game.ui.UIMeshBuilder;
+import de.delautrer.game.ui.gui.InventoryConstants;
 import java.util.List;
 import de.delautrer.Constants;
 import de.delautrer.game.registry.Registries;
@@ -109,8 +110,8 @@ public class HUD {
         if (isChatOpen)
             return;
 
-        float hotbarWidth = 24f * 9f * pixelScale;
-        float hotbarHeight = 24f * pixelScale;
+        float hotbarWidth = InventoryConstants.SLOT_SIZE * 9f * pixelScale;
+        float hotbarHeight = InventoryConstants.SLOT_SIZE * pixelScale;
         float hx = (float) Math.floor((width - hotbarWidth) / 2.0f);
         float hotbarY = (float) Math.floor(10.0f * pixelScale);
 
@@ -124,8 +125,8 @@ public class HUD {
         }
 
         for (int col = 0; col < 9; col++) {
-            float slotX = hx + (col * 24.0f) * pixelScale;
-            float selectorW = 24.0f * pixelScale;
+            float slotX = hx + (col * InventoryConstants.SLOT_SIZE) * pixelScale;
+            float selectorW = InventoryConstants.SLOT_SIZE * pixelScale;
 
             if (!isScreenOpen && currentSlot == col) {
                 builder.addAtlasQuad(slotX, hotbarY, 0.1f, selectorW, hotbarHeight, 10, 1, 1, 1, false);
@@ -134,7 +135,7 @@ public class HUD {
             }
 
             ItemStack stack = inventory.getStack(col);
-            float itemSize = 16.0f * pixelScale;
+            float itemSize = InventoryConstants.ITEM_SIZE * pixelScale;
             builder.drawItem(stack, slotX + (selectorW - itemSize) * 0.5f,
                     hotbarY + (selectorW - itemSize) * 0.5f, 0.2f, itemSize);
 

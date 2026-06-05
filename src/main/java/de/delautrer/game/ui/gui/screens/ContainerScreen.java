@@ -3,6 +3,7 @@ package de.delautrer.game.ui.gui.screens;
 import de.delautrer.engine.graphics.IFont;
 import de.delautrer.game.items.ItemStack;
 import de.delautrer.game.ui.UIUtils;
+import de.delautrer.game.ui.gui.InventoryConstants;
 import de.delautrer.game.ui.gui.container.BaseContainer;
 import de.delautrer.game.ui.gui.ClickType;
 import de.delautrer.game.ui.gui.container.Slot;
@@ -107,7 +108,7 @@ public abstract class ContainerScreen extends MenuScreen {
             }
 
             if (stack != null) {
-                float itemSize = 16.0f * pixelScale;
+                float itemSize = InventoryConstants.ITEM_SIZE * pixelScale;
                 builder.drawItem(stack, slotX + (slotSize - itemSize) * 0.5f,
                         slotY + (slotSize - itemSize) * 0.5f, 0.25f, itemSize);
 
@@ -122,7 +123,7 @@ public abstract class ContainerScreen extends MenuScreen {
 
         // 3. Item an der Maus
         if (mouseStack != null) {
-            float itemSize = 16.0f * pixelScale;
+            float itemSize = InventoryConstants.ITEM_SIZE * pixelScale;
             float invertedMouseY = height - mouseY;
             builder.drawItem(mouseStack, mouseX - itemSize / 2.0f,
                     invertedMouseY - itemSize / 2.0f, 0.5f, itemSize);

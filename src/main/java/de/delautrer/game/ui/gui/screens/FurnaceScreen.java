@@ -2,6 +2,7 @@ package de.delautrer.game.ui.gui.screens;
 
 import de.delautrer.game.ui.gui.container.FurnaceContainer;
 import de.delautrer.game.ui.UIMeshBuilder;
+import de.delautrer.game.ui.gui.InventoryConstants;
 import de.delautrer.game.blocks.entities.FurnaceBlockEntity;
 import de.delautrer.game.items.ItemStack;
 
@@ -14,9 +15,9 @@ public class FurnaceScreen extends ContainerScreen {
 
     @Override
     protected void onInit() {
-        slotSize = 24f * pixelScale;
+        slotSize = InventoryConstants.SLOT_SIZE * pixelScale;
 
-        float hotbarWidth = 24f * 9f * pixelScale;
+        float hotbarWidth = InventoryConstants.SLOT_SIZE * 9f * pixelScale;
         float containerPixelHeight = 188f * pixelScale;
 
         guiX = (float) Math.floor((width - hotbarWidth) / 2.0f);
