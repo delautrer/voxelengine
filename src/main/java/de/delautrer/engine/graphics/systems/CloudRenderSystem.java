@@ -31,7 +31,7 @@ public class CloudRenderSystem implements IRenderSystem {
                     stack.longs(((VulkanTextureArray) packet.worldTexture).getDescriptorSet()), null);
 
             // Wir nutzen packet.mvp direkt, da der Offset im Shader addiert wird.
-            FloatBuffer mvpBuffer = stack.mallocFloat(28);
+            FloatBuffer mvpBuffer = stack.callocFloat(32);
             packet.mvp.get(mvpBuffer);
             mvpBuffer.put(16, packet.globalLight);
             mvpBuffer.put(17, packet.renderDistance);

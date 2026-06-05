@@ -101,7 +101,13 @@ public class UIMeshBuilder {
         TextureStitcher.AtlasRegion reg = stack.type.getIconRegion();
         if (reg == null)
             return;
-        addClippedQuad(UITexture.ITEM, x, y, x + size, y + size, z, 1f, 1f, 1f, reg.u0, reg.v1, reg.u1, reg.v0);
+        
+        float fx = (float) Math.floor(x);
+        float fy = (float) Math.floor(y);
+        float fsize = (float) Math.floor(size);
+        float epsilon = 0.0001f;
+
+        addClippedQuad(UITexture.ITEM, fx, fy, fx + fsize, fy + fsize, z, 1f, 1f, 1f, reg.u0 + epsilon, reg.v1 - epsilon, reg.u1 - epsilon, reg.v0 + epsilon);
 
         if (stack.type instanceof ToolItem) {
             ToolItem tool = (ToolItem) stack.type;
@@ -109,10 +115,10 @@ public class UIMeshBuilder {
             int curDur = stack.durability;
             if (curDur < maxDur) {
                 float pct = Math.max(0.0f, Math.min(1.0f, (float) curDur / maxDur));
-                float barW = size * 0.8f;
-                float barX = x + (size - barW) / 2.0f;
-                float barY = y + size * 0.1f;
-                float barH = size * 0.08f;
+                float barW = (float) Math.floor(fsize * 0.8f);
+                float barX = (float) Math.floor(fx + (fsize - barW) / 2.0f);
+                float barY = (float) Math.floor(fy + fsize * 0.1f);
+                float barH = (float) Math.max(1.0f, Math.floor(fsize * 0.08f));
 
                 // Dark background
                 addRect(barX, barY, z + 0.01f, barW, barH, 0.0f, 0.0f, 0.0f, 1.0f);
@@ -183,18 +189,20 @@ public class UIMeshBuilder {
     public void drawText(String text, float startX, float startY, float z, IFont font) {
         if (font == null || font.getCharData() == null)
             return;
-        float currentX = startX;
-        float currentY = startY;
+        float currentX = (float) Math.floor(startX);
+        float currentY = (float) Math.floor(startY);
         STBTTBakedChar.Buffer charData = font.getCharData();
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
             if (c >= 32 && c < 256) {
                 STBTTBakedChar bakedChar = charData.get(c - 32);
-                float x0 = currentX + bakedChar.xoff();
-                float yTop = currentY - bakedChar.yoff();
+                float x0 = (float) Math.floor(currentX + bakedChar.xoff());
+                float yTop = (float) Math.floor(currentY - bakedChar.yoff());
+                float w = (float) Math.floor(bakedChar.x1() - bakedChar.x0());
+                float h = (float) Math.floor(bakedChar.y1() - bakedChar.y0());
 
-                addClippedQuad(UITexture.FONT, x0, yTop - (bakedChar.y1() - bakedChar.y0()),
-                        x0 + (bakedChar.x1() - bakedChar.x0()), yTop, z, 1f, 1f, 1f,
+                addClippedQuad(UITexture.FONT, x0, yTop - h,
+                        x0 + w, yTop, z, 1f, 1f, 1f,
                         bakedChar.x0() / (float) font.getBitmapSize(), bakedChar.y1() / (float) font.getBitmapSize(),
                         bakedChar.x1() / (float) font.getBitmapSize(), bakedChar.y0() / (float) font.getBitmapSize());
                 currentX += bakedChar.xadvance();

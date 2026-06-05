@@ -22,7 +22,7 @@ public class TerrainRenderSystem implements IRenderSystem {
     public void render(VkCommandBuffer cmd, RenderPacket packet) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             // Push Constants für den Shader vorbereiten (28 Floats / 112 Bytes)
-            FloatBuffer pcBuffer = stack.mallocFloat(28);
+            FloatBuffer pcBuffer = stack.callocFloat(32);
             packet.mvp.get(pcBuffer);
             pcBuffer.put(16, packet.globalLight);
             pcBuffer.put(17, packet.renderDistance);

@@ -57,6 +57,7 @@ public class VulkanRenderer {
         highlightSystem = new HighlightRenderSystem(context, swapchain, renderPass);
         uiSystem = new UIRenderSystem(context, swapchain, renderPass);
         entityRenderSystem = new EntityRenderSystem(context, swapchain, renderPass);
+        FirstPersonRenderSystem firstPersonSystem = new FirstPersonRenderSystem(context, swapchain, renderPass);
 
         renderSystems.add(skyRenderSystem);
         renderSystems.add(starRenderSystem);
@@ -65,6 +66,7 @@ public class VulkanRenderer {
         renderSystems.add(entityRenderSystem);
         renderSystems.add(cloudSystem);
         renderSystems.add(highlightSystem);
+        renderSystems.add(firstPersonSystem);
         renderSystems.add(uiSystem);
     }
 
@@ -190,6 +192,7 @@ public class VulkanRenderer {
         highlightSystem = new HighlightRenderSystem(context, swapchain, renderPass);
         uiSystem = new UIRenderSystem(context, swapchain, renderPass);
         entityRenderSystem = new EntityRenderSystem(context, swapchain, renderPass);
+        FirstPersonRenderSystem firstPersonSystem = new FirstPersonRenderSystem(context, swapchain, renderPass);
 
         renderSystems.add(skyRenderSystem);
         renderSystems.add(starRenderSystem);
@@ -198,6 +201,7 @@ public class VulkanRenderer {
         renderSystems.add(entityRenderSystem);
         renderSystems.add(cloudSystem);
         renderSystems.add(highlightSystem);
+        renderSystems.add(firstPersonSystem);
         renderSystems.add(uiSystem);
     }
 

@@ -35,6 +35,8 @@ import de.delautrer.game.registry.Registries;
 
 public class PlayerInteraction {
 
+
+
     private final World world;
     private final Camera camera;
     private final LocalPlayer player;
@@ -51,6 +53,9 @@ public class PlayerInteraction {
     private float miningProgress = 0.0f;
     private float miningSoundTimer = 0.0f;
 
+    private float swingAnimationTimer = 0.0f;
+    private static final float SWING_DURATION = 0.25f;
+
     public PlayerInteraction(World world, Camera camera, LocalPlayer player, EventBus eventBus) {
         this.world = world;
         this.camera = camera;
@@ -62,9 +67,21 @@ public class PlayerInteraction {
         return player;
     }
 
+    private boolean wasInventoryOpen = false;
+
     public void update(InputManager input, float deltaTime) {
-        if (player.isDead() || player.getInventory().isOpen() || player.isChatOpen()
-                || player.getOpenedInventory() != null) {
+        if (swingAnimationTimer > 0) {
+            swingAnimationTimer -= deltaTime;
+        }
+
+        boolean isInventoryOpen = player.getInventory().isOpen() || player.getOpenedInventory() != null;
+        if (wasInventoryOpen && !isInventoryOpen) {
+            // Inventory was just closed, trigger swing animation again
+            swingAnimationTimer = SWING_DURATION;
+        }
+        wasInventoryOpen = isInventoryOpen;
+
+        if (player.isDead() || isInventoryOpen || player.isChatOpen()) {
             selectedBlockPos = null;
             adjacentBlockPos = null;
             return;
@@ -125,6 +142,9 @@ public class PlayerInteraction {
             interactTimer -= deltaTime;
 
         if (input.isActionActive("INTERACT_BREAK")) {
+            if (swingAnimationTimer <= 0) {
+                swingAnimationTimer = SWING_DURATION;
+            }
             if (player.getGameMode() == GameMode.CREATIVE) {
                 miningProgress = 0.0f;
                 currentlyMiningPos = null;
@@ -199,7 +219,10 @@ public class PlayerInteraction {
 
             // Platzieren-Logik (unverändert)
             if (input.isActionActive("INTERACT_PLACE") && interactTimer <= 0) {
-                handleMouseClick(false);
+                boolean success = handleMouseClick(false);
+                if (success) {
+                    swingAnimationTimer = SWING_DURATION;
+                }
                 interactTimer = INTERACT_COOLDOWN;
             } else if (!input.isActionActive("INTERACT_PLACE")) {
                 interactTimer = 0.0f;
@@ -305,9 +328,9 @@ public class PlayerInteraction {
         }
     }
 
-    private void handleMouseClick(boolean isBreak) {
+    private boolean handleMouseClick(boolean isBreak) {
         if (selectedBlockPos == null)
-            return;
+            return false;
 
         if (isBreak) {
             BlockState state = world.getBlockState(selectedBlockPos.x, selectedBlockPos.y, selectedBlockPos.z);
@@ -317,10 +340,12 @@ public class PlayerInteraction {
 
             if (!breakEvent.isCancelled()) {
                 world.setBlock(selectedBlockPos, (byte) 0);
+                return true;
             }
+            return false;
         } else {
             if (adjacentBlockPos == null)
-                return;
+                return false;
 
             if (!player.isSneaking) {
                 Block clickedBlock = BlockRegistry.get(world.getBlockAt(selectedBlockPos));
@@ -328,14 +353,14 @@ public class PlayerInteraction {
                 if (clickedBlock instanceof IInteractable interactable) {
                     boolean handled = interactable.onInteract(world, selectedBlockPos, player);
                     if (handled)
-                        return;
+                        return true;
                 }
             }
 
             // --- 2. BLOCK ODER ITEM VERWENDEN ---
             ItemStack heldStack = player.getInventory().getSelectedHotbarStack();
             if (heldStack == null || heldStack.type == null)
-                return;
+                return false;
 
             // HIER DIE ÄNDERUNG: Wir speichern das Ergebnis
             boolean success = heldStack.type.onUseRightClick(world, player, selectedBlockPos, adjacentBlockPos, this);
@@ -346,10 +371,10 @@ public class PlayerInteraction {
                 if (heldStack.type == Registries.ITEMS.get(Constants.NAMESPACE + ":" + "water_bucket")) {
                     // Voller Eimer wird ausgeleert -> Wir legen einen leeren Eimer in den Slot
                     player.getInventory().setStack(player.getInventory().getSelectedSlot(),
-                            new ItemStack(Registries.ITEMS.get(Constants.NAMESPACE + ":" + "bucket"), 1));
+                            new ItemStack(Registries.ITEMS.get(Constants.NAMESPACE + ":" + "empty_bucket"), 1));
                     eventBus.publish(new InventoryChangeEvent());
 
-                } else if (heldStack.type == Registries.ITEMS.get(Constants.NAMESPACE + ":" + "bucket")) {
+                } else if (heldStack.type == Registries.ITEMS.get(Constants.NAMESPACE + ":" + "empty_bucket")) {
                     // Leerer Eimer wurde gefüllt -> Wir legen einen Wassereimer in den Slot
                     player.getInventory().setStack(player.getInventory().getSelectedSlot(),
                             new ItemStack(Registries.ITEMS.get(Constants.NAMESPACE + ":" + "water_bucket"), 1));
@@ -364,6 +389,7 @@ public class PlayerInteraction {
                     eventBus.publish(new InventoryChangeEvent());
                 }
             }
+            return success;
         }
     }
 
@@ -382,6 +408,11 @@ public class PlayerInteraction {
         float requiredTime = targetBlock.getHardness() * 1.5f;
         return Math.min(1.0f, miningProgress / requiredTime);
     }
+    
+    public float getSwingProgress() {
+        if (swingAnimationTimer <= 0) return 0.0f;
+        return 1.0f - (swingAnimationTimer / SWING_DURATION);
+    }
 
     public Vector3i getSelectedBlockPos() {
         return selectedBlockPos;
@@ -397,6 +428,8 @@ public class PlayerInteraction {
 
     public void dropStack(ItemStack stack) {
         if (stack == null || stack.amount <= 0) return;
+
+        swingAnimationTimer = SWING_DURATION;
 
         Vector3d spawnPos = new Vector3d(player.position).add(0, 1.5, 0);
         Vector3f lookDir = new Vector3f(player.getCamera().getFront());

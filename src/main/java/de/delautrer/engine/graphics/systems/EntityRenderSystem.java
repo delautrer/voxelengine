@@ -142,7 +142,7 @@ public class EntityRenderSystem implements IRenderSystem {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             Matrix4f mvp = new Matrix4f(packet.mvp);
 
-            FloatBuffer buf = stack.mallocFloat(28);
+            FloatBuffer buf = stack.callocFloat(32);
             mvp.get(buf);
             buf.put(16, packet.globalLight);
             buf.put(17, packet.renderDistance);

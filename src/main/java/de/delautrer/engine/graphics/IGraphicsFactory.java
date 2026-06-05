@@ -10,6 +10,7 @@ public interface IGraphicsFactory {
     ITexture createTexture(TextureStitcher.AtlasResult atlas);
     ITexture createTexture(ByteBuffer rgbaPixels, int width, int height);
     ITextureArray createTextureArray(TextureStitcher.AtlasResult atlas);
+    ITextureArray createSingleLayerTextureArray(TextureStitcher.AtlasResult atlas);
     IFont createFont(String path, float size);
     void waitIdle();
 }

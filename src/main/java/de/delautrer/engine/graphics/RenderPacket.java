@@ -42,9 +42,16 @@ public class RenderPacket {
     public ITextureArray worldTexture;
     public ITexture uiTexture;
     public ITexture itemTexture;
+    public ITextureArray itemTextureArray;
     public ITexture blockUITexture;
     public IMesh overlayMesh;
+    public IMesh firstPersonMesh;
+    public boolean firstPersonIsItem;
+    public boolean isEmptyHand;
+    public float swingProgress;
 
     public Vector3i selectedBlockPos;
     public float globalLight, skyR, skyG, skyB;
+    public float playerSkyLight;
+    public float playerBlockLight;
 }

@@ -53,6 +53,18 @@ public class VulkanTextureArray implements de.delautrer.engine.graphics.ITexture
         createDescriptorSet(descriptorSetLayout);
     }
 
+    public VulkanTextureArray(VulkanContext context, VulkanCommandBuffers commandBuffers, long descriptorSetLayout,
+            TextureStitcher.AtlasResult atlasResult, boolean asSingleLayer) {
+        this.context = context;
+        int layerCount = 1;
+        createTextureArrayFromMemory(commandBuffers, atlasResult.atlasPixels, atlasResult.atlasWidth,
+                atlasResult.atlasHeight, 1, 1, layerCount);
+        createTextureImageView(layerCount);
+        createTextureSampler();
+        createDescriptorPool();
+        createDescriptorSet(descriptorSetLayout);
+    }
+
     // --- NEUE HILFSMETHODE: Kopiert die reinen Bytes ohne STBImage! ---
     private void createTextureArrayFromMemory(VulkanCommandBuffers commandBuffers, ByteBuffer pixels, int texWidth,
             int texHeight, int tilesX, int tilesY, int layerCount) {

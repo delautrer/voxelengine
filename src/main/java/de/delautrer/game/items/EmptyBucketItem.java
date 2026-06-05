@@ -28,13 +28,6 @@ public class EmptyBucketItem extends Item {
         if (waterPos != null) {
             // Wasser aufsaugen (durch Luft / 0 ersetzen)
             world.setBlock(waterPos, (byte) 0);
-
-            // NEU: Dem Spieler den vollen Eimer in die Hand drücken!
-            interaction.getInventory().setStack(
-                    interaction.getInventory().getSelectedSlot(),
-                    new ItemStack(Registries.ITEMS.get(Constants.NAMESPACE + ":" + "water_bucket"), 1)
-            );
-
             return true; // Erfolgreich aufgesammelt!
         }
 

@@ -139,7 +139,7 @@ public class VulkanGraphicsPipeline {
 
         VkPushConstantRange.Buffer pushConstantRange = VkPushConstantRange.calloc(1, stack);
         pushConstantRange.stageFlags(VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT).offset(0)
-                .size(112);
+                .size(128);
 
         VkPipelineLayoutCreateInfo pipelineLayoutInfo = VkPipelineLayoutCreateInfo.calloc(stack)
                 .sType(VK10.VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO).pSetLayouts(stack.longs(descriptorSetLayout))

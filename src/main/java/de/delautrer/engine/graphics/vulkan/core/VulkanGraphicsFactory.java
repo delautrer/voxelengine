@@ -54,6 +54,11 @@ public class VulkanGraphicsFactory implements IGraphicsFactory {
     }
 
     @Override
+    public ITextureArray createSingleLayerTextureArray(TextureStitcher.AtlasResult atlas) {
+        return new VulkanTextureArray(context, commandBuffers, graphicsLayout, atlas, true);
+    }
+
+    @Override
     public IFont createFont(String path, float size) {
         return new VulkanFont(path, size);
     }

@@ -26,6 +26,10 @@ layout(push_constant) uniform PushConstants {
     float isCloud;
     float isUnderwater;
     float clipY;
+    float useVertexColorOnly;
+    float isFirstPerson;
+    float playerSkyLight;
+    float playerBlockLight;
 } pc;
 
 void main() {
@@ -38,7 +42,13 @@ void main() {
 
     fragColor = inColor;
     fragTexCoord = vec3(inTexCoord, inTexLayer);
-    fragLight = inLight;
+    
+    if (pc.isFirstPerson > 0.5) {
+        fragLight = vec2(pc.playerSkyLight, pc.playerBlockLight);
+    } else {
+        fragLight = inLight;
+    }
+    
     fragFogDist = clipPos.w;
 
     // Absolute Weltposition für das clipY wiederherstellen (Y ist klein genug)

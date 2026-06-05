@@ -24,6 +24,7 @@ layout(push_constant) uniform PushConstants {
     float isCloud;
     float isUnderwater;
     float clipY;
+    float useVertexColorOnly;
 } pc;
 
 void main() {
@@ -31,7 +32,12 @@ void main() {
         discard;
     }
 
-    vec4 textureColor = texture(texSampler, fragTexCoord);
+    vec4 textureColor;
+    if (pc.useVertexColorOnly > 0.5) {
+        textureColor = vec4(1.0);
+    } else {
+        textureColor = texture(texSampler, fragTexCoord);
+    }
     float alpha = textureColor.a * fragColor.a;
 
     if (alpha < 0.05) discard;
