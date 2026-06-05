@@ -85,7 +85,7 @@ task compileShaders {
 processResources.dependsOn compileShaders
 
 shadowJar {
-    archiveBaseName.set('VoxelEngine-Raw')
+    archiveBaseName.set('Veinstride-Raw')
     archiveClassifier.set('')
     archiveVersion.set('')
     manifest {
@@ -95,7 +95,7 @@ shadowJar {
 
 task proguard(type: proguard.gradle.ProGuardTask, dependsOn: shadowJar) {
     injars shadowJar.archiveFile
-    outjars "build/libs/VoxelEngine-Obfuscated.jar"
+    outjars "build/libs/Veinstride-Obfuscated.jar"
 
     libraryjars "${System.getProperty('java.home')}/jmods"
 
@@ -107,9 +107,9 @@ launch4j {
     copyConfigurable = project.tasks.proguard.outputs.files.singleFile
     jarTask = project.tasks.proguard
 
-    outfile = "VoxelEngine.exe"
+    outfile = "Veinstride.exe"
     headerType = "gui"
-    errTitle = "Voxel Engine Error"
+    errTitle = "Veinstride Error"
     downloadUrl = "https://java.com/download"
 
     bundledJrePath = 'jre'

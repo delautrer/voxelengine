@@ -43,6 +43,7 @@ public class LocalPlayer extends Player {
     private final float speed = 5.0f;
 
     private float distanceWalked = 0.0f;
+    private float totalDistanceWalked = 0.0f;
 
     private Block headBlock = Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air");
     private double fallDistance = 0.0;
@@ -444,6 +445,7 @@ public class LocalPlayer extends Player {
                 moveSpeed += Math.abs(velocity.y);
 
             distanceWalked += moveSpeed * deltaTime;
+            totalDistanceWalked += moveSpeed * deltaTime;
 
             float stepThreshold = isSprinting ? 1.4f : 1.2f;
             if (isInWater)
@@ -561,6 +563,17 @@ public class LocalPlayer extends Player {
     public void updateCamera(long windowHandle, float deltaTime) {
         Vector3d smoothEyePos = new Vector3d(getEyePosition());
         smoothEyePos.y += cameraVisualYOffset;
+
+        if (de.delautrer.game.settings.SettingsManager.get().viewBobbing && !isFlying) {
+            float bobbingPhase = totalDistanceWalked * 3.0f;
+            float bobbingOffsetY = (float) Math.abs(Math.sin(bobbingPhase)) * 0.05f;
+            float bobbingOffsetX = (float) Math.sin(bobbingPhase) * 0.02f;
+            
+            if (onGround || isInWater) {
+                smoothEyePos.y += bobbingOffsetY;
+                // Add horizontal bobbing directly to eyePos or ignore roll
+            }
+        }
 
         boolean isUIOpen = inventory.isOpen() || isChatOpen || getOpenedInventory() != null || isDead;
 

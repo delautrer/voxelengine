@@ -145,6 +145,12 @@ public class BlockRegistry {
         block.setLootTable(def.customLootTable != null ? def.customLootTable : "blocks/" + path + ".json");
         block.setCategory(def.category);
 
+        try {
+            block.setMinToolTier(de.delautrer.game.items.ToolTier.valueOf(def.minToolTier.toUpperCase()));
+        } catch (IllegalArgumentException e) {
+            System.err.println("[BlockRegistry] Unknown ToolTier: " + def.minToolTier + " for block " + def.name);
+        }
+
         NamespacedKey key = new NamespacedKey(Constants.NAMESPACE, path);
         REGISTRY.register(key, block);
         BLOCKS_BY_ID[id & 0xFF] = block;

@@ -41,6 +41,12 @@ public class GameSettings {
     @SerializedName("mouse_invert_y")
     public boolean invertY = false;
 
+    @SerializedName("view_bobbing")
+    public boolean viewBobbing = true;
+
+    @SerializedName("item_breathing")
+    public boolean itemBreathing = true;
+
     // Audio (Schon mal vorbereitet für das Soundsystem!)
     @SerializedName("sound_master_volume")
     public float masterVolume = 1.0f;

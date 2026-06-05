@@ -273,6 +273,7 @@ public class MasterRenderer {
                 boolean renderAsItem = (blockItem.block instanceof de.delautrer.game.blocks.DoorBlock) || 
                                        (blockItem.block instanceof de.delautrer.game.blocks.TrapdoorBlock) || 
                                        (blockItem.block instanceof de.delautrer.game.blocks.PlantBlock) || 
+                                       (blockItem.block instanceof de.delautrer.game.blocks.TorchBlock) ||
                                        (blockItem.block instanceof de.delautrer.game.blocks.SaplingBlock);
 
                 if (renderAsItem) {
@@ -307,6 +308,7 @@ public class MasterRenderer {
             isItem = (bi.block instanceof de.delautrer.game.blocks.DoorBlock) || 
                      (bi.block instanceof de.delautrer.game.blocks.TrapdoorBlock) || 
                      (bi.block instanceof de.delautrer.game.blocks.PlantBlock) || 
+                     (bi.block instanceof de.delautrer.game.blocks.TorchBlock) ||
                      (bi.block instanceof de.delautrer.game.blocks.SaplingBlock);
         }
         

@@ -13,6 +13,7 @@ import de.delautrer.game.world.World;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 import java.util.*;
+import de.delautrer.game.items.ToolTier;
 
 public abstract class Block {
     private byte internalId;
@@ -29,6 +30,7 @@ public abstract class Block {
 
     protected String lootTable = null;
     protected String category = "misc";
+    protected ToolTier minToolTier = ToolTier.HAND;
 
     private BlockState defaultState;
     private BlockState[] stateArray;
@@ -242,6 +244,14 @@ public abstract class Block {
 
     public String getCategory() {
         return category;
+    }
+
+    public void setMinToolTier(ToolTier minToolTier) {
+        this.minToolTier = minToolTier;
+    }
+
+    public ToolTier getMinToolTier() {
+        return minToolTier;
     }
 
     protected int opacityValue = -1;

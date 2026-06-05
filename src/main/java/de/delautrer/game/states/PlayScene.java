@@ -338,7 +338,12 @@ public class PlayScene extends Scene {
                 localPlayer.getCamera().resetMouseTracking();
                 uiNeedsRebuild = true;
             } else if (isPaused) {
-                resumeGame();
+                if (pauseScreen.hasSubScreen()) {
+                    pauseScreen.closeSubScreen();
+                    uiNeedsRebuild = true;
+                } else {
+                    resumeGame();
+                }
             } else {
                 pauseGame();
             }
@@ -550,6 +555,10 @@ public class PlayScene extends Scene {
         }
         uiNeedsRebuild = true;
         localPlayer.getInteraction().resetCooldown();
+    }
+
+    public void requestUIRebuild() {
+        uiNeedsRebuild = true;
     }
 
     public void saveAndQuit() {

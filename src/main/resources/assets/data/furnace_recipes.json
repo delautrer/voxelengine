@@ -1,5 +1,11 @@
 [
   {
+    "input": "engine:cobblestone",
+    "result": "engine:stone",
+    "count": 1,
+    "cook_time": 200
+  },
+  {
     "input": "engine:sand",
     "result": "engine:glass",
     "count": 1,
@@ -78,3 +84,4 @@
     "cook_time": 200
   }
 ]
+

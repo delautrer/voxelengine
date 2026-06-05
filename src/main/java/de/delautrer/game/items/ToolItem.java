@@ -12,14 +12,14 @@ public class ToolItem extends Item {
     }
 
     private final ToolType toolType;
-    private final String material;
+    private final ToolTier tier;
     private final float efficiency;
     private final int maxDurability;
 
-    public ToolItem(String name, String textureName, ToolType toolType, String material, float efficiency, int maxDurability) {
+    public ToolItem(String name, String textureName, ToolType toolType, ToolTier tier, float efficiency, int maxDurability) {
         super(name, textureName);
         this.toolType = toolType;
-        this.material = material;
+        this.tier = tier;
         this.efficiency = efficiency;
         this.maxDurability = maxDurability;
         this.setMaxStackSize(1);
@@ -30,8 +30,8 @@ public class ToolItem extends Item {
         return toolType;
     }
 
-    public String getMaterial() {
-        return material;
+    public ToolTier getTier() {
+        return tier;
     }
 
     public float getEfficiency() {

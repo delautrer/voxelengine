@@ -49,9 +49,19 @@ public class PlayerInteraction {
     private final float INTERACT_COOLDOWN = 0.2f;
     private float clickCooldown = 0.0f;
 
-    private Vector3i currentlyMiningPos = null;
-    private float miningProgress = 0.0f;
+    private static class MiningState {
+        float progress = 0.0f;
+        float decayTimer = 0.0f;
+        float progressSnapshot = 0.0f;
+    }
+    private final java.util.Map<Vector3i, MiningState> miningStates = new java.util.HashMap<>();
     private float miningSoundTimer = 0.0f;
+
+    private static final float DECAY_START = 0.5f;
+    private static final float DECAY_END   = 1.5f;
+
+    // track held item to reset on hotbar switch
+    private Item lastHeldItem = null;
 
     private float swingAnimationTimer = 0.0f;
     private static final float SWING_DURATION = 0.25f;
@@ -137,100 +147,133 @@ public class PlayerInteraction {
             }
         }
 
+        // --- Hotbar change → hard reset ---
+        ItemStack currentHeldStack = player.getInventory().getSelectedHotbarStack();
+        Item currentHeldItem = (currentHeldStack != null) ? currentHeldStack.type : null;
+        if (currentHeldItem != lastHeldItem) {
+            lastHeldItem = currentHeldItem;
+            miningStates.clear();
+        }
+
         // 3. Interaktion (Abbauen / Bauen)
         if (interactTimer > 0)
             interactTimer -= deltaTime;
-
+        
         if (input.isActionActive("INTERACT_BREAK")) {
             if (swingAnimationTimer <= 0) {
                 swingAnimationTimer = SWING_DURATION;
             }
             if (player.getGameMode() == GameMode.CREATIVE) {
-                miningProgress = 0.0f;
-                currentlyMiningPos = null;
+                miningStates.clear();
 
                 if (interactTimer <= 0) {
-                    if (selectedBlockPos != null) {
-                        // 1. Block-Info holen, SOLANGE ER NOCH DA IST
-                        byte blockId = world.getBlockAt(selectedBlockPos);
-                        Block targetBlock = BlockRegistry.get(blockId);
-
-                    }
-
-                    // 3. Erst jetzt den Block löschen
                     handleMouseClick(true);
                     interactTimer = INTERACT_COOLDOWN;
                 }
             } else if (player.getGameMode() == GameMode.SURVIVAL) {
-                // Im Survival Mode: Härte und Zeit berechnen
                 if (selectedBlockPos != null) {
-                    // Prüfen, ob wir immer noch denselben Block anschauen
-                    if (currentlyMiningPos == null || !currentlyMiningPos.equals(selectedBlockPos)) {
-                        currentlyMiningPos = new Vector3i(selectedBlockPos);
-                        miningProgress = 0.0f; // Reset, wenn man wegschaut
-                    }
-
                     byte blockId = world.getBlockAt(selectedBlockPos);
                     Block targetBlock = BlockRegistry.get(blockId);
 
                     if (targetBlock != Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air")
                             && targetBlock.getHardness() >= 0) {
-                        float toolMultiplier = 1.0f;
+
+                        MiningState state = miningStates.computeIfAbsent(selectedBlockPos, k -> new MiningState());
+                        state.decayTimer = 0.0f;
+
                         ItemStack heldStack = player.getInventory().getSelectedHotbarStack();
-                        if (heldStack != null && heldStack.type instanceof ToolItem) {
-                            ToolItem tool = (ToolItem) heldStack.type;
-                            if (tool.isCorrectToolFor(targetBlock)) {
-                                toolMultiplier = tool.getEfficiency();
-                            } else {
-                                toolMultiplier = tool.getIncorrectToolMultiplier();
+                        ToolItem tool = (heldStack != null && heldStack.type instanceof ToolItem) ? (ToolItem) heldStack.type : null;
+
+                        boolean isCorrectToolType = (tool != null) && tool.isCorrectToolFor(targetBlock);
+                        boolean hasSufficientTier = false;
+                        float toolEfficiency = 1.0f;
+
+                        de.delautrer.game.items.ToolTier blockMinTier = targetBlock.getMinToolTier();
+
+                        if (tool != null) {
+                            de.delautrer.game.items.ToolTier toolTier = tool.getTier();
+                            if (toolTier.getLevel() >= blockMinTier.getLevel()) hasSufficientTier = true;
+
+                            if (isCorrectToolType && hasSufficientTier) {
+                                toolEfficiency = tool.getEfficiency();
+                            } else if (isCorrectToolType) {
+                                toolEfficiency = tool.getEfficiency() * 0.3f;
                             }
                         }
 
-                        miningProgress += deltaTime * toolMultiplier;
+                        boolean canHarvest = (blockMinTier == de.delautrer.game.items.ToolTier.HAND)
+                                || (isCorrectToolType && hasSufficientTier);
 
-                        // Formel: Wie lange dauert der Abbau? (Base-Härte * 1.5 Sekunden als Richtwert)
-                        float requiredTime = targetBlock.getHardness() * 1.5f;
+                        // Time formula: hardness * 2.5 / efficiency  (correct tool)
+                        //               hardness * 2.5               (hand on HAND-tier block)
+                        //               hardness * 7.0               (wrong tier / wrong type)
+                        float requiredTime;
+                        if (canHarvest && tool != null && isCorrectToolType && hasSufficientTier) {
+                            requiredTime = targetBlock.getHardness() * 2.5f / tool.getEfficiency();
+                        } else if (blockMinTier == de.delautrer.game.items.ToolTier.HAND) {
+                            if (tool != null && isCorrectToolType) {
+                                requiredTime = targetBlock.getHardness() * 2.5f / toolEfficiency;
+                            } else {
+                                requiredTime = targetBlock.getHardness() * 2.5f;
+                            }
+                        } else {
+                            requiredTime = targetBlock.getHardness() * 7.0f;
+                        }
 
-                        // Abbau-Sound (periodisch)
+                        state.progress += deltaTime;
+
                         miningSoundTimer += deltaTime;
                         if (miningSoundTimer >= 0.25f) {
                             SoundManager.playEvent(targetBlock.getSoundMaterialName(), "walk", 0.3f, 0.7f, 0.9f, "Player");
                             miningSoundTimer = 0.0f;
                         }
 
-                        if (miningProgress >= requiredTime) {
-                            handleSurvivalBreak(targetBlock, blockId);
-                            miningProgress = 0.0f;
-                            currentlyMiningPos = null;
+                        if (state.progress >= requiredTime) {
+                            handleSurvivalBreak(targetBlock, blockId, canHarvest);
+                            miningStates.remove(selectedBlockPos);
                             interactTimer = INTERACT_COOLDOWN;
                         }
-                    } else {
-                        miningProgress = 0.0f; // Unzerstörbar (Bedrock) oder Luft
                     }
-                } else {
-                    miningProgress = 0.0f;
-                    currentlyMiningPos = null;
                 }
             }
-        } else {
-            // Maustaste losgelassen: Alles zurücksetzen
-            miningProgress = 0.0f;
-            currentlyMiningPos = null;
-
-            // Platzieren-Logik (unverändert)
+        }
+        
+        if (!input.isActionActive("INTERACT_BREAK")) {
             if (input.isActionActive("INTERACT_PLACE") && interactTimer <= 0) {
                 boolean success = handleMouseClick(false);
-                if (success) {
-                    swingAnimationTimer = SWING_DURATION;
-                }
+                if (success) swingAnimationTimer = SWING_DURATION;
                 interactTimer = INTERACT_COOLDOWN;
             } else if (!input.isActionActive("INTERACT_PLACE")) {
                 interactTimer = 0.0f;
             }
         }
+
+        // Apply decay to all blocks that are NOT currently being actively mined
+        java.util.Iterator<java.util.Map.Entry<Vector3i, MiningState>> it = miningStates.entrySet().iterator();
+        while(it.hasNext()) {
+            java.util.Map.Entry<Vector3i, MiningState> entry = it.next();
+            Vector3i pos = entry.getKey();
+            MiningState state = entry.getValue();
+
+            boolean activelyMiningThis = input.isActionActive("INTERACT_BREAK") && player.getGameMode() == GameMode.SURVIVAL && selectedBlockPos != null && pos.equals(selectedBlockPos);
+
+            if (!activelyMiningThis) {
+                if (state.decayTimer == 0.0f) {
+                    state.progressSnapshot = state.progress;
+                }
+                state.decayTimer += deltaTime;
+                if (state.decayTimer >= DECAY_START) {
+                    float decayFraction = (state.decayTimer - DECAY_START) / (DECAY_END - DECAY_START);
+                    state.progress = state.progressSnapshot * Math.max(0.0f, 1.0f - decayFraction);
+                    if (state.decayTimer >= DECAY_END) {
+                        it.remove();
+                    }
+                }
+            }
+        }
     }
 
-    private void handleSurvivalBreak(Block block, byte blockId) {
+    private void handleSurvivalBreak(Block block, byte blockId, boolean canHarvest) {
         if (selectedBlockPos == null)
             return;
 
@@ -254,6 +297,9 @@ public class PlayerInteraction {
                     eventBus.publish(new InventoryChangeEvent());
                 }
             }
+
+            // Drops nur erzeugen, wenn mit dem richtigen Werkzeug und Tier abgebaut wurde
+            if (!canHarvest) return;
 
             String lootPath = block.getLootTable();
             List<ItemStack> drops = new ArrayList<>();
@@ -394,19 +440,43 @@ public class PlayerInteraction {
     }
 
     public float getMiningProgressPercent() {
-        if (currentlyMiningPos == null || selectedBlockPos == null || !currentlyMiningPos.equals(selectedBlockPos)) {
-            return 0.0f;
-        }
+        if (selectedBlockPos == null) return 0.0f;
+        MiningState state = miningStates.get(selectedBlockPos);
+        if (state == null) return 0.0f;
 
-        byte blockId = world.getBlockAt(currentlyMiningPos);
+        byte blockId = world.getBlockAt(selectedBlockPos);
         Block targetBlock = BlockRegistry.get(blockId);
-
         if (targetBlock == Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air") || targetBlock.getHardness() < 0) {
             return 0.0f;
         }
 
-        float requiredTime = targetBlock.getHardness() * 1.5f;
-        return Math.min(1.0f, miningProgress / requiredTime);
+        ItemStack heldStack = player.getInventory().getSelectedHotbarStack();
+        ToolItem tool = (heldStack != null && heldStack.type instanceof ToolItem) ? (ToolItem) heldStack.type : null;
+
+        boolean isCorrectToolType = (tool != null) && tool.isCorrectToolFor(targetBlock);
+        boolean hasSufficientTier = false;
+        float toolEfficiency = 1.0f;
+
+        de.delautrer.game.items.ToolTier blockMinTier = targetBlock.getMinToolTier();
+        if (tool != null) {
+            de.delautrer.game.items.ToolTier toolTier = tool.getTier();
+            if (toolTier.getLevel() >= blockMinTier.getLevel()) hasSufficientTier = true;
+            if (isCorrectToolType && hasSufficientTier) toolEfficiency = tool.getEfficiency();
+            else if (isCorrectToolType) toolEfficiency = tool.getEfficiency() * 0.3f;
+        }
+
+        boolean canHarvest = (blockMinTier == de.delautrer.game.items.ToolTier.HAND) || (isCorrectToolType && hasSufficientTier);
+        float requiredTime;
+        if (canHarvest && tool != null && isCorrectToolType && hasSufficientTier) {
+            requiredTime = targetBlock.getHardness() * 2.5f / tool.getEfficiency();
+        } else if (blockMinTier == de.delautrer.game.items.ToolTier.HAND) {
+            if (tool != null && isCorrectToolType) requiredTime = targetBlock.getHardness() * 2.5f / toolEfficiency;
+            else requiredTime = targetBlock.getHardness() * 2.5f;
+        } else {
+            requiredTime = targetBlock.getHardness() * 7.0f;
+        }
+
+        return Math.min(1.0f, state.progress / requiredTime);
     }
     
     public float getSwingProgress() {

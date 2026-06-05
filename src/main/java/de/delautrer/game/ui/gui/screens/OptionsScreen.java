@@ -10,10 +10,13 @@ import java.util.Map;
 
 public class OptionsScreen extends MenuScreen {
     private final Runnable onBackAction;
+    private final Runnable requestRebuild;
     private final GameSettings tempSettings;
+    private boolean pendingReinit = false;
 
-    public OptionsScreen(Runnable onBackAction) {
+    public OptionsScreen(Runnable onBackAction, Runnable requestRebuild) {
         this.onBackAction = onBackAction;
+        this.requestRebuild = requestRebuild;
         this.tempSettings = SettingsManager.get();
     }
 
@@ -65,6 +68,17 @@ public class OptionsScreen extends MenuScreen {
 
         contentBox.addChild(graphicsBox);
 
+        UIHBox graphicsBox2 = new UIHBox(0, 0, spacingHBox);
+        graphicsBox2.addChild(new UIButton(0, 0, halfWidth, btnHeight, "Bobbing: " + (tempSettings.viewBobbing ? "ON" : "OFF"), () -> {
+            tempSettings.viewBobbing = !tempSettings.viewBobbing;
+            pendingReinit = true;
+        }));
+        graphicsBox2.addChild(new UIButton(0, 0, halfWidth, btnHeight, "Item Breath: " + (tempSettings.itemBreathing ? "ON" : "OFF"), () -> {
+            tempSettings.itemBreathing = !tempSettings.itemBreathing;
+            pendingReinit = true;
+        }));
+        contentBox.addChild(graphicsBox2);
+
         // --- BEREICH: STEUERUNG ---
         contentBox.addChild(new UISeparator(fullWidth, 30.0f, "Mouse", 2.0f, 0.5f, 0.5f, 0.5f, 1.0f));
 
@@ -76,6 +90,7 @@ public class OptionsScreen extends MenuScreen {
         mouseBox.addChild(new UIButton(0, 0, halfWidth, btnHeight, "Invert Y: " + (tempSettings.invertY ? "ON" : "OFF"), () -> {
             tempSettings.invertY = !tempSettings.invertY;
             onInit();
+            if (requestRebuild != null) requestRebuild.run();
         }));
         contentBox.addChild(mouseBox);
 
@@ -120,6 +135,16 @@ public class OptionsScreen extends MenuScreen {
         float spacingX = 8.0f * pixelScale;
         contentBox.setPosition(scrollList.getX() + spacingX, scrollList.getY() + listHeight - contentBox.getHeight() - 20.0f);
         scrollList.addItem(contentBox);
+    }
+
+    @Override
+    public void handleMenuInput(de.delautrer.engine.input.InputManager input, float uiMouseX, float uiMouseY) {
+        super.handleMenuInput(input, uiMouseX, uiMouseY);
+        if (pendingReinit) {
+            pendingReinit = false;
+            onInit();
+            if (requestRebuild != null) requestRebuild.run();
+        }
     }
 
     @Override

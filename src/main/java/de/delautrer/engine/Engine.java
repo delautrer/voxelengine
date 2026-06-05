@@ -48,7 +48,8 @@ public class Engine {
     }
 
     private void init() {
-        window = new Window(1280, 720, "Voxel Engine - " + Constants.VERSION);
+        System.out.println("Starting Veinstride Engine...");
+        window = new Window(1280, 720, "Veinstride - " + Constants.VERSION);
         window.disableCursor();
 
         audioEngine = new AudioEngine();

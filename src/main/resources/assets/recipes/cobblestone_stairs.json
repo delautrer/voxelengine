@@ -1,0 +1,15 @@
+﻿{
+  "type": "shaped",
+  "pattern": [
+    "C  ",
+    "CC ",
+    "CCC"
+  ],
+  "keys": {
+    "C": "engine:cobblestone"
+  },
+  "result": {
+    "item": "engine:cobblestone_stairs",
+    "count": 4
+  }
+}

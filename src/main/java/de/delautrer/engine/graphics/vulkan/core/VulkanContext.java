@@ -28,9 +28,9 @@ public class VulkanContext implements IGraphicsContext {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             VkApplicationInfo appInfo = VkApplicationInfo.calloc(stack);
             appInfo.sType(VK10.VK_STRUCTURE_TYPE_APPLICATION_INFO);
-            appInfo.pApplicationName(stack.UTF8("Voxel Engine"));
+            appInfo.pApplicationName(stack.UTF8("Veinstride"));
             appInfo.applicationVersion(VK10.VK_MAKE_VERSION(1, 0, 0));
-            appInfo.pEngineName(stack.UTF8("DelautrerEngine"));
+            appInfo.pEngineName(stack.UTF8("Veinstride      "));
             appInfo.engineVersion(VK10.VK_MAKE_VERSION(1, 0, 0));
             appInfo.apiVersion(VK10.VK_API_VERSION_1_0);
 

@@ -32,7 +32,10 @@ public class FirstPersonRenderSystem implements IRenderSystem {
 
         // Animation aus dem RenderPacket holen (Zeit-basiert oder Interaction-basiert)
         float t = (System.currentTimeMillis() % 2000) / 2000.0f;
-        float breatheY = (float) Math.sin(t * Math.PI * 2) * 0.02f;
+        float breatheY = 0.0f;
+        if (de.delautrer.game.settings.SettingsManager.get().itemBreathing) {
+            breatheY = (float) Math.sin(t * Math.PI * 2) * 0.02f;
+        }
         
         float swing = packet.swingProgress;
         float swingAnim = (float) Math.sin(swing * Math.PI); // 0 -> 1 -> 0

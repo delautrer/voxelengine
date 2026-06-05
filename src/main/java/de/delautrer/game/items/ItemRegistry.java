@@ -33,6 +33,10 @@ public class ItemRegistry {
         register("stone_slabs", new BlockItem("Stone Slabs", "stone_slabs", Registries.BLOCKS.get(Constants.NAMESPACE + ":stone_slabs")));
         register("stone_stairs", new BlockItem("Stone Stairs", "stone_stairs", Registries.BLOCKS.get(Constants.NAMESPACE + ":stone_stairs")));
 
+        register("cobblestone", new BlockItem("Cobblestone", "cobblestone", Registries.BLOCKS.get(Constants.NAMESPACE + ":cobblestone")));
+        register("cobblestone_slabs", new BlockItem("Cobblestone Slabs", "cobblestone_slabs", Registries.BLOCKS.get(Constants.NAMESPACE + ":cobblestone_slabs")));
+        register("cobblestone_stairs", new BlockItem("Cobblestone Stairs", "cobblestone_stairs", Registries.BLOCKS.get(Constants.NAMESPACE + ":cobblestone_stairs")));
+
         register("water_bucket", new BlockItem("Water bucket", "water_bucket", Registries.BLOCKS.get(Constants.NAMESPACE + ":water")).setMaxStackSize(1).setCategory("misc"));
         register("empty_bucket", new EmptyBucketItem("Bucket", "empty_bucket").setMaxStackSize(1).setCategory("misc"));
 
@@ -164,34 +168,34 @@ public class ItemRegistry {
         register("gold_ingot", new SimpleItem("Gold Ingot", "gold_ingot"));
 
         // Wooden Tools
-        register("wooden_pickaxe", new ToolItem("Wooden Pickaxe", "wooden_pickaxe", ToolItem.ToolType.PICKAXE, "wood", 2.0f, 59));
-        register("wooden_shovel", new ToolItem("Wooden Shovel", "wooden_shovel", ToolItem.ToolType.SHOVEL, "wood", 2.0f, 59));
-        register("wooden_axe", new ToolItem("Wooden Axe", "wooden_axe", ToolItem.ToolType.AXE, "wood", 2.0f, 59));
+        register("wooden_pickaxe", new ToolItem("Wooden Pickaxe", "wooden_pickaxe", ToolItem.ToolType.PICKAXE, ToolTier.WOOD, 2.0f, 59));
+        register("wooden_shovel", new ToolItem("Wooden Shovel", "wooden_shovel", ToolItem.ToolType.SHOVEL, ToolTier.WOOD, 2.0f, 59));
+        register("wooden_axe", new ToolItem("Wooden Axe", "wooden_axe", ToolItem.ToolType.AXE, ToolTier.WOOD, 2.0f, 59));
 
         // Stone Tools
-        register("stone_pickaxe", new ToolItem("Stone Pickaxe", "stone_pickaxe", ToolItem.ToolType.PICKAXE, "stone", 4.0f, 131));
-        register("stone_shovel", new ToolItem("Stone Shovel", "stone_shovel", ToolItem.ToolType.SHOVEL, "stone", 4.0f, 131));
-        register("stone_axe", new ToolItem("Stone Axe", "stone_axe", ToolItem.ToolType.AXE, "stone", 4.0f, 131));
+        register("stone_pickaxe", new ToolItem("Stone Pickaxe", "stone_pickaxe", ToolItem.ToolType.PICKAXE, ToolTier.STONE, 4.0f, 131));
+        register("stone_shovel", new ToolItem("Stone Shovel", "stone_shovel", ToolItem.ToolType.SHOVEL, ToolTier.STONE, 4.0f, 131));
+        register("stone_axe", new ToolItem("Stone Axe", "stone_axe", ToolItem.ToolType.AXE, ToolTier.STONE, 4.0f, 131));
 
         // Copper Tools
-        register("copper_pickaxe", new ToolItem("Copper Pickaxe", "copper_pickaxe", ToolItem.ToolType.PICKAXE, "copper", 5.0f, 180));
-        register("copper_shovel", new ToolItem("Copper Shovel", "copper_shovel", ToolItem.ToolType.SHOVEL, "copper", 5.0f, 180));
-        register("copper_axe", new ToolItem("Copper Axe", "copper_axe", ToolItem.ToolType.AXE, "copper", 5.0f, 180));
+        register("copper_pickaxe", new ToolItem("Copper Pickaxe", "copper_pickaxe", ToolItem.ToolType.PICKAXE, ToolTier.COPPER, 5.0f, 180));
+        register("copper_shovel", new ToolItem("Copper Shovel", "copper_shovel", ToolItem.ToolType.SHOVEL, ToolTier.COPPER, 5.0f, 180));
+        register("copper_axe", new ToolItem("Copper Axe", "copper_axe", ToolItem.ToolType.AXE, ToolTier.COPPER, 5.0f, 180));
 
         // Iron Tools
-        register("iron_pickaxe", new ToolItem("Iron Pickaxe", "iron_pickaxe", ToolItem.ToolType.PICKAXE, "iron", 6.0f, 250));
-        register("iron_shovel", new ToolItem("Iron Shovel", "iron_shovel", ToolItem.ToolType.SHOVEL, "iron", 6.0f, 250));
-        register("iron_axe", new ToolItem("Iron Axe", "iron_axe", ToolItem.ToolType.AXE, "iron", 6.0f, 250));
+        register("iron_pickaxe", new ToolItem("Iron Pickaxe", "iron_pickaxe", ToolItem.ToolType.PICKAXE, ToolTier.IRON, 6.0f, 250));
+        register("iron_shovel", new ToolItem("Iron Shovel", "iron_shovel", ToolItem.ToolType.SHOVEL, ToolTier.IRON, 6.0f, 250));
+        register("iron_axe", new ToolItem("Iron Axe", "iron_axe", ToolItem.ToolType.AXE, ToolTier.IRON, 6.0f, 250));
 
         // Gold Tools
-        register("gold_pickaxe", new ToolItem("Gold Pickaxe", "gold_pickaxe", ToolItem.ToolType.PICKAXE, "gold", 12.0f, 32));
-        register("gold_shovel", new ToolItem("Gold Shovel", "gold_shovel", ToolItem.ToolType.SHOVEL, "gold", 12.0f, 32));
-        register("gold_axe", new ToolItem("Gold Axe", "gold_axe", ToolItem.ToolType.AXE, "gold", 12.0f, 32));
+        register("gold_pickaxe", new ToolItem("Gold Pickaxe", "gold_pickaxe", ToolItem.ToolType.PICKAXE, ToolTier.GOLD, 7.0f, 32));
+        register("gold_shovel", new ToolItem("Gold Shovel", "gold_shovel", ToolItem.ToolType.SHOVEL, ToolTier.GOLD, 7.0f, 32));
+        register("gold_axe", new ToolItem("Gold Axe", "gold_axe", ToolItem.ToolType.AXE, ToolTier.GOLD, 7.0f, 32));
 
         // Diamond Tools
-        register("diamond_pickaxe", new ToolItem("Diamond Pickaxe", "diamond_pickaxe", ToolItem.ToolType.PICKAXE, "diamond", 8.0f, 1561));
-        register("diamond_shovel", new ToolItem("Diamond Shovel", "diamond_shovel", ToolItem.ToolType.SHOVEL, "diamond", 8.0f, 1561));
-        register("diamond_axe", new ToolItem("Diamond Axe", "diamond_axe", ToolItem.ToolType.AXE, "diamond", 8.0f, 1561));
+        register("diamond_pickaxe", new ToolItem("Diamond Pickaxe", "diamond_pickaxe", ToolItem.ToolType.PICKAXE, ToolTier.DIAMOND, 8.0f, 1561));
+        register("diamond_shovel", new ToolItem("Diamond Shovel", "diamond_shovel", ToolItem.ToolType.SHOVEL, ToolTier.DIAMOND, 8.0f, 1561));
+        register("diamond_axe", new ToolItem("Diamond Axe", "diamond_axe", ToolItem.ToolType.AXE, ToolTier.DIAMOND, 8.0f, 1561));
 
         System.out.println("[ItemRegistry] " + REGISTRY.size() + " Items loaded.");
     }

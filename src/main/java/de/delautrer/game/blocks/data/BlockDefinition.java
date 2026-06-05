@@ -15,4 +15,5 @@ public class BlockDefinition {
     public int minGrowthTime = 60;
     public int maxGrowthTime = 180;
     public String category = "misc";
+    public String minToolTier = "HAND";
 }

@@ -43,7 +43,7 @@ public class PauseScreen extends MenuScreen {
             OptionsScreen optionsScreen = new OptionsScreen(() -> {
                 playScene.getEngine().getInputManager().reloadBindings();
                 subScreen = null;
-            });
+            }, playScene::requestUIRebuild);
             optionsScreen.init(width, height);
             optionsScreen.setFont(font);
             subScreen = optionsScreen;
@@ -90,5 +90,17 @@ public class PauseScreen extends MenuScreen {
                 }
             }
         }
+    }
+
+    public boolean hasSubScreen() {
+        return subScreen != null;
+    }
+
+    public void closeSubScreen() {
+        if (subScreen instanceof OptionsScreen) {
+            de.delautrer.game.settings.SettingsManager.save();
+            playScene.getEngine().getInputManager().reloadBindings();
+        }
+        subScreen = null;
     }
 }
