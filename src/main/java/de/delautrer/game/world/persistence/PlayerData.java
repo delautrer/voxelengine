@@ -16,10 +16,18 @@ public class PlayerData {
     public static class SavedSlot {
         public String id;
         public int amount;
+        public int durability;
 
         public SavedSlot(String id, int amount) {
             this.id = id;
             this.amount = amount;
+            this.durability = -1;
+        }
+
+        public SavedSlot(String id, int amount, int durability) {
+            this.id = id;
+            this.amount = amount;
+            this.durability = durability;
         }
     }
 }

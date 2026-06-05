@@ -1,12 +1,14 @@
 {
   "type": "shaped",
   "pattern": [
-    "AA"
+    "A A",
+    "AAA"
   ],
   "keys": {
-    "A": "engine:stone_stairs"
+    "A": "engine:iron_ingot"
   },
   "result": {
+    "count": 1,
     "item": "engine:empty_bucket"
   }
 }

@@ -65,6 +65,7 @@ public class ItemRegistry {
         register("oak_chest", new BlockItem("Oak Chest", "oak_chest", Registries.BLOCKS.get(Constants.NAMESPACE + ":oak_chest")));
         register("oak_trapdoor", new BlockItem("Oak Trapdoor", "oak_trapdoor", Registries.BLOCKS.get(Constants.NAMESPACE + ":oak_trapdoor")));
         register("oak_door", new BlockItem("Oak Door", "oak_door", Registries.BLOCKS.get(Constants.NAMESPACE + ":oak_door")));
+        register("oak_sapling", new BlockItem("Oak Sapling", "oak_sapling", Registries.BLOCKS.get(Constants.NAMESPACE + ":oak_sapling")));
 
         // Birch
         register("birch_log", new BlockItem("Birch Log", "birch_log", Registries.BLOCKS.get(Constants.NAMESPACE + ":birch_log")));
@@ -75,6 +76,7 @@ public class ItemRegistry {
         register("birch_chest", new BlockItem("Birch Chest", "birch_chest", Registries.BLOCKS.get(Constants.NAMESPACE + ":birch_chest")));
         register("birch_trapdoor", new BlockItem("Birch Trapdoor", "birch_trapdoor", Registries.BLOCKS.get(Constants.NAMESPACE + ":birch_trapdoor")));
         register("birch_door", new BlockItem("Birch Door", "birch_door", Registries.BLOCKS.get(Constants.NAMESPACE + ":birch_door")));
+        register("birch_sapling", new BlockItem("Birch Sapling", "birch_sapling", Registries.BLOCKS.get(Constants.NAMESPACE + ":birch_sapling")));
 
         // Pine
         register("pine_log", new BlockItem("Pine Log", "pine_log", Registries.BLOCKS.get(Constants.NAMESPACE + ":pine_log")));
@@ -85,6 +87,7 @@ public class ItemRegistry {
         register("pine_chest", new BlockItem("Pine Chest", "pine_chest", Registries.BLOCKS.get(Constants.NAMESPACE + ":pine_chest")));
         register("pine_trapdoor", new BlockItem("Pine Trapdoor", "pine_trapdoor", Registries.BLOCKS.get(Constants.NAMESPACE + ":pine_trapdoor")));
         register("pine_door", new BlockItem("Pine Door", "pine_door", Registries.BLOCKS.get(Constants.NAMESPACE + ":pine_door")));
+        register("pine_sapling", new BlockItem("Pine Sapling", "pine_sapling", Registries.BLOCKS.get(Constants.NAMESPACE + ":pine_sapling")));
 
         // Willow
         register("willow_log", new BlockItem("Willow Log", "willow_log", Registries.BLOCKS.get(Constants.NAMESPACE + ":willow_log")));
@@ -95,6 +98,7 @@ public class ItemRegistry {
         register("willow_chest", new BlockItem("Willow Chest", "willow_chest", Registries.BLOCKS.get(Constants.NAMESPACE + ":willow_chest")));
         register("willow_trapdoor", new BlockItem("Willow Trapdoor", "willow_trapdoor", Registries.BLOCKS.get(Constants.NAMESPACE + ":willow_trapdoor")));
         register("willow_door", new BlockItem("Willow Door", "willow_door", Registries.BLOCKS.get(Constants.NAMESPACE + ":willow_door")));
+        register("willow_sapling", new BlockItem("Willow Sapling", "willow_sapling", Registries.BLOCKS.get(Constants.NAMESPACE + ":willow_sapling")));
 
         // Baobab
         register("baobab_log", new BlockItem("Baobab Log", "baobab_log", Registries.BLOCKS.get(Constants.NAMESPACE + ":baobab_log")));
@@ -105,6 +109,7 @@ public class ItemRegistry {
         register("baobab_chest", new BlockItem("Baobab Chest", "baobab_chest", Registries.BLOCKS.get(Constants.NAMESPACE + ":baobab_chest")));
         register("baobab_trapdoor", new BlockItem("Baobab Trapdoor", "baobab_trapdoor", Registries.BLOCKS.get(Constants.NAMESPACE + ":baobab_trapdoor")));
         register("baobab_door", new BlockItem("Baobab Door", "baobab_door", Registries.BLOCKS.get(Constants.NAMESPACE + ":baobab_door")));
+        register("baobab_sapling", new BlockItem("Baobab Sapling", "baobab_sapling", Registries.BLOCKS.get(Constants.NAMESPACE + ":baobab_sapling")));
 
         // Mahogany
         register("mahogany_log", new BlockItem("Mahogany Log", "mahogany_log", Registries.BLOCKS.get(Constants.NAMESPACE + ":mahogany_log")));
@@ -115,6 +120,7 @@ public class ItemRegistry {
         register("mahogany_chest", new BlockItem("Mahogany Chest", "mahogany_chest", Registries.BLOCKS.get(Constants.NAMESPACE + ":mahogany_chest")));
         register("mahogany_trapdoor", new BlockItem("Mahogany Trapdoor", "mahogany_trapdoor", Registries.BLOCKS.get(Constants.NAMESPACE + ":mahogany_trapdoor")));
         register("mahogany_door", new BlockItem("Mahogany Door", "mahogany_door", Registries.BLOCKS.get(Constants.NAMESPACE + ":mahogany_door")));
+        register("mahogany_sapling", new BlockItem("Mahogany Sapling", "mahogany_sapling", Registries.BLOCKS.get(Constants.NAMESPACE + ":mahogany_sapling")));
 
         // Palm
         register("palm_log", new BlockItem("Palm Log", "palm_log", Registries.BLOCKS.get(Constants.NAMESPACE + ":palm_log")));
@@ -125,6 +131,7 @@ public class ItemRegistry {
         register("palm_chest", new BlockItem("Palm Chest", "palm_chest", Registries.BLOCKS.get(Constants.NAMESPACE + ":palm_chest")));
         register("palm_trapdoor", new BlockItem("Palm Trapdoor", "palm_trapdoor", Registries.BLOCKS.get(Constants.NAMESPACE + ":palm_trapdoor")));
         register("palm_door", new BlockItem("Palm Door", "palm_door", Registries.BLOCKS.get(Constants.NAMESPACE + ":palm_door")));
+        register("palm_sapling", new BlockItem("Palm Sapling", "palm_sapling", Registries.BLOCKS.get(Constants.NAMESPACE + ":palm_sapling")));
 
         register("sticks", new Item("Sticks", "sticks") {
             @Override
@@ -132,6 +139,59 @@ public class ItemRegistry {
                 return false;
             }
         }.setCategory("misc"));
+
+        register("crafting_table", new BlockItem("Crafting Table", "crafting_table", Registries.BLOCKS.get(Constants.NAMESPACE + ":crafting_table")));
+        register("furnace", new BlockItem("Furnace", "furnace", Registries.BLOCKS.get(Constants.NAMESPACE + ":furnace")));
+        register("coal", new SimpleItem("Coal", "coal"));
+
+        // Ores
+        register("coal_ore", new BlockItem("Coal Ore", "coal_ore", Registries.BLOCKS.get(Constants.NAMESPACE + ":coal_ore")));
+        register("iron_ore", new BlockItem("Iron Ore", "iron_ore", Registries.BLOCKS.get(Constants.NAMESPACE + ":iron_ore")));
+        register("copper_ore", new BlockItem("Copper Ore", "copper_ore", Registries.BLOCKS.get(Constants.NAMESPACE + ":copper_ore")));
+        register("zinc_ore", new BlockItem("Zinc Ore", "zinc_ore", Registries.BLOCKS.get(Constants.NAMESPACE + ":zinc_ore")));
+        register("diamond_ore", new BlockItem("Diamond Ore", "diamond_ore", Registries.BLOCKS.get(Constants.NAMESPACE + ":diamond_ore")));
+        register("gold_ore", new BlockItem("Gold Ore", "gold_ore", Registries.BLOCKS.get(Constants.NAMESPACE + ":gold_ore")));
+
+        // Resource Items
+        register("diamond", new SimpleItem("Diamond", "diamond"));
+        register("raw_iron", new SimpleItem("Raw Iron", "raw_iron"));
+        register("raw_copper", new SimpleItem("Raw Copper", "raw_copper"));
+        register("raw_zinc", new SimpleItem("Raw Zinc", "raw_zinc"));
+        register("raw_gold", new SimpleItem("Raw Gold", "raw_gold"));
+        register("iron_ingot", new SimpleItem("Iron Ingot", "iron_ingot"));
+        register("copper_ingot", new SimpleItem("Copper Ingot", "copper_ingot"));
+        register("zinc_ingot", new SimpleItem("Zinc Ingot", "zinc_ingot"));
+        register("gold_ingot", new SimpleItem("Gold Ingot", "gold_ingot"));
+
+        // Wooden Tools
+        register("wooden_pickaxe", new ToolItem("Wooden Pickaxe", "wooden_pickaxe", ToolItem.ToolType.PICKAXE, "wood", 2.0f, 59));
+        register("wooden_shovel", new ToolItem("Wooden Shovel", "wooden_shovel", ToolItem.ToolType.SHOVEL, "wood", 2.0f, 59));
+        register("wooden_axe", new ToolItem("Wooden Axe", "wooden_axe", ToolItem.ToolType.AXE, "wood", 2.0f, 59));
+
+        // Stone Tools
+        register("stone_pickaxe", new ToolItem("Stone Pickaxe", "stone_pickaxe", ToolItem.ToolType.PICKAXE, "stone", 4.0f, 131));
+        register("stone_shovel", new ToolItem("Stone Shovel", "stone_shovel", ToolItem.ToolType.SHOVEL, "stone", 4.0f, 131));
+        register("stone_axe", new ToolItem("Stone Axe", "stone_axe", ToolItem.ToolType.AXE, "stone", 4.0f, 131));
+
+        // Copper Tools
+        register("copper_pickaxe", new ToolItem("Copper Pickaxe", "copper_pickaxe", ToolItem.ToolType.PICKAXE, "copper", 5.0f, 180));
+        register("copper_shovel", new ToolItem("Copper Shovel", "copper_shovel", ToolItem.ToolType.SHOVEL, "copper", 5.0f, 180));
+        register("copper_axe", new ToolItem("Copper Axe", "copper_axe", ToolItem.ToolType.AXE, "copper", 5.0f, 180));
+
+        // Iron Tools
+        register("iron_pickaxe", new ToolItem("Iron Pickaxe", "iron_pickaxe", ToolItem.ToolType.PICKAXE, "iron", 6.0f, 250));
+        register("iron_shovel", new ToolItem("Iron Shovel", "iron_shovel", ToolItem.ToolType.SHOVEL, "iron", 6.0f, 250));
+        register("iron_axe", new ToolItem("Iron Axe", "iron_axe", ToolItem.ToolType.AXE, "iron", 6.0f, 250));
+
+        // Gold Tools
+        register("gold_pickaxe", new ToolItem("Gold Pickaxe", "gold_pickaxe", ToolItem.ToolType.PICKAXE, "gold", 12.0f, 32));
+        register("gold_shovel", new ToolItem("Gold Shovel", "gold_shovel", ToolItem.ToolType.SHOVEL, "gold", 12.0f, 32));
+        register("gold_axe", new ToolItem("Gold Axe", "gold_axe", ToolItem.ToolType.AXE, "gold", 12.0f, 32));
+
+        // Diamond Tools
+        register("diamond_pickaxe", new ToolItem("Diamond Pickaxe", "diamond_pickaxe", ToolItem.ToolType.PICKAXE, "diamond", 8.0f, 1561));
+        register("diamond_shovel", new ToolItem("Diamond Shovel", "diamond_shovel", ToolItem.ToolType.SHOVEL, "diamond", 8.0f, 1561));
+        register("diamond_axe", new ToolItem("Diamond Axe", "diamond_axe", ToolItem.ToolType.AXE, "diamond", 8.0f, 1561));
 
         System.out.println("[ItemRegistry] " + REGISTRY.size() + " Items loaded.");
     }

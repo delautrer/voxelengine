@@ -16,4 +16,6 @@ public abstract class BlockEntity {
     public World getWorld() { return world; }
 
     public void onRemove() {}
+
+    public void tick() {}
 }

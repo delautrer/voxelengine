@@ -1,13 +1,14 @@
-﻿{
-    "pattern":  [
-                    "AA"
-                ],
-    "keys":  {
-                 "A":  "engine:pine_planks"
-             },
-    "type":  "shaped",
-    "result":  {
-                   "count":  2,
-                   "item":  "engine:pine_trapdoor"
-               }
+{
+  "type": "shaped",
+  "pattern": [
+    "AAA",
+    "AAA"
+  ],
+  "keys": {
+    "A": "engine:pine_planks"
+  },
+  "result": {
+    "count": 2,
+    "item": "engine:pine_trapdoor"
+  }
 }

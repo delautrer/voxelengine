@@ -1,10 +1,13 @@
 {
-  "type": "shapeless",
-  "ingredients": [
-    "engine:bricks"
+  "type": "shaped",
+  "pattern": [
+    "AAA"
   ],
+  "keys": {
+    "A": "engine:bricks"
+  },
   "result": {
-    "item": "engine:bricks_slabs",
-    "count": 2
+    "count": 6,
+    "item": "engine:bricks_slabs"
   }
 }

@@ -1,0 +1,22 @@
+{
+  "pattern": [
+    "AA",
+    "AA"
+  ],
+  "keys": {
+    "A": [
+      "engine:oak_planks",
+      "engine:birch_planks",
+      "engine:pine_planks",
+      "engine:willow_planks",
+      "engine:baobab_planks",
+      "engine:mahogany_planks",
+      "engine:palm_planks"
+    ]
+  },
+  "type": "shaped",
+  "result": {
+    "count": 1,
+    "item": "engine:crafting_table"
+  }
+}

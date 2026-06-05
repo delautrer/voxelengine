@@ -1,0 +1,16 @@
+{
+  "type": "shaped",
+  "pattern": [
+    "M",
+    "S",
+    "S"
+  ],
+  "keys": {
+    "M": "engine:gold_ingot",
+    "S": "engine:sticks"
+  },
+  "result": {
+    "item": "engine:gold_shovel",
+    "count": 1
+  }
+}

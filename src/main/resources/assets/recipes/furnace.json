@@ -1,0 +1,15 @@
+{
+  "pattern": [
+    "AAA",
+    "A A",
+    "AAA"
+  ],
+  "keys": {
+    "A": "engine:stone"
+  },
+  "type": "shaped",
+  "result": {
+    "count": 1,
+    "item": "engine:furnace"
+  }
+}

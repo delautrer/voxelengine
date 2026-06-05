@@ -10,11 +10,13 @@ import de.delautrer.game.ui.UIMeshBuilder;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import de.delautrer.engine.input.InputManager;
+import de.delautrer.game.entity.player.PlayerInteraction;
 import de.delautrer.game.items.ItemRegistry;
 
 public abstract class ContainerScreen extends MenuScreen {
     protected final BaseContainer container;
     protected IFont font;
+    protected PlayerInteraction interaction;
 
     protected float guiX, guiY;
     protected float slotSize;
@@ -30,6 +32,10 @@ public abstract class ContainerScreen extends MenuScreen {
 
     public void setFont(IFont font) {
         this.font = font;
+    }
+
+    public void setInteraction(PlayerInteraction interaction) {
+        this.interaction = interaction;
     }
 
     protected abstract void drawBackground(UIMeshBuilder builder, float mouseX, float mouseY);
@@ -101,7 +107,9 @@ public abstract class ContainerScreen extends MenuScreen {
             }
 
             if (stack != null) {
-                builder.drawItem(stack, slotX + 3 * pixelScale, slotY + 3 * pixelScale, 0.25f, slotSize - 6 * pixelScale);
+                float itemSize = 16.0f * pixelScale;
+                builder.drawItem(stack, slotX + (slotSize - itemSize) * 0.5f,
+                        slotY + (slotSize - itemSize) * 0.5f, 0.25f, itemSize);
 
                 // Anzahl
                 if (displayAmount > 1 && font != null) {
@@ -114,10 +122,10 @@ public abstract class ContainerScreen extends MenuScreen {
 
         // 3. Item an der Maus
         if (mouseStack != null) {
-            float itemSize = slotSize - 4 * pixelScale;
+            float itemSize = 16.0f * pixelScale;
             float invertedMouseY = height - mouseY;
-            builder.drawItem(mouseStack, mouseX - itemSize / 2.0f - 5 * pixelScale,
-                    invertedMouseY - itemSize / 2.0f + 3 * pixelScale, 0.5f, itemSize);
+            builder.drawItem(mouseStack, mouseX - itemSize / 2.0f,
+                    invertedMouseY - itemSize / 2.0f, 0.5f, itemSize);
 
             int mouseDisplayAmount = isDragging ? remainingMouseAmount : mouseStack.amount;
 
@@ -203,6 +211,23 @@ public abstract class ContainerScreen extends MenuScreen {
                 container.sortRegion(hovered);
         }
 
+        if (input.isActionJustPressed("DROP_ITEM") && interaction != null) {
+            Slot hovered = getHoveredSlotObj(mouseX, rawMouseY);
+            boolean fullStack = input.isControlDown();
+
+            if (hovered != null && hovered.hasItem()) {
+                ItemStack stack = hovered.getStack();
+                int amount = fullStack ? stack.amount : 1;
+                ItemStack dropStack = new ItemStack(stack.type, amount);
+                dropStack.durability = stack.durability;
+                stack.amount -= amount;
+                if (stack.amount <= 0) hovered.putStack(null);
+                else hovered.onSlotChanged();
+                interaction.dropStack(dropStack);
+            }
+            return;
+        }
+
         // --- Maus-States ---
         boolean shiftPressed = false;
         try {
@@ -232,6 +257,11 @@ public abstract class ContainerScreen extends MenuScreen {
         // --- UPDATE B: Drag & Drop ---
         if (container.getMouseStack() != null && !shiftPressed) {
             if (leftJustPressed) {
+                if (getHoveredSlotObj(mouseX, rawMouseY) == null && interaction != null) {
+                    interaction.dropStack(container.getMouseStack());
+                    container.setMouseStack(null);
+                    return;
+                }
                 // Wir fangen an zu ziehen
                 isDragging = true;
                 dragSlots.clear();
@@ -265,6 +295,9 @@ public abstract class ContainerScreen extends MenuScreen {
         Slot slot = getHoveredSlotObj(mouseX, rawMouseY);
         if (slot != null) {
             container.clickSlot(slot, button, type);
+        } else if (button == 0 && type == ClickType.PICKUP && container.getMouseStack() != null && interaction != null) {
+            interaction.dropStack(container.getMouseStack());
+            container.setMouseStack(null);
         }
     }
 

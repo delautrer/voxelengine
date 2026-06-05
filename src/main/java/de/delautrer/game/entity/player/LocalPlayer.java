@@ -160,27 +160,7 @@ public class LocalPlayer extends Player {
         boolean isUIOpen = inventory.isOpen() || isChatOpen || getOpenedInventory() != null || isDead;
 
         if (input.isActionJustPressed("DROP_ITEM") && !isUIOpen) {
-            ItemStack currentStack = inventory.getStack(inventory.getSelectedSlot());
-
-            if (currentStack != null) {
-                ItemStack dropStack = new ItemStack(currentStack.type, 1);
-                currentStack.amount -= 1;
-                if (currentStack.amount <= 0) {
-                    inventory.setStack(inventory.getSelectedSlot(), null);
-                }
-
-                eventBus.publish(new InventoryChangeEvent());
-
-                Vector3d spawnPos = new Vector3d(this.position).add(0, 1.5, 0);
-
-                Vector3f lookDir = new Vector3f(this.getCamera().getFront());
-                Vector3f throwVelocity = new Vector3f(lookDir).mul(5.0f).add(0, 1.5f, 0);
-
-                ItemEntity itemEntity = new ItemEntity(dropStack, spawnPos, throwVelocity);
-                chunkManager.getWorld().spawnEntity(itemEntity);
-
-                eventBus.publish(new PlayerItemDropEvent(this, dropStack));
-            }
+            interaction.dropFromSlot(inventory.getSelectedSlot(), input.isControlDown());
         }
 
         // ==========================================

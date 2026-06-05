@@ -8,6 +8,8 @@ import de.delautrer.game.inventory.ChestInventory;
 import de.delautrer.game.inventory.IInventory;
 import de.delautrer.game.ui.gui.container.CreativeContainer;
 import de.delautrer.game.ui.gui.container.ChestContainer;
+import de.delautrer.game.ui.gui.container.CraftingTableContainer;
+import de.delautrer.game.ui.gui.container.FurnaceContainer;
 import de.delautrer.game.ui.gui.screens.*;
 import de.delautrer.game.ui.gui.container.PlayerContainer;
 import de.delautrer.game.ui.gui.screens.ContainerScreen;
@@ -33,28 +35,49 @@ public class UIManager {
         boolean isPlayerInvOpen = interaction.getInventory().isOpen();
 
         if (externalInv != null) {
-            if (!(currentScreen instanceof ChestScreen)) {
+            boolean needsNewScreen = false;
+            if (currentScreen == null) {
+                needsNewScreen = true;
+            } else {
+                if (externalInv instanceof ChestInventory && !(currentScreen instanceof ChestScreen)) needsNewScreen = true;
+                else if (externalInv instanceof de.delautrer.game.inventory.CraftingTableInventory && !(currentScreen instanceof CraftingTableScreen)) needsNewScreen = true;
+                else if (externalInv instanceof de.delautrer.game.inventory.FurnaceInventory && !(currentScreen instanceof FurnaceScreen)) needsNewScreen = true;
+            }
+
+            if (needsNewScreen) {
                 if (currentScreen != null) {
                     currentScreen.onClose();
                 }
                 if (externalInv instanceof ChestInventory) {
                     currentScreen = new ChestScreen(
                             new ChestContainer(interaction.getInventory(), (ChestInventory) externalInv));
+                } else if (externalInv instanceof de.delautrer.game.inventory.CraftingTableInventory) {
+                    currentScreen = new CraftingTableScreen(
+                            new CraftingTableContainer(interaction.getInventory(), (de.delautrer.game.inventory.CraftingTableInventory) externalInv));
+                } else if (externalInv instanceof de.delautrer.game.inventory.FurnaceInventory) {
+                    currentScreen = new FurnaceScreen(
+                            new FurnaceContainer(interaction.getInventory(), (de.delautrer.game.inventory.FurnaceInventory) externalInv));
                 }
                 if (lastWidth > 0 && currentScreen != null) {
                     currentScreen.init(lastWidth, lastHeight);
                 }
-            }
-            if (currentScreen != null) {
-                currentScreen.handleInput(input);
+            } else {
+                if (currentScreen != null) {
+                    if (currentScreen instanceof ContainerScreen containerScreen) {
+                        containerScreen.setInteraction(interaction);
+                    }
+                    currentScreen.handleInput(input);
+                }
             }
 
         }
         // 2. Hat der Spieler nur sein eigenes Inventar offen?
         else if (isPlayerInvOpen) {
+            boolean needsNewScreen = false;
             // Prüfen, ob wir den Screen neu laden müssen (falls er vorher null oder ein
-            // ChestScreen war)
-            if (currentScreen == null || currentScreen instanceof ChestScreen) {
+            // ChestScreen/CraftingScreen/FurnaceScreen war)
+            if (currentScreen == null || currentScreen instanceof ChestScreen || currentScreen instanceof CraftingTableScreen || currentScreen instanceof FurnaceScreen) {
+                needsNewScreen = true;
                 if (currentScreen != null) {
                     currentScreen.onClose();
                 }
@@ -68,7 +91,12 @@ public class UIManager {
                 if (lastWidth > 0)
                     currentScreen.init(lastWidth, lastHeight);
             }
-            currentScreen.handleInput(input);
+            if (!needsNewScreen && currentScreen != null) {
+                if (currentScreen instanceof ContainerScreen containerScreen) {
+                    containerScreen.setInteraction(interaction);
+                }
+                currentScreen.handleInput(input);
+            }
 
         }
         // 3. Gar kein Inventar offen

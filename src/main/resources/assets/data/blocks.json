@@ -695,5 +695,153 @@
         "hardness":  2.0,
         "soundMaterial":  "wood",
         "category":  "wood"
+    },
+    {
+        "id": 160,
+        "name": "crafting_table",
+        "type": "crafting_table",
+        "hardness": 1.5,
+        "soundMaterial": "wood",
+        "category": "building"
+    },
+    {
+        "id": 161,
+        "name": "furnace",
+        "type": "furnace",
+        "hardness": 2.0,
+        "soundMaterial": "rock",
+        "category": "building"
+    },
+    {
+        "id": 36,
+        "name": "oak_sapling",
+        "type": "sapling",
+        "isSolid": false,
+        "isTransparent": true,
+        "hardness": 0.0,
+        "soundMaterial": "grass",
+        "category": "natural",
+        "minGrowthTime": 60,
+        "maxGrowthTime": 180
+    },
+    {
+        "id": 108,
+        "name": "birch_sapling",
+        "type": "sapling",
+        "isSolid": false,
+        "isTransparent": true,
+        "hardness": 0.0,
+        "soundMaterial": "grass",
+        "category": "natural",
+        "minGrowthTime": 60,
+        "maxGrowthTime": 180
+    },
+    {
+        "id": 118,
+        "name": "pine_sapling",
+        "type": "sapling",
+        "isSolid": false,
+        "isTransparent": true,
+        "hardness": 0.0,
+        "soundMaterial": "grass",
+        "category": "natural",
+        "minGrowthTime": 60,
+        "maxGrowthTime": 180
+    },
+    {
+        "id": 128,
+        "name": "willow_sapling",
+        "type": "sapling",
+        "isSolid": false,
+        "isTransparent": true,
+        "hardness": 0.0,
+        "soundMaterial": "grass",
+        "category": "natural",
+        "minGrowthTime": 60,
+        "maxGrowthTime": 180
+    },
+    {
+        "id": 138,
+        "name": "baobab_sapling",
+        "type": "sapling",
+        "isSolid": false,
+        "isTransparent": true,
+        "hardness": 0.0,
+        "soundMaterial": "grass",
+        "category": "natural",
+        "minGrowthTime": 60,
+        "maxGrowthTime": 180
+    },
+    {
+        "id": 148,
+        "name": "mahogany_sapling",
+        "type": "sapling",
+        "isSolid": false,
+        "isTransparent": true,
+        "hardness": 0.0,
+        "soundMaterial": "grass",
+        "category": "natural",
+        "minGrowthTime": 60,
+        "maxGrowthTime": 180
+    },
+    {
+        "id": 158,
+        "name": "palm_sapling",
+        "type": "sapling",
+        "isSolid": false,
+        "isTransparent": true,
+        "hardness": 0.0,
+        "soundMaterial": "grass",
+        "category": "natural",
+        "minGrowthTime": 60,
+        "maxGrowthTime": 180
+    },
+    {
+        "id": 170,
+        "name": "coal_ore",
+        "type": "cube",
+        "hardness": 3.0,
+        "soundMaterial": "rock",
+        "category": "natural"
+    },
+    {
+        "id": 171,
+        "name": "iron_ore",
+        "type": "cube",
+        "hardness": 3.0,
+        "soundMaterial": "rock",
+        "category": "natural"
+    },
+    {
+        "id": 172,
+        "name": "copper_ore",
+        "type": "cube",
+        "hardness": 3.0,
+        "soundMaterial": "rock",
+        "category": "natural"
+    },
+    {
+        "id": 173,
+        "name": "zinc_ore",
+        "type": "cube",
+        "hardness": 3.0,
+        "soundMaterial": "rock",
+        "category": "natural"
+    },
+    {
+        "id": 174,
+        "name": "diamond_ore",
+        "type": "cube",
+        "hardness": 3.0,
+        "soundMaterial": "rock",
+        "category": "natural"
+    },
+    {
+        "id": 175,
+        "name": "gold_ore",
+        "type": "cube",
+        "hardness": 3.0,
+        "soundMaterial": "rock",
+        "category": "natural"
     }
 ]

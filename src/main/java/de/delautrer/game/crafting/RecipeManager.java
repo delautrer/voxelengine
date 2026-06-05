@@ -28,6 +28,7 @@ public class RecipeManager {
             }
         }
         System.out.println("[RecipeManager] Loaded " + RECIPES.size() + " recipes.");
+        de.delautrer.game.crafting.FurnaceRecipeManager.init();
     }
 
     public static void loadRecipe(String filename) {

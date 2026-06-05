@@ -134,7 +134,9 @@ public class HUD {
             }
 
             ItemStack stack = inventory.getStack(col);
-            builder.drawItem(stack, slotX + 3 * pixelScale, hotbarY + 3 * pixelScale, 0.2f, selectorW - 6 * pixelScale);
+            float itemSize = 16.0f * pixelScale;
+            builder.drawItem(stack, slotX + (selectorW - itemSize) * 0.5f,
+                    hotbarY + (selectorW - itemSize) * 0.5f, 0.2f, itemSize);
 
             if (stack != null && stack.amount > 1) {
                 if (stack.amount > 9)

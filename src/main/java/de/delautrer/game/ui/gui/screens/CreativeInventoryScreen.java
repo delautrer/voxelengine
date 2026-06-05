@@ -154,7 +154,7 @@ public class CreativeInventoryScreen extends ContainerScreen {
 
             Item iconItem = ItemRegistry.get(Constants.NAMESPACE + ":" + tab.iconId);
             if (iconItem != null) {
-                builder.drawItem(new ItemStack(iconItem, 1), x + 8 * pixelScale, startY + 8 * pixelScale, 0.2f, 12 * pixelScale);
+                builder.drawItem(new ItemStack(iconItem, 1), x + 6 * pixelScale, startY + 6 * pixelScale, 0.2f, 16 * pixelScale);
             }
         }
     }
@@ -172,7 +172,9 @@ public class CreativeInventoryScreen extends ContainerScreen {
                     float slotX = guiX + (slot.x * pixelScale);
                     float slotY = guiY + (slot.y * pixelScale);
                     if (slotX >= -100) { // Sichtbarkeits-Check
-                        builder.drawItem(new ItemStack(item, 1), slotX + 3 * pixelScale, slotY + 3 * pixelScale, 0.3f, slotSize - 6 * pixelScale);
+                        float itemSize = 16.0f * pixelScale;
+                        builder.drawItem(new ItemStack(item, 1), slotX + (slotSize - itemSize) * 0.5f,
+                                slotY + (slotSize - itemSize) * 0.5f, 0.3f, itemSize);
                     }
                 }
             }

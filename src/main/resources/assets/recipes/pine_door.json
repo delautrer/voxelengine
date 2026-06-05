@@ -1,14 +1,15 @@
-﻿{
-    "pattern":  [
-                    "A",
-                    "A"
-                ],
-    "keys":  {
-                 "A":  "engine:pine_slabs"
-             },
-    "type":  "shaped",
-    "result":  {
-                   "count":  3,
-                   "item":  "engine:pine_door"
-               }
+{
+  "type": "shaped",
+  "pattern": [
+    "AA",
+    "AA",
+    "AA"
+  ],
+  "keys": {
+    "A": "engine:pine_planks"
+  },
+  "result": {
+    "count": 3,
+    "item": "engine:pine_door"
+  }
 }

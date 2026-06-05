@@ -1,0 +1,16 @@
+{
+  "type": "shaped",
+  "pattern": [
+    "MM",
+    "MS",
+    " S"
+  ],
+  "keys": {
+    "M": "engine:diamond",
+    "S": "engine:sticks"
+  },
+  "result": {
+    "item": "engine:diamond_axe",
+    "count": 1
+  }
+}

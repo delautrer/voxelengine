@@ -8,15 +8,20 @@ import de.delautrer.engine.physics.Raycaster;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.blocks.IInteractable;
+import de.delautrer.game.blocks.LogBlock;
 import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.entity.ItemEntity;
 import de.delautrer.game.events.BlockBreakEvent;
 import de.delautrer.game.inventory.PlayerInventory;
+import de.delautrer.game.items.Item;
+import de.delautrer.game.items.ItemRegistry;
 import de.delautrer.game.loot.LootTable;
 import de.delautrer.game.loot.LootTableManager;
+import de.delautrer.game.registry.NamespacedKey;
 import de.delautrer.game.world.World;
 import de.delautrer.game.items.ItemStack;
 import de.delautrer.game.items.BlockItem;
+import de.delautrer.game.items.ToolItem;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
@@ -25,6 +30,7 @@ import java.util.List;
 import de.delautrer.Constants;
 import de.delautrer.game.events.HotbarSlotChangeEvent;
 import de.delautrer.game.events.InventoryChangeEvent;
+import de.delautrer.game.events.PlayerItemDropEvent;
 import de.delautrer.game.registry.Registries;
 
 public class PlayerInteraction {
@@ -149,11 +155,20 @@ public class PlayerInteraction {
 
                     if (targetBlock != Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air")
                             && targetBlock.getHardness() >= 0) {
-                        miningProgress += deltaTime;
+                        float toolMultiplier = 1.0f;
+                        ItemStack heldStack = player.getInventory().getSelectedHotbarStack();
+                        if (heldStack != null && heldStack.type instanceof ToolItem) {
+                            ToolItem tool = (ToolItem) heldStack.type;
+                            if (tool.isCorrectToolFor(targetBlock)) {
+                                toolMultiplier = tool.getEfficiency();
+                            } else {
+                                toolMultiplier = tool.getIncorrectToolMultiplier();
+                            }
+                        }
+
+                        miningProgress += deltaTime * toolMultiplier;
 
                         // Formel: Wie lange dauert der Abbau? (Base-Härte * 1.5 Sekunden als Richtwert)
-                        // Später kannst du hier Werkzeuge einberechnen (z.B. miningProgress +=
-                        // deltaTime * toolMultiplier)
                         float requiredTime = targetBlock.getHardness() * 1.5f;
 
                         // Abbau-Sound (periodisch)
@@ -204,6 +219,19 @@ public class PlayerInteraction {
         if (!breakEvent.isCancelled()) {
             world.setBlock(selectedBlockPos, (byte) 0);
 
+            // Werkzeug-Haltbarkeit reduzieren
+            ItemStack heldStack = player.getInventory().getSelectedHotbarStack();
+            if (heldStack != null && heldStack.type instanceof ToolItem) {
+                heldStack.damage(1);
+                if (heldStack.durability <= 0) {
+                    player.getInventory().setStack(player.getInventory().getSelectedSlot(), null);
+                    eventBus.publish(new InventoryChangeEvent());
+                    SoundManager.playEvent("rock", "break", 1.0f, 1.0f, 1.0f, "Player");
+                } else {
+                    eventBus.publish(new InventoryChangeEvent());
+                }
+            }
+
             String lootPath = block.getLootTable();
             List<ItemStack> drops = new ArrayList<>();
 
@@ -215,6 +243,48 @@ public class PlayerInteraction {
                 }
             } else {
                 // Kein LootTable definiert — Block droppt nichts.
+            }
+
+            // NEU: Wenn ein Baum-Stamm an seiner Basis (auf Erde/Gras/Sand) abgebaut wird, droppe 4 Saplings
+            if (block instanceof LogBlock) {
+                NamespacedKey logKey = BlockRegistry.REGISTRY.getKey(block);
+                if (logKey != null) {
+                    String logName = logKey.getKey(); // z.B. "oak_log"
+                    String baseName = logName.replace("_log", "");
+                    
+                    // Check if block below is soil
+                    byte belowId = world.getBlockAt(selectedBlockPos.x, selectedBlockPos.y - 1, selectedBlockPos.z);
+                    Block belowBlock = BlockRegistry.get(belowId);
+                    NamespacedKey belowKey = BlockRegistry.REGISTRY.getKey(belowBlock);
+                    if (belowKey != null) {
+                        String belowName = belowKey.getKey();
+                        boolean isSoil = belowName.equals("grass_block") || belowName.equals("dirt") || belowName.equals("sand") || belowName.equals("sandy_grass");
+                        if (isSoil) {
+                            // Check if there are leaves of the same tree type nearby (radius 6)
+                            boolean leavesNearby = false;
+                            String leavesName = baseName + "_leaves";
+                            for (int dx = -6; dx <= 6 && !leavesNearby; dx++) {
+                                for (int dy = -6; dy <= 6 && !leavesNearby; dy++) {
+                                    for (int dz = -6; dz <= 6 && !leavesNearby; dz++) {
+                                        byte nearbyId = world.getBlockAt(selectedBlockPos.x + dx, selectedBlockPos.y + dy, selectedBlockPos.z + dz);
+                                        Block nearbyBlock = BlockRegistry.get(nearbyId);
+                                        NamespacedKey nearbyKey = BlockRegistry.REGISTRY.getKey(nearbyBlock);
+                                        if (nearbyKey != null && nearbyKey.getKey().equals(leavesName)) {
+                                            leavesNearby = true;
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            if (leavesNearby) {
+                                Item saplingItem = ItemRegistry.get(Constants.NAMESPACE + ":" + baseName + "_sapling");
+                                if (saplingItem != null) {
+                                    drops.add(new ItemStack(saplingItem, 4));
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             // 3. Spawne alle berechneten Items in der Welt
@@ -323,6 +393,35 @@ public class PlayerInteraction {
 
     public PlayerInventory getInventory() {
         return player.getInventory();
+    }
+
+    public void dropStack(ItemStack stack) {
+        if (stack == null || stack.amount <= 0) return;
+
+        Vector3d spawnPos = new Vector3d(player.position).add(0, 1.5, 0);
+        Vector3f lookDir = new Vector3f(player.getCamera().getFront());
+        Vector3f throwVelocity = new Vector3f(lookDir).mul(5.0f).add(0, 1.5f, 0);
+
+        ItemEntity itemEntity = new ItemEntity(stack, spawnPos, throwVelocity);
+        world.spawnEntity(itemEntity);
+        eventBus.publish(new PlayerItemDropEvent(player, stack));
+    }
+
+    public void dropFromSlot(int slotIndex, boolean fullStack) {
+        ItemStack currentStack = player.getInventory().getStack(slotIndex);
+        if (currentStack == null) return;
+
+        int amount = fullStack ? currentStack.amount : 1;
+        ItemStack dropStack = new ItemStack(currentStack.type, amount);
+        dropStack.durability = currentStack.durability;
+
+        currentStack.amount -= amount;
+        if (currentStack.amount <= 0) {
+            player.getInventory().setStack(slotIndex, null);
+        }
+
+        eventBus.publish(new InventoryChangeEvent());
+        dropStack(dropStack);
     }
 
     public void resetCooldown() {

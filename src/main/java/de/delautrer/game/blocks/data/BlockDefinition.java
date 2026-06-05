@@ -12,5 +12,7 @@ public class BlockDefinition {
     public int lightEmission = 0;
     public String soundMaterial = null;
     public String customLootTable = null;
+    public int minGrowthTime = 60;
+    public int maxGrowthTime = 180;
     public String category = "misc";
 }

@@ -3,6 +3,7 @@ package de.delautrer.game.ui;
 import de.delautrer.engine.graphics.IFont;
 import de.delautrer.engine.graphics.utils.TextureStitcher;
 import de.delautrer.game.items.ItemStack;
+import de.delautrer.game.items.ToolItem;
 import de.delautrer.game.ui.elements.UITexture;
 import org.lwjgl.stb.STBTTBakedChar;
 import java.util.*;
@@ -101,6 +102,28 @@ public class UIMeshBuilder {
         if (reg == null)
             return;
         addClippedQuad(UITexture.ITEM, x, y, x + size, y + size, z, 1f, 1f, 1f, reg.u0, reg.v1, reg.u1, reg.v0);
+
+        if (stack.type instanceof ToolItem) {
+            ToolItem tool = (ToolItem) stack.type;
+            int maxDur = tool.getMaxDurability();
+            int curDur = stack.durability;
+            if (curDur < maxDur) {
+                float pct = Math.max(0.0f, Math.min(1.0f, (float) curDur / maxDur));
+                float barW = size * 0.8f;
+                float barX = x + (size - barW) / 2.0f;
+                float barY = y + size * 0.1f;
+                float barH = size * 0.08f;
+
+                // Dark background
+                addRect(barX, barY, z + 0.01f, barW, barH, 0.0f, 0.0f, 0.0f, 1.0f);
+
+                // Color: green for high durability, yellow for mid, red for low
+                float r = 1.0f - pct;
+                float g = pct;
+                float b = 0.0f;
+                addRect(barX, barY, z + 0.02f, barW * pct, barH, r, g, b, 1.0f);
+            }
+        }
     }
 
     public void addAtlasQuad(float x, float y, float z, float w, float h, int gridX, int gridY, int gridW, int gridH,

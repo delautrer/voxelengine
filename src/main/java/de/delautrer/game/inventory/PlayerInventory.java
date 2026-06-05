@@ -4,6 +4,7 @@ import de.delautrer.game.crafting.RecipeManager;
 import de.delautrer.game.items.Item;
 import de.delautrer.game.items.ItemRegistry;
 import de.delautrer.game.items.ItemStack;
+import de.delautrer.game.items.ToolItem;
 import de.delautrer.game.world.persistence.PlayerData;
 
 public class PlayerInventory extends BaseInventory {
@@ -36,7 +37,9 @@ public class PlayerInventory extends BaseInventory {
             ItemStack stack = slots[i];
             if (stack != null && stack.type != null && stack.amount > 0) {
                 String id = ItemRegistry.getId(stack.type);
-                if (id != null) savedSlots[i] = new PlayerData.SavedSlot(id, stack.amount);
+                if (id != null) {
+                    savedSlots[i] = new PlayerData.SavedSlot(id, stack.amount, stack.durability);
+                }
             }
         }
         return savedSlots;
@@ -49,7 +52,13 @@ public class PlayerInventory extends BaseInventory {
             PlayerData.SavedSlot saved = savedSlots[i];
             if (saved != null && saved.id != null) {
                 Item item = ItemRegistry.get(saved.id);
-                if (item != null) slots[i] = new ItemStack(item, saved.amount);
+                if (item != null) {
+                    ItemStack stack = new ItemStack(item, saved.amount);
+                    if (item instanceof ToolItem && saved.durability >= 0) {
+                        stack.durability = saved.durability;
+                    }
+                    slots[i] = stack;
+                }
             }
         }
     }

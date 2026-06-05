@@ -15,6 +15,7 @@ import de.delautrer.game.inventory.IInventory;
 import de.delautrer.game.items.Item;
 import de.delautrer.game.blocks.entities.BlockEntity;
 import de.delautrer.game.blocks.entities.ChestBlockEntity;
+import de.delautrer.game.blocks.entities.FurnaceBlockEntity;
 import de.delautrer.game.entity.Entity;
 import de.delautrer.game.entity.ItemEntity;
 import de.delautrer.game.items.ItemRegistry;
@@ -184,6 +185,12 @@ public class WorldStorageManager {
                 if (entry.getValue() instanceof ChestBlockEntity chest) {
                     out.writeUTF("CHEST");
                     saveInventory(out, chest.getInventory());
+                } else if (entry.getValue() instanceof FurnaceBlockEntity furnace) {
+                    out.writeUTF("FURNACE");
+                    out.writeInt(furnace.getBurnTime());
+                    out.writeInt(furnace.getMaxBurnTime());
+                    out.writeInt(furnace.getCookTime());
+                    saveInventory(out, furnace.getInventory());
                 } else {
                     out.writeUTF("UNKNOWN");
                 }
@@ -206,6 +213,13 @@ public class WorldStorageManager {
                     ChestBlockEntity chest = new ChestBlockEntity(world, pos);
                     loadInventory(in, chest.getInventory());
                     world.setBlockEntity(pos, chest);
+                } else if (type.equals("FURNACE")) {
+                    FurnaceBlockEntity furnace = new FurnaceBlockEntity(world, pos);
+                    furnace.setBurnTime(in.readInt());
+                    furnace.setMaxBurnTime(in.readInt());
+                    furnace.setCookTime(in.readInt());
+                    loadInventory(in, furnace.getInventory());
+                    world.setBlockEntity(pos, furnace);
                 }
             }
         } catch (IOException e) {

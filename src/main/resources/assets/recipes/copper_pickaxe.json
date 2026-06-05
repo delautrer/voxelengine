@@ -1,0 +1,16 @@
+{
+  "type": "shaped",
+  "pattern": [
+    "MMM",
+    " S ",
+    " S "
+  ],
+  "keys": {
+    "M": "engine:copper_ingot",
+    "S": "engine:sticks"
+  },
+  "result": {
+    "item": "engine:copper_pickaxe",
+    "count": 1
+  }
+}

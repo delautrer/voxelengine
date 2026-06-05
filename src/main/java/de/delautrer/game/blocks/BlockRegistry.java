@@ -114,6 +114,12 @@ public class BlockRegistry {
                 return new DoorBlock();
             case "gravity":
                 return new GravityBlock();
+            case "crafting_table":
+                return new CraftingTableBlock();
+            case "furnace":
+                return new FurnaceBlock();
+            case "sapling":
+                return new SaplingBlock(def.name, def.minGrowthTime, def.maxGrowthTime);
             default:
                 System.err.println("[BlockRegistry] Unbekannter Block Type: " + def.type + " bei " + def.name);
                 return null;

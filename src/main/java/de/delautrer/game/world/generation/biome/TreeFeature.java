@@ -277,6 +277,6 @@ public class TreeFeature {
     private static boolean canReplace(byte blockId) {
         if (blockId == 0) return true;
         Block block = BlockRegistry.get(blockId);
-        return block == null || block.isTransparent || !block.isSolid || block.isPassable;
+        return block != null && block instanceof de.delautrer.game.blocks.PlantBlock;
     }
 }

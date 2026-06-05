@@ -1,0 +1,16 @@
+{
+  "type": "shaped",
+  "pattern": [
+    "M",
+    "S",
+    "S"
+  ],
+  "keys": {
+    "M": "engine:stone",
+    "S": "engine:sticks"
+  },
+  "result": {
+    "item": "engine:stone_shovel",
+    "count": 1
+  }
+}

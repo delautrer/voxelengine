@@ -100,7 +100,7 @@ public class PlantBlock extends Block {
      * Zerstört die Pflanze physikalisch und spawnt ihr Item basierend auf der
      * Loot-Tabelle.
      */
-    private void dropAsItem(World world, int x, int y, int z) {
+    protected void dropAsItem(World world, int x, int y, int z) {
         String lootPath = this.getLootTable();
 
         if (lootPath != null) {

@@ -22,6 +22,12 @@ project.ext.lwjglVersion = "3.4.1"
 project.ext.lwjglNatives = "natives-windows"
 def mainClassName = "de.delautrer.Main"
 
+tasks.register('run', JavaExec) {
+    group = 'application'
+    mainClass = mainClassName
+    classpath = sourceSets.main.runtimeClasspath
+}
+
 repositories {
     mavenCentral()
 }

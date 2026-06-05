@@ -4,6 +4,7 @@ import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.blocks.LeavesBlock;
 import de.delautrer.game.blocks.LogBlock;
+import de.delautrer.game.blocks.SaplingBlock;
 import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.entity.ItemEntity;
 import de.delautrer.game.entity.player.LocalPlayer;
@@ -66,6 +67,8 @@ public class BlockTickSystem implements WorldSystem {
                     Block block = BlockRegistry.get(blockId);
                     if (block instanceof LeavesBlock) {
                         handleLeavesDecay(world, globalX, y, globalZ);
+                    } else if (block instanceof SaplingBlock) {
+                        ((SaplingBlock) block).scheduleGrowthIfAbsent(world, globalX, y, globalZ);
                     }
                 }
             }

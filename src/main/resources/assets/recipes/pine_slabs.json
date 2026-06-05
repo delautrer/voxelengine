@@ -1,10 +1,13 @@
-﻿{
-    "ingredients":  [
-                        "engine:pine_planks"
-                    ],
-    "result":  {
-                   "count":  2,
-                   "item":  "engine:pine_slabs"
-               },
-    "type":  "shapeless"
+{
+  "type": "shaped",
+  "pattern": [
+    "AAA"
+  ],
+  "keys": {
+    "A": "engine:pine_planks"
+  },
+  "result": {
+    "count": 6,
+    "item": "engine:pine_slabs"
+  }
 }

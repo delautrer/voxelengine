@@ -1,14 +1,15 @@
-﻿{
-    "pattern":  [
-                    "AA",
-                    "AA"
-                ],
-    "keys":  {
-                 "A":  "engine:birch_planks"
-             },
-    "type":  "shaped",
-    "result":  {
-                   "count":  1,
-                   "item":  "engine:birch_chest"
-               }
+{
+  "type": "shaped",
+  "pattern": [
+    "AAA",
+    "A A",
+    "AAA"
+  ],
+  "keys": {
+    "A": "engine:birch_planks"
+  },
+  "result": {
+    "count": 1,
+    "item": "engine:birch_chest"
+  }
 }

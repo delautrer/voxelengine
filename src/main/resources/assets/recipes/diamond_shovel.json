@@ -1,0 +1,16 @@
+{
+  "type": "shaped",
+  "pattern": [
+    "M",
+    "S",
+    "S"
+  ],
+  "keys": {
+    "M": "engine:diamond",
+    "S": "engine:sticks"
+  },
+  "result": {
+    "item": "engine:diamond_shovel",
+    "count": 1
+  }
+}

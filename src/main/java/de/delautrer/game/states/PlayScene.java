@@ -351,6 +351,11 @@ public class PlayScene extends Scene {
         }
         wasFocused = isFocused;
 
+        // World tick always runs — furnaces and block entities must keep working
+        // even when a screen is open or the window is unfocused.
+        world.getSkyManager().update(isPaused ? 0.0f : deltaTime);
+        world.update(deltaTime, localPlayer);
+
         if (isPaused) {
             float uiMouseY = engine.getWindow().getHeight() - engine.getInputManager().getMouseY();
             pauseScreen.handleMenuInput(engine.getInputManager(), engine.getInputManager().getMouseX(), uiMouseY);
@@ -413,8 +418,7 @@ public class PlayScene extends Scene {
             eventBus.publish(new DebugToggleEvent(debugOverlay.isVisible()));
         }
 
-        world.getSkyManager().update(deltaTime);
-        world.update(deltaTime, localPlayer);
+        // Already called above (before pause gate) — skip duplicate calls.
         if (chatOverlay.update(deltaTime)) {
             uiNeedsRebuild = true;
         }

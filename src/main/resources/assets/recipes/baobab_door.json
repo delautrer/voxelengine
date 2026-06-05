@@ -1,14 +1,15 @@
-﻿{
-    "pattern":  [
-                    "A",
-                    "A"
-                ],
-    "keys":  {
-                 "A":  "engine:baobab_slabs"
-             },
-    "type":  "shaped",
-    "result":  {
-                   "count":  3,
-                   "item":  "engine:baobab_door"
-               }
+{
+  "type": "shaped",
+  "pattern": [
+    "AA",
+    "AA",
+    "AA"
+  ],
+  "keys": {
+    "A": "engine:baobab_planks"
+  },
+  "result": {
+    "count": 3,
+    "item": "engine:baobab_door"
+  }
 }

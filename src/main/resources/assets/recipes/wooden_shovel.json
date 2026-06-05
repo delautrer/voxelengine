@@ -1,0 +1,24 @@
+{
+  "type": "shaped",
+  "pattern": [
+    "M",
+    "S",
+    "S"
+  ],
+  "keys": {
+    "M": [
+      "engine:oak_planks",
+      "engine:birch_planks",
+      "engine:pine_planks",
+      "engine:willow_planks",
+      "engine:baobab_planks",
+      "engine:mahogany_planks",
+      "engine:palm_planks"
+    ],
+    "S": "engine:sticks"
+  },
+  "result": {
+    "item": "engine:wooden_shovel",
+    "count": 1
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "type": "shaped",
+  "pattern": [
+    "MMM",
+    " S ",
+    " S "
+  ],
+  "keys": {
+    "M": "engine:gold_ingot",
+    "S": "engine:sticks"
+  },
+  "result": {
+    "item": "engine:gold_pickaxe",
+    "count": 1
+  }
+}

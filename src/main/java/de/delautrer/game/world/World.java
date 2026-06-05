@@ -149,6 +149,9 @@ public class World {
         for (WorldSystem system : systems) {
             system.onTick(this, localPlayer);
         }
+        for (BlockEntity entity : blockEntities.values()) {
+            entity.tick();
+        }
     }
 
     public void scheduleBlockUpdate(int x, int y, int z) {
@@ -182,7 +185,7 @@ public class World {
 
         // Altes BlockEntity entfernen (Items droppen)
         BlockEntity oldEntity = getBlockEntity(pos);
-        if (oldEntity != null) {
+        if (oldEntity != null && oldBlockId != newBlockId) {
             oldEntity.onRemove();
             setBlockEntity(pos, null);
         }
@@ -222,7 +225,7 @@ public class World {
 
         Block placedBlock = BlockRegistry.get(newBlockId);
         if (placedBlock != null) {
-            if (placedBlock.hasBlockEntity()) {
+            if (placedBlock.hasBlockEntity() && (oldBlockId != newBlockId || getBlockEntity(pos) == null)) {
                 setBlockEntity(pos, placedBlock.createBlockEntity(this, pos));
             }
 
@@ -261,7 +264,7 @@ public class World {
 
         // Altes BlockEntity entfernen
         BlockEntity oldEntity = getBlockEntity(pos);
-        if (oldEntity != null) {
+        if (oldEntity != null && oldBlockId != newBlockId) {
             oldEntity.onRemove();
             setBlockEntity(pos, null);
         }
@@ -303,7 +306,7 @@ public class World {
 
         Block placedBlock = BlockRegistry.get(newBlockId);
         if (placedBlock != null) {
-            if (placedBlock.hasBlockEntity()) {
+            if (placedBlock.hasBlockEntity() && (oldBlockId != newBlockId || getBlockEntity(pos) == null)) {
                 setBlockEntity(pos, placedBlock.createBlockEntity(this, pos));
             }
 
