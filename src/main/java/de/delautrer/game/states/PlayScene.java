@@ -562,8 +562,17 @@ public class PlayScene extends Scene {
     }
 
     public void saveAndQuit() {
+        hideUI = true;
+        isUIHiddenByUser = true;
         isSavingAndQuitting = true;
         uiNeedsRebuild = true;
+        
+        try {
+            String thumbPath = de.delautrer.engine.utils.GamePaths.SAVES_DIR.resolve(world.getSafeFolderName()).resolve("level.png").toString();
+            masterRenderer.requestThumbnail(thumbPath);
+        } catch (Exception e) {
+            System.err.println("Failed to request thumbnail: " + e.getMessage());
+        }
     }
 
     private void openChat(boolean startWithSlash) {

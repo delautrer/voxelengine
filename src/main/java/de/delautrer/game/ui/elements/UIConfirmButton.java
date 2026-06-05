@@ -23,7 +23,19 @@ public class UIConfirmButton extends UIElement {
         this.onConfirm = onConfirm;
     }
 
+    private boolean disabled = false;
+    
+    public void setDisabled(boolean disabled) {
+        this.disabled = disabled;
+    }
+    
+    public boolean isDisabled() {
+        return disabled;
+    }
+
     public void click() {
+        if (!isVisible || disabled) return;
+        
         if (!isWaitingForConfirm) {
             isWaitingForConfirm = true; // Erster Klick: In den Bestätigungs-Modus wechseln
         } else {
@@ -50,9 +62,8 @@ public class UIConfirmButton extends UIElement {
             builder.addRect(x, y, 0.1f, width, height, 0.8f, 0.2f, 0.2f, 1.0f); // Rot
         } else {
             boolean hovered = isHovered(mouseX, mouseY);
-
-            int gridX = hovered ? GRID_X_HOVER : GRID_X_NORMAL;
-            int gridY = hovered ? GRID_Y_HOVER : GRID_Y_NORMAL;
+            int gridX = hovered || disabled ? GRID_X_HOVER : GRID_X_NORMAL;
+            int gridY = hovered || disabled ? GRID_Y_HOVER : GRID_Y_NORMAL;
 
             builder.add9Slice(x, y, 0.1f, width, height, gridX, gridY, CORNER_SIZE);
         }
@@ -61,7 +72,12 @@ public class UIConfirmButton extends UIElement {
         String text = isWaitingForConfirm ? confirmText : normalText;
         float textWidth = builder.getTextWidth(text, font);
         float textX = x + (width / 2.0f) - (textWidth / 2.0f);
+        float textY = y + (height - 24.0f + 10f) / 2.0f;
 
-        builder.drawText(text, textX, y + (height / 2.0f) - 10.0f, 0.2f, font);
+        if (disabled) {
+            builder.drawText(text, textX, textY, 0.3f, font, 0.5f, 0.5f, 0.5f, 1.0f, 1.0f);
+        } else {
+            builder.drawText(text, textX, textY, 0.3f, font);
+        }
     }
 }

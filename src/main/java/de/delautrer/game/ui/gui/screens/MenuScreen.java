@@ -42,13 +42,17 @@ public abstract class MenuScreen extends Screen {
         if (input.isActionJustPressed("INTERACT_BREAK")) {
             boolean clickHandled = false;
 
-            for (UIElement element : elementsCopy) {
+            for (int i = elementsCopy.size() - 1; i >= 0; i--) {
+                UIElement element = elementsCopy.get(i);
+
                 if (element instanceof UIInputField) {
                     ((UIInputField) element).setFocused(element.isHovered(uiMouseX, uiMouseY));
                 }
 
                 if (element instanceof UIScrollableList) {
-                    ((UIScrollableList) element).handleInput(input, uiMouseX, uiMouseY);
+                    if (((UIScrollableList) element).handleInput(input, uiMouseX, uiMouseY)) {
+                        clickHandled = true;
+                    }
                 }
 
                 if (!clickHandled && element.isHovered(uiMouseX, uiMouseY)) {
@@ -63,6 +67,10 @@ public abstract class MenuScreen extends Screen {
                         clickHandled = true;
                     }
                 }
+            }
+            
+            if (!clickHandled) {
+                onBackgroundClicked();
             }
         }
 
@@ -105,6 +113,9 @@ public abstract class MenuScreen extends Screen {
 
     @Override
     protected void mouseClicked(float mouseX, float mouseY, int button) {
+    }
+
+    protected void onBackgroundClicked() {
     }
 
     @Override

@@ -38,6 +38,7 @@ public class VulkanRenderer {
 
     private int currentFrame = 0;
     private String pendingScreenshotPath = null;
+    private String pendingThumbnailPath = null;
 
     public VulkanRenderer(VulkanContext context, Window window) {
         this.context = context;
@@ -152,13 +153,20 @@ public class VulkanRenderer {
 
             // --- SCREENSHOT---
             if (pendingScreenshotPath != null) {
-
                 VK10.vkQueueWaitIdle(context.getPresentQueue());
                 long currentImage = swapchain.getImages()[imageIndex];
                 ScreenshotHelper.saveScreenshot(
                         context, commandBuffers.getCommandPool(), currentImage, swapchain.getExtent().width(),
-                        swapchain.getExtent().height(), pendingScreenshotPath);
+                        swapchain.getExtent().height(), pendingScreenshotPath, false);
                 pendingScreenshotPath = null;
+            }
+            if (pendingThumbnailPath != null) {
+                VK10.vkQueueWaitIdle(context.getPresentQueue());
+                long currentImage = swapchain.getImages()[imageIndex];
+                ScreenshotHelper.saveScreenshot(
+                        context, commandBuffers.getCommandPool(), currentImage, swapchain.getExtent().width(),
+                        swapchain.getExtent().height(), pendingThumbnailPath, true);
+                pendingThumbnailPath = null;
             }
 
             return true;
@@ -223,6 +231,10 @@ public class VulkanRenderer {
 
     public void requestScreenshot(String path) {
         this.pendingScreenshotPath = path;
+    }
+
+    public void requestThumbnail(String path) {
+        this.pendingThumbnailPath = path;
     }
 
     public long getGraphicsLayout() {

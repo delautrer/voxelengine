@@ -44,12 +44,17 @@ public class UIRenderSystem implements IRenderSystem {
 
             // Dynamisch die Draw-Calls abarbeiten (perfekt Z-Sortiert)
             for (UIDrawCall dc : packet.uiDrawCalls) {
-                VulkanTexture tex = switch (dc.texture) {
-                    case UI -> (VulkanTexture) packet.uiTexture;
-                    case ITEM -> (VulkanTexture) packet.itemTexture;
-                    case FONT -> (VulkanTexture) packet.fontTexture;
-                    case BLOCK -> (VulkanTexture) packet.blockUITexture;
-                };
+                VulkanTexture tex = null;
+                if (dc.texture instanceof de.delautrer.game.ui.elements.UITexture uiTex) {
+                    tex = switch (uiTex) {
+                        case UI -> (VulkanTexture) packet.uiTexture;
+                        case ITEM -> (VulkanTexture) packet.itemTexture;
+                        case FONT -> (VulkanTexture) packet.fontTexture;
+                        case BLOCK -> (VulkanTexture) packet.blockUITexture;
+                    };
+                } else if (dc.texture instanceof VulkanTexture vTex) {
+                    tex = vTex;
+                }
 
                 if (tex != null) {
                     VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS,

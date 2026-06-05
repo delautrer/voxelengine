@@ -15,7 +15,7 @@ public class UIRenderer {
     private IMesh combinedMesh;
     private final List<UIDrawCall> drawCalls = new ArrayList<>();
 
-    private final IGraphicsFactory factory;
+    private IGraphicsFactory factory;
     private final IGraphicsContext graphicsContext;
     private final UIManager uiManager;
     private final UIMeshBuilder meshBuilder;
@@ -25,6 +25,10 @@ public class UIRenderer {
         this.graphicsContext = graphicsContext;
         this.uiManager = new UIManager();
         this.meshBuilder = new UIMeshBuilder();
+    }
+
+    public void setGraphicsFactory(IGraphicsFactory factory) {
+        this.factory = factory;
     }
 
     public void rebuildMesh(int width, int height, InputManager input, PlayerInteraction interaction, float mouseX, float mouseY, DebugOverlay debugOverlay, ChatOverlay chatOverlay, IFont font, MenuScreen pauseScreen, int blockAtlasWidth) {
@@ -54,13 +58,13 @@ public class UIRenderer {
         List<Integer> allInds = new ArrayList<>();
         int globalVertexOffset = 0;
 
-        UITexture currentTex = null;
+        Object currentTex = null;
         int currentStartIndex = 0;
         int currentIndexCount = 0;
 
-        for (Map<UITexture, UIMeshBuilder.Batch> layer : meshBuilder.getLayers().values()) {
-            for (Map.Entry<UITexture, UIMeshBuilder.Batch> entry : layer.entrySet()) {
-                UITexture tex = entry.getKey();
+        for (Map<Object, UIMeshBuilder.Batch> layer : meshBuilder.getLayers().values()) {
+            for (Map.Entry<Object, UIMeshBuilder.Batch> entry : layer.entrySet()) {
+                Object tex = entry.getKey();
                 UIMeshBuilder.Batch batch = entry.getValue();
 
                 if (batch.inds.isEmpty()) continue;

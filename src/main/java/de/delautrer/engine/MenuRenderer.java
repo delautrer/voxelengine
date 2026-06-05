@@ -19,7 +19,7 @@ public class MenuRenderer {
     private final IGraphicsContext graphicsContext;
     private final Window window;
     private final VulkanRenderer renderer;
-    private final IGraphicsFactory factory;
+    private IGraphicsFactory factory;
 
     private ITexture guiTexture;
     private ITexture fontTexture;
@@ -67,13 +67,13 @@ public class MenuRenderer {
         List<Integer> allInds = new ArrayList<>();
         int globalVertexOffset = 0;
 
-        UITexture currentTex = null;
+        Object currentTex = null;
         int currentStartIndex = 0;
         int currentIndexCount = 0;
 
-        for (Map<UITexture, UIMeshBuilder.Batch> layer : meshBuilder.getLayers().values()) {
-            for (Map.Entry<UITexture, UIMeshBuilder.Batch> entry : layer.entrySet()) {
-                UITexture tex = entry.getKey();
+        for (Map<Object, UIMeshBuilder.Batch> layer : meshBuilder.getLayers().values()) {
+            for (Map.Entry<Object, UIMeshBuilder.Batch> entry : layer.entrySet()) {
+                Object tex = entry.getKey();
                 UIMeshBuilder.Batch batch = entry.getValue();
 
                 if (batch.inds.isEmpty()) continue;
@@ -135,8 +135,13 @@ public class MenuRenderer {
         if (!renderer.render(packet)) { renderer.recreate(window); }
     }
 
-    public void recreate() { renderer.recreate(window); }
+    public void recreate() { 
+        renderer.recreate(window); 
+        this.factory = new VulkanGraphicsFactory((VulkanContext) graphicsContext, renderer.getCommandBuffers(), renderer.getGraphicsLayout(), renderer.getUiLayout());
+        Engine.get().setGraphicsFactory(this.factory);
+    }
     public IFont getFont() { return font; }
+    public IGraphicsFactory getGraphicsFactory() { return factory; }
 
     public void cleanup() {
         if (guiTexture != null) guiTexture.cleanup();

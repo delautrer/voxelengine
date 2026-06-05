@@ -1,11 +1,11 @@
 package de.delautrer.game.ui.elements;
 
 public class UIDrawCall {
-    public final UITexture texture;
+    public final Object texture;
     public final int indexOffset;
     public final int indexCount;
 
-    public UIDrawCall(UITexture texture, int indexOffset, int indexCount) {
+    public UIDrawCall(Object texture, int indexOffset, int indexCount) {
         this.texture = texture;
         this.indexOffset = indexOffset;
         this.indexCount = indexCount;

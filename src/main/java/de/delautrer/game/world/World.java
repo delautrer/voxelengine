@@ -485,6 +485,10 @@ public class World {
         return worldSpawnpoint;
     }
 
+    public String getSafeFolderName() {
+        return worldSave;
+    }
+
     public void cleanup(LocalPlayer localPlayer) {
         if (isCleanedUp)
             return;

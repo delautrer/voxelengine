@@ -61,12 +61,15 @@ public class UIScrollableList extends UIElement {
     }
 
     // --- NEU: Rekursiver Input für Layout-Container ---
-    private void handleItemInput(UIElement item, InputManager input, float uiMouseX, float uiMouseY,
+    private boolean handleItemInput(UIElement item, InputManager input, float uiMouseX, float uiMouseY,
             boolean mouseJustPressed, boolean overScrollbar) {
+        boolean handled = false;
         if (item instanceof UILayout) {
             // Wenn es eine Box ist, schick den Input an alle Kinder in der Box weiter
             for (UIElement child : ((UILayout) item).getChildren()) {
-                handleItemInput(child, input, uiMouseX, uiMouseY, mouseJustPressed, overScrollbar);
+                if (handleItemInput(child, input, uiMouseX, uiMouseY, mouseJustPressed, overScrollbar)) {
+                    handled = true;
+                }
             }
         } else {
             // Wenn es ein direktes Element ist, werte den Input aus
@@ -77,20 +80,26 @@ public class UIScrollableList extends UIElement {
             }
 
             if (mouseJustPressed && !overScrollbar && item.isHovered(uiMouseX, uiMouseY)) {
-                if (item instanceof UIButton)
+                if (item instanceof UIButton) {
                     ((UIButton) item).click();
-                else if (item instanceof UIConfirmButton)
+                    handled = true;
+                } else if (item instanceof UIConfirmButton) {
                     ((UIConfirmButton) item).click();
-                else if (item instanceof UIToggleButton)
+                    handled = true;
+                } else if (item instanceof UIToggleButton) {
                     ((UIToggleButton) item).click();
+                    handled = true;
+                }
             }
         }
+        return handled;
     }
 
-    public void handleInput(InputManager input, float uiMouseX, float uiMouseY) {
+    public boolean handleInput(InputManager input, float uiMouseX, float uiMouseY) {
         if (!isVisible)
-            return;
+            return false;
 
+        boolean handled = false;
         float totalContentHeight = getContentHeight();
         float maxScroll = totalContentHeight - height;
         if (maxScroll < 0)
@@ -123,6 +132,7 @@ public class UIScrollableList extends UIElement {
 
         if (mouseJustPressed && overScrollbar) {
             isDragging = true;
+            handled = true;
         }
 
         if (!mousePressed) {
@@ -158,11 +168,14 @@ public class UIScrollableList extends UIElement {
                 // setPosition löst UILayout.pack() aus, dadurch ziehen Kind-Elemente mit!
                 item.setPosition(item.getX(), tempY);
 
-                handleItemInput(item, input, uiMouseX, uiMouseY, mouseJustPressed, overScrollbar);
+                if (handleItemInput(item, input, uiMouseX, uiMouseY, mouseJustPressed, overScrollbar)) {
+                    handled = true;
+                }
 
                 item.setPosition(item.getX(), oldY);
             }
         }
+        return handled;
     }
 
     @Override

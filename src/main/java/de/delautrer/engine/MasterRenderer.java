@@ -30,7 +30,7 @@ public class MasterRenderer {
     private final VulkanRenderer renderer;
     private final UIRenderer uiRenderer;
 
-    private final IGraphicsFactory graphicsFactory;
+    private IGraphicsFactory graphicsFactory;
 
     private ITextureArray worldTexture;
     private ITexture uiTexture;
@@ -448,6 +448,10 @@ public class MasterRenderer {
     public void recreate(PlayerInteraction interaction, InputManager input, DebugOverlay debugOverlay,
             MenuScreen pauseScreen, ChatOverlay chatOverlay) {
         renderer.recreate(window);
+        this.graphicsFactory = new VulkanGraphicsFactory(vulkanContext, renderer.getCommandBuffers(),
+                renderer.getGraphicsLayout(), renderer.getUiLayout());
+        Engine.get().setGraphicsFactory(this.graphicsFactory);
+        this.uiRenderer.setGraphicsFactory(this.graphicsFactory);
         rebuildUI(interaction, input, debugOverlay, pauseScreen, chatOverlay);
     }
 
@@ -499,6 +503,12 @@ public class MasterRenderer {
     public void requestScreenshot(String path) {
         if (this.renderer != null) {
             this.renderer.requestScreenshot(path);
+        }
+    }
+
+    public void requestThumbnail(String path) {
+        if (this.renderer != null) {
+            this.renderer.requestThumbnail(path);
         }
     }
 }

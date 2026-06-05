@@ -8,17 +8,32 @@ import java.nio.ByteBuffer;
 public class AssetManager {
 
     public static ByteBuffer loadResource(String path) {
-        if (path.startsWith("src/main/resources/")) {
-            path = path.replace("src/main/resources/", "");
+        java.io.InputStream is = null;
+        boolean isFile = false;
+
+        if (new java.io.File(path).isAbsolute() && new java.io.File(path).exists()) {
+            try {
+                is = new java.io.FileInputStream(path);
+                isFile = true;
+            } catch (java.io.FileNotFoundException e) {
+                // Ignore, will throw later
+            }
         }
 
-        if (!path.startsWith("/")) {
-            path = "/" + path;
+        if (!isFile) {
+            if (path.startsWith("src/main/resources/")) {
+                path = path.replace("src/main/resources/", "");
+            }
+
+            if (!path.startsWith("/")) {
+                path = "/" + path;
+            }
+            is = AssetManager.class.getResourceAsStream(path);
         }
 
-        try (InputStream is = AssetManager.class.getResourceAsStream(path)) {
-            if (is == null) {
-                throw new RuntimeException("Resource was not found in Classpath: " + path);
+        try (InputStream inputStream = is) {
+            if (inputStream == null) {
+                throw new RuntimeException("Resource was not found in Classpath or FileSystem: " + path);
             }
 
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();

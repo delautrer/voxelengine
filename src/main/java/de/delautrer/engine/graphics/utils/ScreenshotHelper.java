@@ -13,7 +13,7 @@ import static org.lwjgl.vulkan.KHRSwapchain.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 public class ScreenshotHelper {
 
     public static void saveScreenshot(VulkanContext context, long commandPool, long srcImage, int width, int height,
-            String filepath) {
+            String filepath, boolean isThumbnail) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             // 1. Lineares Bild (Buffer) erstellen
             VkBufferCreateInfo bufferInfo = VkBufferCreateInfo.calloc(stack)
@@ -79,8 +79,35 @@ public class ScreenshotHelper {
 
             // 5. ASYNCHRON SPEICHERN (Verhindert den Lag!)
             new Thread(() -> {
-                STBImageWrite.stbi_write_png(filepath, width, height, 4, ramData, width * 4);
-                System.out.println("[Screenshot] Saved: " + filepath);
+                if (isThumbnail) {
+                    try {
+                        java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(width, height, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+                        for (int y = 0; y < height; y++) {
+                            for (int x = 0; x < width; x++) {
+                                int i = (y * width + x) * 4;
+                                int r = ramData.get(i) & 0xFF;
+                                int g = ramData.get(i + 1) & 0xFF;
+                                int b = ramData.get(i + 2) & 0xFF;
+                                int a = ramData.get(i + 3) & 0xFF;
+                                img.setRGB(x, y, (a << 24) | (r << 16) | (g << 8) | b);
+                            }
+                        }
+                        
+                        java.awt.Image scaled = img.getScaledInstance(200, 200, java.awt.Image.SCALE_SMOOTH);
+                        java.awt.image.BufferedImage dest = new java.awt.image.BufferedImage(200, 200, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+                        java.awt.Graphics2D g2d = dest.createGraphics();
+                        g2d.drawImage(scaled, 0, 0, null);
+                        g2d.dispose();
+                        
+                        javax.imageio.ImageIO.write(dest, "png", new java.io.File(filepath));
+                        System.out.println("[Screenshot] Saved thumbnail: " + filepath);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    STBImageWrite.stbi_write_png(filepath, width, height, 4, ramData, width * 4);
+                    System.out.println("[Screenshot] Saved: " + filepath);
+                }
 
                 // C-Speicher wieder freigeben, um Memory Leaks zu verhindern
                 org.lwjgl.system.MemoryUtil.memFree(ramData);

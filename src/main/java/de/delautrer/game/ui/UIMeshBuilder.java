@@ -21,14 +21,14 @@ public class UIMeshBuilder {
     }
 
     // Die Magie: Sortiert automatisch nach Z-Index!
-    private final TreeMap<Float, Map<UITexture, Batch>> layers = new TreeMap<>();
+    private final TreeMap<Float, Map<Object, Batch>> layers = new TreeMap<>();
 
     public void clear() {
         layers.clear();
         clippingEnabled = false;
     }
 
-    public TreeMap<Float, Map<UITexture, Batch>> getLayers() {
+    public TreeMap<Float, Map<Object, Batch>> getLayers() {
         return layers;
     }
 
@@ -44,7 +44,7 @@ public class UIMeshBuilder {
         this.clippingEnabled = false;
     }
 
-    private void addClippedQuad(UITexture texture, float x0, float y0, float x1, float y1, float z, float r, float g,
+    private void addClippedQuad(Object texture, float x0, float y0, float x1, float y1, float z, float r, float g,
             float b, float u0, float v0, float u1, float v1) {
         float minX = Math.min(x0, x1);
         float maxX = Math.max(x0, x1);
@@ -85,7 +85,7 @@ public class UIMeshBuilder {
         }
 
         // Finde den Z-Layer oder erstelle ihn
-        Map<UITexture, Batch> layer = layers.computeIfAbsent(z, k -> new EnumMap<>(UITexture.class));
+        Map<Object, Batch> layer = layers.computeIfAbsent(z, k -> new HashMap<>());
         Batch batch = layer.computeIfAbsent(texture, k -> new Batch());
 
         int offset = batch.verts.size() / 8;
@@ -130,6 +130,19 @@ public class UIMeshBuilder {
                 addRect(barX, barY, z + 0.02f, barW * pct, barH, r, g, b, 1.0f);
             }
         }
+    }
+
+    public void addExternalTextureQuad(Object customTex, float x, float y, float z, float w, float h, boolean flipV) {
+        float u0 = 0.0f;
+        float v0 = 0.0f;
+        float u1 = 1.0f;
+        float v1 = 1.0f;
+        if (flipV) {
+            float tmp = v0;
+            v0 = v1;
+            v1 = tmp;
+        }
+        addClippedQuad(customTex, x, y, x + w, y + h, z, 1f, 1f, 1f, u0, v0, u1, v1);
     }
 
     public void addAtlasQuad(float x, float y, float z, float w, float h, int gridX, int gridY, int gridW, int gridH,
@@ -187,25 +200,34 @@ public class UIMeshBuilder {
     }
 
     public void drawText(String text, float startX, float startY, float z, IFont font) {
-        if (font == null || font.getCharData() == null)
+        drawText(text, startX, startY, z, font, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+    }
+
+    public void drawText(String text, float startX, float startY, float z, IFont font, float alpha) {
+        // Da die Engine aktuell keinen Alpha-Wert im Vertex-Buffer unterstützt, multiplizieren wir die Farbe (verdunkeln)
+        drawText(text, startX, startY, z, font, alpha, alpha, alpha, alpha, 1.0f);
+    }
+
+    public void drawText(String text, float startX, float startY, float z, IFont font, float r, float g, float b, float a, float scale) {
+        if (font == null || font.getCharData() == null || text == null)
             return;
-        float currentX = (float) Math.floor(startX);
-        float currentY = (float) Math.floor(startY);
+        float currentX = startX;
+        float currentY = startY;
         STBTTBakedChar.Buffer charData = font.getCharData();
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
             if (c >= 32 && c < 256) {
                 STBTTBakedChar bakedChar = charData.get(c - 32);
-                float x0 = (float) Math.floor(currentX + bakedChar.xoff());
-                float yTop = (float) Math.floor(currentY - bakedChar.yoff());
-                float w = (float) Math.floor(bakedChar.x1() - bakedChar.x0());
-                float h = (float) Math.floor(bakedChar.y1() - bakedChar.y0());
+                float x0 = currentX + (bakedChar.xoff() * scale);
+                float yTop = currentY - (bakedChar.yoff() * scale);
+                float w = (bakedChar.x1() - bakedChar.x0()) * scale;
+                float h = (bakedChar.y1() - bakedChar.y0()) * scale;
 
                 addClippedQuad(UITexture.FONT, x0, yTop - h,
-                        x0 + w, yTop, z, 1f, 1f, 1f,
+                        x0 + w, yTop, z, r, g, b, 
                         bakedChar.x0() / (float) font.getBitmapSize(), bakedChar.y1() / (float) font.getBitmapSize(),
                         bakedChar.x1() / (float) font.getBitmapSize(), bakedChar.y0() / (float) font.getBitmapSize());
-                currentX += bakedChar.xadvance();
+                currentX += bakedChar.xadvance() * scale;
             }
         }
     }

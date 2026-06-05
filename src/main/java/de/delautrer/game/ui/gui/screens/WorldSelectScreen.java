@@ -8,6 +8,7 @@ import de.delautrer.game.ui.elements.UIButton;
 import de.delautrer.game.ui.elements.UIConfirmButton;
 import de.delautrer.game.ui.elements.UIInputField;
 import de.delautrer.game.ui.elements.UIScrollableList;
+import de.delautrer.game.ui.elements.UIWorldRow;
 import de.delautrer.game.world.WorldStorageManager;
 import de.delautrer.game.world.persistence.WorldData;
 import java.io.File;
@@ -22,6 +23,9 @@ public class WorldSelectScreen extends MenuScreen {
     private final int PANEL_GRID_X = 3;
     private final int PANEL_GRID_Y = 0;
 
+    private final java.util.List<de.delautrer.engine.graphics.ITexture> thumbnails = new java.util.ArrayList<>();
+    private UIWorldRow selectedRow = null;
+
     public WorldSelectScreen(Engine engine, Runnable onBackAction) {
         this.engine = engine;
         this.onBackAction = onBackAction;
@@ -29,15 +33,24 @@ public class WorldSelectScreen extends MenuScreen {
 
     @Override
     protected void onInit() {
-        // Beim ersten Laden bauen wir das Standard-Layout (die Liste)
         buildLayout();
     }
 
-    /**
-     * Diese Methode baut die UI-Elemente je nach aktuellem Zustand neu auf!
-     */
+    @Override
+    public void onClose() {
+        for (de.delautrer.engine.graphics.ITexture tex : thumbnails) {
+            tex.cleanup();
+        }
+        thumbnails.clear();
+    }
+
     private void buildLayout() {
         elements.clear();
+        for (de.delautrer.engine.graphics.ITexture tex : thumbnails) {
+            tex.cleanup();
+        }
+        thumbnails.clear();
+
         float centerX = width / 2.0f;
 
         if (isCreatingWorld) {
@@ -51,86 +64,174 @@ public class WorldSelectScreen extends MenuScreen {
     // ANSICHT 1: DER WELTEN-BROWSER (Liste)
     // ==========================================
     private void buildWorldBrowser(float centerX) {
-        float listWidth = 600.0f;
-        float listHeight = height - 180.0f;
-        float listY = 90.0f; // Etwas Platz unten für die Main-Buttons
+        float listWidth = 800.0f;
+        // Make list shorter so it doesn't overlap the newWorldBtn
+        float listHeight = height - 260.0f;
+        float listY = 150.0f; 
 
         UIScrollableList worldList = new UIScrollableList(centerX - (listWidth / 2.0f), listY, listWidth, listHeight);
-        float itemY = listY + listHeight - 60.0f;
+        float itemY = listY + listHeight - 110.0f; // More padding at the top
 
         File savesDir = GamePaths.SAVES_DIR.toFile();
         if (!savesDir.exists())
             savesDir.mkdirs();
 
         File[] saveFiles = savesDir.listFiles(File::isDirectory);
+        java.util.List<File> sortedFiles = new java.util.ArrayList<>();
         if (saveFiles != null) {
-            for (File saveFolder : saveFiles) {
-                String safeFolderName = saveFolder.getName();
-                String displayName = safeFolderName;
-                WorldData data = WorldStorageManager.readMetadataForUI(saveFolder);
-                if (data != null && data.worldName != null) {
-                    displayName = data.worldName;
-                }
-                String wN = displayName;
-
-                UIButton loadBtn = new UIButton(worldList.getX() + 20, itemY, listWidth - 140, 40,
-                        "Play: " + displayName, () -> {
-                            engine.getSceneManager().changeScene(new PlayScene(engine, wN, safeFolderName));
-                        });
-
-                UIConfirmButton deleteBtn = new UIConfirmButton(worldList.getX() + listWidth - 110, itemY, 90, 40,
-                        "Del", "Sure?", () -> {
-                            deleteDirectory(saveFolder);
-                            buildLayout(); // Liste nach dem Löschen sofort neu aufbauen!
-                        });
-
-                worldList.addItem(loadBtn);
-                worldList.addItem(deleteBtn);
-                itemY -= 50.0f;
-            }
+            sortedFiles.addAll(java.util.Arrays.asList(saveFiles));
+            sortedFiles.sort((f1, f2) -> {
+                WorldData d1 = WorldStorageManager.readMetadataForUI(f1);
+                WorldData d2 = WorldStorageManager.readMetadataForUI(f2);
+                long d1Date = (d1 != null && d1.lastOpenedDate > 0) ? d1.lastOpenedDate : ((d1 != null && d1.creationDate > 0) ? d1.creationDate : 0);
+                long d2Date = (d2 != null && d2.lastOpenedDate > 0) ? d2.lastOpenedDate : ((d2 != null && d2.creationDate > 0) ? d2.creationDate : 0);
+                return Long.compare(d2Date, d1Date); // Descending
+            });
         }
+
+        if (sortedFiles.isEmpty()) {
+            isCreatingWorld = true;
+            buildLayout();
+            return;
+        }
+
+        for (File saveFolder : sortedFiles) {
+            String safeFolderName = saveFolder.getName();
+            String displayName = safeFolderName;
+            WorldData data = WorldStorageManager.readMetadataForUI(saveFolder);
+            String versionText = "Unknown Version";
+            String dateText = "Unknown Date";
+
+            if (data != null) {
+                if (data.worldName != null && !data.worldName.isEmpty())
+                    displayName = data.worldName;
+            }
+
+            de.delautrer.engine.graphics.ITexture thumb = null;
+            File thumbFile = new File(saveFolder, "level.png");
+            if (thumbFile.exists()) {
+                thumb = engine.getGraphicsFactory().createTexture(thumbFile.getAbsolutePath());
+                if (thumb != null) {
+                    thumbnails.add(thumb);
+                }
+            }
+
+            UIWorldRow row = new UIWorldRow(worldList.getX() + 20, itemY, listWidth - 40, 80, displayName, safeFolderName, data, thumb, null);
+            
+            if (selectedRow != null && selectedRow.getSafeFolderName().equals(safeFolderName)) {
+                row.setSelected(true);
+                selectedRow = row; 
+            }
+
+            final UIWorldRow finalRow = row;
+            
+            float thumbSize = 70.0f;
+            float thumbX = row.getX() + 5.0f;
+            float thumbY = row.getY() + 5.0f;
+            UIButton directPlayBtn = new UIButton(thumbX, thumbY, thumbSize, thumbSize, "", () -> {
+                onClose();
+                engine.getSceneManager().changeScene(new PlayScene(engine, finalRow.getData() != null ? finalRow.getData().worldName : finalRow.getSafeFolderName(), finalRow.getSafeFolderName()));
+            }) {
+                @Override
+                public void render(de.delautrer.game.ui.UIMeshBuilder builder, de.delautrer.engine.graphics.IFont font, float mouseX, float mouseY) {}
+            };
+            
+            UIButton invisibleBtn = new UIButton(worldList.getX() + 20, itemY, listWidth - 40, 80, "", () -> {
+                if (selectedRow != null) selectedRow.setSelected(false);
+                selectedRow = finalRow;
+                selectedRow.setSelected(true);
+                buildLayout();
+            }) {
+                @Override
+                public void render(de.delautrer.game.ui.UIMeshBuilder builder, de.delautrer.engine.graphics.IFont font, float mouseX, float mouseY) {}
+            };
+            
+            worldList.addItem(row);
+            worldList.addItem(directPlayBtn); 
+            worldList.addItem(invisibleBtn);
+            itemY -= 90.0f;
+        }
+
         elements.add(worldList);
 
         // --- BOTTOM BAR BUTTONS ---
-        UIButton backBtn = new UIButton(centerX - 300, 30.0f, 290, 40, "Back to Title", () -> {
-            if (onBackAction != null)
-                onBackAction.run();
+        float btnY = 30.0f;
+        UIButton backBtn = new UIButton(centerX - 390, btnY, 180, 40, "Back", () -> {
+            onClose();
+            if (onBackAction != null) onBackAction.run();
         });
 
-        UIButton newWorldBtn = new UIButton(centerX + 10, 30.0f, 290, 40, "Create New World", () -> {
-            isCreatingWorld = true; // Status ändern
-            buildLayout(); // UI neu zeichnen lassen (öffnet das Popup)
+        UIButton playBtn = new UIButton(centerX - 190, btnY, 180, 40, "Play", () -> {
+            if (selectedRow != null) {
+                onClose();
+                engine.getSceneManager().changeScene(new PlayScene(engine, selectedRow.getData() != null ? selectedRow.getData().worldName : selectedRow.getSafeFolderName(), selectedRow.getSafeFolderName()));
+            }
+        });
+        playBtn.setDisabled(selectedRow == null);
+
+        UIButton recreateBtn = new UIButton(centerX + 10, btnY, 180, 40, "Recreate", () -> {
+            if (selectedRow != null && selectedRow.getData() != null) {
+                onClose();
+                engine.getSceneManager().changeScene(new PlayScene(engine, selectedRow.getData().worldName, selectedRow.getData().seed));
+            }
+        });
+        recreateBtn.setDisabled(selectedRow == null);
+
+        UIConfirmButton deleteBtn = new UIConfirmButton(centerX + 210, btnY, 180, 40, "Delete", "Sure?", () -> {
+            if (selectedRow != null) {
+                deleteDirectory(new File(GamePaths.SAVES_DIR.toFile(), selectedRow.getSafeFolderName()));
+                selectedRow = null;
+                buildLayout();
+            }
+        });
+        deleteBtn.setDisabled(selectedRow == null);
+
+        UIButton newWorldBtn = new UIButton(centerX - 390, btnY + 50, 780, 40, "Create New World", () -> {
+            isCreatingWorld = true;
+            buildLayout();
         });
 
         elements.add(backBtn);
+        elements.add(playBtn);
+        elements.add(recreateBtn);
+        elements.add(deleteBtn);
         elements.add(newWorldBtn);
+    }
+
+    @Override
+    protected void onBackgroundClicked() {
+        if (selectedRow != null) {
+            selectedRow.setSelected(false);
+            selectedRow = null;
+            buildLayout();
+        }
     }
 
     // ==========================================
     // ANSICHT 2: DAS "NEUE WELT" POPUP
     // ==========================================
     private void buildCreationPopup(float centerX) {
-        // Wir setzen die Felder in die Mitte des Bildschirms
         float centerY = height / 2.0f;
 
         UIInputField nameInput = new UIInputField(centerX - 200, centerY + 20.0f, 400, 40, "Enter World Name...", 20);
-        UIInputField seedInput = new UIInputField(centerX - 200, centerY - 40.0f, 400, 40,
-                "Seed (leave empty for random)", 20);
+        UIInputField seedInput = new UIInputField(centerX - 200, centerY - 40.0f, 400, 40, "Seed (leave empty for random)", 20);
 
         UIButton createBtn = new UIButton(centerX + 10, centerY - 110.0f, 190, 40, "Create", () -> {
             String worldName = nameInput.getText().isEmpty() ? "New World" : nameInput.getText();
-            // String safeFolderName =
-            // WorldStorageManager.getUniqueValidFolderName(worldName);
             String seedStr = seedInput.getText().replaceAll("[^0-9]", "");
-            ;
             long seed = seedStr.isEmpty() ? (long) (Math.random() * Long.MAX_VALUE) : Long.valueOf(seedStr);
-
             engine.getSceneManager().changeScene(new PlayScene(engine, worldName, seed));
         });
 
         UIButton cancelBtn = new UIButton(centerX - 200, centerY - 110.0f, 190, 40, "Cancel", () -> {
-            isCreatingWorld = false; // Status ändern
-            buildLayout(); // UI neu zeichnen lassen (schließt das Popup)
+            File savesDir = GamePaths.SAVES_DIR.toFile();
+            File[] saveFiles = savesDir.exists() ? savesDir.listFiles(File::isDirectory) : new File[0];
+            if (saveFiles == null || saveFiles.length == 0) {
+                if (onBackAction != null) onBackAction.run();
+            } else {
+                isCreatingWorld = false;
+                buildLayout();
+            }
         });
 
         elements.add(nameInput);
