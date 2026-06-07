@@ -277,11 +277,7 @@ public class MasterRenderer {
                 } else if (currentItem instanceof de.delautrer.game.items.BlockItem) {
                     de.delautrer.game.items.BlockItem blockItem = (de.delautrer.game.items.BlockItem) currentItem;
                     
-                    boolean renderAsItem = (blockItem.block instanceof de.delautrer.game.blocks.DoorBlock) || 
-                                           (blockItem.block instanceof de.delautrer.game.blocks.TrapdoorBlock) || 
-                                           (blockItem.block instanceof de.delautrer.game.blocks.PlantBlock) || 
-                                           (blockItem.block instanceof de.delautrer.game.blocks.TorchBlock) ||
-                                           (blockItem.block instanceof de.delautrer.game.blocks.SaplingBlock);
+                    boolean renderAsItem = currentItem.isRenderAsItem();
     
                     if (renderAsItem) {
                         de.delautrer.engine.graphics.utils.TextureStitcher.AtlasRegion reg = currentItem.getIconRegion();
@@ -314,17 +310,7 @@ public class MasterRenderer {
             packet.firstPersonMesh = firstPersonMesh;
             packet.isEmptyHand = (currentItem == null);
             
-            boolean isItem = (currentItem != null);
-            if (currentItem instanceof de.delautrer.game.items.BlockItem) {
-                de.delautrer.game.items.BlockItem bi = (de.delautrer.game.items.BlockItem) currentItem;
-                isItem = (bi.block instanceof de.delautrer.game.blocks.DoorBlock) || 
-                         (bi.block instanceof de.delautrer.game.blocks.TrapdoorBlock) || 
-                         (bi.block instanceof de.delautrer.game.blocks.PlantBlock) || 
-                         (bi.block instanceof de.delautrer.game.blocks.TorchBlock) ||
-                         (bi.block instanceof de.delautrer.game.blocks.SaplingBlock);
-            }
-            
-            packet.firstPersonIsItem = isItem;
+            packet.firstPersonIsItem = currentItem != null && currentItem.isRenderAsItem();
             packet.swingProgress = interaction.getSwingProgress();
         }
 

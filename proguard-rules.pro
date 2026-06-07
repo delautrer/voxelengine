@@ -64,6 +64,10 @@
 -keep class de.delautrer.game.blocks.data.** { *; }
 -keepclassmembers class de.delautrer.game.blocks.data.** { *; }
 
+# -- Items (Item Registry) --
+-keep class de.delautrer.game.items.data.** { *; }
+-keepclassmembers class de.delautrer.game.items.data.** { *; }
+
 # -- Loot Tables --
 -keep class de.delautrer.game.loot.** { *; }
 -keepclassmembers class de.delautrer.game.loot.** {

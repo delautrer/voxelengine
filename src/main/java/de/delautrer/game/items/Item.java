@@ -10,10 +10,10 @@ public abstract class Item {
     public final String name;
     public final String textureName;
     private TextureStitcher.AtlasRegion iconRegion;
-    // private String id;
 
     protected int maxStackSize = 64;
     protected String category = "misc";
+    protected boolean renderAsItem = false;
 
     public Item(String name, String textureName) {
         this.name = name;
@@ -39,6 +39,14 @@ public abstract class Item {
 
     public String getName() {
         return name;
+    }
+
+    public void setRenderAsItem(boolean renderAsItem) {
+        this.renderAsItem = renderAsItem;
+    }
+
+    public boolean isRenderAsItem() {
+        return renderAsItem;
     }
 
     public abstract boolean onUseRightClick(World world, LocalPlayer localPlayer, Vector3i targetBlock,
