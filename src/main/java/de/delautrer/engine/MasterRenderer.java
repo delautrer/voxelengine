@@ -187,7 +187,7 @@ public class MasterRenderer {
         // MULTI-BLOCK CRACKING OVERLAY
         java.util.Map<Vector3i, Float> cracks = interaction.getAllMiningProgresses();
         if (!cracks.isEmpty()) {
-            updateCrackingMesh(cracks);
+            updateCrackingMesh(world, cracks);
             packet.overlayMesh = dynamicOverlayMesh;
         } else {
             if (dynamicOverlayMesh != null) {
@@ -347,10 +347,28 @@ public class MasterRenderer {
 
     // --- NEU: Diese Methode baut keine neuen Meshes mehr, sondern updatet unser
     // gespeichertes Mesh ---
-    private void updateCrackingMesh(java.util.Map<Vector3i, Float> activeCracks) {
-        int count = activeCracks.size();
-        float[] verts = new float[count * 24 * 12];
-        int[] inds = new int[count * 36];
+    private void updateCrackingMesh(World world, java.util.Map<Vector3i, Float> activeCracks) {
+        int totalBoxes = 0;
+        for (java.util.Map.Entry<Vector3i, Float> entry : activeCracks.entrySet()) {
+            Vector3i pos = entry.getKey();
+            byte id = world.getBlockAt(pos);
+            if (id != 0) {
+                de.delautrer.game.blocks.Block block = de.delautrer.game.blocks.BlockRegistry.get(id);
+                de.delautrer.game.blocks.state.BlockState state = world.getBlockState(pos);
+                totalBoxes += block.getHighlightBoxes(state).size();
+            }
+        }
+        
+        if (totalBoxes == 0) {
+            if (dynamicOverlayMesh != null) {
+                dynamicOverlayMesh.cleanup();
+                dynamicOverlayMesh = null;
+            }
+            return;
+        }
+
+        float[] verts = new float[totalBoxes * 24 * 12];
+        int[] inds = new int[totalBoxes * 36];
 
         int vOffset = 0;
         int iOffset = 0;
@@ -358,6 +376,12 @@ public class MasterRenderer {
 
         for (java.util.Map.Entry<Vector3i, Float> entry : activeCracks.entrySet()) {
             Vector3i pos = entry.getKey();
+            byte id = world.getBlockAt(pos);
+            if (id == 0) continue;
+            de.delautrer.game.blocks.Block block = de.delautrer.game.blocks.BlockRegistry.get(id);
+            de.delautrer.game.blocks.state.BlockState state = world.getBlockState(pos);
+            java.util.List<de.delautrer.engine.physics.AABB> boxes = block.getHighlightBoxes(state);
+
             float progress = entry.getValue();
 
             int stage = (int) Math.min(9, Math.floor(progress * 10.0f));
@@ -366,61 +390,81 @@ public class MasterRenderer {
             float layer = blockAtlas.regions.get(textureName).layer;
 
             float x = pos.x, y = pos.y, z = pos.z;
-            float e = -0.001f;
-            float s = 1.001f;
+            float eExpand = -0.001f;
+            float sExpand = 0.001f;
 
             float r = 1.0f, g = 1.0f, b = 1.0f, a = 1.0f;
             float sl = 1.0f, bl = 1.0f;
 
-            float[] localVerts = {
-                    // Front (-Z)
-                    x + e, y + e, z + e, r, g, b, a, 0, 1, layer, sl, bl,
-                    x + s, y + e, z + e, r, g, b, a, 1, 1, layer, sl, bl,
-                    x + s, y + s, z + e, r, g, b, a, 1, 0, layer, sl, bl,
-                    x + e, y + s, z + e, r, g, b, a, 0, 0, layer, sl, bl,
-                    // Back (+Z)
-                    x + e, y + e, z + s, r, g, b, a, 1, 1, layer, sl, bl,
-                    x + s, y + e, z + s, r, g, b, a, 0, 1, layer, sl, bl,
-                    x + s, y + s, z + s, r, g, b, a, 0, 0, layer, sl, bl,
-                    x + e, y + s, z + s, r, g, b, a, 1, 0, layer, sl, bl,
-                    // Left (-X)
-                    x + e, y + e, z + e, r, g, b, a, 1, 1, layer, sl, bl,
-                    x + e, y + e, z + s, r, g, b, a, 0, 1, layer, sl, bl,
-                    x + e, y + s, z + s, r, g, b, a, 0, 0, layer, sl, bl,
-                    x + e, y + s, z + e, r, g, b, a, 1, 0, layer, sl, bl,
-                    // Right (+X)
-                    x + s, y + e, z + e, r, g, b, a, 0, 1, layer, sl, bl,
-                    x + s, y + e, z + s, r, g, b, a, 1, 1, layer, sl, bl,
-                    x + s, y + s, z + s, r, g, b, a, 1, 0, layer, sl, bl,
-                    x + s, y + s, z + e, r, g, b, a, 0, 0, layer, sl, bl,
-                    // Top (+Y)
-                    x + e, y + s, z + e, r, g, b, a, 0, 1, layer, sl, bl,
-                    x + s, y + s, z + e, r, g, b, a, 1, 1, layer, sl, bl,
-                    x + s, y + s, z + s, r, g, b, a, 1, 0, layer, sl, bl,
-                    x + e, y + s, z + s, r, g, b, a, 0, 0, layer, sl, bl,
-                    // Bottom (-Y)
-                    x + e, y + e, z + e, r, g, b, a, 0, 0, layer, sl, bl,
-                    x + s, y + e, z + e, r, g, b, a, 1, 0, layer, sl, bl,
-                    x + s, y + e, z + s, r, g, b, a, 1, 1, layer, sl, bl,
-                    x + e, y + e, z + s, r, g, b, a, 0, 1, layer, sl, bl,
-            };
+            for (de.delautrer.engine.physics.AABB box : boxes) {
+                float minX = x + box.min.x + eExpand;
+                float minY = y + box.min.y + eExpand;
+                float minZ = z + box.min.z + eExpand;
+                float maxX = x + box.max.x + sExpand;
+                float maxY = y + box.max.y + sExpand;
+                float maxZ = z + box.max.z + sExpand;
 
-            int[] localInds = {
-                    2, 1, 0, 0, 3, 2, // Front
-                    6, 7, 4, 4, 5, 6, // Back
-                    10, 11, 8, 8, 9, 10, // Left
-                    14, 13, 12, 12, 15, 14, // Right
-                    18, 17, 16, 16, 19, 18, // Top
-                    22, 23, 20, 20, 21, 22 // Bottom
-            };
+                float uMinX = box.min.x;
+                float uMaxX = box.max.x;
+                float uMinZ = box.min.z;
+                float uMaxZ = box.max.z;
 
-            System.arraycopy(localVerts, 0, verts, vOffset, localVerts.length);
-            vOffset += localVerts.length;
+                float vMinY = 1.0f - box.max.y;
+                float vMaxY = 1.0f - box.min.y;
+                
+                float vMinZ = 1.0f - box.max.z;
+                float vMaxZ = 1.0f - box.min.z;
 
-            for (int i = 0; i < localInds.length; i++) {
-                inds[iOffset++] = localInds[i] + indexOffset;
+                float[] localVerts = {
+                        // Front (-Z)
+                        minX, minY, minZ, r, g, b, a, uMinX, vMaxY, layer, sl, bl,
+                        maxX, minY, minZ, r, g, b, a, uMaxX, vMaxY, layer, sl, bl,
+                        maxX, maxY, minZ, r, g, b, a, uMaxX, vMinY, layer, sl, bl,
+                        minX, maxY, minZ, r, g, b, a, uMinX, vMinY, layer, sl, bl,
+                        // Back (+Z)
+                        minX, minY, maxZ, r, g, b, a, 1.0f - uMinX, vMaxY, layer, sl, bl,
+                        maxX, minY, maxZ, r, g, b, a, 1.0f - uMaxX, vMaxY, layer, sl, bl,
+                        maxX, maxY, maxZ, r, g, b, a, 1.0f - uMaxX, vMinY, layer, sl, bl,
+                        minX, maxY, maxZ, r, g, b, a, 1.0f - uMinX, vMinY, layer, sl, bl,
+                        // Left (-X)
+                        minX, minY, minZ, r, g, b, a, 1.0f - uMinZ, vMaxY, layer, sl, bl,
+                        minX, minY, maxZ, r, g, b, a, 1.0f - uMaxZ, vMaxY, layer, sl, bl,
+                        minX, maxY, maxZ, r, g, b, a, 1.0f - uMaxZ, vMinY, layer, sl, bl,
+                        minX, maxY, minZ, r, g, b, a, 1.0f - uMinZ, vMinY, layer, sl, bl,
+                        // Right (+X)
+                        maxX, minY, minZ, r, g, b, a, uMinZ, vMaxY, layer, sl, bl,
+                        maxX, minY, maxZ, r, g, b, a, uMaxZ, vMaxY, layer, sl, bl,
+                        maxX, maxY, maxZ, r, g, b, a, uMaxZ, vMinY, layer, sl, bl,
+                        maxX, maxY, minZ, r, g, b, a, uMinZ, vMinY, layer, sl, bl,
+                        // Top (+Y)
+                        minX, maxY, minZ, r, g, b, a, uMinX, vMaxZ, layer, sl, bl,
+                        maxX, maxY, minZ, r, g, b, a, uMaxX, vMaxZ, layer, sl, bl,
+                        maxX, maxY, maxZ, r, g, b, a, uMaxX, vMinZ, layer, sl, bl,
+                        minX, maxY, maxZ, r, g, b, a, uMinX, vMinZ, layer, sl, bl,
+                        // Bottom (-Y)
+                        minX, minY, minZ, r, g, b, a, uMinX, uMinZ, layer, sl, bl,
+                        maxX, minY, minZ, r, g, b, a, uMaxX, uMinZ, layer, sl, bl,
+                        maxX, minY, maxZ, r, g, b, a, uMaxX, uMaxZ, layer, sl, bl,
+                        minX, minY, maxZ, r, g, b, a, uMinX, uMaxZ, layer, sl, bl,
+                };
+    
+                int[] localInds = {
+                        2, 1, 0, 0, 3, 2, // Front
+                        6, 7, 4, 4, 5, 6, // Back
+                        10, 11, 8, 8, 9, 10, // Left
+                        14, 13, 12, 12, 15, 14, // Right
+                        18, 17, 16, 16, 19, 18, // Top
+                        22, 23, 20, 20, 21, 22 // Bottom
+                };
+    
+                System.arraycopy(localVerts, 0, verts, vOffset, localVerts.length);
+                vOffset += localVerts.length;
+    
+                for (int i = 0; i < localInds.length; i++) {
+                    inds[iOffset++] = localInds[i] + indexOffset;
+                }
+                indexOffset += 24;
             }
-            indexOffset += 24;
         }
 
         if (vOffset == 0) {

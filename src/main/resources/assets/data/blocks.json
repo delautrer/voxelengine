@@ -247,21 +247,27 @@
         "name":  "bricks",
         "type":  "cube",
         "hardness":  2.0,
-        "category":  "building"
+        "soundMaterial":  "rock",
+        "category":  "building",
+        "minToolTier":  "WOOD"
     },
     {
         "id":  31,
         "name":  "bricks_stairs",
         "type":  "stair",
         "hardness":  2.0,
-        "category":  "wood"
+        "soundMaterial":  "rock",
+        "category":  "building",
+        "minToolTier":  "WOOD"
     },
     {
         "id":  32,
         "name":  "bricks_slabs",
         "type":  "slab",
         "hardness":  2.0,
-        "category":  "wood"
+        "soundMaterial":  "rock",
+        "category":  "building",
+        "minToolTier":  "WOOD"
     },
     {
         "id":  33,

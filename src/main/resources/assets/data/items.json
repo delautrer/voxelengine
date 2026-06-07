@@ -144,6 +144,7 @@
     "textureName": "torch",
     "type": "block",
     "maxStackSize": 64,
+    "renderAsItem": true,
     "category": "misc"
   },
   {
@@ -232,6 +233,7 @@
     "textureName": "grass",
     "type": "block",
     "maxStackSize": 64,
+    "renderAsItem": true,
     "category": "misc"
   },
   {
@@ -240,6 +242,7 @@
     "textureName": "sandy_grass",
     "type": "block",
     "maxStackSize": 64,
+    "renderAsItem": true,
     "category": "misc"
   },
   {
@@ -248,6 +251,7 @@
     "textureName": "poppy",
     "type": "block",
     "maxStackSize": 64,
+    "renderAsItem": true,
     "category": "misc"
   },
   {
@@ -256,6 +260,7 @@
     "textureName": "dandelion",
     "type": "block",
     "maxStackSize": 64,
+    "renderAsItem": true,
     "category": "misc"
   },
   {
@@ -264,6 +269,7 @@
     "textureName": "dotty",
     "type": "block",
     "maxStackSize": 64,
+    "renderAsItem": true,
     "category": "misc"
   },
   {
@@ -272,6 +278,7 @@
     "textureName": "fairy_bell",
     "type": "block",
     "maxStackSize": 64,
+    "renderAsItem": true,
     "category": "misc"
   },
   {
@@ -280,6 +287,7 @@
     "textureName": "red_tulip",
     "type": "block",
     "maxStackSize": 64,
+    "renderAsItem": true,
     "category": "misc"
   },
   {
@@ -288,6 +296,7 @@
     "textureName": "purple_tulip",
     "type": "block",
     "maxStackSize": 64,
+    "renderAsItem": true,
     "category": "misc"
   },
   {
@@ -296,6 +305,7 @@
     "textureName": "mavvinilia",
     "type": "block",
     "maxStackSize": 64,
+    "renderAsItem": true,
     "category": "misc"
   },
   {
@@ -312,12 +322,14 @@
     "textureName": "oak_trapdoor",
     "type": "block",
     "maxStackSize": 64,
+    "renderAsItem": true,
     "category": "misc"
   },
   {
     "id": "oak_door",
     "name": "Oak Door",
     "textureName": "oak_door",
+    "renderAsItem": true,
     "type": "block",
     "maxStackSize": 64,
     "category": "misc"
@@ -328,6 +340,7 @@
     "textureName": "oak_sapling",
     "type": "block",
     "maxStackSize": 64,
+    "renderAsItem": true,
     "category": "misc"
   },
   {
@@ -382,6 +395,7 @@
     "id": "birch_trapdoor",
     "name": "Birch Trapdoor",
     "textureName": "birch_trapdoor",
+    "renderAsItem": true,
     "type": "block",
     "maxStackSize": 64,
     "category": "misc"
@@ -392,6 +406,7 @@
     "textureName": "birch_door",
     "type": "block",
     "maxStackSize": 64,
+    "renderAsItem": true,
     "category": "misc"
   },
   {
@@ -400,6 +415,7 @@
     "textureName": "birch_sapling",
     "type": "block",
     "maxStackSize": 64,
+    "renderAsItem": true,
     "category": "misc"
   },
   {
@@ -456,6 +472,7 @@
     "textureName": "pine_trapdoor",
     "type": "block",
     "maxStackSize": 64,
+    "renderAsItem": true,
     "category": "misc"
   },
   {
@@ -464,6 +481,7 @@
     "textureName": "pine_door",
     "type": "block",
     "maxStackSize": 64,
+    "renderAsItem": true,
     "category": "misc"
   },
   {
@@ -472,6 +490,7 @@
     "textureName": "pine_sapling",
     "type": "block",
     "maxStackSize": 64,
+    "renderAsItem": true,
     "category": "misc"
   },
   {
@@ -528,6 +547,7 @@
     "textureName": "willow_trapdoor",
     "type": "block",
     "maxStackSize": 64,
+    "renderAsItem": true,
     "category": "misc"
   },
   {
@@ -536,6 +556,7 @@
     "textureName": "willow_door",
     "type": "block",
     "maxStackSize": 64,
+    "renderAsItem": true,
     "category": "misc"
   },
   {
@@ -544,6 +565,7 @@
     "textureName": "willow_sapling",
     "type": "block",
     "maxStackSize": 64,
+    "renderAsItem": true,
     "category": "misc"
   },
   {
@@ -600,6 +622,7 @@
     "textureName": "baobab_trapdoor",
     "type": "block",
     "maxStackSize": 64,
+    "renderAsItem": true,
     "category": "misc"
   },
   {
@@ -608,6 +631,7 @@
     "textureName": "baobab_door",
     "type": "block",
     "maxStackSize": 64,
+    "renderAsItem": true,
     "category": "misc"
   },
   {
@@ -616,6 +640,7 @@
     "textureName": "baobab_sapling",
     "type": "block",
     "maxStackSize": 64,
+    "renderAsItem": true,
     "category": "misc"
   },
   {
@@ -672,6 +697,7 @@
     "textureName": "mahogany_trapdoor",
     "type": "block",
     "maxStackSize": 64,
+    "renderAsItem": true,
     "category": "misc"
   },
   {
@@ -680,6 +706,7 @@
     "textureName": "mahogany_door",
     "type": "block",
     "maxStackSize": 64,
+    "renderAsItem": true,
     "category": "misc"
   },
   {
@@ -688,6 +715,7 @@
     "textureName": "mahogany_sapling",
     "type": "block",
     "maxStackSize": 64,
+    "renderAsItem": true,
     "category": "misc"
   },
   {
@@ -744,6 +772,7 @@
     "textureName": "palm_trapdoor",
     "type": "block",
     "maxStackSize": 64,
+    "renderAsItem": true,
     "category": "misc"
   },
   {
@@ -752,6 +781,7 @@
     "textureName": "palm_door",
     "type": "block",
     "maxStackSize": 64,
+    "renderAsItem": true,
     "category": "misc"
   },
   {
@@ -760,6 +790,7 @@
     "textureName": "palm_sapling",
     "type": "block",
     "maxStackSize": 64,
+    "renderAsItem": true,
     "category": "misc"
   },
   {
