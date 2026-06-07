@@ -21,7 +21,7 @@ public class FurnaceContainer extends BaseContainer {
         addSlot(new Slot(furnaceInventory, 1, 54, 104));
 
         // 3. Schmelz-Ergebnis (Slot 2) - Kann nur entnommen werden!
-        addSlot(new Slot(furnaceInventory, 2, 116, 128) {
+        addSlot(new Slot(furnaceInventory, 2, 138, 128) {
             @Override
             public boolean isItemValid(ItemStack stack) {
                 return false; // Man darf hier nichts hineinlegen!

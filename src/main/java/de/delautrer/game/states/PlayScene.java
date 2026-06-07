@@ -60,6 +60,7 @@ public class PlayScene extends Scene {
     private boolean isUIHiddenByUser = false;
     private boolean wasFocused = true;
     private float screenshotCooldown = 0.0f;
+    private float thumbnailTimer = 2.0f;
 
     private boolean isTakingIsometric = false;
     private int isoFramesToWait = 0;
@@ -282,6 +283,18 @@ public class PlayScene extends Scene {
         // --- 1. UI-Hiding Logik (Muss vor dem early return stehen!) ---
         boolean anyMenuOpen = isPaused || isChatOpen || localPlayer.getInventory().isOpen() || localPlayer.getOpenedInventory() != null || localPlayer.isDead();
         hideUI = isUIHiddenByUser && !anyMenuOpen;
+
+        if (!anyMenuOpen && world.getChunkManager().isInitialLoadComplete()) {
+            thumbnailTimer -= deltaTime;
+            if (thumbnailTimer <= 0) {
+                thumbnailTimer = 30.0f; // Alle 30 Sekunden
+                try {
+                    String thumbPath = de.delautrer.engine.utils.GamePaths.SAVES_DIR.resolve(world.getSafeFolderName()).resolve("level.png").toString();
+                    masterRenderer.requestThumbnail(thumbPath);
+                } catch (Exception e) {
+                }
+            }
+        }
 
         // --- 2. SPEICHERN & BEENDEN ---
         if (isSavingAndQuitting) {
@@ -562,17 +575,9 @@ public class PlayScene extends Scene {
     }
 
     public void saveAndQuit() {
-        hideUI = true;
-        isUIHiddenByUser = true;
         isSavingAndQuitting = true;
+        saveWaitFrames = 1;
         uiNeedsRebuild = true;
-        
-        try {
-            String thumbPath = de.delautrer.engine.utils.GamePaths.SAVES_DIR.resolve(world.getSafeFolderName()).resolve("level.png").toString();
-            masterRenderer.requestThumbnail(thumbPath);
-        } catch (Exception e) {
-            System.err.println("Failed to request thumbnail: " + e.getMessage());
-        }
     }
 
     private void openChat(boolean startWithSlash) {

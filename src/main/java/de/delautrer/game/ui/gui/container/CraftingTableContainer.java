@@ -21,7 +21,7 @@ public class CraftingTableContainer extends BaseContainer {
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 3; col++) {
                 int index = col + row * 3;
-                addSlot(new Slot(craftingInventory, index, 30 + col * 24, 116 + ((2 - row) * 24)) {
+                addSlot(new Slot(craftingInventory, index, 42 + col * 24, 116 + ((2 - row) * 24)) {
                     @Override
                     public void onSlotChanged() {
                         super.onSlotChanged();

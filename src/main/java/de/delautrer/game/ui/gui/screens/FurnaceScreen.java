@@ -26,8 +26,12 @@ public class FurnaceScreen extends ContainerScreen {
         padding = 10.0f * pixelScale;
         panelW = hotbarWidth + padding * 2;
         panelH = containerPixelHeight + padding * 2 + (15.0f * pixelScale);
-        panelX = guiX - padding;
-        panelY = guiY - padding;
+        
+        panelX = (float) Math.floor((width - panelW) / 2.0f);
+        panelY = (float) Math.floor((height - panelH) / 2.0f);
+        
+        guiX = panelX + padding;
+        guiY = panelY + padding;
     }
 
     @Override
@@ -60,17 +64,17 @@ public class FurnaceScreen extends ContainerScreen {
         }
 
         // 2. Fortschritts-Pfeil/Balken zeichnen (zwischen den Spalten)
-        float arrowX = guiX + 84f * pixelScale;
+        float arrowX = guiX + 96f * pixelScale;
         float arrowY = guiY + 128f * pixelScale;
         float arrowW = 24f * pixelScale;
 
         // Dunkler Balken-Hintergrund
-        builder.addRect(arrowX, arrowY + 4f * pixelScale, 0.05f, arrowW, 8f * pixelScale, 0.15f, 0.15f, 0.15f, 1.0f);
+        builder.addRect(arrowX, arrowY + 8f * pixelScale, 0.05f, arrowW, 8f * pixelScale, 0.15f, 0.15f, 0.15f, 1.0f);
 
         if (cookTime > 0) {
             float cookRatio = cookTime / (float) maxCookTime;
             // Grüner Fortschritt
-            builder.addRect(arrowX, arrowY + 4f * pixelScale, 0.06f, arrowW * cookRatio, 8f * pixelScale, 0.0f, 1.0f, 0.12f, 1.0f);
+            builder.addRect(arrowX, arrowY + 8f * pixelScale, 0.06f, arrowW * cookRatio, 8f * pixelScale, 0.0f, 1.0f, 0.12f, 1.0f);
         }
 
         if (font != null) {

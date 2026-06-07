@@ -58,42 +58,9 @@ public class SaplingBlock extends PlantBlock {
     }
 
     @Override
-    public BlockState getStateForPlacement(World world, Player player, Vector3i hitPos, Vector3i hitFace, Vector3f exactHit) {
-        byte belowId = world.getBlockAt(hitPos.x, hitPos.y - 1, hitPos.z);
-        Block belowBlock = BlockRegistry.get(belowId);
-        NamespacedKey belowKey = BlockRegistry.REGISTRY.getKey(belowBlock);
-        if (belowKey != null) {
-            String belowName = belowKey.getKey();
-            if (belowName.equals("grass_block") || belowName.equals("dirt")) {
-                return getDefaultState();
-            }
-        }
-        return null;
-    }
-
-    @Override
     public void onBlockPlaced(World world, Vector3i pos, BlockState state, Player player) {
         super.onBlockPlaced(world, pos, state, player);
         scheduleGrowthIfAbsent(world, pos.x, pos.y, pos.z);
-    }
-
-    @Override
-    public void onNeighborChanged(World world, int x, int y, int z, Vector3i neighborPos, byte newNeighborId) {
-        if (neighborPos.x == x && neighborPos.y == y - 1 && neighborPos.z == z) {
-            Block blockBelow = BlockRegistry.get(newNeighborId);
-            NamespacedKey belowKey = BlockRegistry.REGISTRY.getKey(blockBelow);
-            boolean isValid = false;
-            if (belowKey != null) {
-                String belowName = belowKey.getKey();
-                isValid = belowName.equals("grass_block") || belowName.equals("dirt");
-            }
-            if (!isValid) {
-                dropAsItem(world, x, y, z);
-                world.setBlock(x, y, z, Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air").getId());
-            } else {
-                scheduleGrowthIfAbsent(world, x, y, z);
-            }
-        }
     }
 
     @Override

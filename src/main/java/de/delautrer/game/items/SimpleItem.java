@@ -6,6 +6,7 @@ import de.delautrer.game.world.World;
 import org.joml.Vector3i;
 
 public class SimpleItem extends Item {
+    @SuppressWarnings("this-escape")
     public SimpleItem(String name, String textureName) {
         super(name, textureName);
         this.setCategory("misc");

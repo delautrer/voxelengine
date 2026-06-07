@@ -20,6 +20,11 @@ public class TerrainRenderSystem implements IRenderSystem {
 
     @Override
     public void render(VkCommandBuffer cmd, RenderPacket packet) {
+        renderOpaque(cmd, packet);
+        renderWater(cmd, packet);
+    }
+
+    public void renderOpaque(VkCommandBuffer cmd, RenderPacket packet) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             // Push Constants für den Shader vorbereiten (28 Floats / 112 Bytes)
             FloatBuffer pcBuffer = stack.callocFloat(32);
@@ -79,6 +84,27 @@ public class TerrainRenderSystem implements IRenderSystem {
 
                 drawMesh(cmd, stack, (VulkanMesh) packet.overlayMesh);
             }
+
+            // 3. WASSER ZEICHNEN (TRANSPARENT)
+        }
+    }
+
+    public void renderWater(VkCommandBuffer cmd, RenderPacket packet) {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            FloatBuffer pcBuffer = stack.callocFloat(32);
+            packet.mvp.get(pcBuffer);
+            pcBuffer.put(16, packet.globalLight);
+            pcBuffer.put(17, packet.renderDistance);
+            pcBuffer.put(18, 1.0f); // fogMultiplier
+            pcBuffer.put(19, (float) packet.cameraPos.x);
+            pcBuffer.put(20, (float) packet.cameraPos.y);
+            pcBuffer.put(21, (float) packet.cameraPos.z);
+            pcBuffer.put(22, 0.0f); // offsetX
+            pcBuffer.put(23, 0.0f); // offsetY
+            pcBuffer.put(24, 0.0f); // offsetZ
+            pcBuffer.put(25, 0.0f); // isCloud
+            pcBuffer.put(26, packet.isUnderwater ? 1.0f : 0.0f);
+            pcBuffer.put(27, packet.clipY);
 
             // 3. WASSER ZEICHNEN (TRANSPARENT)
             if (packet.waterMeshes != null && !packet.waterMeshes.isEmpty()) {

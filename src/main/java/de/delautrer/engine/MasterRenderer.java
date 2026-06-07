@@ -284,10 +284,15 @@ public class MasterRenderer {
                         firstPersonMesh = graphicsFactory.createMesh(md);
                     }
                 } else {
-                    de.delautrer.game.blocks.models.BlockModelData model = blockItem.block.getModel();
-                    if (model != null) {
-                        MeshData md = de.delautrer.engine.graphics.utils.ItemMeshGenerator.generateBlockMesh(model);
+                    if (blockItem.block instanceof de.delautrer.game.blocks.CubeBlock cubeBlock) {
+                        MeshData md = de.delautrer.engine.graphics.utils.ItemMeshGenerator.generateBlockMesh(cubeBlock);
                         firstPersonMesh = graphicsFactory.createMesh(md);
+                    } else {
+                        de.delautrer.game.blocks.models.BlockModelData model = blockItem.block.getModel();
+                        if (model != null) {
+                            MeshData md = de.delautrer.engine.graphics.utils.ItemMeshGenerator.generateBlockMesh(model);
+                            firstPersonMesh = graphicsFactory.createMesh(md);
+                        }
                     }
                 }
             } else {

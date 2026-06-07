@@ -566,13 +566,16 @@ public class LocalPlayer extends Player {
 
         if (de.delautrer.game.settings.SettingsManager.get().viewBobbing && !isFlying) {
             float bobbingPhase = totalDistanceWalked * 3.0f;
-            float bobbingOffsetY = (float) Math.abs(Math.sin(bobbingPhase)) * 0.05f;
-            float bobbingOffsetX = (float) Math.sin(bobbingPhase) * 0.02f;
+            float bobbingOffsetY = (float) Math.abs(Math.cos(bobbingPhase)) * 0.05f; // 20% of original
+            float bobbingOffsetX = (float) Math.sin(bobbingPhase) * 0.02f; // 20% of original
             
             if (onGround || isInWater) {
-                smoothEyePos.y += bobbingOffsetY;
-                // Add horizontal bobbing directly to eyePos or ignore roll
+                camera.setBobbing(bobbingOffsetX, bobbingOffsetY);
+            } else {
+                camera.setBobbing(0.0f, 0.0f);
             }
+        } else {
+            camera.setBobbing(0.0f, 0.0f);
         }
 
         boolean isUIOpen = inventory.isOpen() || isChatOpen || getOpenedInventory() != null || isDead;

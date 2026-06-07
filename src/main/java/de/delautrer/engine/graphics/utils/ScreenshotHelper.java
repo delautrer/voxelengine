@@ -93,7 +93,14 @@ public class ScreenshotHelper {
                             }
                         }
                         
-                        java.awt.Image scaled = img.getScaledInstance(200, 200, java.awt.Image.SCALE_SMOOTH);
+                        // 1. Zuerst das Zentrum des Bildes (Quadrat) herausschneiden, um Stauchung zu vermeiden
+                        int size = Math.min(width, height);
+                        int xOffset = (width - size) / 2;
+                        int yOffset = (height - size) / 2;
+                        java.awt.image.BufferedImage cropped = img.getSubimage(xOffset, yOffset, size, size);
+
+                        // 2. Dann auf 200x200 herunterskalieren
+                        java.awt.Image scaled = cropped.getScaledInstance(200, 200, java.awt.Image.SCALE_SMOOTH);
                         java.awt.image.BufferedImage dest = new java.awt.image.BufferedImage(200, 200, java.awt.image.BufferedImage.TYPE_INT_ARGB);
                         java.awt.Graphics2D g2d = dest.createGraphics();
                         g2d.drawImage(scaled, 0, 0, null);

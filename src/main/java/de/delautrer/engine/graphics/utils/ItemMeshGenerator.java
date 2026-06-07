@@ -163,6 +163,97 @@ public class ItemMeshGenerator {
         return new MeshData(vArr, iArr);
     }
 
+    public static MeshData generateBlockMesh(de.delautrer.game.blocks.CubeBlock block) {
+        java.util.List<Float> verts = new java.util.ArrayList<>();
+        java.util.List<Integer> inds = new java.util.ArrayList<>();
+        
+        de.delautrer.game.blocks.state.BlockProperties.BlockFace[] faces = { 
+            de.delautrer.game.blocks.state.BlockProperties.BlockFace.NORTH, 
+            de.delautrer.game.blocks.state.BlockProperties.BlockFace.SOUTH, 
+            de.delautrer.game.blocks.state.BlockProperties.BlockFace.EAST, 
+            de.delautrer.game.blocks.state.BlockProperties.BlockFace.WEST, 
+            de.delautrer.game.blocks.state.BlockProperties.BlockFace.UP,
+            de.delautrer.game.blocks.state.BlockProperties.BlockFace.DOWN 
+        };
+        
+        java.util.List<de.delautrer.engine.physics.AABB> boxes = block.getBoundingBoxes(block.getDefaultState());
+
+        for (de.delautrer.engine.physics.AABB box : boxes) {
+            float bx0 = box.min.x;
+            float by0 = box.min.y;
+            float bz0 = box.min.z;
+            float bx1 = box.max.x;
+            float by1 = box.max.y;
+            float bz1 = box.max.z;
+
+            float sideV0, sideV1;
+            if (block.getModel() != null && block.getModel().directional_textures) {
+                sideV0 = 1.0f - by1;
+                sideV1 = 1.0f - by0;
+            } else {
+                if (bx1 - bx0 > 0.99f && by1 - by0 > 0.99f && bz1 - bz0 > 0.99f) {
+                    sideV0 = 0.0f;
+                    sideV1 = 1.0f;
+                } else {
+                    if (by1 <= 0.5f) {
+                        sideV0 = 0.5f;
+                        sideV1 = 1.0f;
+                    } else {
+                        sideV0 = 0.0f;
+                        sideV1 = 0.5f;
+                    }
+                }
+            }
+
+            org.joml.Vector3f[][] coords = {
+                    { new org.joml.Vector3f(bx1, by0, bz0), new org.joml.Vector3f(bx0, by0, bz0), new org.joml.Vector3f(bx0, by1, bz0), new org.joml.Vector3f(bx1, by1, bz0) },
+                    { new org.joml.Vector3f(bx0, by0, bz1), new org.joml.Vector3f(bx1, by0, bz1), new org.joml.Vector3f(bx1, by1, bz1), new org.joml.Vector3f(bx0, by1, bz1) },
+                    { new org.joml.Vector3f(bx1, by0, bz1), new org.joml.Vector3f(bx1, by0, bz0), new org.joml.Vector3f(bx1, by1, bz0), new org.joml.Vector3f(bx1, by1, bz1) },
+                    { new org.joml.Vector3f(bx0, by0, bz0), new org.joml.Vector3f(bx0, by0, bz1), new org.joml.Vector3f(bx0, by1, bz1), new org.joml.Vector3f(bx0, by1, bz0) },
+                    { new org.joml.Vector3f(bx0, by1, bz0), new org.joml.Vector3f(bx0, by1, bz1), new org.joml.Vector3f(bx1, by1, bz1), new org.joml.Vector3f(bx1, by1, bz0) },
+                    { new org.joml.Vector3f(bx0, by0, bz1), new org.joml.Vector3f(bx0, by0, bz0), new org.joml.Vector3f(bx1, by0, bz0), new org.joml.Vector3f(bx1, by0, bz1) }
+            };
+
+            float[][] u_faces = {
+                    { 1.0f - bx1, 1.0f - bx0, 1.0f - bx0, 1.0f - bx1 }, { bx0, bx1, bx1, bx0 },
+                    { 1.0f - bz1, 1.0f - bz0, 1.0f - bz0, 1.0f - bz1 }, { bz0, bz1, bz1, bz0 },
+                    { bx0, bx1, bx1, bx0 }, { bx0, bx1, bx1, bx0 }
+            };
+            float[][] v_faces = {
+                    { sideV1, sideV1, sideV0, sideV0 }, { sideV1, sideV1, sideV0, sideV0 },
+                    { sideV1, sideV1, sideV0, sideV0 }, { sideV1, sideV1, sideV0, sideV0 },
+                    { bz1, bz1, bz0, bz0 }, { bz1, bz1, bz0, bz0 }
+            };
+
+            for (int i = 0; i < 6; i++) {
+                TextureStitcher.AtlasRegion reg = block.getTextureForFace(block.getDefaultState(), faces[i]);
+                if (reg == null) continue;
+
+                org.joml.Vector3f[] p = coords[i];
+                float[] u = u_faces[i];
+                float[] v = v_faces[i];
+
+                int offset = verts.size() / 12;
+
+                for (int j = 0; j < 4; j++) {
+                    float finalU = reg.u0 + (u[j] * (reg.u1 - reg.u0));
+                    float finalV = reg.v0 + (v[j] * (reg.v1 - reg.v0));
+                    // x, y, z, r, g, b, a, u, v, layer, sl, bl
+                    verts.addAll(java.util.List.of(
+                        p[j].x, p[j].y, p[j].z, 1.0f, 1.0f, 1.0f, 1.0f, finalU, finalV, reg.layer, 1.0f, 1.0f
+                    ));
+                }
+                inds.addAll(java.util.List.of(offset, offset+1, offset+2, offset+2, offset+3, offset));
+            }
+        }
+
+        float[] vArr = new float[verts.size()];
+        for(int i=0; i<vArr.length; i++) vArr[i] = verts.get(i);
+        int[] iArr = new int[inds.size()];
+        for(int i=0; i<iArr.length; i++) iArr[i] = inds.get(i);
+        return new MeshData(vArr, iArr);
+    }
+
     private static void addQuad(java.util.List<Float> verts, java.util.List<Integer> inds, int o,
                                 float x0, float y0, float z0, float u0, float v0,
                                 float x1, float y1, float z1, float u1, float v1,

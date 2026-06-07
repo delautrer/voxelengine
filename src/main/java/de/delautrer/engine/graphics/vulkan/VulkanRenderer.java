@@ -119,7 +119,14 @@ public class VulkanRenderer {
             VK10.vkCmdSetScissor(cmd, 0, scissor);
 
             for (IRenderSystem system : renderSystems) {
-                system.render(cmd, packet);
+                if (system == terrainSystem) {
+                    terrainSystem.renderOpaque(cmd, packet);
+                } else if (system == entityRenderSystem) {
+                    entityRenderSystem.render(cmd, packet);
+                    terrainSystem.renderWater(cmd, packet);
+                } else {
+                    system.render(cmd, packet);
+                }
             }
             commandBuffers.endRecording(cmd);
 

@@ -179,6 +179,9 @@ public abstract class BaseContainer {
 
     public void hotbarSwap(Slot hoveredSlot, int hotbarIndex) {
         if (hoveredSlot == null) return;
+        
+        // Prevent hotkey interaction with CraftingResultSlot completely to avoid bypassing ingredient consumption
+        if (hoveredSlot instanceof CraftingResultSlot) return;
 
         Slot hotbarSlot = null;
         for (Slot s : slots) {
@@ -190,7 +193,13 @@ public abstract class BaseContainer {
 
         if (hotbarSlot != null && hotbarSlot != hoveredSlot) {
             ItemStack temp = hoveredSlot.getStack();
-            hoveredSlot.putStack(hotbarSlot.getStack());
+            ItemStack hotbarItem = hotbarSlot.getStack();
+            
+            // Check if the items are allowed in their new slots
+            if (hotbarItem != null && !hoveredSlot.isItemValid(hotbarItem)) return;
+            if (temp != null && !hotbarSlot.isItemValid(temp)) return;
+
+            hoveredSlot.putStack(hotbarItem);
             hotbarSlot.putStack(temp);
         }
     }
@@ -245,7 +254,7 @@ public abstract class BaseContainer {
         if (mouseStack == null || mouseStack.amount >= mouseStack.type.getMaxStackSize()) return;
 
         for (Slot s : slots) {
-            if (s.inventory == null) continue;
+            if (s.inventory == null || s instanceof CraftingResultSlot) continue;
             ItemStack stack = s.getStack();
 
             if (stack != null && stack.type == mouseStack.type && s != targetSlot) {
@@ -261,12 +270,12 @@ public abstract class BaseContainer {
         }
     }
 
-    public void applyDrag(java.util.Set<Slot> draggedSlots) {
+    public void applyDrag(java.util.Set<Slot> draggedSlots, int dragButton) {
         if (mouseStack == null || draggedSlots.isEmpty()) return;
 
         if (draggedSlots.size() == 1) {
             Slot slot = draggedSlots.iterator().next();
-            clickSlot(slot, 0, ClickType.PICKUP);
+            clickSlot(slot, dragButton, dragButton == 1 ? ClickType.SPLIT : ClickType.PICKUP);
             return;
         }
 
@@ -283,7 +292,16 @@ public abstract class BaseContainer {
 
         if (validSlots.isEmpty()) return;
 
-        int amountPerSlot = mouseStack.amount / validSlots.size();
+        int amountPerSlot;
+        if (dragButton == 1) {
+            amountPerSlot = 1;
+            while (validSlots.size() > mouseStack.amount) {
+                validSlots.remove(validSlots.size() - 1);
+            }
+        } else {
+            amountPerSlot = mouseStack.amount / validSlots.size();
+        }
+        
         if (amountPerSlot == 0) return;
 
         for (Slot s : validSlots) {

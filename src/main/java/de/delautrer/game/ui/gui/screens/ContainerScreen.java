@@ -23,6 +23,7 @@ public abstract class ContainerScreen extends MenuScreen {
     protected float slotSize;
 
     private boolean isDragging = false;
+    private int dragButton = -1;
     private final Set<Slot> dragSlots = new LinkedHashSet<>();
     private long lastClickTime = 0;
     private Slot lastClickedSlot = null;
@@ -73,8 +74,16 @@ public abstract class ContainerScreen extends MenuScreen {
                 }
             }
             if (!validDragSlots.isEmpty()) {
-                amountPerSlot = mouseStack.amount / validDragSlots.size();
-                remainingMouseAmount = mouseStack.amount - (amountPerSlot * validDragSlots.size());
+                if (dragButton == 1) { // Right drag
+                    amountPerSlot = 1;
+                    while (validDragSlots.size() > mouseStack.amount) {
+                        validDragSlots.remove(validDragSlots.size() - 1);
+                    }
+                    remainingMouseAmount = mouseStack.amount - validDragSlots.size();
+                } else {
+                    amountPerSlot = mouseStack.amount / validDragSlots.size();
+                    remainingMouseAmount = mouseStack.amount - (amountPerSlot * validDragSlots.size());
+                }
             }
         }
 
@@ -238,6 +247,7 @@ public abstract class ContainerScreen extends MenuScreen {
 
         boolean leftDown = input.isActionActive("INTERACT_BREAK");
         boolean leftJustPressed = input.isActionJustPressed("INTERACT_BREAK");
+        boolean rightDown = input.isActionActive("INTERACT_PLACE");
         boolean rightJustPressed = input.isActionJustPressed("INTERACT_PLACE");
 
         // --- UPDATE B: Doppelklick ---
@@ -257,7 +267,7 @@ public abstract class ContainerScreen extends MenuScreen {
 
         // --- UPDATE B: Drag & Drop ---
         if (container.getMouseStack() != null && !shiftPressed) {
-            if (leftJustPressed) {
+            if (leftJustPressed || rightJustPressed) {
                 if (getHoveredSlotObj(mouseX, rawMouseY) == null && interaction != null) {
                     interaction.dropStack(container.getMouseStack());
                     container.setMouseStack(null);
@@ -265,18 +275,27 @@ public abstract class ContainerScreen extends MenuScreen {
                 }
                 // Wir fangen an zu ziehen
                 isDragging = true;
+                dragButton = leftJustPressed ? 0 : 1;
                 dragSlots.clear();
             }
 
-            if (leftDown && isDragging) {
+            boolean isCurrentButtonDown = (dragButton == 0) ? leftDown : rightDown;
+
+            if (isCurrentButtonDown && isDragging) {
                 // Solange gedrückt, Slots sammeln
                 Slot hovered = getHoveredSlotObj(mouseX, rawMouseY);
-                if (hovered != null)
-                    dragSlots.add(hovered);
-            } else if (!leftDown && isDragging) {
+                if (hovered != null) {
+                    if (dragButton == 1 && dragSlots.size() >= container.getMouseStack().amount && !dragSlots.contains(hovered)) {
+                        // Bei Rechtsklick maximal so viele Slots sammeln wie Items da sind
+                    } else {
+                        dragSlots.add(hovered);
+                    }
+                }
+            } else if (!isCurrentButtonDown && isDragging) {
                 // Beim Loslassen verteilen
-                container.applyDrag(dragSlots);
+                container.applyDrag(dragSlots, dragButton);
                 isDragging = false;
+                dragButton = -1;
                 dragSlots.clear();
             }
         } else {
@@ -284,11 +303,9 @@ public abstract class ContainerScreen extends MenuScreen {
             if (leftJustPressed) {
                 handleContainerClick(mouseX, rawMouseY, 0, shiftPressed ? ClickType.QUICK_MOVE : ClickType.PICKUP);
             }
-        }
-
-        // --- Rechtsklick (Splitten) geht immer normal ---
-        if (rightJustPressed) {
-            handleContainerClick(mouseX, rawMouseY, 1, ClickType.SPLIT);
+            if (rightJustPressed) {
+                handleContainerClick(mouseX, rawMouseY, 1, ClickType.SPLIT);
+            }
         }
     }
 

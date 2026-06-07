@@ -71,11 +71,13 @@ public class OptionsScreen extends MenuScreen {
         UIHBox graphicsBox2 = new UIHBox(0, 0, spacingHBox);
         graphicsBox2.addChild(new UIButton(0, 0, halfWidth, btnHeight, "Bobbing: " + (tempSettings.viewBobbing ? "ON" : "OFF"), () -> {
             tempSettings.viewBobbing = !tempSettings.viewBobbing;
-            pendingReinit = true;
+            onInit();
+            if (requestRebuild != null) requestRebuild.run();
         }));
         graphicsBox2.addChild(new UIButton(0, 0, halfWidth, btnHeight, "Item Breath: " + (tempSettings.itemBreathing ? "ON" : "OFF"), () -> {
             tempSettings.itemBreathing = !tempSettings.itemBreathing;
-            pendingReinit = true;
+            onInit();
+            if (requestRebuild != null) requestRebuild.run();
         }));
         contentBox.addChild(graphicsBox2);
 

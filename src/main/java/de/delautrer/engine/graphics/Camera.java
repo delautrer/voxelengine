@@ -66,12 +66,26 @@ public class Camera {
         front.set(direction).normalize();
     }
 
+    private float bobbingOffsetX = 0.0f;
+    private float bobbingOffsetY = 0.0f;
+
+    public void setBobbing(float offsetX, float offsetY) {
+        this.bobbingOffsetX = offsetX;
+        this.bobbingOffsetY = offsetY;
+    }
+
     public void resetMouseTracking() {
         this.firstMouse = true;
     }
 
     public Matrix4f getViewMatrix() {
-        return new Matrix4f().lookAt(new Vector3f(0, 0, 0), front, up);
+        Matrix4f matrix = new Matrix4f();
+        // Apply camera-space transformations first
+        matrix.translate(-bobbingOffsetX, -bobbingOffsetY, 0.0f);
+        
+        // Then apply the lookAt transformation
+        matrix.lookAt(new Vector3f(0, 0, 0), front, up);
+        return matrix;
     }
 
     public void setPosition(Vector3d position) {

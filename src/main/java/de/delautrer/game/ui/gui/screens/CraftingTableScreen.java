@@ -24,8 +24,12 @@ public class CraftingTableScreen extends ContainerScreen {
         padding = 10.0f * pixelScale;
         panelW = hotbarWidth + padding * 2;
         panelH = containerPixelHeight + padding * 2 + (15.0f * pixelScale); // + 15px für Textplatz
-        panelX = guiX - padding;
-        panelY = guiY - padding;
+        
+        panelX = (float) Math.floor((width - panelW) / 2.0f);
+        panelY = (float) Math.floor((height - panelH) / 2.0f);
+        
+        guiX = panelX + padding;
+        guiY = panelY + padding;
     }
 
     @Override
@@ -37,7 +41,7 @@ public class CraftingTableScreen extends ContainerScreen {
             builder.drawText("Crafting Table", panelX + padding, titleY, 0.1f, font);
 
             // Pfeil zeichnen
-            builder.drawText("->", guiX + (114f * pixelScale), guiY + (140f * pixelScale) + (6f * pixelScale), 0.1f, font);
+            builder.drawText("->", guiX + (120f * pixelScale), guiY + (146f * pixelScale), 0.1f, font);
         }
     }
 }

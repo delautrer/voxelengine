@@ -16,6 +16,7 @@ public class ToolItem extends Item {
     private final float efficiency;
     private final int maxDurability;
 
+    @SuppressWarnings("this-escape")
     public ToolItem(String name, String textureName, ToolType toolType, ToolTier tier, float efficiency, int maxDurability) {
         super(name, textureName);
         this.toolType = toolType;

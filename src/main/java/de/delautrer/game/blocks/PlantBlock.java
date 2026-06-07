@@ -2,7 +2,9 @@ package de.delautrer.game.blocks;
 
 import de.delautrer.engine.physics.AABB;
 import de.delautrer.game.blocks.state.BlockState;
+import de.delautrer.game.entity.player.Player;
 import de.delautrer.game.items.BlockItem;
+import de.delautrer.game.registry.NamespacedKey;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
 import de.delautrer.game.world.World;
@@ -80,18 +82,52 @@ public class PlantBlock extends Block {
         return true;
     }
 
+    protected boolean canSurviveOn(String blockName) {
+        if (blockName.equals("grass_block") || blockName.equals("dirt")) {
+            return true;
+        }
+        NamespacedKey myKey = BlockRegistry.REGISTRY.getKey(this);
+        if (myKey != null && myKey.getKey().equals("sandy_grass")) {
+            return blockName.equals("sand");
+        }
+        return false;
+    }
+
+    @Override
+    public BlockState getStateForPlacement(World world, Player player, Vector3i hitPos, Vector3i hitFace, Vector3f exactHit) {
+        // Only allow placing on the top face of a block to strictly prevent placing "against" sides
+        if (hitFace.y != 1) {
+            // Exception: if we are replacing a plant (like tall grass), hitFace might not be top
+            BlockState currentState = world.getBlockState(hitPos.x, hitPos.y, hitPos.z);
+            if (!currentState.getBlock().canBeReplaced(currentState, null, hitFace, exactHit)) {
+                return null;
+            }
+        }
+
+        byte belowId = world.getBlockAt(hitPos.x, hitPos.y - 1, hitPos.z);
+        Block belowBlock = BlockRegistry.get(belowId);
+        NamespacedKey belowKey = BlockRegistry.REGISTRY.getKey(belowBlock);
+        
+        if (belowKey != null && canSurviveOn(belowKey.getKey())) {
+            return getDefaultState();
+        }
+        return null;
+    }
+
     @Override
     public void onNeighborChanged(World world, int x, int y, int z, Vector3i neighborPos, byte newNeighborId) {
-        // Überprüfen, ob sich der Block direkt UNTER der Pflanze geändert hat
         if (neighborPos.x == x && neighborPos.y == y - 1 && neighborPos.z == z) {
             Block blockBelow = BlockRegistry.get(newNeighborId);
+            NamespacedKey belowKey = BlockRegistry.REGISTRY.getKey(blockBelow);
+            boolean isValid = false;
+            
+            if (belowKey != null) {
+                isValid = canSurviveOn(belowKey.getKey());
+            }
 
-            // Wenn der Block darunter nicht mehr solide ist (z.B. Luft, Wasser etc.)
-            if (!blockBelow.isSolid) {
-                dropAsItem(world, x, y, z); // NEU: Pflanze droppen
-                world.setBlock(x, y, z, Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air").getId()); // Dann erst
-                                                                                                           // den Block
-                                                                                                           // löschen
+            if (!isValid) {
+                dropAsItem(world, x, y, z);
+                world.setBlock(x, y, z, Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air").getId());
             }
         }
     }
