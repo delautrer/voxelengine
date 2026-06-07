@@ -219,107 +219,114 @@ public class MasterRenderer {
         packet.hideUI = hideUI;
 
         // --- FIRST PERSON HAND ---
-        de.delautrer.game.items.ItemStack handStack = interaction.getPlayer().getInventory().getStack(interaction.getPlayer().getInventory().getSelectedSlot());
-        de.delautrer.game.items.Item currentItem = (handStack != null) ? handStack.type : null;
-        
-        if (currentItem != lastFirstPersonItem || firstPersonMesh == null) {
-            if (firstPersonMesh != null) firstPersonMesh.cleanup();
+        if (interaction.getPlayer().getGameMode() == de.delautrer.game.entity.player.GameMode.SPECTATOR) {
+            packet.firstPersonMesh = null;
+            packet.isEmptyHand = false;
+            packet.firstPersonIsItem = false;
+            packet.swingProgress = 0.0f;
+        } else {
+            de.delautrer.game.items.ItemStack handStack = interaction.getPlayer().getInventory().getStack(interaction.getPlayer().getInventory().getSelectedSlot());
+            de.delautrer.game.items.Item currentItem = (handStack != null) ? handStack.type : null;
             
-            if (currentItem == null) {
-                // Empty hand -> Render block hand (4x12x4 pixels -> 0.25 x 0.75 x 0.25)
-                MeshData md = new MeshData(new float[] {
-                    // Front (Z = 0)
-                    0.0f, 0.0f, 0.0f, 1.0f, 0.8f, 0.6f, 1.0f, 0, 0, 1, 1, 1,
-                    0.0f, 0.75f, 0.0f, 1.0f, 0.8f, 0.6f, 1.0f, 0, 0, 1, 1, 1,
-                    0.25f, 0.75f, 0.0f, 1.0f, 0.8f, 0.6f, 1.0f, 0, 0, 1, 1, 1,
-                    0.25f, 0.0f, 0.0f, 1.0f, 0.8f, 0.6f, 1.0f, 0, 0, 1, 1, 1,
-                    // Back (Z = 0.25)
-                    0.25f, 0.0f, 0.25f, 0.8f, 0.6f, 0.4f, 1.0f, 0, 0, 1, 1, 1,
-                    0.25f, 0.75f, 0.25f, 0.8f, 0.6f, 0.4f, 1.0f, 0, 0, 1, 1, 1,
-                    0.0f, 0.75f, 0.25f, 0.8f, 0.6f, 0.4f, 1.0f, 0, 0, 1, 1, 1,
-                    0.0f, 0.0f, 0.25f, 0.8f, 0.6f, 0.4f, 1.0f, 0, 0, 1, 1, 1,
-                    // Top (Y = 0.75)
-                    0.25f, 0.75f, 0.25f, 0.9f, 0.7f, 0.5f, 1.0f, 0, 0, 1, 1, 1,
-                    0.25f, 0.75f, 0.0f, 0.9f, 0.7f, 0.5f, 1.0f, 0, 0, 1, 1, 1,
-                    0.0f, 0.75f, 0.0f, 0.9f, 0.7f, 0.5f, 1.0f, 0, 0, 1, 1, 1,
-                    0.0f, 0.75f, 0.25f, 0.9f, 0.7f, 0.5f, 1.0f, 0, 0, 1, 1, 1,
-                    // Right (X = 0.25)
-                    0.25f, 0.0f, 0.0f, 0.7f, 0.5f, 0.3f, 1.0f, 0, 0, 1, 1, 1,
-                    0.25f, 0.75f, 0.0f, 0.7f, 0.5f, 0.3f, 1.0f, 0, 0, 1, 1, 1,
-                    0.25f, 0.75f, 0.25f, 0.7f, 0.5f, 0.3f, 1.0f, 0, 0, 1, 1, 1,
-                    0.25f, 0.0f, 0.25f, 0.7f, 0.5f, 0.3f, 1.0f, 0, 0, 1, 1, 1,
-                    // Bottom (Y = 0.0)
-                    0.25f, 0.0f, 0.0f, 0.5f, 0.4f, 0.3f, 1.0f, 0, 0, 1, 1, 1,
-                    0.25f, 0.0f, 0.25f, 0.5f, 0.4f, 0.3f, 1.0f, 0, 0, 1, 1, 1,
-                    0.0f, 0.0f, 0.25f, 0.5f, 0.4f, 0.3f, 1.0f, 0, 0, 1, 1, 1,
-                    0.0f, 0.0f, 0.0f, 0.5f, 0.4f, 0.3f, 1.0f, 0, 0, 1, 1, 1,
-                    // Left (X = 0.0)
-                    0.0f, 0.0f, 0.25f, 0.9f, 0.7f, 0.5f, 1.0f, 0, 0, 1, 1, 1,
-                    0.0f, 0.75f, 0.25f, 0.9f, 0.7f, 0.5f, 1.0f, 0, 0, 1, 1, 1,
-                    0.0f, 0.75f, 0.0f, 0.9f, 0.7f, 0.5f, 1.0f, 0, 0, 1, 1, 1,
-                    0.0f, 0.0f, 0.0f, 0.9f, 0.7f, 0.5f, 1.0f, 0, 0, 1, 1, 1
-                }, new int[] {
-                    0, 1, 2, 2, 3, 0,
-                    4, 5, 6, 6, 7, 4,
-                    8, 9, 10, 10, 11, 8,
-                    12, 13, 14, 14, 15, 12,
-                    16, 17, 18, 18, 19, 16,
-                    20, 21, 22, 22, 23, 20
-                });
-                firstPersonMesh = graphicsFactory.createMesh(md);
-                packet.firstPersonIsItem = false;
-            } else if (currentItem instanceof de.delautrer.game.items.BlockItem) {
-                de.delautrer.game.items.BlockItem blockItem = (de.delautrer.game.items.BlockItem) currentItem;
+            if (currentItem != lastFirstPersonItem || firstPersonMesh == null) {
+                if (firstPersonMesh != null) firstPersonMesh.cleanup();
                 
-                boolean renderAsItem = (blockItem.block instanceof de.delautrer.game.blocks.DoorBlock) || 
-                                       (blockItem.block instanceof de.delautrer.game.blocks.TrapdoorBlock) || 
-                                       (blockItem.block instanceof de.delautrer.game.blocks.PlantBlock) || 
-                                       (blockItem.block instanceof de.delautrer.game.blocks.TorchBlock) ||
-                                       (blockItem.block instanceof de.delautrer.game.blocks.SaplingBlock);
-
-                if (renderAsItem) {
+                if (currentItem == null) {
+                    // Empty hand -> Render block hand (4x12x4 pixels -> 0.25 x 0.75 x 0.25)
+                    MeshData md = new MeshData(new float[] {
+                        // Front (Z = 0)
+                        0.0f, 0.0f, 0.0f, 1.0f, 0.8f, 0.6f, 1.0f, 0, 0, 1, 1, 1,
+                        0.0f, 0.75f, 0.0f, 1.0f, 0.8f, 0.6f, 1.0f, 0, 0, 1, 1, 1,
+                        0.25f, 0.75f, 0.0f, 1.0f, 0.8f, 0.6f, 1.0f, 0, 0, 1, 1, 1,
+                        0.25f, 0.0f, 0.0f, 1.0f, 0.8f, 0.6f, 1.0f, 0, 0, 1, 1, 1,
+                        // Back (Z = 0.25)
+                        0.25f, 0.0f, 0.25f, 0.8f, 0.6f, 0.4f, 1.0f, 0, 0, 1, 1, 1,
+                        0.25f, 0.75f, 0.25f, 0.8f, 0.6f, 0.4f, 1.0f, 0, 0, 1, 1, 1,
+                        0.0f, 0.75f, 0.25f, 0.8f, 0.6f, 0.4f, 1.0f, 0, 0, 1, 1, 1,
+                        0.0f, 0.0f, 0.25f, 0.8f, 0.6f, 0.4f, 1.0f, 0, 0, 1, 1, 1,
+                        // Top (Y = 0.75)
+                        0.25f, 0.75f, 0.25f, 0.9f, 0.7f, 0.5f, 1.0f, 0, 0, 1, 1, 1,
+                        0.25f, 0.75f, 0.0f, 0.9f, 0.7f, 0.5f, 1.0f, 0, 0, 1, 1, 1,
+                        0.0f, 0.75f, 0.0f, 0.9f, 0.7f, 0.5f, 1.0f, 0, 0, 1, 1, 1,
+                        0.0f, 0.75f, 0.25f, 0.9f, 0.7f, 0.5f, 1.0f, 0, 0, 1, 1, 1,
+                        // Right (X = 0.25)
+                        0.25f, 0.0f, 0.0f, 0.7f, 0.5f, 0.3f, 1.0f, 0, 0, 1, 1, 1,
+                        0.25f, 0.75f, 0.0f, 0.7f, 0.5f, 0.3f, 1.0f, 0, 0, 1, 1, 1,
+                        0.25f, 0.75f, 0.25f, 0.7f, 0.5f, 0.3f, 1.0f, 0, 0, 1, 1, 1,
+                        0.25f, 0.0f, 0.25f, 0.7f, 0.5f, 0.3f, 1.0f, 0, 0, 1, 1, 1,
+                        // Bottom (Y = 0.0)
+                        0.25f, 0.0f, 0.0f, 0.5f, 0.4f, 0.3f, 1.0f, 0, 0, 1, 1, 1,
+                        0.25f, 0.0f, 0.25f, 0.5f, 0.4f, 0.3f, 1.0f, 0, 0, 1, 1, 1,
+                        0.0f, 0.0f, 0.25f, 0.5f, 0.4f, 0.3f, 1.0f, 0, 0, 1, 1, 1,
+                        0.0f, 0.0f, 0.0f, 0.5f, 0.4f, 0.3f, 1.0f, 0, 0, 1, 1, 1,
+                        // Left (X = 0.0)
+                        0.0f, 0.0f, 0.25f, 0.9f, 0.7f, 0.5f, 1.0f, 0, 0, 1, 1, 1,
+                        0.0f, 0.75f, 0.25f, 0.9f, 0.7f, 0.5f, 1.0f, 0, 0, 1, 1, 1,
+                        0.0f, 0.75f, 0.0f, 0.9f, 0.7f, 0.5f, 1.0f, 0, 0, 1, 1, 1,
+                        0.0f, 0.0f, 0.0f, 0.9f, 0.7f, 0.5f, 1.0f, 0, 0, 1, 1, 1
+                    }, new int[] {
+                        0, 1, 2, 2, 3, 0,
+                        4, 5, 6, 6, 7, 4,
+                        8, 9, 10, 10, 11, 8,
+                        12, 13, 14, 14, 15, 12,
+                        16, 17, 18, 18, 19, 16,
+                        20, 21, 22, 22, 23, 20
+                    });
+                    firstPersonMesh = graphicsFactory.createMesh(md);
+                    packet.firstPersonIsItem = false;
+                } else if (currentItem instanceof de.delautrer.game.items.BlockItem) {
+                    de.delautrer.game.items.BlockItem blockItem = (de.delautrer.game.items.BlockItem) currentItem;
+                    
+                    boolean renderAsItem = (blockItem.block instanceof de.delautrer.game.blocks.DoorBlock) || 
+                                           (blockItem.block instanceof de.delautrer.game.blocks.TrapdoorBlock) || 
+                                           (blockItem.block instanceof de.delautrer.game.blocks.PlantBlock) || 
+                                           (blockItem.block instanceof de.delautrer.game.blocks.TorchBlock) ||
+                                           (blockItem.block instanceof de.delautrer.game.blocks.SaplingBlock);
+    
+                    if (renderAsItem) {
+                        de.delautrer.engine.graphics.utils.TextureStitcher.AtlasRegion reg = currentItem.getIconRegion();
+                        if (reg != null) {
+                            MeshData md = de.delautrer.engine.graphics.utils.ItemMeshGenerator.generateFromTexture(reg, itemAtlas);
+                            firstPersonMesh = graphicsFactory.createMesh(md);
+                        }
+                    } else {
+                        if (blockItem.block instanceof de.delautrer.game.blocks.CubeBlock cubeBlock) {
+                            MeshData md = de.delautrer.engine.graphics.utils.ItemMeshGenerator.generateBlockMesh(cubeBlock);
+                            firstPersonMesh = graphicsFactory.createMesh(md);
+                        } else {
+                            de.delautrer.game.blocks.models.BlockModelData model = blockItem.block.getModel();
+                            if (model != null) {
+                                MeshData md = de.delautrer.engine.graphics.utils.ItemMeshGenerator.generateBlockMesh(model);
+                                firstPersonMesh = graphicsFactory.createMesh(md);
+                            }
+                        }
+                    }
+                } else {
                     de.delautrer.engine.graphics.utils.TextureStitcher.AtlasRegion reg = currentItem.getIconRegion();
                     if (reg != null) {
                         MeshData md = de.delautrer.engine.graphics.utils.ItemMeshGenerator.generateFromTexture(reg, itemAtlas);
                         firstPersonMesh = graphicsFactory.createMesh(md);
                     }
-                } else {
-                    if (blockItem.block instanceof de.delautrer.game.blocks.CubeBlock cubeBlock) {
-                        MeshData md = de.delautrer.engine.graphics.utils.ItemMeshGenerator.generateBlockMesh(cubeBlock);
-                        firstPersonMesh = graphicsFactory.createMesh(md);
-                    } else {
-                        de.delautrer.game.blocks.models.BlockModelData model = blockItem.block.getModel();
-                        if (model != null) {
-                            MeshData md = de.delautrer.engine.graphics.utils.ItemMeshGenerator.generateBlockMesh(model);
-                            firstPersonMesh = graphicsFactory.createMesh(md);
-                        }
-                    }
                 }
-            } else {
-                de.delautrer.engine.graphics.utils.TextureStitcher.AtlasRegion reg = currentItem.getIconRegion();
-                if (reg != null) {
-                    MeshData md = de.delautrer.engine.graphics.utils.ItemMeshGenerator.generateFromTexture(reg, itemAtlas);
-                    firstPersonMesh = graphicsFactory.createMesh(md);
-                }
+                lastFirstPersonItem = currentItem;
             }
-            lastFirstPersonItem = currentItem;
+            
+            packet.firstPersonMesh = firstPersonMesh;
+            packet.isEmptyHand = (currentItem == null);
+            
+            boolean isItem = (currentItem != null);
+            if (currentItem instanceof de.delautrer.game.items.BlockItem) {
+                de.delautrer.game.items.BlockItem bi = (de.delautrer.game.items.BlockItem) currentItem;
+                isItem = (bi.block instanceof de.delautrer.game.blocks.DoorBlock) || 
+                         (bi.block instanceof de.delautrer.game.blocks.TrapdoorBlock) || 
+                         (bi.block instanceof de.delautrer.game.blocks.PlantBlock) || 
+                         (bi.block instanceof de.delautrer.game.blocks.TorchBlock) ||
+                         (bi.block instanceof de.delautrer.game.blocks.SaplingBlock);
+            }
+            
+            packet.firstPersonIsItem = isItem;
+            packet.swingProgress = interaction.getSwingProgress();
         }
-        
-        packet.firstPersonMesh = firstPersonMesh;
-        packet.isEmptyHand = (currentItem == null);
-        
-        boolean isItem = (currentItem != null);
-        if (currentItem instanceof de.delautrer.game.items.BlockItem) {
-            de.delautrer.game.items.BlockItem bi = (de.delautrer.game.items.BlockItem) currentItem;
-            isItem = (bi.block instanceof de.delautrer.game.blocks.DoorBlock) || 
-                     (bi.block instanceof de.delautrer.game.blocks.TrapdoorBlock) || 
-                     (bi.block instanceof de.delautrer.game.blocks.PlantBlock) || 
-                     (bi.block instanceof de.delautrer.game.blocks.TorchBlock) ||
-                     (bi.block instanceof de.delautrer.game.blocks.SaplingBlock);
-        }
-        
-        packet.firstPersonIsItem = isItem;
-        packet.swingProgress = interaction.getSwingProgress();
 
         if (isIsoFrame) {
             packet.hideUI = true;

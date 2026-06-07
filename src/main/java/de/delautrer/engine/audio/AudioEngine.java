@@ -50,6 +50,10 @@ public class AudioEngine {
 
     public void updateListener(float x, float y, float z, float fX, float fY, float fZ, float uX, float uY, float uZ) {
         float masterVolume = SettingsManager.get().masterVolume;
+        boolean isFocused = org.lwjgl.glfw.GLFW.glfwGetWindowAttrib(de.delautrer.engine.Engine.get().getWindow().getHandle(), org.lwjgl.glfw.GLFW.GLFW_FOCUSED) == org.lwjgl.glfw.GLFW.GLFW_TRUE;
+        if (!isFocused) {
+            masterVolume = 0.0f;
+        }
         AL10.alListenerf(AL10.AL_GAIN, masterVolume);
         AL10.alListener3f(AL10.AL_POSITION, x, y, z);
         float[] orientation = {fX, fY, fZ, uX, uY, uZ};
@@ -88,7 +92,8 @@ public class AudioEngine {
 
     private void playBuffer(int bufferId, float volume, float pitch, float x, float y, float z, boolean relative) {
         float sfxVolume = SettingsManager.get().sfxVolume;
-        if (sfxVolume <= 0.01f) return;
+        boolean isFocused = org.lwjgl.glfw.GLFW.glfwGetWindowAttrib(de.delautrer.engine.Engine.get().getWindow().getHandle(), org.lwjgl.glfw.GLFW.GLFW_FOCUSED) == org.lwjgl.glfw.GLFW.GLFW_TRUE;
+        if (sfxVolume <= 0.01f || !isFocused) return;
 
         // --- NEU: Freien Kanal im Pool suchen (Round-Robin Methode) ---
         int chosenSource = -1;

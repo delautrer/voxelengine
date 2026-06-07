@@ -78,6 +78,10 @@
 
 -keep class de.delautrer.game.world.generation.biome.Biome { *; }
 
+# -- Ore Generation (Features) --
+-keep class de.delautrer.game.world.generation.feature.config.** { *; }
+-keepclassmembers class de.delautrer.game.world.generation.feature.config.** { *; }
+
 # ------------------------------------------------------------------------------
 # 6. Engine Internals (Reflection-Safe)
 # ------------------------------------------------------------------------------

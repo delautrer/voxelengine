@@ -33,6 +33,7 @@ public class CommandManager implements EventListener<CommandExecutedEvent> {
         register(new TestBiomesCommand());
         register(new GiveCommand());
         register(new SetCommand());
+        register(new FillCommand());
     }
 
     public void register(ICommand command) {

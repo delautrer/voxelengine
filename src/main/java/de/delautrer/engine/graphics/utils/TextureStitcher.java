@@ -71,41 +71,61 @@ public class TextureStitcher {
             for (String name : textureNames) {
                 String assetPath = textureFolder + "/" + name + ".png";
 
+                ByteBuffer imagePixels = null;
                 try {
                     ByteBuffer fileBuffer = AssetManager.loadResource(assetPath);
-                    ByteBuffer imagePixels = STBImage.stbi_load_from_memory(fileBuffer, w, h, comp, 4);
-
-                    if (imagePixels != null) {
-                        // Dynamically overlay ore clumps on top of the stone texture
-                        if (name.endsWith("_ore")) {
-                            String bgPath = textureFolder + "/stone.png";
+                    imagePixels = STBImage.stbi_load_from_memory(fileBuffer, w, h, comp, 4);
+                } catch (Exception e) {
+                    // Try dynamic variant
+                    if (name.endsWith("_ore") && name.contains("_")) {
+                        int firstUnderscore = name.indexOf('_');
+                        if (name.lastIndexOf('_') > firstUnderscore) {
+                            String baseOre = name.substring(firstUnderscore + 1); // e.g. "coal_ore"
                             try {
-                                ByteBuffer bgBuffer = AssetManager.loadResource(bgPath);
-                                int origW = w.get(0);
-                                int origH = h.get(0);
-                                int origComp = comp.get(0);
-
-                                ByteBuffer bgPixels = STBImage.stbi_load_from_memory(bgBuffer, w, h, comp, 4);
-                                if (bgPixels != null) {
-                                    for (int pixelIndex = 0; pixelIndex < TEXTURE_SIZE * TEXTURE_SIZE; pixelIndex++) {
-                                        int offset = pixelIndex * 4;
-                                        int alpha = imagePixels.get(offset + 3) & 0xFF;
-                                        if (alpha == 0) {
-                                            imagePixels.put(offset, bgPixels.get(offset));
-                                            imagePixels.put(offset + 1, bgPixels.get(offset + 1));
-                                            imagePixels.put(offset + 2, bgPixels.get(offset + 2));
-                                            imagePixels.put(offset + 3, bgPixels.get(offset + 3));
-                                        }
-                                    }
-                                    STBImage.stbi_image_free(bgPixels);
-                                }
-                                w.put(0, origW);
-                                h.put(0, origH);
-                                comp.put(0, origComp);
-                            } catch (Exception e) {
-                                System.err.println("Could not load background stone texture for ore: " + bgPath);
-                            }
+                                ByteBuffer baseFileBuffer = AssetManager.loadResource(textureFolder + "/" + baseOre + ".png");
+                                imagePixels = STBImage.stbi_load_from_memory(baseFileBuffer, w, h, comp, 4);
+                            } catch (Exception ignored) {}
                         }
+                    }
+                }
+
+                if (imagePixels != null) {
+                    // Dynamically overlay ore clumps on top of the carrier texture for both block and item atlases
+                    if (name.endsWith("_ore")) {
+                        String carrier = "stone";
+                        int firstUnderscore = name.indexOf('_');
+                        if (firstUnderscore != -1 && name.lastIndexOf('_') > firstUnderscore) {
+                            carrier = name.substring(0, firstUnderscore); // e.g. "dolomite"
+                        }
+                        
+                        String bgPath = textureFolder + "/" + carrier + ".png";
+                        try {
+                            ByteBuffer bgBuffer = AssetManager.loadResource(bgPath);
+                            int origW = w.get(0);
+                            int origH = h.get(0);
+                            int origComp = comp.get(0);
+
+                            ByteBuffer bgPixels = STBImage.stbi_load_from_memory(bgBuffer, w, h, comp, 4);
+                            if (bgPixels != null) {
+                                for (int pixelIndex = 0; pixelIndex < TEXTURE_SIZE * TEXTURE_SIZE; pixelIndex++) {
+                                    int offset = pixelIndex * 4;
+                                    int alpha = imagePixels.get(offset + 3) & 0xFF;
+                                    if (alpha == 0) {
+                                        imagePixels.put(offset, bgPixels.get(offset));
+                                        imagePixels.put(offset + 1, bgPixels.get(offset + 1));
+                                        imagePixels.put(offset + 2, bgPixels.get(offset + 2));
+                                        imagePixels.put(offset + 3, bgPixels.get(offset + 3));
+                                    }
+                                }
+                                STBImage.stbi_image_free(bgPixels);
+                            }
+                            w.put(0, origW);
+                            h.put(0, origH);
+                            comp.put(0, origComp);
+                        } catch (Exception e) {
+                            System.err.println("Could not load background texture for ore: " + bgPath);
+                        }
+                    }
                         int gridX = i % gridSize;
                         int gridY = i / gridSize;
 
@@ -148,9 +168,6 @@ public class TextureStitcher {
                     } else {
                         System.err.println("Fehler beim Entpacken von: " + assetPath);
                     }
-                } catch (Exception e) {
-                    System.err.println("Textur nicht gefunden: " + assetPath);
-                }
                 i++;
             }
         }

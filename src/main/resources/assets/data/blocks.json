@@ -887,5 +887,68 @@
         "soundMaterial":  "rock",
         "category":  "building",
         "minToolTier":  "WOOD"
+    },
+    {
+        "id":  176,
+        "name":  "dolomite",
+        "type":  "cube",
+        "hardness":  2.0,
+        "soundMaterial":  "rock",
+        "category":  "natural",
+        "minToolTier":  "WOOD"
+    },
+    {
+        "id":  180,
+        "name":  "dolomite_coal_ore",
+        "type":  "cube",
+        "hardness":  3.0,
+        "soundMaterial":  "rock",
+        "category":  "natural",
+        "minToolTier":  "WOOD"
+    },
+    {
+        "id":  181,
+        "name":  "dolomite_iron_ore",
+        "type":  "cube",
+        "hardness":  3.0,
+        "soundMaterial":  "rock",
+        "category":  "natural",
+        "minToolTier":  "STONE"
+    },
+    {
+        "id":  182,
+        "name":  "dolomite_copper_ore",
+        "type":  "cube",
+        "hardness":  3.0,
+        "soundMaterial":  "rock",
+        "category":  "natural",
+        "minToolTier":  "STONE"
+    },
+    {
+        "id":  183,
+        "name":  "dolomite_zinc_ore",
+        "type":  "cube",
+        "hardness":  3.0,
+        "soundMaterial":  "rock",
+        "category":  "natural",
+        "minToolTier":  "STONE"
+    },
+    {
+        "id":  184,
+        "name":  "dolomite_diamond_ore",
+        "type":  "cube",
+        "hardness":  3.0,
+        "soundMaterial":  "rock",
+        "category":  "natural",
+        "minToolTier":  "IRON"
+    },
+    {
+        "id":  185,
+        "name":  "dolomite_gold_ore",
+        "type":  "cube",
+        "hardness":  3.0,
+        "soundMaterial":  "rock",
+        "category":  "natural",
+        "minToolTier":  "IRON"
     }
 ]

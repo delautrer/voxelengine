@@ -1,6 +1,7 @@
 package de.delautrer.game.world;
 
 import de.delautrer.game.world.generation.biome.*;
+import de.delautrer.game.world.generation.feature.FeatureRegistry;
 
 public class WorldGenerator {
 
@@ -10,10 +11,8 @@ public class WorldGenerator {
 
     public WorldGenerator(long seed) {
         this.seed = seed;
-
-        // GANZ WICHTIG: Die Biome-Registry initialisieren,
-        // damit unsere Biome im Speicher geladen sind!
         MultiNoiseBiomeRegistry.init();
+        FeatureRegistry.init();
 
         // Neues Multi-Noise System initialisieren
         this.terrainGenerator = new MultiNoiseChunkGenerator(seed);
@@ -27,6 +26,9 @@ public class WorldGenerator {
         terrainGenerator.generateBaseTerrain(chunk, chunkX, chunkZ);
         CaveCarver.carve(chunk, seed, terrainGenerator.getSampler());
         surfaceBuilder.buildSurface(chunk, chunkX, chunkZ);
+        
+        // Generiere Erze (Features) nach der Oberfläche
+        FeatureRegistry.generateOres(chunk, seed);
     }
 
     public MultiNoiseChunkGenerator getTerrainGenerator() {

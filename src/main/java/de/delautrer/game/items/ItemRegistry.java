@@ -32,6 +32,8 @@ public class ItemRegistry {
         register("stone", new BlockItem("Stone", "stone", Registries.BLOCKS.get(Constants.NAMESPACE + ":stone")));
         register("stone_slabs", new BlockItem("Stone Slabs", "stone_slabs", Registries.BLOCKS.get(Constants.NAMESPACE + ":stone_slabs")));
         register("stone_stairs", new BlockItem("Stone Stairs", "stone_stairs", Registries.BLOCKS.get(Constants.NAMESPACE + ":stone_stairs")));
+        
+        register("dolomite", new BlockItem("Dolomite", "dolomite", Registries.BLOCKS.get(Constants.NAMESPACE + ":dolomite")));
 
         register("cobblestone", new BlockItem("Cobblestone", "cobblestone", Registries.BLOCKS.get(Constants.NAMESPACE + ":cobblestone")));
         register("cobblestone_slabs", new BlockItem("Cobblestone Slabs", "cobblestone_slabs", Registries.BLOCKS.get(Constants.NAMESPACE + ":cobblestone_slabs")));
@@ -156,6 +158,12 @@ public class ItemRegistry {
         register("diamond_ore", new BlockItem("Diamond Ore", "diamond_ore", Registries.BLOCKS.get(Constants.NAMESPACE + ":diamond_ore")));
         register("gold_ore", new BlockItem("Gold Ore", "gold_ore", Registries.BLOCKS.get(Constants.NAMESPACE + ":gold_ore")));
 
+        register("dolomite_coal_ore", new BlockItem("Dolomite Coal Ore", "dolomite_coal_ore", Registries.BLOCKS.get(Constants.NAMESPACE + ":dolomite_coal_ore")));
+        register("dolomite_iron_ore", new BlockItem("Dolomite Iron Ore", "dolomite_iron_ore", Registries.BLOCKS.get(Constants.NAMESPACE + ":dolomite_iron_ore")));
+        register("dolomite_copper_ore", new BlockItem("Dolomite Copper Ore", "dolomite_copper_ore", Registries.BLOCKS.get(Constants.NAMESPACE + ":dolomite_copper_ore")));
+        register("dolomite_zinc_ore", new BlockItem("Dolomite Zinc Ore", "dolomite_zinc_ore", Registries.BLOCKS.get(Constants.NAMESPACE + ":dolomite_zinc_ore")));
+        register("dolomite_diamond_ore", new BlockItem("Dolomite Diamond Ore", "dolomite_diamond_ore", Registries.BLOCKS.get(Constants.NAMESPACE + ":dolomite_diamond_ore")));
+        register("dolomite_gold_ore", new BlockItem("Dolomite Gold Ore", "dolomite_gold_ore", Registries.BLOCKS.get(Constants.NAMESPACE + ":dolomite_gold_ore")));
         // Resource Items
         register("diamond", new SimpleItem("Diamond", "diamond"));
         register("raw_iron", new SimpleItem("Raw Iron", "raw_iron"));
