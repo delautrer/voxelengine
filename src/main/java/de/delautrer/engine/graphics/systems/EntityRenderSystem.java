@@ -21,15 +21,49 @@ import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VK10;
 import org.lwjgl.vulkan.VkCommandBuffer;
 import java.nio.FloatBuffer;
-import java.util.ArrayList;
 import java.util.List;
 
 public class EntityRenderSystem implements IRenderSystem {
+    private static class FloatList {
+        float[] data = new float[1024];
+        int size = 0;
+        void add(float v) {
+            if (size == data.length) {
+                float[] n = new float[data.length * 2];
+                System.arraycopy(data, 0, n, 0, size);
+                data = n;
+            }
+            data[size++] = v;
+        }
+        void clear() { size = 0; }
+        boolean isEmpty() { return size == 0; }
+    }
+
+    private static class IntList {
+        int[] data = new int[1024];
+        int size = 0;
+        void add(int v) {
+            if (size == data.length) {
+                int[] n = new int[data.length * 2];
+                System.arraycopy(data, 0, n, 0, size);
+                data = n;
+            }
+            data[size++] = v;
+        }
+        void clear() { size = 0; }
+        boolean isEmpty() { return size == 0; }
+    }
+
     private final VulkanContext context;
     private final VulkanGraphicsPipeline blockPipeline;
 
     private VulkanMesh blockMesh;
     private VulkanMesh itemMesh;
+
+    private final FloatList blockVerts = new FloatList();
+    private final IntList blockInds = new IntList();
+    private final FloatList itemVerts = new FloatList();
+    private final IntList itemInds = new IntList();
 
     public EntityRenderSystem(VulkanContext context, VulkanSwapchain swapchain, VulkanRenderPass renderPass) {
         this.context = context;
@@ -42,12 +76,12 @@ public class EntityRenderSystem implements IRenderSystem {
             return;
         }
 
-        List<Float> blockVerts = new ArrayList<>();
-        List<Integer> blockInds = new ArrayList<>();
+        blockVerts.clear();
+        blockInds.clear();
         int blockOffset = 0;
 
-        List<Float> itemVerts = new ArrayList<>();
-        List<Integer> itemInds = new ArrayList<>();
+        itemVerts.clear();
+        itemInds.clear();
         int itemOffset = 0;
 
         double t = System.currentTimeMillis() / 1000.0;
@@ -86,13 +120,13 @@ public class EntityRenderSystem implements IRenderSystem {
                             && !(cubeBlock instanceof TorchBlock)) {
                         modelMat.scale(0.25f);
                         build3DBlock(blockVerts, blockInds, blockOffset, modelMat, cubeBlock, sl, bl);
-                        blockOffset = blockVerts.size() / 12;
+                        blockOffset = blockVerts.size / 12;
                     } else {
                         AtlasRegion reg = itemType.getIconRegion();
                         if (reg != null) {
                             modelMat.scale(0.5f);
                             buildThickItem(itemVerts, itemInds, itemOffset, modelMat, reg, sl, bl);
-                            itemOffset = itemVerts.size() / 12;
+                            itemOffset = itemVerts.size / 12;
                         }
                     }
                 }
@@ -106,7 +140,7 @@ public class EntityRenderSystem implements IRenderSystem {
                     float sl = e.skyLightBrightness;
                     float bl = e.blockLightBrightness;
                     build3DBlock(blockVerts, blockInds, blockOffset, modelMat, cubeBlock, sl, bl);
-                    blockOffset = blockVerts.size() / 12;
+                    blockOffset = blockVerts.size / 12;
                 }
             }
         }
@@ -116,9 +150,9 @@ public class EntityRenderSystem implements IRenderSystem {
 
         if (!blockVerts.isEmpty()) {
             if (blockMesh == null) {
-                blockMesh = new VulkanMesh(context, toFloatArray(blockVerts), toIntArray(blockInds));
+                blockMesh = new VulkanMesh(context, blockVerts.data, blockVerts.size, blockInds.data, blockInds.size);
             } else {
-                blockMesh.updateMesh(toFloatArray(blockVerts), toIntArray(blockInds));
+                blockMesh.updateMesh(blockVerts.data, blockVerts.size, blockInds.data, blockInds.size);
             }
             VK10.vkCmdBindPipeline(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, blockPipeline.getHandle());
             bindAndDraw(cmd, packet, blockPipeline.getPipelineLayout(), blockMesh,
@@ -127,9 +161,9 @@ public class EntityRenderSystem implements IRenderSystem {
 
         if (!itemVerts.isEmpty()) {
             if (itemMesh == null) {
-                itemMesh = new VulkanMesh(context, toFloatArray(itemVerts), toIntArray(itemInds));
+                itemMesh = new VulkanMesh(context, itemVerts.data, itemVerts.size, itemInds.data, itemInds.size);
             } else {
-                itemMesh.updateMesh(toFloatArray(itemVerts), toIntArray(itemInds));
+                itemMesh.updateMesh(itemVerts.data, itemVerts.size, itemInds.data, itemInds.size);
             }
             VK10.vkCmdBindPipeline(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, blockPipeline.getHandle());
             bindAndDraw(cmd, packet, blockPipeline.getPipelineLayout(), itemMesh,
@@ -168,7 +202,7 @@ public class EntityRenderSystem implements IRenderSystem {
         }
     }
 
-    private void buildThickItem(List<Float> verts, List<Integer> inds, int offset, Matrix4f transform,
+    private void buildThickItem(FloatList verts, IntList inds, int offset, Matrix4f transform,
             AtlasRegion reg, float sl, float bl) {
         float thickness = 0.03f;
         Vector3f[] posUp = {
@@ -214,7 +248,7 @@ public class EntityRenderSystem implements IRenderSystem {
         }
     }
 
-    private void build3DBlock(List<Float> verts, List<Integer> inds, int offset, Matrix4f transform, CubeBlock block, float sl, float bl) {
+    private void build3DBlock(FloatList verts, IntList inds, int offset, Matrix4f transform, CubeBlock block, float sl, float bl) {
         BlockFace[] faces = { BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST, BlockFace.UP,
                 BlockFace.DOWN };
         float[] shades = { 0.8f, 0.8f, 0.65f, 0.65f, 1.0f, 0.4f };
@@ -301,7 +335,7 @@ public class EntityRenderSystem implements IRenderSystem {
         }
     }
 
-    private void addVertex(List<Float> verts, float x, float y, float z, float r, float g, float b, float a, float u,
+    private void addVertex(FloatList verts, float x, float y, float z, float r, float g, float b, float a, float u,
             float v, float layer, float sl, float bl) {
         verts.add(x);
         verts.add(y);
@@ -317,27 +351,13 @@ public class EntityRenderSystem implements IRenderSystem {
         verts.add(bl);
     }
 
-    private void addIndices(List<Integer> inds, int offset) {
+    private void addIndices(IntList inds, int offset) {
         inds.add(offset + 0);
         inds.add(offset + 1);
         inds.add(offset + 2);
         inds.add(offset + 2);
         inds.add(offset + 3);
         inds.add(offset + 0);
-    }
-
-    private float[] toFloatArray(List<Float> list) {
-        float[] a = new float[list.size()];
-        for (int i = 0; i < list.size(); i++)
-            a[i] = list.get(i);
-        return a;
-    }
-
-    private int[] toIntArray(List<Integer> list) {
-        int[] a = new int[list.size()];
-        for (int i = 0; i < list.size(); i++)
-            a[i] = list.get(i);
-        return a;
     }
 
     private void cleanupMeshes() {

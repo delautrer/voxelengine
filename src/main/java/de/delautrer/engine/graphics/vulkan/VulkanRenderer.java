@@ -40,6 +40,16 @@ public class VulkanRenderer {
     private String pendingScreenshotPath = null;
     private String pendingThumbnailPath = null;
 
+    private static class ScreenshotTask {
+        ScreenshotHelper.PendingScreenshot ps;
+        int frameIndex;
+        ScreenshotTask(ScreenshotHelper.PendingScreenshot ps, int frameIndex) {
+            this.ps = ps;
+            this.frameIndex = frameIndex;
+        }
+    }
+    private final List<ScreenshotTask> pendingTasks = new ArrayList<>();
+
     public VulkanRenderer(VulkanContext context, Window window) {
         this.context = context;
         this.swapchain = new VulkanSwapchain(context);
@@ -77,6 +87,15 @@ public class VulkanRenderer {
             long imageAvailableSemaphore = sync.getImageAvailableSemaphore(currentFrame);
 
             VK10.vkWaitForFences(context.getDevice(), inFlightFence, true, Long.MAX_VALUE);
+
+            java.util.Iterator<ScreenshotTask> it = pendingTasks.iterator();
+            while (it.hasNext()) {
+                ScreenshotTask task = it.next();
+                if (task.frameIndex == currentFrame) {
+                    ScreenshotHelper.processScreenshotData(context, task.ps);
+                    it.remove();
+                }
+            }
             IntBuffer pImageIndex = stack.mallocInt(1);
             int acquireResult = KHRSwapchain.vkAcquireNextImageKHR(context.getDevice(), swapchain.getSwapchain(),
                     Long.MAX_VALUE, imageAvailableSemaphore, 0, pImageIndex);
@@ -128,6 +147,24 @@ public class VulkanRenderer {
                     system.render(cmd, packet);
                 }
             }
+            commandBuffers.endRenderPass(cmd);
+
+            // --- QUEUE SCREENSHOT ---
+            if (pendingScreenshotPath != null) {
+                long currentImage = swapchain.getImages()[imageIndex];
+                pendingTasks.add(new ScreenshotTask(ScreenshotHelper.queueScreenshotCopy(
+                        context, cmd, currentImage, swapchain.getExtent().width(),
+                        swapchain.getExtent().height(), pendingScreenshotPath, false), currentFrame));
+                pendingScreenshotPath = null;
+            }
+            if (pendingThumbnailPath != null) {
+                long currentImage = swapchain.getImages()[imageIndex];
+                pendingTasks.add(new ScreenshotTask(ScreenshotHelper.queueScreenshotCopy(
+                        context, cmd, currentImage, swapchain.getExtent().width(),
+                        swapchain.getExtent().height(), pendingThumbnailPath, true), currentFrame));
+                pendingThumbnailPath = null;
+            }
+
             commandBuffers.endRecording(cmd);
 
             VkSubmitInfo submitInfo = VkSubmitInfo.calloc(stack)
@@ -158,24 +195,7 @@ public class VulkanRenderer {
 
             currentFrame = (currentFrame + 1) % VulkanSync.MAX_FRAMES_IN_FLIGHT;
 
-            // --- SCREENSHOT---
-            if (pendingScreenshotPath != null) {
-                VK10.vkQueueWaitIdle(context.getPresentQueue());
-                long currentImage = swapchain.getImages()[imageIndex];
-                ScreenshotHelper.saveScreenshot(
-                        context, commandBuffers.getCommandPool(), currentImage, swapchain.getExtent().width(),
-                        swapchain.getExtent().height(), pendingScreenshotPath, false);
-                pendingScreenshotPath = null;
-            }
-            if (pendingThumbnailPath != null) {
-                VK10.vkQueueWaitIdle(context.getPresentQueue());
-                long currentImage = swapchain.getImages()[imageIndex];
-                ScreenshotHelper.saveScreenshot(
-                        context, commandBuffers.getCommandPool(), currentImage, swapchain.getExtent().width(),
-                        swapchain.getExtent().height(), pendingThumbnailPath, true);
-                pendingThumbnailPath = null;
-            }
-
+            // Async screenshots are handled at the top of the render loop when fences are ready
             return true;
         }
     }

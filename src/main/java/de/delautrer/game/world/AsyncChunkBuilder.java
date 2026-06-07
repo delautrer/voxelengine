@@ -32,7 +32,7 @@ public class AsyncChunkBuilder {
 
         while (!readyMeshes.isEmpty()) {
             ChunkBuildResult result = readyMeshes.poll();
-            Vector2i pos = new Vector2i(result.chunk.getWorldX(), result.chunk.getWorldZ());
+            long pos = ChunkManager.packPos(result.chunk.getWorldX(), result.chunk.getWorldZ());
             cm.updateChunkMeshes(pos, result.data);
         }
     }

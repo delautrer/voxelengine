@@ -96,8 +96,11 @@ public class VulkanCommandBuffers {
         }
     }
 
-    public void endRecording(VkCommandBuffer cmd) {
+    public void endRenderPass(VkCommandBuffer cmd) {
         VK10.vkCmdEndRenderPass(cmd);
+    }
+
+    public void endRecording(VkCommandBuffer cmd) {
         if (VK10.vkEndCommandBuffer(cmd) != VK10.VK_SUCCESS) {
             throw new RuntimeException("Failed to record command buffer");
         }

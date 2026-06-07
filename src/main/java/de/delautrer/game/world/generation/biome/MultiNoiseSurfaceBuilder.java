@@ -25,7 +25,7 @@ public class MultiNoiseSurfaceBuilder {
         this.riverNoise = new NoiseGenerator(seed * 234);
     }
 
-    public void buildSurface(Chunk chunk, int chunkX, int chunkZ) {
+    public void buildSurface(Chunk chunk, int chunkX, int chunkZ, de.delautrer.game.world.WorldGenerator wg) {
         byte air = 0;
         byte waterId = BlockRegistry.get(Constants.NAMESPACE + ":water").getId();
         byte sandId = BlockRegistry.get(Constants.NAMESPACE + ":sand").getId();
@@ -256,7 +256,7 @@ public class MultiNoiseSurfaceBuilder {
                                 byte[] ids = getIdsForTree(treeType);
                                 if (ids != null) {
                                     // Diese Methode setzt nur Blöcke, die WIRKLICH in unseren Chunk fallen.
-                                    TreeFeature.generate(chunk, worldX, surfaceY + 1, worldZ, seed, treeType, ids[0], ids[1]);
+                                    TreeFeature.generate(chunk, wg, worldX, surfaceY + 1, worldZ, seed, treeType, ids[0], ids[1]);
                                 }
                             }
                         }

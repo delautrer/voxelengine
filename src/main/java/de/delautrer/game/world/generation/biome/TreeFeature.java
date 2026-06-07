@@ -16,8 +16,8 @@ public class TreeFeature {
         void setBlock(int x, int y, int z, byte id, byte state);
     }
 
-    public static void generate(Chunk targetChunk, int worldX, int worldY, int worldZ, long worldSeed, String treeType, byte logId, byte leavesId) {
-        BlockSetter setter = (x, y, z, id, state) -> setBlockIfInChunk(targetChunk, x, y, z, id, state);
+    public static void generate(Chunk targetChunk, de.delautrer.game.world.WorldGenerator wg, int worldX, int worldY, int worldZ, long worldSeed, String treeType, byte logId, byte leavesId) {
+        BlockSetter setter = (x, y, z, id, state) -> setBlockIfInChunk(targetChunk, wg, x, y, z, id, state);
         generateInternal(setter, worldX, worldY, worldZ, worldSeed, treeType, logId, leavesId);
     }
 
@@ -226,7 +226,7 @@ public class TreeFeature {
         }
     }
 
-    private static void setBlockIfInChunk(Chunk chunk, int worldX, int worldY, int worldZ, byte blockId, byte state) {
+    private static void setBlockIfInChunk(Chunk chunk, de.delautrer.game.world.WorldGenerator wg, int worldX, int worldY, int worldZ, byte blockId, byte state) {
         int lx = worldX - chunk.getWorldX() * Chunk.SIZE;
         int lz = worldZ - chunk.getWorldZ() * Chunk.SIZE;
         if (lx >= 0 && lx < Chunk.SIZE && lz >= 0 && lz < Chunk.SIZE && worldY >= Chunk.MIN_Y && worldY < Chunk.MAX_Y) {
@@ -271,6 +271,8 @@ public class TreeFeature {
             } else {
                 if (canReplace(existing)) chunk.setBlock(lx, worldY, lz, blockId, state);
             }
+        } else if (wg != null) {
+            wg.addPendingBlock(worldX, worldY, worldZ, blockId, state);
         }
     }
 

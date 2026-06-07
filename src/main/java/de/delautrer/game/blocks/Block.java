@@ -65,6 +65,10 @@ public abstract class Block {
         return lightEmission;
     }
 
+    public int getLightEmission(BlockState state) {
+        return getLightEmission();
+    }
+
     public boolean shouldRenderFaceAgainst(Block neighborBlock, float myHeight, float neighborHeight) {
         if (neighborBlock.getId() == 0) return true;
         if (this.isTransparent && this.getId() == neighborBlock.getId()) return false;

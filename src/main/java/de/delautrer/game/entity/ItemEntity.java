@@ -41,6 +41,11 @@ public class ItemEntity extends Entity {
         if (isDead) return;
 
         age += deltaTime;
+        if (age >= 300.0f) {
+            setDead(true);
+            return;
+        }
+
         if (pickupDelay > 0) pickupDelay -= deltaTime;
 
         // 1. SCHWERKRAFT & KOLLISION

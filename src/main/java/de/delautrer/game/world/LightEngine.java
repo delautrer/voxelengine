@@ -270,15 +270,15 @@ public class LightEngine {
     public int getBlockLight(int worldX, int worldY, int worldZ) {
         if (worldY < Chunk.MIN_Y || worldY >= Chunk.MAX_Y) return 0;
         Chunk c = chunkManager.getChunkAtBlock(worldX, worldY, worldZ);
-        return c != null ? c.getBlockLight(Math.floorMod(worldX, Chunk.SIZE), worldY, Math.floorMod(worldZ, Chunk.SIZE)) : 0;
+        return c != null ? c.getBlockLight(worldX & 15, worldY, worldZ & 15) : 0;
     }
 
     public void setBlockLight(int worldX, int worldY, int worldZ, int level) {
         if (worldY < Chunk.MIN_Y || worldY >= Chunk.MAX_Y) return;
         Chunk c = chunkManager.getChunkAtBlock(worldX, worldY, worldZ);
         if (c != null) {
-            int lx = Math.floorMod(worldX, Chunk.SIZE);
-            int lz = Math.floorMod(worldZ, Chunk.SIZE);
+            int lx = worldX & 15;
+            int lz = worldZ & 15;
             int old = c.getBlockLight(lx, worldY, lz);
             if (old != level) {
                 c.setBlockLight(lx, worldY, lz, level);
@@ -298,15 +298,15 @@ public class LightEngine {
         if (worldY >= Chunk.MAX_Y) return 15;
         if (worldY < Chunk.MIN_Y) return 0;
         Chunk c = chunkManager.getChunkAtBlock(worldX, worldY, worldZ);
-        return c != null ? c.getSkyLight(Math.floorMod(worldX, Chunk.SIZE), worldY, Math.floorMod(worldZ, Chunk.SIZE)) : 0;
+        return c != null ? c.getSkyLight(worldX & 15, worldY, worldZ & 15) : 0;
     }
 
     public void setSkyLight(int worldX, int worldY, int worldZ, int level) {
         if (worldY < Chunk.MIN_Y || worldY >= Chunk.MAX_Y) return;
         Chunk c = chunkManager.getChunkAtBlock(worldX, worldY, worldZ);
         if (c != null) {
-            int lx = Math.floorMod(worldX, Chunk.SIZE);
-            int lz = Math.floorMod(worldZ, Chunk.SIZE);
+            int lx = worldX & 15;
+            int lz = worldZ & 15;
             int old = c.getSkyLight(lx, worldY, lz);
             if (old != level) {
                 c.setSkyLight(lx, worldY, lz, level);
@@ -334,8 +334,8 @@ public class LightEngine {
         if (worldY < Chunk.MIN_Y || worldY >= Chunk.MAX_Y) return 0;
         Chunk c = chunkManager.getChunkAtBlock(worldX, worldY, worldZ);
         if (c == null) return 15;
-        int lx = Math.floorMod(worldX, Chunk.SIZE);
-        int lz = Math.floorMod(worldZ, Chunk.SIZE);
+        int lx = worldX & 15;
+        int lz = worldZ & 15;
         return BlockRegistry.get(c.getBlock(lx, worldY, lz)).getOpacity(c.getBlockState(lx, worldY, lz));
     }
 

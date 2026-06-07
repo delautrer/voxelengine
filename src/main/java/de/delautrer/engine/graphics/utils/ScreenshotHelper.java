@@ -12,7 +12,16 @@ import static org.lwjgl.vulkan.KHRSwapchain.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
 public class ScreenshotHelper {
 
-    public static void saveScreenshot(VulkanContext context, long commandPool, long srcImage, int width, int height,
+    public static class PendingScreenshot {
+        public long dstBuffer;
+        public long dstMemory;
+        public int width;
+        public int height;
+        public String filepath;
+        public boolean isThumbnail;
+    }
+
+    public static PendingScreenshot queueScreenshotCopy(VulkanContext context, VkCommandBuffer cmd, long srcImage, int width, int height,
             String filepath, boolean isThumbnail) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             // 1. Lineares Bild (Buffer) erstellen
@@ -40,9 +49,6 @@ public class ScreenshotHelper {
             long dstMemory = pMemory.get(0);
             vkBindBufferMemory(context.getDevice(), dstBuffer, dstMemory, 0);
 
-            // 3. Bild in den Buffer kopieren (Synchron mit eigenen Helper-Methoden)
-            VkCommandBuffer cmd = beginSingleTimeCommands(context, commandPool);
-
             transitionImageLayout(cmd, srcImage, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
             VkBufferImageCopy.Buffer region = VkBufferImageCopy.calloc(1, stack);
@@ -53,32 +59,52 @@ public class ScreenshotHelper {
 
             transitionImageLayout(cmd, srcImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
-            endSingleTimeCommands(context, commandPool, cmd);
+            PendingScreenshot ps = new PendingScreenshot();
+            ps.dstBuffer = dstBuffer;
+            ps.dstMemory = dstMemory;
+            ps.width = width;
+            ps.height = height;
+            ps.filepath = filepath;
+            ps.isThumbnail = isThumbnail;
+            return ps;
+        }
+    }
+
+    public static void processScreenshotData(VulkanContext context, PendingScreenshot ps) {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            int width = ps.width;
+            int height = ps.height;
+            String filepath = ps.filepath;
+            boolean isThumbnail = ps.isThumbnail;
 
             // 4. Daten auslesen
             PointerBuffer pData = stack.mallocPointer(1);
-            vkMapMemory(context.getDevice(), dstMemory, 0, width * height * 4, 0, pData);
+            vkMapMemory(context.getDevice(), ps.dstMemory, 0, width * height * 4, 0, pData);
             ByteBuffer vulkanData = pData.getByteBuffer(0, width * height * 4);
 
             // EIGENEN ARBEITSSPEICHER ALLOZIEREN (da wir den Vulkan-Speicher gleich
             // freigeben!)
             ByteBuffer ramData = org.lwjgl.system.MemoryUtil.memAlloc(width * height * 4);
 
-            // BGRA zu RGBA konvertieren UND gleichzeitig in RAM kopieren
-            for (int i = 0; i < width * height * 4; i += 4) {
-                ramData.put(i, vulkanData.get(i + 2)); // R <- B
-                ramData.put(i + 1, vulkanData.get(i + 1)); // G <- G
-                ramData.put(i + 2, vulkanData.get(i)); // B <- R
-                ramData.put(i + 3, (byte) 255); // A zwingend auf 1.0
-            }
+            // SCHNELLES KOPIEREN (Natives Memcpy, < 1ms)
+            org.lwjgl.system.MemoryUtil.memCopy(vulkanData, ramData);
 
             // Vulkan Speicher SOFORT freigeben, damit das Spiel flüssig weiterläuft!
-            vkUnmapMemory(context.getDevice(), dstMemory);
-            vkFreeMemory(context.getDevice(), dstMemory, null);
-            vkDestroyBuffer(context.getDevice(), dstBuffer, null);
+            vkUnmapMemory(context.getDevice(), ps.dstMemory);
+            vkFreeMemory(context.getDevice(), ps.dstMemory, null);
+            vkDestroyBuffer(context.getDevice(), ps.dstBuffer, null);
 
             // 5. ASYNCHRON SPEICHERN (Verhindert den Lag!)
             new Thread(() -> {
+                // JETZT ERST KONVERTIEREN WIR (Im asynchronen Thread!)
+                for (int i = 0; i < width * height * 4; i += 4) {
+                    byte b = ramData.get(i);
+                    byte r = ramData.get(i + 2);
+                    ramData.put(i, r);
+                    ramData.put(i + 2, b);
+                    ramData.put(i + 3, (byte) 255);
+                }
+
                 if (isThumbnail) {
                     try {
                         java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(width, height, java.awt.image.BufferedImage.TYPE_INT_ARGB);

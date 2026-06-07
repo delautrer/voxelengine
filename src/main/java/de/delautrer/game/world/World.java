@@ -194,8 +194,8 @@ public class World {
         if (targetChunk == null)
             return;
 
-        int localX = Math.floorMod(x, Chunk.SIZE);
-        int localZ = Math.floorMod(z, Chunk.SIZE);
+        int localX = x & 15;
+        int localZ = z & 15;
 
         byte oldBlockId = targetChunk.getBlock(localX, y, localZ);
         if (oldBlockId == newBlockId)
@@ -221,8 +221,10 @@ public class World {
             }
         }
 
-        int oldLightEmission = BlockRegistry.get(oldBlockId).getLightEmission();
-        int newLightEmission = BlockRegistry.get(newBlockId).getLightEmission();
+        Block oldBlock = BlockRegistry.get(oldBlockId);
+        int oldLightEmission = oldBlock.getLightEmission(oldBlock.getStateForId(oldState));
+        Block newBlock = BlockRegistry.get(newBlockId);
+        int newLightEmission = newBlock.getLightEmission(newBlock.getDefaultState());
 
         if (oldLightEmission > 0) {
             chunkManager.getLightEngine().removeBlockLight(x, y, z, oldLightEmission);
@@ -272,8 +274,8 @@ public class World {
         if (targetChunk == null)
             return;
 
-        int localX = Math.floorMod(x, Chunk.SIZE);
-        int localZ = Math.floorMod(z, Chunk.SIZE);
+        int localX = x & 15;
+        int localZ = z & 15;
 
         byte oldBlockId = targetChunk.getBlock(localX, y, localZ);
         byte oldState = targetChunk.getState(localX, y, localZ);
@@ -300,8 +302,10 @@ public class World {
             }
         }
 
-        int oldLightEmission = BlockRegistry.get(oldBlockId).getLightEmission();
-        int newLightEmission = BlockRegistry.get(newBlockId).getLightEmission();
+        Block oldBlock = BlockRegistry.get(oldBlockId);
+        int oldLightEmission = oldBlock.getLightEmission(oldBlock.getStateForId(oldState));
+        Block newBlock = BlockRegistry.get(newBlockId);
+        int newLightEmission = newBlock.getLightEmission(newBlock.getStateForId(newState));
 
         if (oldLightEmission > 0) {
             chunkManager.getLightEngine().removeBlockLight(x, y, z, oldLightEmission);
@@ -345,7 +349,7 @@ public class World {
         Chunk chunk = chunkManager.getChunkAtBlock(x, y, z);
         if (chunk == null)
             return Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air").getDefaultState();
-        return chunk.getBlockState(Math.floorMod(x, Chunk.SIZE), y, Math.floorMod(z, Chunk.SIZE));
+        return chunk.getBlockState(x & 15, y, z & 15);
     }
 
     public BlockState getBlockState(Vector3i pos) {
@@ -356,7 +360,7 @@ public class World {
         Chunk c = chunkManager.getChunkAtBlock(x, y, z);
         if (c == null)
             return 0;
-        return c.getBlock(Math.floorMod(x, Chunk.SIZE), y, Math.floorMod(z, Chunk.SIZE));
+        return c.getBlock(x & 15, y, z & 15);
     }
 
     public byte getBlockAt(Vector3i pos) {

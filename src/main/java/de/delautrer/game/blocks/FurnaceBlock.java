@@ -31,6 +31,11 @@ public class FurnaceBlock extends CubeBlock implements IInteractable {
     }
 
     @Override
+    public int getLightEmission(BlockState state) {
+        return state != null && state.getValue(LIT) ? 13 : 0;
+    }
+
+    @Override
     public BlockState getStateForPlacement(World world, Player player, Vector3i hitPos, Vector3i hitFace,
             Vector3f exactHit) {
         float yaw = ((LocalPlayer) player).getCamera().getYaw();

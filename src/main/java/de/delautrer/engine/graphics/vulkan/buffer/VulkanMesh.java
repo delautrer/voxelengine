@@ -22,6 +22,11 @@ public class VulkanMesh implements de.delautrer.engine.graphics.IMesh {
         updateMesh(vertices, indices);
     }
 
+    public VulkanMesh(VulkanContext context, float[] vertices, int vertexCount, int[] indices, int indexCount) {
+        this.context = context;
+        updateMesh(vertices, vertexCount, indices, indexCount);
+    }
+
     public VulkanMesh(VulkanContext context, MeshData data) {
         this.context = context;
         updateMesh(data.vertices(), data.indices());
@@ -31,13 +36,17 @@ public class VulkanMesh implements de.delautrer.engine.graphics.IMesh {
         updateMesh(data.vertices(), data.indices());
     }
 
-    public final void updateMesh(float[] vertices, int[] indices) {
-        indexCount = indices.length;
+    public void updateMesh(float[] vertices, int[] indices) {
+        updateMesh(vertices, vertices.length, indices, indices.length);
+    }
+
+    public final void updateMesh(float[] vertices, int vertexCount, int[] indices, int indexCount) {
+        this.indexCount = indexCount;
         if (indexCount == 0)
             return;
 
-        long requiredVertexSize = (long) vertices.length * Float.BYTES;
-        long requiredIndexSize = (long) indices.length * Integer.BYTES;
+        long requiredVertexSize = (long) vertexCount * Float.BYTES;
+        long requiredIndexSize = (long) indexCount * Integer.BYTES;
 
         // --- 1. VERTEX BUFFER UPDATE ---
         if (requiredVertexSize > maxVertexBufferSize) {
@@ -63,8 +72,8 @@ public class VulkanMesh implements de.delautrer.engine.graphics.IMesh {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             org.lwjgl.PointerBuffer data = stack.mallocPointer(1);
             VK10.vkMapMemory(context.getDevice(), vertexBuffer.getBufferMemory(), 0, requiredVertexSize, 0, data);
-            java.nio.FloatBuffer floatBuffer = MemoryUtil.memFloatBuffer(data.get(0), vertices.length);
-            floatBuffer.put(vertices);
+            java.nio.FloatBuffer floatBuffer = MemoryUtil.memFloatBuffer(data.get(0), vertexCount);
+            floatBuffer.put(vertices, 0, vertexCount);
             VK10.vkUnmapMemory(context.getDevice(), vertexBuffer.getBufferMemory());
         }
 
@@ -87,8 +96,8 @@ public class VulkanMesh implements de.delautrer.engine.graphics.IMesh {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             org.lwjgl.PointerBuffer data = stack.mallocPointer(1);
             VK10.vkMapMemory(context.getDevice(), indexBuffer.getBufferMemory(), 0, requiredIndexSize, 0, data);
-            java.nio.IntBuffer intBuffer = MemoryUtil.memIntBuffer(data.get(0), indices.length);
-            intBuffer.put(indices);
+            java.nio.IntBuffer intBuffer = MemoryUtil.memIntBuffer(data.get(0), indexCount);
+            intBuffer.put(indices, 0, indexCount);
             VK10.vkUnmapMemory(context.getDevice(), indexBuffer.getBufferMemory());
         }
     }

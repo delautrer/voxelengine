@@ -74,7 +74,7 @@ public class Chunk {
         if (cm == null) return 0;
         Chunk neighbor = cm.getChunkAtBlock(worldX * SIZE + x, y, worldZ * SIZE + z);
         if (neighbor == null) return 0;
-        return neighbor.getBlock(Math.floorMod(worldX * SIZE + x, SIZE), y, Math.floorMod(worldZ * SIZE + z, SIZE));
+        return neighbor.getBlock((worldX * SIZE + x) & 15, y, (worldZ * SIZE + z) & 15);
     }
 
     public byte getBlock(int x, int y, int z) {
@@ -90,7 +90,7 @@ public class Chunk {
         if (cm == null) return 0;
         Chunk neighbor = cm.getChunkAtBlock(worldX * SIZE + x, y, worldZ * SIZE + z);
         if (neighbor == null) return 0;
-        return neighbor.getState(Math.floorMod(worldX * SIZE + x, SIZE), y, Math.floorMod(worldZ * SIZE + z, SIZE));
+        return neighbor.getState((worldX * SIZE + x) & 15, y, (worldZ * SIZE + z) & 15);
     }
 
     public byte getState(int x, int y, int z) {
@@ -136,7 +136,7 @@ public class Chunk {
         if (x >= 0 && x < SIZE && z >= 0 && z < SIZE) return getSkyLight(x, y, z);
         if (cm != null) {
             Chunk neighbor = cm.getChunkAtBlock(worldX * SIZE + x, y, worldZ * SIZE + z);
-            if (neighbor != null) return neighbor.getSkyLight(Math.floorMod(worldX * SIZE + x, SIZE), y, Math.floorMod(worldZ * SIZE + z, SIZE));
+            if (neighbor != null) return neighbor.getSkyLight((worldX * SIZE + x) & 15, y, (worldZ * SIZE + z) & 15);
         }
         int clampX = Math.max(0, Math.min(SIZE - 1, x));
         int clampZ = Math.max(0, Math.min(SIZE - 1, z));
@@ -148,7 +148,7 @@ public class Chunk {
         if (x >= 0 && x < SIZE && z >= 0 && z < SIZE) return getBlockLight(x, y, z);
         if (cm != null) {
             Chunk neighbor = cm.getChunkAtBlock(worldX * SIZE + x, y, worldZ * SIZE + z);
-            if (neighbor != null) return neighbor.getBlockLight(Math.floorMod(worldX * SIZE + x, SIZE), y, Math.floorMod(worldZ * SIZE + z, SIZE));
+            if (neighbor != null) return neighbor.getBlockLight((worldX * SIZE + x) & 15, y, (worldZ * SIZE + z) & 15);
         }
         int clampX = Math.max(0, Math.min(SIZE - 1, x));
         int clampZ = Math.max(0, Math.min(SIZE - 1, z));
@@ -198,8 +198,8 @@ public class Chunk {
         if (cm != null) {
             Chunk neighbor = cm.getChunkAtBlock(worldX * SIZE + x, y, worldZ * SIZE + z);
             if (neighbor != null) {
-                int lx = Math.floorMod(worldX * SIZE + x, SIZE);
-                int lz = Math.floorMod(worldZ * SIZE + z, SIZE);
+                int lx = (worldX * SIZE + x) & 15;
+                int lz = (worldZ * SIZE + z) & 15;
                 return BlockRegistry.get(neighbor.getBlock(lx, y, lz)).getOpacity(neighbor.getBlockState(lx, y, lz));
             }
         }
@@ -268,7 +268,7 @@ public class Chunk {
         ChunkMesher.addFace(x0, y0, z0, ao0, x1, y1, z1, ao1, x2, y2, z2, ao2, x3, y3, z3, ao3, uv0_u, uv0_v, uv1_u, uv1_v, uv2_u, uv2_v, uv3_u, uv3_v, texLayer, directionalLight, block, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
     }
 
-    public void clearMeshCache() { }
+    public void clearMeshCache() { this.needsMeshUpdate = true; }
     public static float[] getHighlightVertices() { return highlightVertices; }
     public static int[] getHighlightIndices() { return highlightIndices; }
     public int getWorldX() { return worldX; }

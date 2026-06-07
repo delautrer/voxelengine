@@ -28,9 +28,10 @@ public class CullingUtils {
 
         int dioramaRadius = SettingsManager.get().renderDistance;
 
-        for (Map.Entry<Vector2i, ChunkManager.ChunkMeshPair> entry : chunkManager.getChunkMeshes().entrySet()) {
-            int cx = entry.getKey().x;
-            int cz = entry.getKey().y;
+        for (Map.Entry<Long, ChunkManager.ChunkMeshPair> entry : chunkManager.getChunkMeshes().entrySet()) {
+            long key = entry.getKey();
+            int cx = (int) (key >> 32);
+            int cz = (int) key;
 
             boolean isVisible = false;
 

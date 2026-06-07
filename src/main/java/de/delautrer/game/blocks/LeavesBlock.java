@@ -19,6 +19,10 @@ import org.joml.Vector3f;
 import org.joml.Vector3i;
 import java.util.List;
 import java.util.Random;
+import java.util.Queue;
+import java.util.LinkedList;
+import java.util.Set;
+import java.util.HashSet;
 
 public class LeavesBlock extends CubeBlock {
 
@@ -86,15 +90,45 @@ public class LeavesBlock extends CubeBlock {
         }
     }
 
-    private boolean isLogNearby(World world, int x, int y, int z, int radius) {
-        for (int dx = -radius; dx <= radius; dx++) {
-            for (int dy = -radius; dy <= radius; dy++) {
-                for (int dz = -radius; dz <= radius; dz++) {
-                    if (Math.abs(dx) + Math.abs(dy) + Math.abs(dz) > radius + 2) continue;
-
-                    Block b = world.getBlockState(x + dx, y + dy, z + dz).getBlock();
-                    if (b instanceof LogBlock) return true;
+    private boolean isLogNearby(World world, int startX, int startY, int startZ, int maxDistance) {
+        Queue<Vector3i> queue = new LinkedList<>();
+        Set<Vector3i> visited = new HashSet<>();
+        
+        Vector3i start = new Vector3i(startX, startY, startZ);
+        queue.add(start);
+        visited.add(start);
+        
+        int currentDistance = 0;
+        int nodesInCurrentLevel = 1;
+        int nodesInNextLevel = 0;
+        
+        int[][] dirs = {{0,1,0},{0,-1,0},{1,0,0},{-1,0,0},{0,0,1},{0,0,-1}};
+        
+        while (!queue.isEmpty() && currentDistance <= maxDistance) {
+            Vector3i current = queue.poll();
+            nodesInCurrentLevel--;
+            
+            Block b = world.getBlockState(current.x, current.y, current.z).getBlock();
+            if (b instanceof LogBlock) {
+                return true;
+            }
+            
+            // Allow tracing through the start block and any leaves block.
+            if (current.equals(start) || b instanceof LeavesBlock) {
+                for (int[] dir : dirs) {
+                    Vector3i next = new Vector3i(current.x + dir[0], current.y + dir[1], current.z + dir[2]);
+                    if (!visited.contains(next)) {
+                        visited.add(next);
+                        queue.add(next);
+                        nodesInNextLevel++;
+                    }
                 }
+            }
+            
+            if (nodesInCurrentLevel == 0) {
+                currentDistance++;
+                nodesInCurrentLevel = nodesInNextLevel;
+                nodesInNextLevel = 0;
             }
         }
         return false;

@@ -47,7 +47,8 @@ public class WorldEventHandler {
         event.chunk.recalculateSunlightColumn(localX, localZ, le);
 
         Block newBlock = BlockRegistry.get(event.newBlockId);
-        int newEmission = newBlock.getLightEmission();
+        de.delautrer.game.blocks.state.BlockState newState = world.getBlockState(x, y, z);
+        int newEmission = newBlock.getLightEmission(newState);
         if (newEmission > 0) {
             le.addBlockLightSource(x, y, z, newEmission);
         }
