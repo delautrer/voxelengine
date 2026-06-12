@@ -26,7 +26,7 @@ public class DeathScreen extends MenuScreen {
         UIVBox menuBox = new UIVBox(0, 0, 20.0f);
 
         menuBox.addChild(new UIButton(0, 0, btnWidth, btnHeight, "Respawn", () -> {
-            player.respawn(playScene.getWorld().getWorldSpawnpoint());
+            player.respawn(playScene.getWorld().findSafeSpawn(playScene.getWorld().getWorldSpawnpoint()));
             org.lwjgl.glfw.GLFW.glfwSetInputMode(
                     playScene.getEngine().getWindow().getHandle(),
                     org.lwjgl.glfw.GLFW.GLFW_CURSOR,

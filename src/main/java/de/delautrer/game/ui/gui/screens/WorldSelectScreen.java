@@ -17,8 +17,13 @@ public class WorldSelectScreen extends MenuScreen {
     private final Engine engine;
     private final Runnable onBackAction;
 
-    // Status: Befinden wir uns im Popup für eine neue Welt?
     private boolean isCreatingWorld = false;
+    private boolean isSuperFlat = false;
+    private boolean isCreativeMode = false;
+    private boolean allowCheats = false;
+
+    private UIInputField nameInput;
+    private UIInputField seedInput;
 
     private final int PANEL_GRID_X = 3;
     private final int PANEL_GRID_Y = 0;
@@ -33,6 +38,12 @@ public class WorldSelectScreen extends MenuScreen {
 
     @Override
     protected void onInit() {
+        if (nameInput == null) {
+            nameInput = new UIInputField(0, 0, 400, 40, "Enter World Name...", 20);
+        }
+        if (seedInput == null) {
+            seedInput = new UIInputField(0, 0, 400, 40, "Seed (leave empty for random)", 20);
+        }
         buildLayout();
     }
 
@@ -213,17 +224,28 @@ public class WorldSelectScreen extends MenuScreen {
     private void buildCreationPopup(float centerX) {
         float centerY = height / 2.0f;
 
-        UIInputField nameInput = new UIInputField(centerX - 200, centerY + 20.0f, 400, 40, "Enter World Name...", 20);
-        UIInputField seedInput = new UIInputField(centerX - 200, centerY - 40.0f, 400, 40, "Seed (leave empty for random)", 20);
+        de.delautrer.game.ui.elements.UIVBox layoutBox = new de.delautrer.game.ui.elements.UIVBox(0, 0, 16.0f);
 
-        UIButton createBtn = new UIButton(centerX + 10, centerY - 110.0f, 190, 40, "Create", () -> {
-            String worldName = nameInput.getText().isEmpty() ? "New World" : nameInput.getText();
-            String seedStr = seedInput.getText().replaceAll("[^0-9]", "");
-            long seed = seedStr.isEmpty() ? (long) (Math.random() * Long.MAX_VALUE) : Long.valueOf(seedStr);
-            engine.getSceneManager().changeScene(new PlayScene(engine, worldName, seed));
+        String typeStr = isSuperFlat ? "World Type: Super Flat" : "World Type: Normal";
+        UIButton typeToggleBtn = new UIButton(0, 0, 400, 40, typeStr, () -> {
+            isSuperFlat = !isSuperFlat;
+            buildLayout();
         });
 
-        UIButton cancelBtn = new UIButton(centerX - 200, centerY - 110.0f, 190, 40, "Cancel", () -> {
+        String modeStr = isCreativeMode ? "GameMode: Creative" : "GameMode: Survival";
+        UIButton modeToggleBtn = new UIButton(0, 0, 400, 40, modeStr, () -> {
+            isCreativeMode = !isCreativeMode;
+            buildLayout();
+        });
+
+        String cheatsStr = allowCheats ? "Allow Cheats: On" : "Allow Cheats: Off";
+        UIButton cheatsToggleBtn = new UIButton(0, 0, 400, 40, cheatsStr, () -> {
+            allowCheats = !allowCheats;
+            buildLayout();
+        });
+
+        de.delautrer.game.ui.elements.UIHBox btnBox = new de.delautrer.game.ui.elements.UIHBox(0, 0, 20.0f);
+        UIButton cancelBtn = new UIButton(0, 0, 190, 40, "Cancel", () -> {
             File savesDir = GamePaths.SAVES_DIR.toFile();
             File[] saveFiles = savesDir.exists() ? savesDir.listFiles(File::isDirectory) : new File[0];
             if (saveFiles == null || saveFiles.length == 0) {
@@ -233,11 +255,43 @@ public class WorldSelectScreen extends MenuScreen {
                 buildLayout();
             }
         });
+        UIButton createBtn = new UIButton(0, 0, 190, 40, "Create", () -> {
+            String worldName = nameInput.getText().isEmpty() ? "New World" : nameInput.getText();
+            String seedStr = seedInput.getText().replaceAll("[^0-9]", "");
+            long seed = seedStr.isEmpty() ? (long) (Math.random() * Long.MAX_VALUE) : Long.valueOf(seedStr);
+            
+            String genType = isSuperFlat ? "FLAT" : "DEFAULT";
+            String genOpts = isSuperFlat ? "1xbedrock;3xstone;2xdirt;1xgrass_block" : "";
+            de.delautrer.game.entity.player.GameMode gm = isCreativeMode ? de.delautrer.game.entity.player.GameMode.CREATIVE : de.delautrer.game.entity.player.GameMode.SURVIVAL;
+            engine.getSceneManager().changeScene(new PlayScene(engine, worldName, seed, genType, genOpts, gm, allowCheats));
+        });
+        
+        btnBox.addChild(cancelBtn);
+        btnBox.addChild(createBtn);
+        btnBox.pack();
 
-        elements.add(nameInput);
-        elements.add(seedInput);
-        elements.add(createBtn);
-        elements.add(cancelBtn);
+        layoutBox.addChild(nameInput);
+        layoutBox.addChild(seedInput);
+        layoutBox.addChild(typeToggleBtn);
+        layoutBox.addChild(modeToggleBtn);
+        layoutBox.addChild(cheatsToggleBtn);
+        // Add extra space before buttons
+        de.delautrer.game.ui.elements.UIElement spacer = new de.delautrer.game.ui.elements.UIElement(0, 0, 400, 10) {
+            @Override
+            public void render(UIMeshBuilder builder, de.delautrer.engine.graphics.IFont font, float mouseX, float mouseY) {}
+        };
+        layoutBox.addChild(spacer);
+        layoutBox.addChild(btnBox);
+        layoutBox.pack();
+
+        float titleSpace = 50.0f;
+        layoutBox.setPosition(centerX - layoutBox.getWidth() / 2.0f, centerY - layoutBox.getHeight() / 2.0f - titleSpace / 2.0f);
+
+        elements.add(layoutBox);
+        
+        // Add them to elements for event handling (VBox passes events to children, but just in case, we can keep them in elements as well or let VBox handle it)
+        // Actually VBox inherits from UILayout which is UIElement. Wait! Does UILayout delegate handleMouseClick to children?
+        // Let's check if UILayout delegates input.
     }
 
     private void deleteDirectory(File dir) {
@@ -286,30 +340,40 @@ public class WorldSelectScreen extends MenuScreen {
         builder.addRect(0, lineY, 0.02f, width, 2.0f, glow, glow * 0.4f, glow * 1.8f, 1.0f);
         builder.addRect(0, lineY + 2.0f, 0.02f, width, 1.0f, glow * 0.4f, glow * 0.1f, glow * 0.8f, 1.0f);
 
-        // 2. Wenn das Popup aktiv ist, dimmen wir den Hintergrund und zeichnen ein
-        // Panel
+        // 2. Wenn das Popup aktiv ist, dimmen wir den Hintergrund und zeichnen ein Panel
         if (isCreatingWorld) {
             // Dunkler Schleier über dem ganzen Bildschirm (Z = 0.02f)
-            // builder.addRect(0, 0, 0.02f, width, height, 0.0f, 0.0f, 0.0f, 0.7f);
+            builder.addRect(0, 0, 0.02f, width, height, 0.01f, 0.01f, 0.015f, 0.85f);
 
-            // Modernes Panel-Rechteck in der Mitte (Z = 0.03f)
-            float popupWidth = 460.0f;
-            float popupHeight = 260.0f;
-            float pX = (width / 2.0f) - (popupWidth / 2.0f);
-            float pY = (height / 2.0f) - (popupHeight / 2.0f);
+            // Finde die layoutBox, falls vorhanden
+            de.delautrer.game.ui.elements.UILayout layoutBox = null;
+            for (de.delautrer.game.ui.elements.UIElement el : elements) {
+                if (el instanceof de.delautrer.game.ui.elements.UILayout) {
+                    layoutBox = (de.delautrer.game.ui.elements.UILayout) el;
+                    break;
+                }
+            }
 
-            // Nutzt dein neues Panel aus Grid X=0, Y=2
-            builder.add9Slice(pX, pY, 0.03f, popupWidth, popupHeight, PANEL_GRID_X, PANEL_GRID_Y, 12.0f);
+            if (layoutBox != null) {
+                float titleHeight = 50.0f;
+                float padding = 30.0f;
+                float popupWidth = layoutBox.getWidth() + padding * 2;
+                float popupHeight = layoutBox.getHeight() + padding * 2 + titleHeight;
+                float pX = (width / 2.0f) - (popupWidth / 2.0f);
+                float pY = layoutBox.getY() - padding;
 
-            if (font != null) {
-                String title = "Create New World";
-                float titleWidth = builder.getTextWidth(title, font);
-                builder.drawText(title, (width / 2.0f) - (titleWidth / 2.0f), pY + popupHeight - 30.0f, 0.05f, font);
+                // Modernes Panel-Rechteck in der Mitte (Z = 0.03f)
+                builder.add9Slice(pX, pY, 0.03f, popupWidth, popupHeight, PANEL_GRID_X, PANEL_GRID_Y, 12.0f);
+
+                if (font != null) {
+                    String title = "Create New World";
+                    float titleWidth = builder.getTextWidth(title, font);
+                    builder.drawText(title, (width / 2.0f) - (titleWidth / 2.0f), pY + popupHeight - 40.0f, 0.05f, font);
+                }
             }
         }
 
-        // 3. UI Elemente rendern lassen (die Inputs und Buttons haben intern Z = 0.1f
-        // oder höher)
+        // 3. UI Elemente rendern lassen (die Inputs und Buttons haben intern Z = 0.1f oder höher)
         super.render(builder, mouseX, mouseY);
 
         // 4. Haupt-Titel rendern (Nur anzeigen, wenn wir NICHT im Popup sind)

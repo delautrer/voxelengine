@@ -64,7 +64,7 @@ public class CreativeInventoryScreen extends ContainerScreen {
 
             for (int i = 0; i < CreativeContainer.CreativeTab.values().length; i++) {
                 CreativeContainer.CreativeTab tab = CreativeContainer.CreativeTab.values()[i];
-                float tx = (tab == CreativeContainer.CreativeTab.SEARCH) ? (panelX + panelW - tabW) : (panelX + i * (tabW + 2 * pixelScale));
+                float tx = (tab == CreativeContainer.CreativeTab.SEARCH) ? (panelX + panelW - tabW) : (panelX + i * (tabW - 1 * pixelScale));
                 
                 if (mouseX >= tx && mouseX <= tx + tabW && mouseY >= startY && mouseY <= startY + tabH) {
                     cc.setTab(tab);
@@ -186,10 +186,11 @@ public class CreativeInventoryScreen extends ContainerScreen {
         float tabW = 28 * pixelScale;
         float tabH = 32 * pixelScale;
         float startY = panelY + panelH;
+        float invertedMouseY = height - mouseY;
         for (int i = 0; i < CreativeContainer.CreativeTab.values().length; i++) {
             CreativeContainer.CreativeTab tab = CreativeContainer.CreativeTab.values()[i];
-            float tx = (tab == CreativeContainer.CreativeTab.SEARCH) ? (panelX + panelW - tabW) : (panelX + i * (tabW + 2 * pixelScale));
-            if (mouseX >= tx && mouseX <= tx + tabW && mouseY >= startY && mouseY <= startY + tabH) {
+            float tx = (tab == CreativeContainer.CreativeTab.SEARCH) ? (panelX + panelW - tabW) : (panelX + i * (tabW - 1 * pixelScale));
+            if (mouseX >= tx && mouseX <= tx + tabW && invertedMouseY >= startY && invertedMouseY <= startY + tabH) {
                 drawTooltip(builder, tab.title, mouseX, mouseY);
             }
         }

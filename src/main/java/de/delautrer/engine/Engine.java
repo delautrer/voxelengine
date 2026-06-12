@@ -48,7 +48,7 @@ public class Engine {
     }
 
     private void init() {
-        System.out.println("Starting Veinstride Engine...");
+        System.out.println("[Engine] Starting Veinstride Engine...");
         window = new Window(1280, 720, "Veinstride - " + Constants.VERSION);
         window.disableCursor();
 

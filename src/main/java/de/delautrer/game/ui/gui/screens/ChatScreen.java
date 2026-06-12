@@ -114,7 +114,7 @@ public class ChatScreen extends MenuScreen {
             String currentText = inputField.getText();
 
             if (!isTabCycling) {
-                currentCompletions = commandManager.getTabCompletions(player, currentText);
+                currentCompletions = commandManager.getTabCompletions(player, world, currentText);
                 if (!currentCompletions.isEmpty()) {
                     isTabCycling = true;
                     completionIndex = 0;

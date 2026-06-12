@@ -48,6 +48,10 @@ public class MasterRenderer {
     private IMesh dynamicOverlayMesh;
     private IMesh firstPersonMesh;
     private de.delautrer.game.items.Item lastFirstPersonItem;
+    
+    private Vector3i lastSelectedBlockPos;
+    private byte lastSelectedBlockStateId = -1;
+    private byte lastSelectedBlockId = -1;
 
     private IFont font;
 
@@ -172,11 +176,17 @@ public class MasterRenderer {
             BlockState state = world.getBlockState(selectedBlockPos);
 
             // HIGHLIGHT MESH UPDATE
-            if (dynamicHighlightMesh == null) {
-                dynamicHighlightMesh = graphicsFactory.createMesh(block.getHighlightVertices(state),
-                        block.getHighlightIndices(state));
-            } else {
-                dynamicHighlightMesh.updateMesh(block.getHighlightVertices(state), block.getHighlightIndices(state));
+            if (dynamicHighlightMesh == null || !selectedBlockPos.equals(lastSelectedBlockPos) || state.getStateId() != lastSelectedBlockStateId || selectedBlockId != lastSelectedBlockId) {
+                if (dynamicHighlightMesh == null) {
+                    dynamicHighlightMesh = graphicsFactory.createMesh(block.getHighlightVertices(state),
+                            block.getHighlightIndices(state));
+                } else {
+                    dynamicHighlightMesh.updateMesh(block.getHighlightVertices(state), block.getHighlightIndices(state));
+                }
+                if (lastSelectedBlockPos == null) lastSelectedBlockPos = new Vector3i();
+                lastSelectedBlockPos.set(selectedBlockPos);
+                lastSelectedBlockStateId = state.getStateId();
+                lastSelectedBlockId = selectedBlockId;
             }
             packet.highlightMesh = dynamicHighlightMesh;
 

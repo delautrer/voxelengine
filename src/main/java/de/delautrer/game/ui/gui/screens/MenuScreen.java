@@ -76,7 +76,7 @@ public abstract class MenuScreen extends Screen {
 
         // --- 2. TASTATUR-EINGABEN AN FOKUSSIERTE FELDER SENDEN ---
         UIInputField focusedField = null;
-        for (UIElement element : elements) {
+        for (UIElement element : elementsCopy) {
             if (element instanceof UIInputField && ((UIInputField) element).isFocused()) {
                 focusedField = (UIInputField) element;
                 break;

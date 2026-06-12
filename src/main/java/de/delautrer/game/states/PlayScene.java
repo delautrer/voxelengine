@@ -48,6 +48,10 @@ public class PlayScene extends Scene {
     private final String worldName;
     private final String worldSave;
     private long seed;
+    private String generatorType = "DEFAULT";
+    private String generatorOptions = "";
+    private de.delautrer.game.entity.player.GameMode initialGameMode = de.delautrer.game.entity.player.GameMode.SURVIVAL;
+    private boolean allowCheats = false;
 
     private boolean uiNeedsRebuild = true;
     private boolean wasLoading = true;
@@ -74,10 +78,18 @@ public class PlayScene extends Scene {
     private EventListener<PlayerDamageEvent> playerDamageEventListener;
 
     public PlayScene(Engine engine, String worldName, long seed) {
+        this(engine, worldName, seed, "DEFAULT", "", de.delautrer.game.entity.player.GameMode.SURVIVAL, false);
+    }
+
+    public PlayScene(Engine engine, String worldName, long seed, String generatorType, String generatorOptions, de.delautrer.game.entity.player.GameMode initialGameMode, boolean allowCheats) {
         super(engine);
         this.worldName = worldName;
         this.worldSave = WorldStorageManager.getUniqueValidFolderName(worldName);
         this.seed = seed;
+        this.generatorType = generatorType;
+        this.generatorOptions = generatorOptions;
+        this.initialGameMode = initialGameMode;
+        this.allowCheats = allowCheats;
     }
 
     public PlayScene(Engine engine, String worldName, String worldSave) {
@@ -112,7 +124,7 @@ public class PlayScene extends Scene {
         deathScreen.setFont(masterRenderer.getFont());
 
         // Mein schönie seedie : 1337l
-        world = new World(masterRenderer.getGraphicsFactory(), localPlayer, eventBus, seed, worldName, worldSave);
+        world = new World(masterRenderer.getGraphicsFactory(), localPlayer, eventBus, seed, worldName, worldSave, generatorType, generatorOptions, initialGameMode, allowCheats);
         worldEventHandler = new WorldEventHandler(world, eventBus);
         localPlayer.initInteraction(world, eventBus);
 
@@ -467,6 +479,13 @@ public class PlayScene extends Scene {
 
         if (localPlayer.getInventory().isOpen() || localPlayer.getOpenedInventory() != null
                 || debugOverlay.isVisible()) {
+            uiNeedsRebuild = true;
+        }
+
+        if (!localPlayer.isDead() && wasDead) {
+            wasDead = false;
+            engine.getWindow().disableCursor();
+            localPlayer.getCamera().resetMouseTracking();
             uiNeedsRebuild = true;
         }
 

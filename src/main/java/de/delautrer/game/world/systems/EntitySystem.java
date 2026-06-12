@@ -9,26 +9,28 @@ import de.delautrer.game.world.Chunk;
 import de.delautrer.game.events.PlayerItemPickupEvent;
 import de.delautrer.game.events.InventoryChangeEvent;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.List;
 
 public class EntitySystem implements WorldSystem {
 
     private final List<Entity> entities = new CopyOnWriteArrayList<>();
-    private final List<Entity> entitiesToAdd = new CopyOnWriteArrayList<>();
-    private final List<Entity> entitiesToRemove = new CopyOnWriteArrayList<>();
+    private final ConcurrentLinkedQueue<Entity> entitiesToAdd = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<Entity> entitiesToRemove = new ConcurrentLinkedQueue<>();
 
     @Override
     public void update(World world, float deltaTime, LocalPlayer localPlayer) {
         ChunkManager chunkManager = world.getChunkManager();
 
         // --- ENTITIES SYNCHRONISIEREN (Neue hinzufügen, alte löschen) ---
-        if (!entitiesToAdd.isEmpty()) {
-            entities.addAll(entitiesToAdd);
-            entitiesToAdd.clear();
+        Entity toAdd;
+        while ((toAdd = entitiesToAdd.poll()) != null) {
+            entities.add(toAdd);
         }
-        if (!entitiesToRemove.isEmpty()) {
-            entities.removeAll(entitiesToRemove);
-            entitiesToRemove.clear();
+        
+        Entity toRemove;
+        while ((toRemove = entitiesToRemove.poll()) != null) {
+            entities.remove(toRemove);
         }
 
         // --- ENTITIES UPDATEN ---

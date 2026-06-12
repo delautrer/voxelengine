@@ -51,6 +51,9 @@ public class World {
 
     @SuppressWarnings("unused")
     private final String worldSave;
+    
+    private String generatorType = "DEFAULT";
+    private String generatorOptions = "";
 
     private final List<WorldSystem> systems = new ArrayList<>();
     private final EntitySystem entitySystem;
@@ -59,9 +62,11 @@ public class World {
     @SuppressWarnings("unused")
     private final IGraphicsFactory graphicsFactory;
 
+    private boolean allowCheats = false;
+
     @SuppressWarnings("this-escape")
     public World(IGraphicsFactory graphicsFactory, LocalPlayer localPlayer, EventBus eventBus, long defaultSeed,
-            String worldName, String worldSave) {
+            String worldName, String worldSave, String generatorType, String generatorOptions, de.delautrer.game.entity.player.GameMode initialGameMode, boolean allowCheats) {
         this.eventBus = eventBus;
         this.graphicsFactory = graphicsFactory;
         this.worldName = worldName;
@@ -89,11 +94,15 @@ public class World {
             this.lastOpenedDate = now;
             this.lastOpenedVersion = Constants.VERSION;
             
+            this.generatorType = wData.generatorType != null ? wData.generatorType : "DEFAULT";
+            this.generatorOptions = wData.generatorOptions != null ? wData.generatorOptions : "";
+            this.allowCheats = wData.allowCheats;
+            
             // Save immediately to update lastOpened
             saveWorldData();
         } else {
             this.seed = defaultSeed;
-            Vector3f sp = WorldInitializer.findSpawnPoint(this.seed);
+            Vector3f sp = WorldInitializer.findSpawnPoint(this.seed, generatorType, generatorOptions);
             if (sp != null)
                 this.worldSpawnpoint = new Vector3d(sp);
             skyManager.setCurrentWeather(Weather.PARTLY_CLOUDY);
@@ -103,6 +112,10 @@ public class World {
             this.creationVersion = Constants.VERSION;
             this.lastOpenedDate = now;
             this.lastOpenedVersion = Constants.VERSION;
+            
+            this.generatorType = generatorType;
+            this.generatorOptions = generatorOptions;
+            this.allowCheats = allowCheats;
             
             saveWorldData();
         }
@@ -123,25 +136,27 @@ public class World {
             localPlayer.position.set(pData.x, pData.y, pData.z);
             localPlayer.getCamera().setPitch(pData.pitch);
             localPlayer.getCamera().setYaw(pData.yaw);
-            localPlayer.setGameMode(pData.gamemode);
+            localPlayer.setGameMode(pData.gamemode != null ? pData.gamemode : de.delautrer.game.entity.player.GameMode.SURVIVAL);
             localPlayer.setDead(pData.isDead);
             localPlayer.setCurrentHealth(pData.currentHealth);
-            if (localPlayer.getInventory() != null) {
+            if (pData.inventory != null) {
                 localPlayer.getInventory().importFromSavedData(pData.inventory);
                 localPlayer.getInventory().setSelectedSlot(pData.selectedHotbarSlot);
             }
         } else {
+            localPlayer.setGameMode(initialGameMode);
             if (this.worldSpawnpoint != null) {
                 localPlayer.position.set(this.worldSpawnpoint);
             }
-            /*
-             * int i = 0;
-             * for (Item item : ItemRegistry.getAll().values()) {
-             * localPlayer.getInventory().setStack(i++, new ItemStack(item, 64));
-             * if (i >= PlayerInventory.TOTAL_SIZE) break;
-             * }
-             */
         }
+        
+        /*
+         * int i = 0;
+         * for (Item item : ItemRegistry.getAll().values()) {
+         * localPlayer.getInventory().setStack(i++, new ItemStack(item, 64));
+         * if (i >= PlayerInventory.TOTAL_SIZE) break;
+         * }
+         */
 
         storageManager.loadBlockEntities(this);
         storageManager.loadEntities(this);
@@ -384,6 +399,10 @@ public class World {
         wData.lastOpenedVersion = this.lastOpenedVersion;
         wData.lastSavedDate = System.currentTimeMillis();
         
+        wData.generatorType = this.generatorType;
+        wData.generatorOptions = this.generatorOptions;
+        wData.allowCheats = this.allowCheats;
+        
         storageManager.saveLevelMetadata(wData);
     }
 
@@ -455,6 +474,60 @@ public class World {
             blockEntities.remove(pos);
         else
             blockEntities.put(pos, entity);
+    }
+
+    public float getTimeOfDay() {
+        return skyManager.getTimeOfDay();
+    }
+    
+    public String getGeneratorType() {
+        return generatorType;
+    }
+    
+    public String getGeneratorOptions() {
+        return generatorOptions;
+    }
+
+    public boolean isCheatsAllowed() {
+        return allowCheats;
+    }
+
+    public Vector3d findSafeSpawn(Vector3d preferred) {
+        if ("FLAT".equalsIgnoreCase(generatorType)) {
+            // Flat world is perfectly flat and always safe at its designated spawn point
+            return new Vector3d(preferred);
+        }
+
+        int px = (int) Math.floor(preferred.x);
+        int pz = (int) Math.floor(preferred.z);
+        byte waterId = Registries.BLOCKS.get(Constants.NAMESPACE + ":water").getId();
+
+        // Search spiral radius of 5 chunks around the preferred spawn
+        int searchRadius = 80; // blocks
+        for (int r = 0; r <= searchRadius; r += 2) {
+            for (int x = px - r; x <= px + r; x++) {
+                for (int z = pz - r; z <= pz + r; z++) {
+                    if (Math.abs(x - px) != r && Math.abs(z - pz) != r) continue;
+
+                    Chunk c = chunkManager.getChunkAtBlock(x, 0, z);
+                    if (c == null) continue; // Skip unloaded chunks
+
+                    for (int y = Chunk.MAX_Y - 2; y > Chunk.MIN_Y; y--) {
+                        byte blockId = c.getBlock(x & 15, y, z & 15);
+                        if (blockId != 0) {
+                            if (blockId != waterId) {
+                                Block b = de.delautrer.game.blocks.BlockRegistry.get(blockId);
+                                if (b.isSolid && !b.isTransparent && !b.isPassable) {
+                                    return new Vector3d(x + 0.5, y + 1.5, z + 0.5);
+                                }
+                            }
+                            break; // Column is not safe (water or not solid), move to next column
+                        }
+                    }
+                }
+            }
+        }
+        return new Vector3d(preferred); // Fallback to original
     }
 
     public long getSeed() {

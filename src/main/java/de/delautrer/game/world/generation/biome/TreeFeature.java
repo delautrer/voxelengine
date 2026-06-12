@@ -109,7 +109,7 @@ public class TreeFeature {
                         // Nur setzen, wenn wir uns über dem worldY befinden (keine Säulen nach unten!)
                         if (y < worldY) continue; 
                         
-                        if (x == worldX && z == worldZ && y < trunkHeight) continue;
+                        if (x == worldX && z == worldZ && y < worldY + trunkHeight) continue;
                         
                         if (Math.abs(x - worldX) + Math.abs(z - worldZ) <= r + (y == sectionBottom ? 1 : 0)) {
                             setter.setBlock(x, y, z, leavesId, (byte) 0);

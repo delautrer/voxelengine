@@ -45,6 +45,10 @@ public class CommandManager implements EventListener<CommandExecutedEvent> {
         ICommand cmd = commands.get(event.commandName.toLowerCase());
 
         if (cmd != null) {
+            if (cmd.requiresCheats() && !event.world.isCheatsAllowed()) {
+                sendMessageInChat("Cheats are not enabled in this world.");
+                return;
+            }
             try {
                 cmd.execute(event.player, event.world, event.args, this);
             } catch (Exception e) {
@@ -61,7 +65,7 @@ public class CommandManager implements EventListener<CommandExecutedEvent> {
         eventBus.publish(new ChatMessageEvent(message));
     }
 
-    public List<String> getTabCompletions(LocalPlayer player, String input) {
+    public List<String> getTabCompletions(LocalPlayer player, de.delautrer.game.world.World world, String input) {
         List<String> results = new ArrayList<>();
         if (!input.startsWith("/")) return results;
 
@@ -71,6 +75,10 @@ public class CommandManager implements EventListener<CommandExecutedEvent> {
 
         if (parts.length == 1) {
             for (String cmd : commands.keySet()) {
+                ICommand commandObj = commands.get(cmd);
+                if (commandObj != null && commandObj.requiresCheats() && !world.isCheatsAllowed()) {
+                    continue;
+                }
                 if (cmd.startsWith(commandName)) {
                     results.add("/" + cmd);
                 }
@@ -78,6 +86,9 @@ public class CommandManager implements EventListener<CommandExecutedEvent> {
         } else {
             ICommand cmd = commands.get(commandName);
             if (cmd != null) {
+                if (cmd.requiresCheats() && !world.isCheatsAllowed()) {
+                    return results;
+                }
                 String[] args = new String[parts.length - 1];
                 System.arraycopy(parts, 1, args, 0, args.length);
                 List<String> argCompletions = cmd.getTabCompletions(player, args);

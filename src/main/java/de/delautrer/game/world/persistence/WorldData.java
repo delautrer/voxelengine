@@ -6,6 +6,7 @@ public class WorldData {
     public String worldName;
     public long seed;
     public float timeOfDay;
+    public boolean allowCheats;
     public Vector3f worldSpawnpoint;
     public String weather;
     
@@ -15,4 +16,8 @@ public class WorldData {
     public long lastSavedDate;
     public String creationVersion;
     public String lastOpenedVersion;
+
+    // World Generation Configuration
+    public String generatorType = "DEFAULT";
+    public String generatorOptions = "";
 }

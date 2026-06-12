@@ -95,7 +95,6 @@ public class LightEngine {
         }
     }
 
-    // --- 2. SONNENLICHT (Smooth Lighting) ---
     public void initSkyLightForChunk(Chunk chunk) {
         int cx = chunk.getWorldX() * Chunk.SIZE;
         int cz = chunk.getWorldZ() * Chunk.SIZE;
@@ -103,8 +102,17 @@ public class LightEngine {
         for (int x = 0; x < Chunk.SIZE; x++) {
             for (int z = 0; z < Chunk.SIZE; z++) {
                 for (int y = Chunk.MIN_Y; y < Chunk.MAX_Y; y++) {
-                    if (chunk.getSkyLight(x, y, z) == 15) {
-                        skyLightQueue.add(pack(cx + x, y, cz + z, 0));
+                    int light = chunk.getSkyLight(x, y, z);
+                    if (light > 0) {
+                        boolean edge = false;
+                        if (x > 0 && chunk.getSkyLight(x - 1, y, z) < light) edge = true;
+                        else if (x < 15 && chunk.getSkyLight(x + 1, y, z) < light) edge = true;
+                        else if (z > 0 && chunk.getSkyLight(x, y, z - 1) < light) edge = true;
+                        else if (z < 15 && chunk.getSkyLight(x, y, z + 1) < light) edge = true;
+
+                        if (edge) {
+                            skyLightQueue.add(pack(cx + x, y, cz + z, 0));
+                        }
                     }
                 }
             }
@@ -119,29 +127,49 @@ public class LightEngine {
         // X Borders (x=0 und x=15) mit den Nachbar-Chunks abgleichen
         for (int z = 0; z < Chunk.SIZE; z++) {
             for (int y = Chunk.MIN_Y; y < Chunk.MAX_Y; y++) {
-                if (getSkyLight(cx, y, cz + z) > 0) skyLightQueue.add(pack(cx, y, cz + z, 0));
-                if (getSkyLight(cx - 1, y, cz + z) > 0) skyLightQueue.add(pack(cx - 1, y, cz + z, 0));
-                if (getBlockLight(cx, y, cz + z) > 0) blockLightQueue.add(pack(cx, y, cz + z, 0));
-                if (getBlockLight(cx - 1, y, cz + z) > 0) blockLightQueue.add(pack(cx - 1, y, cz + z, 0));
+                int sl1 = getSkyLight(cx, y, cz + z);
+                int sl2 = getSkyLight(cx - 1, y, cz + z);
+                if (sl1 > sl2) skyLightQueue.add(pack(cx, y, cz + z, 0));
+                else if (sl2 > sl1) skyLightQueue.add(pack(cx - 1, y, cz + z, 0));
 
-                if (getSkyLight(cx + 15, y, cz + z) > 0) skyLightQueue.add(pack(cx + 15, y, cz + z, 0));
-                if (getSkyLight(cx + 16, y, cz + z) > 0) skyLightQueue.add(pack(cx + 16, y, cz + z, 0));
-                if (getBlockLight(cx + 15, y, cz + z) > 0) blockLightQueue.add(pack(cx + 15, y, cz + z, 0));
-                if (getBlockLight(cx + 16, y, cz + z) > 0) blockLightQueue.add(pack(cx + 16, y, cz + z, 0));
+                int bl1 = getBlockLight(cx, y, cz + z);
+                int bl2 = getBlockLight(cx - 1, y, cz + z);
+                if (bl1 > bl2) blockLightQueue.add(pack(cx, y, cz + z, 0));
+                else if (bl2 > bl1) blockLightQueue.add(pack(cx - 1, y, cz + z, 0));
+
+                int sl3 = getSkyLight(cx + 15, y, cz + z);
+                int sl4 = getSkyLight(cx + 16, y, cz + z);
+                if (sl3 > sl4) skyLightQueue.add(pack(cx + 15, y, cz + z, 0));
+                else if (sl4 > sl3) skyLightQueue.add(pack(cx + 16, y, cz + z, 0));
+
+                int bl3 = getBlockLight(cx + 15, y, cz + z);
+                int bl4 = getBlockLight(cx + 16, y, cz + z);
+                if (bl3 > bl4) blockLightQueue.add(pack(cx + 15, y, cz + z, 0));
+                else if (bl4 > bl3) blockLightQueue.add(pack(cx + 16, y, cz + z, 0));
             }
         }
         // Z Borders (z=0 und z=15) mit den Nachbar-Chunks abgleichen
         for (int x = 0; x < Chunk.SIZE; x++) {
             for (int y = Chunk.MIN_Y; y < Chunk.MAX_Y; y++) {
-                if (getSkyLight(cx + x, y, cz) > 0) skyLightQueue.add(pack(cx + x, y, cz, 0));
-                if (getSkyLight(cx + x, y, cz - 1) > 0) skyLightQueue.add(pack(cx + x, y, cz - 1, 0));
-                if (getBlockLight(cx + x, y, cz) > 0) blockLightQueue.add(pack(cx + x, y, cz, 0));
-                if (getBlockLight(cx + x, y, cz - 1) > 0) blockLightQueue.add(pack(cx + x, y, cz - 1, 0));
+                int sl1 = getSkyLight(cx + x, y, cz);
+                int sl2 = getSkyLight(cx + x, y, cz - 1);
+                if (sl1 > sl2) skyLightQueue.add(pack(cx + x, y, cz, 0));
+                else if (sl2 > sl1) skyLightQueue.add(pack(cx + x, y, cz - 1, 0));
 
-                if (getSkyLight(cx + x, y, cz + 15) > 0) skyLightQueue.add(pack(cx + x, y, cz + 15, 0));
-                if (getSkyLight(cx + x, y, cz + 16) > 0) skyLightQueue.add(pack(cx + x, y, cz + 16, 0));
-                if (getBlockLight(cx + x, y, cz + 15) > 0) blockLightQueue.add(pack(cx + x, y, cz + 15, 0));
-                if (getBlockLight(cx + x, y, cz + 16) > 0) blockLightQueue.add(pack(cx + x, y, cz + 16, 0));
+                int bl1 = getBlockLight(cx + x, y, cz);
+                int bl2 = getBlockLight(cx + x, y, cz - 1);
+                if (bl1 > bl2) blockLightQueue.add(pack(cx + x, y, cz, 0));
+                else if (bl2 > bl1) blockLightQueue.add(pack(cx + x, y, cz - 1, 0));
+
+                int sl3 = getSkyLight(cx + x, y, cz + 15);
+                int sl4 = getSkyLight(cx + x, y, cz + 16);
+                if (sl3 > sl4) skyLightQueue.add(pack(cx + x, y, cz + 15, 0));
+                else if (sl4 > sl3) skyLightQueue.add(pack(cx + x, y, cz + 16, 0));
+
+                int bl3 = getBlockLight(cx + x, y, cz + 15);
+                int bl4 = getBlockLight(cx + x, y, cz + 16);
+                if (bl3 > bl4) blockLightQueue.add(pack(cx + x, y, cz + 15, 0));
+                else if (bl4 > bl3) blockLightQueue.add(pack(cx + x, y, cz + 16, 0));
             }
         }
         processLightUpdates();

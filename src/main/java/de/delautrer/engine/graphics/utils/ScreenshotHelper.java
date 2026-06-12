@@ -107,33 +107,32 @@ public class ScreenshotHelper {
 
                 if (isThumbnail) {
                     try {
-                        java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(width, height, java.awt.image.BufferedImage.TYPE_INT_ARGB);
-                        for (int y = 0; y < height; y++) {
-                            for (int x = 0; x < width; x++) {
-                                int i = (y * width + x) * 4;
-                                int r = ramData.get(i) & 0xFF;
-                                int g = ramData.get(i + 1) & 0xFF;
-                                int b = ramData.get(i + 2) & 0xFF;
-                                int a = ramData.get(i + 3) & 0xFF;
-                                img.setRGB(x, y, (a << 24) | (r << 16) | (g << 8) | b);
-                            }
-                        }
-                        
-                        // 1. Zuerst das Zentrum des Bildes (Quadrat) herausschneiden, um Stauchung zu vermeiden
                         int size = Math.min(width, height);
                         int xOffset = (width - size) / 2;
                         int yOffset = (height - size) / 2;
-                        java.awt.image.BufferedImage cropped = img.getSubimage(xOffset, yOffset, size, size);
-
-                        // 2. Dann auf 200x200 herunterskalieren
-                        java.awt.Image scaled = cropped.getScaledInstance(200, 200, java.awt.Image.SCALE_SMOOTH);
-                        java.awt.image.BufferedImage dest = new java.awt.image.BufferedImage(200, 200, java.awt.image.BufferedImage.TYPE_INT_ARGB);
-                        java.awt.Graphics2D g2d = dest.createGraphics();
-                        g2d.drawImage(scaled, 0, 0, null);
-                        g2d.dispose();
                         
-                        javax.imageio.ImageIO.write(dest, "png", new java.io.File(filepath));
+                        int outSize = 200;
+                        ByteBuffer resizedData = org.lwjgl.system.MemoryUtil.memAlloc(outSize * outSize * 4);
+                        
+                        for (int y = 0; y < outSize; y++) {
+                            for (int x = 0; x < outSize; x++) {
+                                // Nearest neighbor mapping
+                                int srcX = xOffset + (x * size / outSize);
+                                int srcY = yOffset + (y * size / outSize);
+                                
+                                int srcIdx = (srcY * width + srcX) * 4;
+                                int dstIdx = (y * outSize + x) * 4;
+                                
+                                resizedData.put(dstIdx, ramData.get(srcIdx));
+                                resizedData.put(dstIdx + 1, ramData.get(srcIdx + 1));
+                                resizedData.put(dstIdx + 2, ramData.get(srcIdx + 2));
+                                resizedData.put(dstIdx + 3, ramData.get(srcIdx + 3));
+                            }
+                        }
+                        
+                        org.lwjgl.stb.STBImageWrite.stbi_write_png(filepath, outSize, outSize, 4, resizedData, outSize * 4);
                         System.out.println("[Screenshot] Saved thumbnail: " + filepath);
+                        org.lwjgl.system.MemoryUtil.memFree(resizedData);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

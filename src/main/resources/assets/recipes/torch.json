@@ -12,7 +12,8 @@
       "engine:willow_planks",
       "engine:baobab_planks",
       "engine:mahogany_planks",
-      "engine:palm_planks"
+      "engine:palm_planks",
+      "engine:coal"
     ],
     "B": "engine:sticks"
   },

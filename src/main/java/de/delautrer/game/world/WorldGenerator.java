@@ -7,6 +7,13 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import de.delautrer.game.world.generation.IChunkGenerator;
+import de.delautrer.game.world.generation.DefaultChunkGenerator;
+import de.delautrer.game.world.generation.FlatChunkGenerator;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Collection;
+
 public class WorldGenerator {
 
     public static class PendingBlock {
@@ -20,47 +27,48 @@ public class WorldGenerator {
     private final long seed;
     private final MultiNoiseChunkGenerator terrainGenerator;
     private final MultiNoiseSurfaceBuilder surfaceBuilder;
-    private final Map<Long, List<PendingBlock>> pendingCrossChunkBlocks = new ConcurrentHashMap<>();
+    private final Map<Long, Collection<PendingBlock>> pendingCrossChunkBlocks = new ConcurrentHashMap<>();
 
-    public WorldGenerator(long seed) {
+    private final IChunkGenerator chunkGenerator;
+
+    public WorldGenerator(long seed, String generatorType, String generatorOptions) {
         this.seed = seed;
         MultiNoiseBiomeRegistry.init();
         FeatureRegistry.init();
 
-        // Neues Multi-Noise System initialisieren
         this.terrainGenerator = new MultiNoiseChunkGenerator(seed);
         this.surfaceBuilder = new MultiNoiseSurfaceBuilder(terrainGenerator.getSampler(), seed);
+
+        if ("FLAT".equalsIgnoreCase(generatorType)) {
+            this.chunkGenerator = new FlatChunkGenerator(generatorOptions);
+        } else {
+            this.chunkGenerator = new DefaultChunkGenerator(seed);
+        }
+    }
+
+    public WorldGenerator(long seed) {
+        this(seed, "DEFAULT", "");
     }
 
     public void generate(Chunk chunk) {
-        int chunkX = chunk.getWorldX();
-        int chunkZ = chunk.getWorldZ();
-
-        terrainGenerator.generateBaseTerrain(chunk, chunkX, chunkZ);
-        CaveCarver.carve(chunk, seed, terrainGenerator.getSampler());
-        surfaceBuilder.buildSurface(chunk, chunkX, chunkZ, this);
-
-        // Apply pending blocks from neighbors (e.g. tree crowns that spilled over)
-        List<PendingBlock> pending = pendingCrossChunkBlocks.remove(ChunkManager.packPos(chunkX, chunkZ));
-        if (pending != null) {
-            for (PendingBlock pb : pending) {
-                if (pb.y >= Chunk.MIN_Y && pb.y < Chunk.MAX_Y) {
-                    chunk.setBlock(pb.x & 15, pb.y, pb.z & 15, pb.blockId, pb.state);
-                }
-            }
-        }
-        
-        // Generiere Erze (Features) nach der Oberfläche
-        FeatureRegistry.generateOres(chunk, seed);
+        chunkGenerator.generate(chunk, this);
     }
 
     public void addPendingBlock(int worldX, int worldY, int worldZ, byte blockId, byte state) {
         long pos = ChunkManager.packPos(worldX >> 4, worldZ >> 4);
-        pendingCrossChunkBlocks.computeIfAbsent(pos, k -> new CopyOnWriteArrayList<>())
+        pendingCrossChunkBlocks.computeIfAbsent(pos, k -> new ConcurrentLinkedQueue<>())
             .add(new PendingBlock(worldX, worldY, worldZ, blockId, state));
     }
 
     public MultiNoiseChunkGenerator getTerrainGenerator() {
         return terrainGenerator;
+    }
+
+    public MultiNoiseSurfaceBuilder getSurfaceBuilder() {
+        return surfaceBuilder;
+    }
+
+    public Collection<PendingBlock> removePendingBlocks(int chunkX, int chunkZ) {
+        return pendingCrossChunkBlocks.remove(ChunkManager.packPos(chunkX, chunkZ));
     }
 }

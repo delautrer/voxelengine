@@ -9,4 +9,5 @@ public interface ICommand {
     String getUsage();
     void execute(LocalPlayer player, World world, String[] args, CommandManager commandManager);
     List<String> getTabCompletions(LocalPlayer player, String[] args);
+    default boolean requiresCheats() { return true; }
 }

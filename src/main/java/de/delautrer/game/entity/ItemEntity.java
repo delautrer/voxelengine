@@ -130,17 +130,22 @@ public class ItemEntity extends Entity {
         // Wenn wir schon voll sind, brauchen wir nicht suchen
         if (stack.amount >= stack.type.getMaxStackSize()) return;
 
-        double mergeRadius = 1.2; // Wie nah Items beieinander liegen müssen
+        double mergeRadiusSq = 1.2 * 1.2;
 
         for (Entity e : world.getEntities()) {
             if (e == this || e.isDead()) continue;
 
             if (e instanceof ItemEntity otherItem) {
+                // Quick AABB distance check
+                double dx = this.position.x - otherItem.position.x;
+                if (dx > 1.2 || dx < -1.2) continue;
+                double dy = this.position.y - otherItem.position.y;
+                if (dy > 1.2 || dy < -1.2) continue;
+                double dz = this.position.z - otherItem.position.z;
+                if (dz > 1.2 || dz < -1.2) continue;
 
-                if (ItemRegistry.getId(this.stack.type).equals(ItemRegistry.getId(otherItem.stack.type))) {
-                    double dist = this.position.distance(otherItem.position);
-                    if (dist < mergeRadius) {
-
+                if (dx * dx + dy * dy + dz * dz < mergeRadiusSq) {
+                    if (this.stack.type == otherItem.stack.type) {
                         // Derjenige mit mehr Items (oder der Ältere) überlebt und zieht die Items an sich
                         boolean iShouldMerge = (this.stack.amount > otherItem.stack.amount) ||
                                 (this.stack.amount == otherItem.stack.amount && this.age > otherItem.age);

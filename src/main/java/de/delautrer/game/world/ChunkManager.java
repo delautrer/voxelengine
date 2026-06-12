@@ -66,7 +66,7 @@ public class ChunkManager {
     public ChunkManager(World world, IGraphicsFactory graphicsFactory) {
         this.requiredInitialRadius = SettingsManager.get().renderDistance;
         this.world = world;
-        this.worldGenerator = new WorldGenerator(this.world.getSeed());
+        this.worldGenerator = new WorldGenerator(this.world.getSeed(), this.world.getGeneratorType(), this.world.getGeneratorOptions());
         this.graphicsFactory = graphicsFactory;
         int threads = Math.max(1, Runtime.getRuntime().availableProcessors() - 2);
         this.chunkExecutor = Executors.newFixedThreadPool(threads);
