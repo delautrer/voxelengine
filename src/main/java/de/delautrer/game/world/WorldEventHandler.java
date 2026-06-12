@@ -61,6 +61,11 @@ public class WorldEventHandler {
         if (localX == Chunk.SIZE - 1) markChunkMeshDirty(x + 1, z);
         if (localZ == 0) markChunkMeshDirty(x, z - 1);
         if (localZ == Chunk.SIZE - 1) markChunkMeshDirty(x, z + 1);
+
+        if (localX == 0 && localZ == 0) markChunkMeshDirty(x - 1, z - 1);
+        if (localX == 0 && localZ == Chunk.SIZE - 1) markChunkMeshDirty(x - 1, z + 1);
+        if (localX == Chunk.SIZE - 1 && localZ == 0) markChunkMeshDirty(x + 1, z - 1);
+        if (localX == Chunk.SIZE - 1 && localZ == Chunk.SIZE - 1) markChunkMeshDirty(x + 1, z + 1);
     }
 
     private void markChunkMeshDirty(int blockX, int blockZ) {

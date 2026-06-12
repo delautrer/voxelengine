@@ -44,14 +44,15 @@ public class MasterRenderer {
     private IMesh celestialMesh;
 
     // --- NEU: Beide dynamischen Meshes werden dauerhaft gespeichert ---
-    private IMesh dynamicHighlightMesh;
-    private IMesh dynamicOverlayMesh;
-    private IMesh firstPersonMesh;
-    private de.delautrer.game.items.Item lastFirstPersonItem;
+    private IMesh[] dynamicHighlightMeshes = new IMesh[de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT];
+    private IMesh[] dynamicOverlayMeshes = new IMesh[de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT];
+    private IMesh[] firstPersonMeshes = new IMesh[de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT];
+    private de.delautrer.game.items.Item[] lastFirstPersonItems = new de.delautrer.game.items.Item[de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT];
+    private int frameIndex = 0;
     
-    private Vector3i lastSelectedBlockPos;
-    private byte lastSelectedBlockStateId = -1;
-    private byte lastSelectedBlockId = -1;
+    private Vector3i[] lastSelectedBlockPositions = new Vector3i[de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT];
+    private byte[] lastSelectedBlockStateIds = new byte[de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT];
+    private byte[] lastSelectedBlockIds = new byte[de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT];
 
     private IFont font;
 
@@ -138,6 +139,8 @@ public class MasterRenderer {
 
         boolean isIsoFrame = (isTakingIsometric && isoFramesToWait == -1);
 
+        frameIndex = (frameIndex + 1) % de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT;
+
         CullingUtils.buildVisibleLists(world.getChunkManager(), mvpCameraRelative, packet, isIsoFrame,
                 packet.cameraPos);
         lastVisibleChunkCount = packet.opaqueMeshes.size() + packet.waterMeshes.size();
@@ -176,19 +179,19 @@ public class MasterRenderer {
             BlockState state = world.getBlockState(selectedBlockPos);
 
             // HIGHLIGHT MESH UPDATE
-            if (dynamicHighlightMesh == null || !selectedBlockPos.equals(lastSelectedBlockPos) || state.getStateId() != lastSelectedBlockStateId || selectedBlockId != lastSelectedBlockId) {
-                if (dynamicHighlightMesh == null) {
-                    dynamicHighlightMesh = graphicsFactory.createMesh(block.getHighlightVertices(state),
+            if (dynamicHighlightMeshes[frameIndex] == null || !selectedBlockPos.equals(lastSelectedBlockPositions[frameIndex]) || state.getStateId() != lastSelectedBlockStateIds[frameIndex] || selectedBlockId != lastSelectedBlockIds[frameIndex]) {
+                if (dynamicHighlightMeshes[frameIndex] == null) {
+                    dynamicHighlightMeshes[frameIndex] = graphicsFactory.createMesh(block.getHighlightVertices(state),
                             block.getHighlightIndices(state));
                 } else {
-                    dynamicHighlightMesh.updateMesh(block.getHighlightVertices(state), block.getHighlightIndices(state));
+                    dynamicHighlightMeshes[frameIndex].updateMesh(block.getHighlightVertices(state), block.getHighlightIndices(state));
                 }
-                if (lastSelectedBlockPos == null) lastSelectedBlockPos = new Vector3i();
-                lastSelectedBlockPos.set(selectedBlockPos);
-                lastSelectedBlockStateId = state.getStateId();
-                lastSelectedBlockId = selectedBlockId;
+                if (lastSelectedBlockPositions[frameIndex] == null) lastSelectedBlockPositions[frameIndex] = new Vector3i();
+                lastSelectedBlockPositions[frameIndex].set(selectedBlockPos);
+                lastSelectedBlockStateIds[frameIndex] = state.getStateId();
+                lastSelectedBlockIds[frameIndex] = selectedBlockId;
             }
-            packet.highlightMesh = dynamicHighlightMesh;
+            packet.highlightMesh = dynamicHighlightMeshes[frameIndex];
 
         } else {
             packet.highlightMesh = highlightMesh;
@@ -198,11 +201,11 @@ public class MasterRenderer {
         java.util.Map<Vector3i, Float> cracks = interaction.getAllMiningProgresses();
         if (!cracks.isEmpty()) {
             updateCrackingMesh(world, cracks);
-            packet.overlayMesh = dynamicOverlayMesh;
+            packet.overlayMesh = dynamicOverlayMeshes[frameIndex];
         } else {
-            if (dynamicOverlayMesh != null) {
-                dynamicOverlayMesh.cleanup();
-                dynamicOverlayMesh = null;
+            if (dynamicOverlayMeshes[frameIndex] != null) {
+                dynamicOverlayMeshes[frameIndex].cleanup();
+                dynamicOverlayMeshes[frameIndex] = null;
             }
             packet.overlayMesh = null;
         }
@@ -238,8 +241,8 @@ public class MasterRenderer {
             de.delautrer.game.items.ItemStack handStack = interaction.getPlayer().getInventory().getStack(interaction.getPlayer().getInventory().getSelectedSlot());
             de.delautrer.game.items.Item currentItem = (handStack != null) ? handStack.type : null;
             
-            if (currentItem != lastFirstPersonItem || firstPersonMesh == null) {
-                if (firstPersonMesh != null) firstPersonMesh.cleanup();
+            if (currentItem != lastFirstPersonItems[frameIndex] || firstPersonMeshes[frameIndex] == null) {
+                if (firstPersonMeshes[frameIndex] != null) firstPersonMeshes[frameIndex].cleanup();
                 
                 if (currentItem == null) {
                     // Empty hand -> Render block hand (4x12x4 pixels -> 0.25 x 0.75 x 0.25)
@@ -282,7 +285,7 @@ public class MasterRenderer {
                         16, 17, 18, 18, 19, 16,
                         20, 21, 22, 22, 23, 20
                     });
-                    firstPersonMesh = graphicsFactory.createMesh(md);
+                    firstPersonMeshes[frameIndex] = graphicsFactory.createMesh(md);
                     packet.firstPersonIsItem = false;
                 } else if (currentItem instanceof de.delautrer.game.items.BlockItem) {
                     de.delautrer.game.items.BlockItem blockItem = (de.delautrer.game.items.BlockItem) currentItem;
@@ -293,17 +296,17 @@ public class MasterRenderer {
                         de.delautrer.engine.graphics.utils.TextureStitcher.AtlasRegion reg = currentItem.getIconRegion();
                         if (reg != null) {
                             MeshData md = de.delautrer.engine.graphics.utils.ItemMeshGenerator.generateFromTexture(reg, itemAtlas);
-                            firstPersonMesh = graphicsFactory.createMesh(md);
+                            firstPersonMeshes[frameIndex] = graphicsFactory.createMesh(md);
                         }
                     } else {
                         if (blockItem.block instanceof de.delautrer.game.blocks.CubeBlock cubeBlock) {
                             MeshData md = de.delautrer.engine.graphics.utils.ItemMeshGenerator.generateBlockMesh(cubeBlock);
-                            firstPersonMesh = graphicsFactory.createMesh(md);
+                            firstPersonMeshes[frameIndex] = graphicsFactory.createMesh(md);
                         } else {
                             de.delautrer.game.blocks.models.BlockModelData model = blockItem.block.getModel();
                             if (model != null) {
                                 MeshData md = de.delautrer.engine.graphics.utils.ItemMeshGenerator.generateBlockMesh(model);
-                                firstPersonMesh = graphicsFactory.createMesh(md);
+                                firstPersonMeshes[frameIndex] = graphicsFactory.createMesh(md);
                             }
                         }
                     }
@@ -311,13 +314,13 @@ public class MasterRenderer {
                     de.delautrer.engine.graphics.utils.TextureStitcher.AtlasRegion reg = currentItem.getIconRegion();
                     if (reg != null) {
                         MeshData md = de.delautrer.engine.graphics.utils.ItemMeshGenerator.generateFromTexture(reg, itemAtlas);
-                        firstPersonMesh = graphicsFactory.createMesh(md);
+                        firstPersonMeshes[frameIndex] = graphicsFactory.createMesh(md);
                     }
                 }
-                lastFirstPersonItem = currentItem;
+                lastFirstPersonItems[frameIndex] = currentItem;
             }
             
-            packet.firstPersonMesh = firstPersonMesh;
+            packet.firstPersonMesh = firstPersonMeshes[frameIndex];
             packet.isEmptyHand = (currentItem == null);
             
             packet.firstPersonIsItem = currentItem != null && currentItem.isRenderAsItem();
@@ -370,9 +373,9 @@ public class MasterRenderer {
         }
         
         if (totalBoxes == 0) {
-            if (dynamicOverlayMesh != null) {
-                dynamicOverlayMesh.cleanup();
-                dynamicOverlayMesh = null;
+            if (dynamicOverlayMeshes[frameIndex] != null) {
+                dynamicOverlayMeshes[frameIndex].cleanup();
+                dynamicOverlayMeshes[frameIndex] = null;
             }
             return;
         }
@@ -478,9 +481,9 @@ public class MasterRenderer {
         }
 
         if (vOffset == 0) {
-            if (dynamicOverlayMesh != null) {
-                dynamicOverlayMesh.cleanup();
-                dynamicOverlayMesh = null;
+            if (dynamicOverlayMeshes[frameIndex] != null) {
+                dynamicOverlayMeshes[frameIndex].cleanup();
+                dynamicOverlayMeshes[frameIndex] = null;
             }
             return;
         }
@@ -490,10 +493,10 @@ public class MasterRenderer {
         int[] finalInds = new int[iOffset];
         System.arraycopy(inds, 0, finalInds, 0, iOffset);
 
-        if (dynamicOverlayMesh == null) {
-            dynamicOverlayMesh = graphicsFactory.createMesh(finalVerts, finalInds);
+        if (dynamicOverlayMeshes[frameIndex] == null) {
+            dynamicOverlayMeshes[frameIndex] = graphicsFactory.createMesh(finalVerts, finalInds);
         } else {
-            dynamicOverlayMesh.updateMesh(finalVerts, finalInds);
+            dynamicOverlayMeshes[frameIndex].updateMesh(finalVerts, finalInds);
         }
     }
 
@@ -534,10 +537,11 @@ public class MasterRenderer {
             uiRenderer.cleanup();
         if (highlightMesh != null)
             highlightMesh.cleanup();
-        if (dynamicHighlightMesh != null)
-            dynamicHighlightMesh.cleanup();
-        if (dynamicOverlayMesh != null)
-            dynamicOverlayMesh.cleanup();
+        for(int i=0; i<dynamicHighlightMeshes.length; i++) {
+            if (dynamicHighlightMeshes[i] != null) dynamicHighlightMeshes[i].cleanup();
+            if (dynamicOverlayMeshes[i] != null) dynamicOverlayMeshes[i].cleanup();
+            if (firstPersonMeshes[i] != null) firstPersonMeshes[i].cleanup();
+        }
         if (font != null)
             font.cleanup();
         if (renderer != null)

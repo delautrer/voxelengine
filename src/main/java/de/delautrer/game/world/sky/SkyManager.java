@@ -78,7 +78,7 @@ public class SkyManager {
         Weather nextWeather = weathers[weatherRandom.nextInt(weathers.length)];
 
         if (nextWeather != currentWeather) {
-            System.out.println("Weather has changed to  " + nextWeather.name());
+            System.out.println("Weather has changed to " + nextWeather.name());
             this.currentWeather = nextWeather;
             // Mesh neu generieren lassen!
             if (onWeatherChanged != null) {

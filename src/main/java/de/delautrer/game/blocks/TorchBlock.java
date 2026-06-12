@@ -88,7 +88,7 @@ public class TorchBlock extends CubeBlock {
         Vector3i wallPos = new Vector3i(hitPos).sub(hitFace);
         Block wallBlock = world.getBlockState(wallPos.x, wallPos.y, wallPos.z).getBlock();
 
-        if (!wallBlock.isSolid)
+        if (!isValidWall(wallBlock))
             return null;
 
         if (hitFace.y == 1)
@@ -123,7 +123,7 @@ public class TorchBlock extends CubeBlock {
             wallPos.x++;
 
         Block wallBlock = world.getBlockState(wallPos.x, wallPos.y, wallPos.z).getBlock();
-        if (!wallBlock.isSolid) {
+        if (!isValidWall(wallBlock)) {
             dropAsItem(world, x, y, z); // NEU: Fackel droppt, bevor sie verschwindet
             world.setBlockState(x, y, z, Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air").getDefaultState());
         }
@@ -207,6 +207,10 @@ public class TorchBlock extends CubeBlock {
                 x + vec3.x, y + vec3.y, z + vec3.z, 1.0f,
                 u0, v0, u1, v1, reg.layer, light, this,
                 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+    }
+
+    private boolean isValidWall(Block block) {
+        return block.isSolid && !(block instanceof ChestBlock);
     }
 
 }

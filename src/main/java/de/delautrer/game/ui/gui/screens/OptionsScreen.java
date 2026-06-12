@@ -71,13 +71,11 @@ public class OptionsScreen extends MenuScreen {
         UIHBox graphicsBox2 = new UIHBox(0, 0, spacingHBox);
         graphicsBox2.addChild(new UIButton(0, 0, halfWidth, btnHeight, "Bobbing: " + (tempSettings.viewBobbing ? "ON" : "OFF"), () -> {
             tempSettings.viewBobbing = !tempSettings.viewBobbing;
-            onInit();
-            if (requestRebuild != null) requestRebuild.run();
+            pendingReinit = true;
         }));
         graphicsBox2.addChild(new UIButton(0, 0, halfWidth, btnHeight, "Item Breath: " + (tempSettings.itemBreathing ? "ON" : "OFF"), () -> {
             tempSettings.itemBreathing = !tempSettings.itemBreathing;
-            onInit();
-            if (requestRebuild != null) requestRebuild.run();
+            pendingReinit = true;
         }));
         contentBox.addChild(graphicsBox2);
 
@@ -91,8 +89,7 @@ public class OptionsScreen extends MenuScreen {
                 val -> tempSettings.mouseSensitivity = val));
         mouseBox.addChild(new UIButton(0, 0, halfWidth, btnHeight, "Invert Y: " + (tempSettings.invertY ? "ON" : "OFF"), () -> {
             tempSettings.invertY = !tempSettings.invertY;
-            onInit();
-            if (requestRebuild != null) requestRebuild.run();
+            pendingReinit = true;
         }));
         contentBox.addChild(mouseBox);
 

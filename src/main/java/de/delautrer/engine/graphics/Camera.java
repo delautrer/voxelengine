@@ -38,7 +38,9 @@ public class Camera {
         lastX = xpos[0];
         lastY = ypos[0];
 
-        float sensitivity = SettingsManager.get().mouseSensitivity;
+        float rawSensitivity = SettingsManager.get().mouseSensitivity;
+        // f(x) = 0.5333 * x^3 + 0.0666 * x  --> f(0.5) = 0.1, f(1.0) = 0.6
+        float sensitivity = rawSensitivity * (0.5333f * rawSensitivity * rawSensitivity + 0.0666f);
         xoffset *= sensitivity;
         yoffset *= sensitivity;
 

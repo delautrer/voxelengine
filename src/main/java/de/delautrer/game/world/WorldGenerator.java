@@ -2,15 +2,12 @@ package de.delautrer.game.world;
 
 import de.delautrer.game.world.generation.biome.*;
 import de.delautrer.game.world.generation.feature.FeatureRegistry;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import de.delautrer.game.world.generation.IChunkGenerator;
 import de.delautrer.game.world.generation.DefaultChunkGenerator;
 import de.delautrer.game.world.generation.FlatChunkGenerator;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.Collection;
 

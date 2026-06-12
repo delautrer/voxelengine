@@ -12,7 +12,8 @@ import java.util.Map;
 
 public class UIRenderer {
 
-    private IMesh combinedMesh;
+    private IMesh[] combinedMeshes = new IMesh[de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT];
+    private int frameIndex = 0;
     private final List<UIDrawCall> drawCalls = new ArrayList<>();
 
     private IGraphicsFactory factory;
@@ -36,6 +37,8 @@ public class UIRenderer {
         // --- HIER WURDE AUFGERÄUMT: Kein WaitIdle und kein cleanup mehr am Anfang! ---
         drawCalls.clear();
         meshBuilder.clear();
+
+        frameIndex = (frameIndex + 1) % de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT;
 
         boolean renderHUD = true;
         if (pauseScreen != null) {
@@ -96,24 +99,20 @@ public class UIRenderer {
         if (!allVerts.isEmpty()) {
             MeshData newMeshData = new MeshData(toArray(allVerts), toIntArray(allInds));
 
-            // GPU kurz anhalten, damit wir die laufenden Daten SICHER aktualisieren können
-            graphicsContext.waitIdle();
-
-            if (combinedMesh == null) {
-                combinedMesh = factory.createMesh(newMeshData);
+            if (combinedMeshes[frameIndex] == null) {
+                combinedMeshes[frameIndex] = factory.createMesh(newMeshData);
             } else {
-                combinedMesh.updateMesh(newMeshData.vertices(), newMeshData.indices());
+                combinedMeshes[frameIndex].updateMesh(newMeshData.vertices(), newMeshData.indices());
             }
         } else {
-            if (combinedMesh != null) {
-                graphicsContext.waitIdle();
-                combinedMesh.cleanup();
-                combinedMesh = null;
+            if (combinedMeshes[frameIndex] != null) {
+                combinedMeshes[frameIndex].cleanup();
+                combinedMeshes[frameIndex] = null;
             }
         }
     }
 
-    public IMesh getCombinedMesh() { return combinedMesh; }
+    public IMesh getCombinedMesh() { return combinedMeshes[frameIndex]; }
     public List<UIDrawCall> getDrawCalls() { return drawCalls; }
 
     private float[] toArray(List<Float> list) {
@@ -129,6 +128,8 @@ public class UIRenderer {
     }
 
     public void cleanup() {
-        if (combinedMesh != null) combinedMesh.cleanup();
+        for(int i=0; i<combinedMeshes.length; i++) {
+            if (combinedMeshes[i] != null) combinedMeshes[i].cleanup();
+        }
     }
 }

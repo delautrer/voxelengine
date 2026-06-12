@@ -1,12 +1,10 @@
 package de.delautrer.game.world.generation;
 
 import de.delautrer.game.world.Chunk;
-import de.delautrer.game.world.ChunkManager;
 import de.delautrer.game.world.WorldGenerator;
 import de.delautrer.game.world.generation.biome.CaveCarver;
 import de.delautrer.game.world.generation.feature.FeatureRegistry;
 
-import java.util.List;
 import java.util.Collection;
 public class DefaultChunkGenerator implements IChunkGenerator {
     private final long seed;

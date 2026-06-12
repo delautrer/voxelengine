@@ -48,16 +48,17 @@ public class ToolItem extends Item {
     }
 
     public boolean isCorrectToolFor(Block block) {
-        String name = block.getSoundMaterialName() != null ? block.getSoundMaterialName().toLowerCase() : "";
-        String blockName = block.getClass().getSimpleName().toLowerCase();
+        String soundName = block.getSoundMaterialName() != null ? block.getSoundMaterialName().toLowerCase() : "";
+        de.delautrer.game.registry.NamespacedKey key = de.delautrer.game.blocks.BlockRegistry.REGISTRY.getKey(block);
+        String blockName = key != null ? key.getKey().toLowerCase() : "";
         
         switch (toolType) {
             case PICKAXE:
-                return name.equals("rock") || blockName.contains("ore") || blockName.contains("stone") || blockName.contains("brick") || blockName.contains("furnace") || blockName.contains("crafting");
+                return soundName.equals("rock") || blockName.contains("ore") || blockName.contains("stone") || blockName.contains("brick") || blockName.contains("furnace") || blockName.contains("crafting") || blockName.contains("cobble");
             case AXE:
-                return name.equals("wood") || blockName.contains("log") || blockName.contains("planks") || blockName.contains("chest") || blockName.contains("door") || blockName.contains("trapdoor");
+                return soundName.equals("wood") || blockName.contains("log") || blockName.contains("planks") || blockName.contains("chest") || blockName.contains("door") || blockName.contains("trapdoor") || blockName.contains("fence") || blockName.contains("wood");
             case SHOVEL:
-                return name.equals("dirt") || name.equals("grass") || name.equals("sand") || name.equals("gravel") || blockName.contains("dirt") || blockName.contains("sand") || blockName.contains("gravel") || blockName.contains("grass");
+                return soundName.equals("dirt") || soundName.equals("grass") || soundName.equals("sand") || soundName.equals("gravel") || blockName.contains("dirt") || blockName.contains("sand") || blockName.contains("gravel") || blockName.contains("grass");
             default:
                 return false;
         }

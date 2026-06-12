@@ -57,8 +57,9 @@ public class EntityRenderSystem implements IRenderSystem {
     private final VulkanContext context;
     private final VulkanGraphicsPipeline blockPipeline;
 
-    private VulkanMesh blockMesh;
-    private VulkanMesh itemMesh;
+    private VulkanMesh[] blockMeshes = new VulkanMesh[de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT];
+    private VulkanMesh[] itemMeshes = new VulkanMesh[de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT];
+    private int frameIndex = 0;
 
     private final FloatList blockVerts = new FloatList();
     private final IntList blockInds = new IntList();
@@ -148,25 +149,27 @@ public class EntityRenderSystem implements IRenderSystem {
         if (blockVerts.isEmpty() && itemVerts.isEmpty())
             return;
 
+        frameIndex = (frameIndex + 1) % de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT;
+
         if (!blockVerts.isEmpty()) {
-            if (blockMesh == null) {
-                blockMesh = new VulkanMesh(context, blockVerts.data, blockVerts.size, blockInds.data, blockInds.size);
+            if (blockMeshes[frameIndex] == null) {
+                blockMeshes[frameIndex] = new VulkanMesh(context, blockVerts.data, blockVerts.size, blockInds.data, blockInds.size);
             } else {
-                blockMesh.updateMesh(blockVerts.data, blockVerts.size, blockInds.data, blockInds.size);
+                blockMeshes[frameIndex].updateMesh(blockVerts.data, blockVerts.size, blockInds.data, blockInds.size);
             }
             VK10.vkCmdBindPipeline(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, blockPipeline.getHandle());
-            bindAndDraw(cmd, packet, blockPipeline.getPipelineLayout(), blockMesh,
+            bindAndDraw(cmd, packet, blockPipeline.getPipelineLayout(), blockMeshes[frameIndex],
                     ((VulkanTextureArray) packet.worldTexture).getDescriptorSet());
         }
 
         if (!itemVerts.isEmpty()) {
-            if (itemMesh == null) {
-                itemMesh = new VulkanMesh(context, itemVerts.data, itemVerts.size, itemInds.data, itemInds.size);
+            if (itemMeshes[frameIndex] == null) {
+                itemMeshes[frameIndex] = new VulkanMesh(context, itemVerts.data, itemVerts.size, itemInds.data, itemInds.size);
             } else {
-                itemMesh.updateMesh(itemVerts.data, itemVerts.size, itemInds.data, itemInds.size);
+                itemMeshes[frameIndex].updateMesh(itemVerts.data, itemVerts.size, itemInds.data, itemInds.size);
             }
             VK10.vkCmdBindPipeline(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, blockPipeline.getHandle());
-            bindAndDraw(cmd, packet, blockPipeline.getPipelineLayout(), itemMesh,
+            bindAndDraw(cmd, packet, blockPipeline.getPipelineLayout(), itemMeshes[frameIndex],
                     ((VulkanTexture) packet.itemTexture).getDescriptorSet());
         }
     }
@@ -361,13 +364,17 @@ public class EntityRenderSystem implements IRenderSystem {
     }
 
     private void cleanupMeshes() {
-        if (blockMesh != null) {
-            blockMesh.cleanup();
-            blockMesh = null;
+        for (int i = 0; i < blockMeshes.length; i++) {
+            if (blockMeshes[i] != null) {
+                blockMeshes[i].cleanup();
+                blockMeshes[i] = null;
+            }
         }
-        if (itemMesh != null) {
-            itemMesh.cleanup();
-            itemMesh = null;
+        for (int i = 0; i < itemMeshes.length; i++) {
+            if (itemMeshes[i] != null) {
+                itemMeshes[i].cleanup();
+                itemMeshes[i] = null;
+            }
         }
     }
 

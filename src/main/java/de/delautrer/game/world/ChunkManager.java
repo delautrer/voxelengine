@@ -9,7 +9,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import de.delautrer.engine.graphics.ChunkMesher;
 
-public class ChunkManager {
+public final class ChunkManager {
 
     public static class ChunkMeshPair {
         public IMesh opaque;
@@ -62,7 +62,6 @@ public class ChunkManager {
     private int lastPlayerChunkX = Integer.MAX_VALUE;
     private int lastPlayerChunkZ = Integer.MAX_VALUE;
 
-    @SuppressWarnings("this-escape")
     public ChunkManager(World world, IGraphicsFactory graphicsFactory) {
         this.requiredInitialRadius = SettingsManager.get().renderDistance;
         this.world = world;
@@ -193,10 +192,20 @@ public class ChunkManager {
             Chunk nZ1 = chunks.get(packPos(loadedChunk.getWorldX(), loadedChunk.getWorldZ() + 1));
             Chunk nZ2 = chunks.get(packPos(loadedChunk.getWorldX(), loadedChunk.getWorldZ() - 1));
 
+            Chunk nX1Z1 = chunks.get(packPos(loadedChunk.getWorldX() + 1, loadedChunk.getWorldZ() + 1));
+            Chunk nX2Z1 = chunks.get(packPos(loadedChunk.getWorldX() - 1, loadedChunk.getWorldZ() + 1));
+            Chunk nX1Z2 = chunks.get(packPos(loadedChunk.getWorldX() + 1, loadedChunk.getWorldZ() - 1));
+            Chunk nX2Z2 = chunks.get(packPos(loadedChunk.getWorldX() - 1, loadedChunk.getWorldZ() - 1));
+
             if (nX1 != null) nX1.requestMeshUpdate();
             if (nX2 != null) nX2.requestMeshUpdate();
             if (nZ1 != null) nZ1.requestMeshUpdate();
             if (nZ2 != null) nZ2.requestMeshUpdate();
+
+            if (nX1Z1 != null) nX1Z1.requestMeshUpdate();
+            if (nX2Z1 != null) nX2Z1.requestMeshUpdate();
+            if (nX1Z2 != null) nX1Z2.requestMeshUpdate();
+            if (nX2Z2 != null) nX2Z2.requestMeshUpdate();
 
             loadedChunk.requestMeshUpdate();
 

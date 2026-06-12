@@ -318,6 +318,11 @@ public class LightEngine {
                 else if (lx == 15) markChunkDirty(worldX + 1, worldZ);
                 if (lz == 0) markChunkDirty(worldX, worldZ - 1);
                 else if (lz == 15) markChunkDirty(worldX, worldZ + 1);
+
+                if (lx == 0 && lz == 0) markChunkDirty(worldX - 1, worldZ - 1);
+                if (lx == 0 && lz == 15) markChunkDirty(worldX - 1, worldZ + 1);
+                if (lx == 15 && lz == 0) markChunkDirty(worldX + 1, worldZ - 1);
+                if (lx == 15 && lz == 15) markChunkDirty(worldX + 1, worldZ + 1);
             }
         }
     }
@@ -346,6 +351,11 @@ public class LightEngine {
                 else if (lx == 15) markChunkDirty(worldX + 1, worldZ);
                 if (lz == 0) markChunkDirty(worldX, worldZ - 1);
                 else if (lz == 15) markChunkDirty(worldX, worldZ + 1);
+
+                if (lx == 0 && lz == 0) markChunkDirty(worldX - 1, worldZ - 1);
+                if (lx == 0 && lz == 15) markChunkDirty(worldX - 1, worldZ + 1);
+                if (lx == 15 && lz == 0) markChunkDirty(worldX + 1, worldZ - 1);
+                if (lx == 15 && lz == 15) markChunkDirty(worldX + 1, worldZ + 1);
             }
         }
     }
