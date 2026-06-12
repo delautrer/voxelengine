@@ -27,7 +27,7 @@ public class RecipeManager {
                 loadRecipe(fileName);
             }
         }
-        System.out.println("[RecipeManager] Loaded " + RECIPES.size() + " recipes.");
+        System.out.println("Loaded " + RECIPES.size() + " recipes.");
         de.delautrer.game.crafting.FurnaceRecipeManager.init();
     }
 
@@ -43,7 +43,7 @@ public class RecipeManager {
                 loadShapeless(json);
             }
         } catch (Exception e) {
-            System.err.println("[RecipeManager] Failed to load recipe: " + filename);
+            System.err.println("Failed to load recipe: " + filename);
             e.printStackTrace();
         }
     }

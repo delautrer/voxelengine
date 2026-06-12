@@ -33,12 +33,12 @@ public class BlockRegistry {
         if (isInitialized)
             return; // Wenn schon geladen, abbrechen
         isInitialized = true;
-        System.out.println("[BlockRegistry] Initializing...");
+        System.out.println("Initializing...");
 
         registerAir();
         loadBlocksFromJson();
 
-        System.out.println("[BlockRegistry] " + REGISTRY.size() + " Blocks loaded.");
+        System.out.println(REGISTRY.size() + " Blocks loaded.");
     }
 
     private static void registerAir() {
@@ -63,7 +63,7 @@ public class BlockRegistry {
             // in der .exe (.jar)
             InputStream is = BlockRegistry.class.getResourceAsStream("/assets/data/blocks.json");
             if (is == null) {
-                System.err.println("[BlockRegistry] Error: /assets/data/blocks.json nicht gefunden!");
+                System.err.println("Error: /assets/data/blocks.json nicht gefunden!");
                 return;
             }
 
@@ -78,14 +78,14 @@ public class BlockRegistry {
                 }
             }
         } catch (Exception e) {
-            System.err.println("[BlockRegistry] Fehler beim Laden der blocks.json");
+            System.err.println("Fehler beim Laden der blocks.json");
             e.printStackTrace();
         }
     }
 
     private static Block createBlockInstance(BlockDefinition def) {
         if (def.type == null) {
-            System.err.println("[BlockRegistry] Block '" + def.name + "' hat keinen type!");
+            System.err.println("Block '" + def.name + "' hat keinen type!");
             return null;
         }
 
@@ -121,7 +121,7 @@ public class BlockRegistry {
             case "sapling":
                 return new SaplingBlock(def.name, def.minGrowthTime, def.maxGrowthTime);
             default:
-                System.err.println("[BlockRegistry] Unbekannter Block Type: " + def.type + " bei " + def.name);
+                System.err.println("Unbekannter Block Type: " + def.type + " bei " + def.name);
                 return null;
         }
     }
@@ -148,7 +148,7 @@ public class BlockRegistry {
         try {
             block.setMinToolTier(de.delautrer.game.items.ToolTier.valueOf(def.minToolTier.toUpperCase()));
         } catch (IllegalArgumentException e) {
-            System.err.println("[BlockRegistry] Unknown ToolTier: " + def.minToolTier + " for block " + def.name);
+            System.err.println("Unknown ToolTier: " + def.minToolTier + " for block " + def.name);
         }
 
         NamespacedKey key = new NamespacedKey(Constants.NAMESPACE, path);

@@ -41,7 +41,7 @@ public class AudioEngine {
         for (int i = 0; i < MAX_SOURCES; i++) {
             sourcePool[i] = AL10.alGenSources();
         }
-        System.out.println("[AudioEngine] Initialized with " + MAX_SOURCES + " pooled audio sources.");
+        System.out.println("Initialized with " + MAX_SOURCES + " pooled audio sources.");
     }
 
     public void updateListener() {
@@ -71,7 +71,7 @@ public class AudioEngine {
             ShortBuffer pcm = STBVorbis.stb_vorbis_decode_memory(fileBuffer, channelsBuffer, sampleRateBuffer);
 
             if (pcm == null) {
-                System.err.println("[AudioEngine] Warnung: Sound defekt oder nicht lesbar: " + filepath);
+                System.err.println("Warnung: Sound defekt oder nicht lesbar: " + filepath);
                 return;
             }
 
@@ -82,7 +82,7 @@ public class AudioEngine {
             org.lwjgl.system.libc.LibCStdlib.free(pcm);
             soundBuffers.put(filepath, bufferId);
         } catch (Exception e) {
-            System.err.println("[AudioEngine] Error loading sound " + filepath + ": " + e.getMessage());
+            System.err.println("Error loading sound " + filepath + ": " + e.getMessage());
         }
     }
 

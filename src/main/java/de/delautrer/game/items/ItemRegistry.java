@@ -29,18 +29,18 @@ public class ItemRegistry {
     public static void init() {
         if (isInitialized) return;
         isInitialized = true;
-        System.out.println("[ItemRegistry] Initializing...");
+        System.out.println("Initializing...");
 
         loadItemsFromJson();
 
-        System.out.println("[ItemRegistry] " + REGISTRY.size() + " Items loaded.");
+        System.out.println("" + REGISTRY.size() + " Items loaded.");
     }
 
     private static void loadItemsFromJson() {
         try {
             InputStream is = ItemRegistry.class.getResourceAsStream("/assets/data/items.json");
             if (is == null) {
-                System.err.println("[ItemRegistry] Error: /assets/data/items.json nicht gefunden!");
+                System.err.println("Error: /assets/data/items.json nicht gefunden!");
                 return;
             }
 
@@ -75,14 +75,14 @@ public class ItemRegistry {
             }
 
         } catch (Exception e) {
-            System.err.println("[ItemRegistry] Fehler beim Laden der items.json");
+            System.err.println("Fehler beim Laden der items.json");
             e.printStackTrace();
         }
     }
 
     private static Item createItemInstance(ItemDefinition def) {
         if (def.type == null) {
-            System.err.println("[ItemRegistry] Item '" + def.id + "' hat keinen type!");
+            System.err.println("Item '" + def.id + "' hat keinen type!");
             return null;
         }
 
@@ -99,7 +99,7 @@ public class ItemRegistry {
                 ToolTier tTier = ToolTier.valueOf(def.toolTier);
                 return new ToolItem(def.name, def.textureName, tType, tTier, def.toolEfficiency, def.toolMaxDurability);
             default:
-                System.err.println("[ItemRegistry] Unbekannter Item Type: " + def.type + " bei " + def.id);
+                System.err.println("Unbekannter Item Type: " + def.type + " bei " + def.id);
                 return null;
         }
     }

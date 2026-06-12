@@ -131,14 +131,14 @@ public class ScreenshotHelper {
                         }
                         
                         org.lwjgl.stb.STBImageWrite.stbi_write_png(filepath, outSize, outSize, 4, resizedData, outSize * 4);
-                        System.out.println("[Screenshot] Saved thumbnail: " + filepath);
+                        System.out.println("Saved thumbnail: " + filepath);
                         org.lwjgl.system.MemoryUtil.memFree(resizedData);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 } else {
                     STBImageWrite.stbi_write_png(filepath, width, height, 4, ramData, width * 4);
-                    System.out.println("[Screenshot] Saved: " + filepath);
+                    System.out.println("Saved: " + filepath);
                 }
 
                 // C-Speicher wieder freigeben, um Memory Leaks zu verhindern

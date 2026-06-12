@@ -35,6 +35,31 @@ public class GameLogger {
         }
     }
 
+    /**
+     * Ermittelt den Klassennamen des Aufrufers (z.B. "Engine", "Game", "Player").
+     * Funktioniert automatisch bei jedem System.out / System.err Aufruf.
+     */
+    private static String getCallerClassName() {
+        try {
+            return StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE)
+                    .walk(frames -> frames
+                            .filter(frame -> {
+                                String className = frame.getDeclaringClass().getName();
+                                // JDK-interne Klassen und den Logger selbst herausfiltern
+                                return !className.startsWith("java.")
+                                        && !className.startsWith("javax.")
+                                        && !className.startsWith("jdk.")
+                                        && !className.startsWith("sun.")
+                                        && !className.contains("GameLogger");
+                            })
+                            .findFirst()
+                            .map(frame -> frame.getDeclaringClass().getSimpleName())
+                            .orElse("App"));
+        } catch (Exception e) {
+            return "App";
+        }
+    }
+
     private static class LogStream extends OutputStream {
         private final PrintStream console;
         private final PrintStream file;
@@ -51,9 +76,12 @@ public class GameLogger {
         @Override
         public void write(int b) throws IOException {
             if (isNewLine && b != '\n' && b != '\r') {
-                String timePrefix = "[" + timeFormat.format(new Date()) + "] [" + prefix + "] ";
+                String caller = GameLogger.getCallerClassName();
+                String timePrefix = "[" + timeFormat.format(new Date()) + "] [" + prefix + "] [" + caller + "] ";
+
                 if (console != null) console.print(timePrefix);
                 if (file != null) file.print(timePrefix);
+
                 isNewLine = false;
             }
 

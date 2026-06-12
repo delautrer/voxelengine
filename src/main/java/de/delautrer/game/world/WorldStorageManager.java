@@ -352,18 +352,18 @@ public class WorldStorageManager {
     // ==========================================
 
     public void shutdown() {
-        System.out.println("[Persistence] Saving world data...");
+        System.out.println("Saving world data...");
         running = false;
         try {
             writerThread.join();
-            System.out.println("[Persistence] All chunks saved.");
+            System.out.println("All chunks saved.");
 
             for (RegionFile region : regionCache.values()) {
                 region.close();
             }
             regionCache.clear();
 
-            System.out.println("[Persistence] World was successfully saved.");
+            System.out.println("World was successfully saved.");
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } catch (Exception e) {

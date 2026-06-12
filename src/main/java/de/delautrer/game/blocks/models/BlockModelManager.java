@@ -16,7 +16,7 @@ import de.delautrer.game.registry.Registries;
 public class BlockModelManager {
 
     public static void loadAllModels(TextureStitcher.AtlasResult atlas) {
-        System.out.println("[BlockModelManager] Loading BlockModels from JSONs...");
+        System.out.println("Loading BlockModels from JSONs...");
 
         TextureStitcher.AtlasRegion missingRegion = atlas.regions.values().iterator().next();
         if (atlas.regions.containsKey("dirt")) {
@@ -44,7 +44,7 @@ public class BlockModelManager {
 
         try (InputStream is = BlockModelManager.class.getResourceAsStream(path)) {
             if (is == null) {
-                System.err.println("[BlockModelManager] WARNING: No model found for " + blockName);
+                System.err.println("WARNING: No model found for " + blockName);
                 model.fillMissing(missingRegion);
                 return model;
             }
@@ -147,7 +147,7 @@ public class BlockModelManager {
                 }
             }
         } catch (Exception e) {
-            System.err.println("[BlockModelManager] Error while parsing model path: " + path);
+            System.err.println("Error while parsing model path: " + path);
             e.printStackTrace();
         }
 
@@ -189,7 +189,7 @@ public class BlockModelManager {
                     }
                 }
             } catch (Exception e) {
-                System.err.println("[BlockModelManager] Error reading the texture: " + path);
+                System.err.println("Error reading the texture: " + path);
             }
         }
         return textures;

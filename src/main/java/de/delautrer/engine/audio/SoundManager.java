@@ -27,7 +27,7 @@ public class SoundManager {
         List<String> files = ResourceUtils.listResourceFolder(folderPath);
 
         if (files == null || files.isEmpty()) {
-            System.err.println("[SoundManager] Hm. Where sounds?... " + folderPath);
+            System.err.println("Hm. Where sounds?... " + folderPath);
             return;
         }
 
@@ -39,7 +39,7 @@ public class SoundManager {
             // Laden als Stream (funktioniert im .jar / .exe)
             try (InputStream is = SoundManager.class.getResourceAsStream(fullPath)) {
                 if (is == null) {
-                    System.err.println("[SoundManager] Could not read file: " + fullPath);
+                    System.err.println("Could not read file: " + fullPath);
                     continue;
                 }
 
@@ -53,10 +53,10 @@ public class SoundManager {
                             audioEngine.loadSound(path);
                         }
                     }
-                    //System.out.println("[SoundManager] Geladen: " + def.materialName);
+                    //System.out.println("Geladen: " + def.materialName);
                 }
             } catch (Exception e) {
-                System.err.println("[SoundManager] Error while parsing: " + fileName + ": " + e.getMessage());
+                System.err.println("Error while parsing: " + fileName + ": " + e.getMessage());
             }
         }
     }

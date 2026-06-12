@@ -33,7 +33,7 @@ public class MultiNoiseBiomeRegistry {
 
         try (InputStream is = MultiNoiseBiomeRegistry.class.getResourceAsStream("/assets/world/biomes.json")) {
             if (is == null) {
-                System.err.println("[BiomeRegistry] ERROR: /assets/world/biomes.json not found! Using fallback.");
+                System.err.println("ERROR: /assets/world/biomes.json not found! Using fallback.");
                 BIOMES = new ArrayList<>(Collections.singletonList(FALLBACK_BIOME));
                 isInitialized = true;
                 return;
@@ -42,13 +42,13 @@ public class MultiNoiseBiomeRegistry {
             if (loaded != null && !loaded.isEmpty()) {
                 BIOMES = Collections.unmodifiableList(loaded);
                 isInitialized = true;
-                System.out.println("[BiomeRegistry] Loaded " + BIOMES.size() + " biomes from JSON.");
+                System.out.println("Loaded " + BIOMES.size() + " biomes from JSON.");
             } else {
                 BIOMES = new ArrayList<>(Collections.singletonList(FALLBACK_BIOME));
                 isInitialized = true;
             }
         } catch (Exception e) {
-            System.err.println("[BiomeRegistry] Failed to load biomes: " + e.getMessage());
+            System.err.println("Failed to load biomes: " + e.getMessage());
             BIOMES = new ArrayList<>(Collections.singletonList(FALLBACK_BIOME));
             isInitialized = true;
             e.printStackTrace();

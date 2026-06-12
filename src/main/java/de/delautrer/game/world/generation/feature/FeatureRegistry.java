@@ -27,7 +27,7 @@ public class FeatureRegistry {
 
         try (InputStream is = FeatureRegistry.class.getResourceAsStream("/assets/world/ores.json")) {
             if (is == null) {
-                System.out.println("[FeatureRegistry] No ores.json found, skipping data-driven ore generation.");
+                System.out.println("No ores.json found, skipping data-driven ore generation.");
                 isInitialized = true;
                 return;
             }
@@ -44,10 +44,10 @@ public class FeatureRegistry {
                         FEATURES.add(feature);
                     }
                 }
-                System.out.println("[FeatureRegistry] Loaded " + FEATURES.size() + " data-driven features.");
+                System.out.println("Loaded " + FEATURES.size() + " data-driven features.");
             }
         } catch (Exception e) {
-            System.err.println("[FeatureRegistry] Error loading ores.json:");
+            System.err.println("Error loading ores.json:");
             e.printStackTrace();
         }
 
@@ -56,13 +56,13 @@ public class FeatureRegistry {
 
     private static PlacedFeature parseFeature(PlacedFeatureDTO dto) {
         if (dto.feature == null || dto.placement == null) {
-            System.err.println("[FeatureRegistry] Missing feature or placement in DTO for id: " + dto.id);
+            System.err.println("Missing feature or placement in DTO for id: " + dto.id);
             return null;
         }
 
         ConfiguredFeature configured = parseConfiguredFeature(dto.feature);
         if (configured == null) {
-            System.err.println("[FeatureRegistry] Failed to parse ConfiguredFeature for id: " + dto.id);
+            System.err.println("Failed to parse ConfiguredFeature for id: " + dto.id);
             return null;
         }
 
@@ -81,7 +81,7 @@ public class FeatureRegistry {
     private static ConfiguredFeature parseConfiguredFeature(ConfiguredFeatureDTO dto) {
         byte blockId = getBlockId(dto.block);
         if (blockId == 0) {
-            System.err.println("[FeatureRegistry] Invalid block for feature: " + dto.block);
+            System.err.println("Invalid block for feature: " + dto.block);
             return null; // Invalid block
         }
 
@@ -92,7 +92,7 @@ public class FeatureRegistry {
             if (carrierId == 0) carrierId = blockId; // Fallback
             return new MegaVeinFeature(blockId, carrierId, dto.ore_chance > 0 ? dto.ore_chance : 0.1);
         }
-        System.err.println("[FeatureRegistry] Unknown feature type: " + dto.type);
+        System.err.println("Unknown feature type: " + dto.type);
         return null;
     }
 
@@ -118,7 +118,7 @@ public class FeatureRegistry {
         if (!isInitialized) init();
         
         if (FEATURES.isEmpty()) {
-            System.err.println("[FeatureRegistry] Warning: generateOres called, but FEATURES list is empty!");
+            System.err.println("Warning: generateOres called, but FEATURES list is empty!");
             return;
         }
         

@@ -48,7 +48,7 @@ public class Engine {
     }
 
     private void init() {
-        System.out.println("[Engine] Starting Veinstride Engine...");
+        System.out.println("Starting Veinstride Engine...");
         window = new Window(1280, 720, "Veinstride - " + Constants.VERSION);
         window.disableCursor();
 
@@ -59,23 +59,23 @@ public class Engine {
         graphicsContext = new VulkanContext(window);
         inputManager = new InputManager(window.getHandle());
 
-        System.out.println("[Engine] Building block atlas...");
+        System.out.println("Building block atlas...");
         try {
             java.util.Set<String> reqBlocks = BlockModelManager.getRequiredTextures();
             blockAtlas = TextureStitcher.buildAtlas(reqBlocks, "atlas_blocks_debug.png", "assets/textures/block",
                     false);
             BlockModelManager.loadAllModels(blockAtlas);
         } catch (Exception e) {
-            System.err.println("[Engine] Error while creating block atlas: " + e.getMessage());
+            System.err.println("Error while creating block atlas: " + e.getMessage());
         }
 
-        System.out.println("[Engine] Building item atlas...");
+        System.out.println("Building item atlas...");
         try {
             java.util.Set<String> reqItems = ItemModelManager.getRequiredTextures();
             itemAtlas = TextureStitcher.buildAtlas(reqItems, "atlas_items_debug.png", "assets/textures/item", true);
             ItemModelManager.loadAllModels(itemAtlas);
         } catch (Exception e) {
-            System.err.println("[Engine] Error while creating item atlas: " + e.getMessage());
+            System.err.println("Error while creating item atlas: " + e.getMessage());
         }
 
         BlockModelManager.loadAllModels(blockAtlas);
@@ -134,7 +134,7 @@ public class Engine {
     }
 
     private void cleanup() {
-        System.out.println("[Engine] Shutting down...");
+        System.out.println("Shutting down...");
         graphicsContext.waitIdle();
 
         if (audioEngine != null)
@@ -149,7 +149,7 @@ public class Engine {
         if (window != null)
             window.cleanup();
 
-        System.out.println("[Engine] Gone. RIP lovely engine. See you soon my fren.");
+        System.out.println("Gone. RIP lovely engine. See you soon my fren.");
     }
 
     public AudioEngine getAudioEngine() {

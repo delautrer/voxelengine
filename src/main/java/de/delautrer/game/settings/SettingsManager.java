@@ -16,7 +16,7 @@ public class SettingsManager {
             // Datei existiert noch nicht -> Standardwerte nehmen und speichern
             currentSettings = new GameSettings();
             save();
-            System.out.println("[SettingsManager] Created default settings.");
+            System.out.println("Created default settings.");
             return;
         }
 
@@ -26,9 +26,9 @@ public class SettingsManager {
             currentSettings.validate();
             save();
 
-            System.out.println("[SettingsManager] Settings loaded successfully.");
+            System.out.println("Settings loaded successfully.");
         } catch (IOException e) {
-            System.err.println("[SettingsManager] Failed to load settings. Using defaults.");
+            System.err.println("Failed to load settings. Using defaults.");
             e.printStackTrace();
             currentSettings = new GameSettings();
         }
@@ -40,7 +40,7 @@ public class SettingsManager {
             String json = GSON.toJson(currentSettings);
             Files.writeString(GamePaths.SETTINGS_FILE, json, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         } catch (IOException e) {
-            System.err.println("[SettingsManager] Failed to save settings.");
+            System.err.println("Failed to save settings.");
             e.printStackTrace();
         }
     }
