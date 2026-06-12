@@ -31,7 +31,7 @@ public class HUD {
             pixelScale = 4.0f;
 
         PlayerInventory inventory = interaction.getInventory();
-        boolean isScreenOpen = inventory.isOpen();
+        boolean isScreenOpen = inventory.isOpen() || interaction.getPlayer().getOpenedInventory() != null;
 
         boolean isChatOpen = interaction.getPlayer().isChatOpen();
 

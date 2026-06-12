@@ -7,7 +7,7 @@ import org.joml.Vector3i;
 import de.delautrer.Constants;
 import de.delautrer.game.registry.Registries;
 
-public class EmptyBucketItem extends Item {
+class EmptyBucketItem extends Item {
 
     public EmptyBucketItem(String name, String textureName) {
         super(name, textureName);

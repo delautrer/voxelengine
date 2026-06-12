@@ -26,9 +26,13 @@ public abstract class MenuScreen extends Screen {
     public void handleMenuInput(InputManager input, float uiMouseX, float uiMouseY) {
         List<UIElement> elementsCopy = getFlattenedElements();
 
+        boolean listHandled = false;
+
         for (UIElement element : elementsCopy) {
             if (element instanceof UIScrollableList) {
-                ((UIScrollableList) element).handleInput(input, uiMouseX, uiMouseY);
+                if (((UIScrollableList) element).handleInput(input, uiMouseX, uiMouseY)) {
+                    listHandled = true;
+                }
             }
             if (element instanceof UISlider) {
                 ((UISlider) element).handleInput(input, uiMouseX, uiMouseY);
@@ -40,19 +44,13 @@ public abstract class MenuScreen extends Screen {
 
         // --- 1. MAUS-KLICKS (Fokus setzen & Buttons klicken) ---
         if (input.isActionJustPressed("INTERACT_BREAK")) {
-            boolean clickHandled = false;
+            boolean clickHandled = listHandled;
 
             for (int i = elementsCopy.size() - 1; i >= 0; i--) {
                 UIElement element = elementsCopy.get(i);
 
                 if (element instanceof UIInputField) {
                     ((UIInputField) element).setFocused(element.isHovered(uiMouseX, uiMouseY));
-                }
-
-                if (element instanceof UIScrollableList) {
-                    if (((UIScrollableList) element).handleInput(input, uiMouseX, uiMouseY)) {
-                        clickHandled = true;
-                    }
                 }
 
                 if (!clickHandled && element.isHovered(uiMouseX, uiMouseY)) {

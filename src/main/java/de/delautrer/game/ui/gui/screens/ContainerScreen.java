@@ -141,8 +141,8 @@ public abstract class ContainerScreen extends MenuScreen {
 
             if (mouseDisplayAmount > 1 && font != null) {
                 String amountStr = String.valueOf(mouseDisplayAmount);
-                float textX = mouseX + (itemSize / 2.0f) - ((mouseDisplayAmount > 9 ? 14.0f : 10.0f) * pixelScale);
-                builder.drawText(amountStr, textX, invertedMouseY - (itemSize / 2.0f) + (3.0f * pixelScale), 0.55f, font);
+                float textX = mouseX + (slotSize / 2.0f) - ((mouseDisplayAmount > 9 ? 12.0f : 8.0f) * pixelScale);
+                builder.drawText(amountStr, textX, invertedMouseY - (slotSize / 2.0f) + (2.0f * pixelScale), 0.55f, font);
             }
         }
 
@@ -225,7 +225,7 @@ public abstract class ContainerScreen extends MenuScreen {
             Slot hovered = getHoveredSlotObj(mouseX, rawMouseY);
             boolean fullStack = input.isControlDown();
 
-            if (hovered != null && hovered.hasItem()) {
+            if (hovered != null && hovered.hasItem() && !(hovered instanceof de.delautrer.game.ui.gui.container.CraftingResultSlot)) {
                 ItemStack stack = hovered.getStack();
                 int amount = fullStack ? stack.amount : 1;
                 ItemStack dropStack = new ItemStack(stack.type, amount);

@@ -257,7 +257,8 @@ public class WorldSelectScreen extends MenuScreen {
         });
         UIButton createBtn = new UIButton(0, 0, 190, 40, "Create", () -> {
             String worldName = nameInput.getText().isEmpty() ? "New World" : nameInput.getText();
-            String seedStr = seedInput.getText().replaceAll("[^0-9]", "");
+            String seedStr = seedInput.getText().replaceAll("[^\\-0-9]", "");
+            if (seedStr.equals("-")) seedStr = "";
             long seed = seedStr.isEmpty() ? (long) (Math.random() * Long.MAX_VALUE) : Long.valueOf(seedStr);
             
             String genType = isSuperFlat ? "FLAT" : "DEFAULT";
@@ -288,10 +289,7 @@ public class WorldSelectScreen extends MenuScreen {
         layoutBox.setPosition(centerX - layoutBox.getWidth() / 2.0f, centerY - layoutBox.getHeight() / 2.0f - titleSpace / 2.0f);
 
         elements.add(layoutBox);
-        
-        // Add them to elements for event handling (VBox passes events to children, but just in case, we can keep them in elements as well or let VBox handle it)
-        // Actually VBox inherits from UILayout which is UIElement. Wait! Does UILayout delegate handleMouseClick to children?
-        // Let's check if UILayout delegates input.
+
     }
 
     private void deleteDirectory(File dir) {
@@ -343,7 +341,7 @@ public class WorldSelectScreen extends MenuScreen {
         // 2. Wenn das Popup aktiv ist, dimmen wir den Hintergrund und zeichnen ein Panel
         if (isCreatingWorld) {
             // Dunkler Schleier über dem ganzen Bildschirm (Z = 0.02f)
-            builder.addRect(0, 0, 0.02f, width, height, 0.01f, 0.01f, 0.015f, 0.85f);
+            // builder.addRect(0, 0, 0.02f, width, height, 0.01f, 0.01f, 0.015f, 0.85f);
 
             // Finde die layoutBox, falls vorhanden
             de.delautrer.game.ui.elements.UILayout layoutBox = null;

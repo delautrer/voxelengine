@@ -2,10 +2,13 @@
   "type": "shaped",
   "pattern": [
     "A A",
-    "AAA"
+    " A "
   ],
   "keys": {
-    "A": "engine:iron_ingot"
+    "A": [
+      "engine:iron_ingot",
+      "engine:zinc_ingot"
+    ]
   },
   "result": {
     "count": 1,
