@@ -46,6 +46,39 @@ public class Window {
         return height;
     }
 
+    public void setIcon(String assetPath) {
+        try (org.lwjgl.system.MemoryStack stack = org.lwjgl.system.MemoryStack.stackPush()) {
+            java.nio.IntBuffer w = stack.mallocInt(1);
+            java.nio.IntBuffer h = stack.mallocInt(1);
+            java.nio.IntBuffer comp = stack.mallocInt(1);
+
+            java.nio.ByteBuffer fileBuffer;
+            try {
+                fileBuffer = de.delautrer.engine.utils.AssetManager.loadResource(assetPath);
+            } catch (Exception e) {
+                System.err.println("Failed to load icon resource: " + assetPath);
+                return;
+            }
+
+            java.nio.ByteBuffer image = org.lwjgl.stb.STBImage.stbi_load_from_memory(fileBuffer, w, h, comp, 4);
+            if (image == null) {
+                System.err.println("Failed to parse icon image: " + org.lwjgl.stb.STBImage.stbi_failure_reason());
+                return;
+            }
+
+            org.lwjgl.glfw.GLFWImage.Buffer iconBuffer = org.lwjgl.glfw.GLFWImage.malloc(1);
+            org.lwjgl.glfw.GLFWImage icon = org.lwjgl.glfw.GLFWImage.malloc();
+            icon.set(w.get(0), h.get(0), image);
+            iconBuffer.put(0, icon);
+
+            org.lwjgl.glfw.GLFW.glfwSetWindowIcon(handle, iconBuffer);
+
+            icon.free();
+            iconBuffer.free();
+            org.lwjgl.stb.STBImage.stbi_image_free(image);
+        }
+    }
+
     public void disableCursor() {
         GLFW.glfwSetInputMode(handle, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED);
     }

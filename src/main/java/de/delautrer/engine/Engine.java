@@ -50,6 +50,7 @@ public class Engine {
     private void init() {
         System.out.println("Starting Veinstride Engine...");
         window = new Window(1280, 720, "Veinstride - " + Constants.VERSION);
+        window.setIcon("assets/textures/item/cobblestone.png");
         window.disableCursor();
 
         audioEngine = new AudioEngine();

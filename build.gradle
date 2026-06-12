@@ -102,6 +102,9 @@ task proguard(type: proguard.gradle.ProGuardTask, dependsOn: shadowJar) {
     configuration 'proguard-rules.pro'
 }
 
+def projectDrive = project.projectDir.absolutePath.substring(0, 3) // e.g. "E:\"
+def safeTempDir = projectDrive + "Temp_VoxelEngine"
+
 launch4j {
     mainClassName = mainClassName
     copyConfigurable = project.tasks.proguard.outputs.files.singleFile
@@ -115,6 +118,17 @@ launch4j {
     bundledJrePath = 'jre'
 
     jreMinVersion = '21'
+    icon = "${safeTempDir}/icon.ico"
+}
+
+task copyIconToTemp(type: Copy) {
+    doNotTrackState("Avoid locking temp directory")
+    from 'icon.ico'
+    into safeTempDir
+}
+
+tasks.named('createExe') {
+    dependsOn copyIconToTemp
 }
 
 task buildExe(dependsOn: ['createExe']) {
