@@ -38,7 +38,7 @@ public class UIProgressBar extends UIElement {
         float currentFillWidth = maxFillWidth * progress;
 
         if (currentFillWidth > 0.0f) {
-            builder.addCroppedAtlasQuad(x - 15f, y + padding, 0.2f, currentFillWidth, height - (padding * 2), 2, 0,
+            builder.addCroppedAtlasQuad(x + padding, y + padding, 0.2f, currentFillWidth, height - (padding * 2), 2, 0,
                     progress, MENU_GRID_SIZE);
         }
     }

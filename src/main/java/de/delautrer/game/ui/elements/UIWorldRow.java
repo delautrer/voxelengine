@@ -97,8 +97,17 @@ public class UIWorldRow extends UIElement {
             String pathText = "Saves: /" + safeFolderName;
             builder.drawText(pathText, textX, textY - 40.0f, 0.14f, font, 0.5f);
             
-            if (data != null && data.lastOpenedVersion != null && !data.lastOpenedVersion.equals(de.delautrer.Constants.VERSION)) {
-                builder.drawText("Version: " + data.lastOpenedVersion + " (Current: " + de.delautrer.Constants.VERSION + ")", textX, textY - 60.0f, 0.14f, font, 0.8f, 0.3f, 0.3f, 1.0f, 0.5f);
+            String verText = null;
+            if (data != null) {
+                if (data.lastOpenedVersion == null) {
+                    verText = "Warning: Old Version";
+                } else if (!data.lastOpenedVersion.equals(de.delautrer.Constants.VERSION)) {
+                    verText = "Warning: Version " + data.lastOpenedVersion;
+                }
+            }
+            if (verText != null) {
+                float tw = builder.getTextWidth(verText, font) * 0.5f;
+                builder.drawText(verText, x + width - tw - 15.0f, y + height - 25.0f, 0.14f, font, 0.9f, 0.3f, 0.3f, 1.0f, 0.5f);
             }
         }
     }
