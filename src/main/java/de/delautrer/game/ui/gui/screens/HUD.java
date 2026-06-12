@@ -99,7 +99,7 @@ public class HUD {
             float crosshairSize = 16.0f * pixelScale;
             float cx = (float) Math.floor((width - crosshairSize) / 2.0f);
             float cy = (float) Math.floor((height - crosshairSize) / 2.0f);
-            builder.addAtlasQuad(cx, cy, 0.0f, crosshairSize, crosshairSize, 0, 1, 1, 1, false);
+            builder.addAtlasQuadInvert(cx, cy, 0.0f, crosshairSize, crosshairSize, 0, 1, 1, 1, false);
         }
 
         // --- 3. HOTBAR ---

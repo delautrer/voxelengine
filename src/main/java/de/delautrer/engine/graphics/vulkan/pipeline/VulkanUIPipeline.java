@@ -13,6 +13,7 @@ public class VulkanUIPipeline {
     private final VulkanContext context;
     private long pipelineLayout;
     private long graphicsPipeline;
+    private long invertGraphicsPipeline;
     private long descriptorSetLayout;
 
     public VulkanUIPipeline(VulkanContext context, VulkanSwapchain swapchain, VulkanRenderPass renderPass) {
@@ -171,6 +172,13 @@ public class VulkanUIPipeline {
                     pGraphicsPipeline);
             graphicsPipeline = pGraphicsPipeline.get(0);
 
+            // --- INVERT PIPELINE ---
+            colorBlendAttachment.srcColorBlendFactor(VK10.VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR);
+            colorBlendAttachment.dstColorBlendFactor(VK10.VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR);
+            VK10.vkCreateGraphicsPipelines(context.getDevice(), VK10.VK_NULL_HANDLE, pipelineInfo, null,
+                    pGraphicsPipeline);
+            invertGraphicsPipeline = pGraphicsPipeline.get(0);
+
             VK10.vkDestroyShaderModule(context.getDevice(), vertShaderModule, null);
             VK10.vkDestroyShaderModule(context.getDevice(), fragShaderModule, null);
         }
@@ -178,6 +186,10 @@ public class VulkanUIPipeline {
 
     public long getHandle() {
         return graphicsPipeline;
+    }
+
+    public long getInvertHandle() {
+        return invertGraphicsPipeline;
     }
 
     public long getPipelineLayout() {
@@ -190,6 +202,7 @@ public class VulkanUIPipeline {
 
     public void cleanup() {
         VK10.vkDestroyPipeline(context.getDevice(), graphicsPipeline, null);
+        VK10.vkDestroyPipeline(context.getDevice(), invertGraphicsPipeline, null);
         VK10.vkDestroyPipelineLayout(context.getDevice(), pipelineLayout, null);
         VK10.vkDestroyDescriptorSetLayout(context.getDevice(), descriptorSetLayout, null);
     }

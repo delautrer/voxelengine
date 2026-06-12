@@ -156,6 +156,51 @@ public class UIMeshBuilder {
         addClippedQuad(UITexture.UI, x, y, x + w, y + h, z, 1f, 1f, 1f, u0, flipV ? v1 : v0, u1, flipV ? v0 : v1);
     }
 
+    public void addAtlasQuadInvert(float x, float y, float z, float w, float h, int gridX, int gridY, int gridW, int gridH,
+            boolean flipV) {
+        float epsilon = 0.0005f;
+        float u0 = (float) gridX / UI_GRID + epsilon;
+        float v0 = (float) gridY / UI_GRID + epsilon;
+        float u1 = (float) (gridX + gridW) / UI_GRID - epsilon;
+        float v1 = (float) (gridY + gridH) / UI_GRID - epsilon;
+
+        addClippedQuad(UITexture.INVERT_UI, x, y, x + w, y + h, z, 1f, 1f, 1f, u0, flipV ? v1 : v0, u1, flipV ? v0 : v1);
+    }
+
+    public void addAtlasQuadClippedV(float x, float y, float z, float w, float drawH, float originalH, int gridX, int gridY, int gridW, int gridH, boolean flipV) {
+        float epsilon = 0.0005f;
+        float u0 = (float) gridX / UI_GRID + epsilon;
+        float v0 = (float) gridY / UI_GRID + epsilon;
+        float u1 = (float) (gridX + gridW) / UI_GRID - epsilon;
+        float v1 = (float) (gridY + gridH) / UI_GRID - epsilon;
+
+        float ratio = drawH / originalH;
+        
+        float drawV0, drawV1;
+        if (flipV) {
+            drawV0 = v1; 
+            drawV1 = v1 - (v1 - v0) * ratio;
+        } else {
+            drawV0 = v0;
+            drawV1 = v0 + (v1 - v0) * ratio;
+        }
+
+        addClippedQuad(UITexture.UI, x, y, x + w, y + drawH, z, 1f, 1f, 1f, u0, drawV0, u1, drawV1);
+    }
+
+    public void addAtlasQuadClippedH(float x, float y, float z, float drawW, float originalW, float h, int gridX, int gridY, int gridW, int gridH, boolean flipV) {
+        float epsilon = 0.0005f;
+        float u0 = (float) gridX / UI_GRID + epsilon;
+        float v0 = (float) gridY / UI_GRID + epsilon;
+        float u1 = (float) (gridX + gridW) / UI_GRID - epsilon;
+        float v1 = (float) (gridY + gridH) / UI_GRID - epsilon;
+
+        float ratio = drawW / originalW;
+        float drawU1 = u0 + (u1 - u0) * ratio;
+
+        addClippedQuad(UITexture.UI, x, y, x + drawW, y + h, z, 1f, 1f, 1f, u0, flipV ? v1 : v0, drawU1, flipV ? v0 : v1);
+    }
+
     public void addRect(float x, float y, float z, float w, float h, float r, float g, float b, float a) {
         addClippedQuad(UITexture.UI, x, y, x + w, y + h, z, r, g, b, 0.0f, 0.0f, 0.0f, 0.0f);
     }

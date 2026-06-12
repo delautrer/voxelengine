@@ -45,9 +45,11 @@ public class UIRenderSystem implements IRenderSystem {
             // Dynamisch die Draw-Calls abarbeiten (perfekt Z-Sortiert)
             for (UIDrawCall dc : packet.uiDrawCalls) {
                 VulkanTexture tex = null;
+                boolean invert = false;
                 if (dc.texture instanceof de.delautrer.game.ui.elements.UITexture uiTex) {
                     tex = switch (uiTex) {
                         case UI -> (VulkanTexture) packet.uiTexture;
+                        case INVERT_UI -> { invert = true; yield (VulkanTexture) packet.uiTexture; }
                         case ITEM -> (VulkanTexture) packet.itemTexture;
                         case FONT -> (VulkanTexture) packet.fontTexture;
                         case BLOCK -> (VulkanTexture) packet.blockUITexture;
@@ -57,6 +59,11 @@ public class UIRenderSystem implements IRenderSystem {
                 }
 
                 if (tex != null) {
+                    if (invert) {
+                        VK10.vkCmdBindPipeline(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getInvertHandle());
+                    } else {
+                        VK10.vkCmdBindPipeline(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getHandle());
+                    }
                     VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS,
                             pipeline.getPipelineLayout(), 0, stack.longs(tex.getDescriptorSet()), null);
                     // Parameter: commandBuffer, indexCount, instanceCount, firstIndex,

@@ -48,33 +48,41 @@ public class FurnaceScreen extends ContainerScreen {
         int maxCookTime = furnace.getMaxCookTime();
 
         // 1. Brennstoff-Flamme zeichnen (zwischen Slot 1 und 0)
-        float flameX = guiX + 54f * pixelScale;
-        float flameY = guiY + 132f * pixelScale;
-        float flameW = 24f * pixelScale;
+        float flameX = guiX + 70f * pixelScale;
+        float flameY = guiY + 144f * pixelScale;
+        float flameW = 16f * pixelScale;
         float flameH = 16f * pixelScale;
 
-        // Dunkler Hintergrund für die Flamme
-        builder.addRect(flameX, flameY, 0.05f, flameW, flameH, 0.15f, 0.15f, 0.15f, 1.0f);
+        // Hintergrund-Textur (GridX=1, GridY=15, flipV=true da Vulkan Y invertiert)
+        builder.addAtlasQuad(flameX, flameY, 0.05f, flameW, flameH, 1, 15, 1, 1, true);
 
         if (burnTime > 0 && maxBurnTime > 0) {
             float fuelRatio = burnTime / (float) maxBurnTime;
             float litH = flameH * fuelRatio;
-            // Orange-rote Flamme (oben verankert, schrumpft nach oben)
-            builder.addRect(flameX, flameY, 0.06f, flameW, litH, 1.0f, 0.18f, 0.0f, 1.0f);
+            
+            if (litH > 0) {
+                // Zeichne die farbige Textur (X:0, Y:15) abgeschnitten (clipped) von unten nach oben
+                builder.addAtlasQuadClippedV(flameX, flameY, 0.06f, flameW, litH, flameH, 0, 15, 1, 1, true);
+            }
         }
 
         // 2. Fortschritts-Pfeil/Balken zeichnen (zwischen den Spalten)
-        float arrowX = guiX + 96f * pixelScale;
-        float arrowY = guiY + 128f * pixelScale;
-        float arrowW = 24f * pixelScale;
+        float arrowX = guiX + 100f * pixelScale;
+        float arrowY = guiY + 144f * pixelScale;
+        float arrowW = 16f * pixelScale;
+        float arrowH = 16f * pixelScale;
 
-        // Dunkler Balken-Hintergrund
-        builder.addRect(arrowX, arrowY + 8f * pixelScale, 0.05f, arrowW, 8f * pixelScale, 0.15f, 0.15f, 0.15f, 1.0f);
+        // Pfeil-Hintergrund (GridX=3, GridY=15)
+        builder.addAtlasQuad(arrowX, arrowY, 0.05f, arrowW, arrowH, 3, 15, 1, 1, true);
 
-        if (cookTime > 0) {
+        if (cookTime > 0 && maxCookTime > 0) {
             float cookRatio = cookTime / (float) maxCookTime;
-            // Grüner Fortschritt
-            builder.addRect(arrowX, arrowY + 8f * pixelScale, 0.06f, arrowW * cookRatio, 8f * pixelScale, 0.0f, 1.0f, 0.12f, 1.0f);
+            float fillW = arrowW * cookRatio;
+            
+            if (fillW > 0) {
+                // Gefüllter Pfeil (GridX=2, GridY=15) abgeschnitten von links nach rechts
+                builder.addAtlasQuadClippedH(arrowX, arrowY, 0.06f, fillW, arrowW, arrowH, 2, 15, 1, 1, true);
+            }
         }
 
         if (font != null) {
@@ -82,7 +90,7 @@ public class FurnaceScreen extends ContainerScreen {
             builder.drawText("Furnace", panelX + padding, titleY, 0.1f, font);
 
             // Pfeiltext zeichnen
-            builder.drawText("->", arrowX + 5f * pixelScale, arrowY + 11f * pixelScale, 0.07f, font);
+            //builder.drawText("->", arrowX + 5f * pixelScale, arrowY + 11f * pixelScale, 0.07f, font);
         }
     }
 
@@ -91,9 +99,9 @@ public class FurnaceScreen extends ContainerScreen {
         super.render(builder, mouseX, mouseY);
 
         // Hover-Tooltip für die Flamme
-        float flameX = guiX + 54f * pixelScale;
-        float flameY = guiY + 132f * pixelScale;
-        float flameW = 24f * pixelScale;
+        float flameX = guiX + 70f * pixelScale;
+        float flameY = guiY + 144f * pixelScale;
+        float flameW = 16f * pixelScale;
         float flameH = 16f * pixelScale;
 
         float invertedMouseY = height - mouseY;

@@ -15,13 +15,13 @@ public class FurnaceContainer extends BaseContainer {
         this.furnaceInventory = furnaceInventory;
 
         // 1. Schmelz-Eingabe (Slot 0)
-        addSlot(new Slot(furnaceInventory, 0, 54, 152));
+        addSlot(new Slot(furnaceInventory, 0, 66, 164));
 
         // 2. Brennstoff-Eingabe (Slot 1)
-        addSlot(new Slot(furnaceInventory, 1, 54, 104));
+        addSlot(new Slot(furnaceInventory, 1, 66, 116));
 
         // 3. Schmelz-Ergebnis (Slot 2) - Kann nur entnommen werden!
-        addSlot(new Slot(furnaceInventory, 2, 138, 128) {
+        addSlot(new Slot(furnaceInventory, 2, 150-24, 140) {
             @Override
             public boolean isItemValid(ItemStack stack) {
                 return false; // Man darf hier nichts hineinlegen!

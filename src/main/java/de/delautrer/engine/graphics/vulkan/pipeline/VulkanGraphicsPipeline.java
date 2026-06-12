@@ -13,6 +13,8 @@ public class VulkanGraphicsPipeline {
     private long pipelineLayout;
     private long graphicsPipeline; // Für Stein, Erde, Gras
     private long transparentPipeline; // Für Wasser
+    private long cloudDepthPipeline;
+    private long cloudColorPipeline;
 
     public VulkanGraphicsPipeline(VulkanContext context, VulkanSwapchain swapchain, VulkanRenderPass renderPass) {
         this.context = context;
@@ -121,6 +123,27 @@ public class VulkanGraphicsPipeline {
             VK10.vkCreateGraphicsPipelines(context.getDevice(), VK10.VK_NULL_HANDLE, pipelineInfo, null, pTrans);
             transparentPipeline = pTrans.get(0);
 
+            // --- 3. CLOUD DEPTH PREPASS PIPELINE ---
+            VkPipelineColorBlendAttachmentState.Buffer blendCloudDepth = VkPipelineColorBlendAttachmentState.calloc(1, stack);
+            blendCloudDepth.colorWriteMask(0).blendEnable(false);
+            VkPipelineColorBlendStateCreateInfo colorBlendCloudDepth = VkPipelineColorBlendStateCreateInfo.calloc(stack)
+                    .sType(VK10.VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO).pAttachments(blendCloudDepth);
+            
+            pipelineInfo.pDepthStencilState(depthTrans).pColorBlendState(colorBlendCloudDepth);
+            LongBuffer pCloudDepth = stack.mallocLong(1);
+            VK10.vkCreateGraphicsPipelines(context.getDevice(), VK10.VK_NULL_HANDLE, pipelineInfo, null, pCloudDepth);
+            cloudDepthPipeline = pCloudDepth.get(0);
+
+            // --- 4. CLOUD COLOR PIPELINE ---
+            VkPipelineDepthStencilStateCreateInfo depthCloudColor = VkPipelineDepthStencilStateCreateInfo.calloc(stack)
+                    .sType(VK10.VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO).depthTestEnable(true)
+                    .depthWriteEnable(false).depthCompareOp(VK10.VK_COMPARE_OP_EQUAL);
+
+            pipelineInfo.pDepthStencilState(depthCloudColor).pColorBlendState(colorBlendTrans);
+            LongBuffer pCloudColor = stack.mallocLong(1);
+            VK10.vkCreateGraphicsPipelines(context.getDevice(), VK10.VK_NULL_HANDLE, pipelineInfo, null, pCloudColor);
+            cloudColorPipeline = pCloudColor.get(0);
+
             VK10.vkDestroyShaderModule(context.getDevice(), vertModule, null);
             VK10.vkDestroyShaderModule(context.getDevice(), fragModule, null);
         }
@@ -164,6 +187,14 @@ public class VulkanGraphicsPipeline {
         return transparentPipeline;
     }
 
+    public long getCloudDepthHandle() {
+        return cloudDepthPipeline;
+    }
+
+    public long getCloudColorHandle() {
+        return cloudColorPipeline;
+    }
+
     public long getPipelineLayout() {
         return pipelineLayout;
     }
@@ -175,6 +206,8 @@ public class VulkanGraphicsPipeline {
     public void cleanup() {
         VK10.vkDestroyPipeline(context.getDevice(), graphicsPipeline, null);
         VK10.vkDestroyPipeline(context.getDevice(), transparentPipeline, null);
+        VK10.vkDestroyPipeline(context.getDevice(), cloudDepthPipeline, null);
+        VK10.vkDestroyPipeline(context.getDevice(), cloudColorPipeline, null);
         VK10.vkDestroyPipelineLayout(context.getDevice(), pipelineLayout, null);
         VK10.vkDestroyDescriptorSetLayout(context.getDevice(), descriptorSetLayout, null);
     }

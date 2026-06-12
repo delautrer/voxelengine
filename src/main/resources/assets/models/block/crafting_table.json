@@ -1,7 +1,9 @@
 {
   "textures": {
     "top": "crafting_table_top",
-    "bottom": "planks/oak",
-    "side": "crafting_table_side"
+    "bottom": "crafting_table_bottom",
+    "side": "crafting_table_side",
+    "front": "crafting_table_front",
+    "back": "crafting_table_front"
   }
 }

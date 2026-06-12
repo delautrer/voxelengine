@@ -40,8 +40,8 @@ public class CraftingTableScreen extends ContainerScreen {
             float titleY = panelY + panelH - (18.0f * pixelScale);
             builder.drawText("Crafting Table", panelX + padding, titleY, 0.1f, font);
 
-            // Pfeil zeichnen
-            builder.drawText("->", guiX + (120f * pixelScale), guiY + (146f * pixelScale), 0.1f, font);
+            // Leerer Pfeil zeichnen (Hintergrund-Pfeil ohne Fortschritt, da CraftingTable instant craftet)
+            builder.addAtlasQuad(guiX + (124f * pixelScale), guiY + (144f * pixelScale), 0.05f, 16f * pixelScale, 16f * pixelScale, 3, 15, 1, 1, true);
         }
     }
 }
