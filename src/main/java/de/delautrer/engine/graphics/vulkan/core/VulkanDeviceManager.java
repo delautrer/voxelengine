@@ -124,8 +124,10 @@ public class VulkanDeviceManager {
 
             VkPhysicalDeviceFeatures deviceFeatures = VkPhysicalDeviceFeatures.calloc(stack);
             VK10.vkGetPhysicalDeviceFeatures(physicalDevice, deviceFeatures);
+            VkPhysicalDeviceFeatures supportedFeatures = VkPhysicalDeviceFeatures.calloc(stack);
+            VK10.vkGetPhysicalDeviceFeatures(physicalDevice, supportedFeatures);
             deviceFeatures.fillModeNonSolid(true);
-            deviceFeatures.logicOp(true);
+            deviceFeatures.logicOp(supportedFeatures.logicOp());
 
             VkDeviceCreateInfo createInfo = VkDeviceCreateInfo.calloc(stack);
             createInfo.sType(VK10.VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO);

@@ -170,7 +170,7 @@ public class EntityRenderSystem implements IRenderSystem {
             }
             VK10.vkCmdBindPipeline(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, blockPipeline.getHandle());
             bindAndDraw(cmd, packet, blockPipeline.getPipelineLayout(), itemMeshes[frameIndex],
-                    ((VulkanTexture) packet.itemTexture).getDescriptorSet());
+                    ((VulkanTextureArray) packet.itemTextureArray).getDescriptorSet());
         }
     }
 

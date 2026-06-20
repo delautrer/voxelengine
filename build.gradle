@@ -19,7 +19,12 @@ tasks.withType(JavaCompile) {
 }
 
 project.ext.lwjglVersion = "3.4.1"
-project.ext.lwjglNatives = "natives-windows"
+project.ext.allNatives = [
+    "natives-windows",
+    "natives-linux",
+    "natives-macos",
+    "natives-macos-arm64"
+]
 def mainClassName = "de.delautrer.Main"
 
 tasks.register('run', JavaExec) {
@@ -37,26 +42,28 @@ dependencies {
 
     // --- Core LWJGL ---
     implementation "org.lwjgl:lwjgl"
-    implementation "org.lwjgl:lwjgl::$lwjglNatives"
+    project.ext.allNatives.each { implementation "org.lwjgl:lwjgl::$it" }
 
     // --- Window & Input ---
     implementation "org.lwjgl:lwjgl-glfw"
-    implementation "org.lwjgl:lwjgl-glfw::$lwjglNatives"
+    project.ext.allNatives.each { implementation "org.lwjgl:lwjgl-glfw::$it" }
 
-    // --- Rendering: Vulkan (no native binary needed on Windows) ---
+    // --- Rendering: Vulkan (macOS benötigt MoltenVK Natives) ---
     implementation "org.lwjgl:lwjgl-vulkan"
+    implementation "org.lwjgl:lwjgl-vulkan::natives-macos"
+    implementation "org.lwjgl:lwjgl-vulkan::natives-macos-arm64"
 
     // --- Audio: OpenAL ---
     implementation "org.lwjgl:lwjgl-openal"
-    implementation "org.lwjgl:lwjgl-openal::$lwjglNatives"
+    project.ext.allNatives.each { implementation "org.lwjgl:lwjgl-openal::$it" }
 
     // --- Texture & Font loading: STB ---
     implementation "org.lwjgl:lwjgl-stb"
-    implementation "org.lwjgl:lwjgl-stb::$lwjglNatives"
+    project.ext.allNatives.each { implementation "org.lwjgl:lwjgl-stb::$it" }
 
     // --- Memory management ---
     implementation "org.lwjgl:lwjgl-jemalloc"
-    implementation "org.lwjgl:lwjgl-jemalloc::$lwjglNatives"
+    project.ext.allNatives.each { implementation "org.lwjgl:lwjgl-jemalloc::$it" }
 
     // --- Math ---
     implementation "org.joml:joml:1.10.5"

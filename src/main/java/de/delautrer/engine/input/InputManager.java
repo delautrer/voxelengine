@@ -88,14 +88,22 @@ public class InputManager {
         double[] xpos = new double[1];
         double[] ypos = new double[1];
         GLFW.glfwGetCursorPos(windowHandle, xpos, ypos);
-        mouseX = (float) xpos[0];
-        mouseY = (float) ypos[0];
 
         int[] w = new int[1];
         int[] h = new int[1];
         GLFW.glfwGetWindowSize(windowHandle, w, h);
         windowWidth = w[0];
         windowHeight = h[0];
+
+        int[] fw = new int[1];
+        int[] fh = new int[1];
+        GLFW.glfwGetFramebufferSize(windowHandle, fw, fh);
+        
+        float scaleX = w[0] > 0 ? (float) fw[0] / w[0] : 1.0f;
+        float scaleY = h[0] > 0 ? (float) fh[0] / h[0] : 1.0f;
+
+        mouseX = (float) xpos[0] * scaleX;
+        mouseY = (float) ypos[0] * scaleY;
     }
 
     public int consumeLastKey() {

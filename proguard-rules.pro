@@ -12,6 +12,7 @@
 # Warnungen und Hinweise ignorieren (sorgt für einen sauberen Build-Log)
 -dontwarn **
 -dontnote **
+-ignorewarnings
 
 # ------------------------------------------------------------------------------
 # 2. Verschleierungs-Wörterbücher (Custom Obfuscation)

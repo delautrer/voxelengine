@@ -27,6 +27,14 @@ public class Window {
             throw new RuntimeException("Failed to create the GLFW window");
         }
 
+        try (org.lwjgl.system.MemoryStack stack = org.lwjgl.system.MemoryStack.stackPush()) {
+            java.nio.IntBuffer fw = stack.mallocInt(1);
+            java.nio.IntBuffer fh = stack.mallocInt(1);
+            org.lwjgl.glfw.GLFW.glfwGetFramebufferSize(handle, fw, fh);
+            this.width = fw.get(0);
+            this.height = fh.get(0);
+        }
+
         GLFW.glfwSetFramebufferSizeCallback(handle, (window, w, h) -> {
             this.width = w;
             this.height = h;
@@ -71,7 +79,10 @@ public class Window {
             icon.set(w.get(0), h.get(0), image);
             iconBuffer.put(0, icon);
 
-            org.lwjgl.glfw.GLFW.glfwSetWindowIcon(handle, iconBuffer);
+            String os = System.getProperty("os.name").toLowerCase();
+            if (!os.contains("mac")) {
+                org.lwjgl.glfw.GLFW.glfwSetWindowIcon(handle, iconBuffer);
+            }
 
             icon.free();
             iconBuffer.free();
