@@ -80,7 +80,8 @@ public class Window {
             iconBuffer.put(0, icon);
 
             String os = System.getProperty("os.name").toLowerCase();
-            if (!os.contains("mac")) {
+            boolean isWayland = System.getenv("WAYLAND_DISPLAY") != null;
+            if (!os.contains("mac") && !isWayland) {
                 org.lwjgl.glfw.GLFW.glfwSetWindowIcon(handle, iconBuffer);
             }
 

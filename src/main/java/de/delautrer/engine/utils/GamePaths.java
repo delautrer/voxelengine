@@ -6,8 +6,26 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class GamePaths {
+
+    private static Path determineDataDir() {
+        String os = System.getProperty("os.name").toLowerCase();
+        String userHome = System.getProperty("user.home");
+        
+        if (os.contains("win")) {
+            String appData = System.getenv("APPDATA");
+            if (appData != null) {
+                return Paths.get(appData, "Veinstride");
+            }
+            return Paths.get(userHome, "Veinstride");
+        } else if (os.contains("mac")) {
+            return Paths.get(userHome, "Library", "Application Support", "Veinstride");
+        } else {
+            return Paths.get(userHome, ".local", "share", "Veinstride");
+        }
+    }
+
     // Das Hauptverzeichnis für alle generierten Daten
-    public static final Path ROOT_DIR = Paths.get("game_data");
+    public static final Path ROOT_DIR = determineDataDir();
 
     // Unterordner
     public static final Path SAVES_DIR = ROOT_DIR.resolve("saves");

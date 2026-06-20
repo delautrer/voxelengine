@@ -142,3 +142,172 @@ task buildExe(dependsOn: ['createExe']) {
     group = 'build'
     description = 'Baut das Fat-JAR, verschleiert es und generiert die .exe'
 }
+
+def jreCacheDir = file("${buildDir}/jres")
+
+task downloadWindowsJre {
+    def destFile = file("${jreCacheDir}/windows-jre.zip")
+    outputs.file(destFile)
+    doLast {
+        jreCacheDir.mkdirs()
+        if (!destFile.exists()) {
+            println "Downloading Windows JRE..."
+            ant.get(src: 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.2%2B13/OpenJDK21U-jre_x64_windows_hotspot_21.0.2_13.zip', dest: destFile, skipexisting: 'true')
+        }
+    }
+}
+
+task downloadLinuxJre {
+    def destFile = file("${jreCacheDir}/linux-jre.tar.gz")
+    outputs.file(destFile)
+    doLast {
+        jreCacheDir.mkdirs()
+        if (!destFile.exists()) {
+            println "Downloading Linux JRE..."
+            ant.get(src: 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.2%2B13/OpenJDK21U-jre_x64_linux_hotspot_21.0.2_13.tar.gz', dest: destFile, skipexisting: 'true')
+        }
+    }
+}
+
+task downloadMacJre {
+    def destFile = file("${jreCacheDir}/mac-jre.tar.gz")
+    outputs.file(destFile)
+    doLast {
+        jreCacheDir.mkdirs()
+        if (!destFile.exists()) {
+            println "Downloading Mac JRE..."
+            ant.get(src: 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.2%2B13/OpenJDK21U-jre_x64_mac_hotspot_21.0.2_13.tar.gz', dest: destFile, skipexisting: 'true')
+        }
+    }
+}
+
+task extractWindowsJre(type: Copy, dependsOn: downloadWindowsJre) {
+    def destDir = file("${jreCacheDir}/windows-extracted")
+    from zipTree(file("${jreCacheDir}/windows-jre.zip"))
+    into destDir
+    eachFile { FileCopyDetails fcp ->
+        fcp.path = fcp.path.replaceFirst("^jdk-[^/]+/", "")
+    }
+    includeEmptyDirs = false
+}
+
+task extractLinuxJre(type: Copy, dependsOn: downloadLinuxJre) {
+    def destDir = file("${jreCacheDir}/linux-extracted")
+    from tarTree(resources.gzip(file("${jreCacheDir}/linux-jre.tar.gz")))
+    into destDir
+    eachFile { FileCopyDetails fcp ->
+        fcp.path = fcp.path.replaceFirst("^jdk-[^/]+/", "")
+    }
+    includeEmptyDirs = false
+}
+
+task extractMacJre(type: Copy, dependsOn: downloadMacJre) {
+    def destDir = file("${jreCacheDir}/mac-extracted")
+    from tarTree(resources.gzip(file("${jreCacheDir}/mac-jre.tar.gz")))
+    into destDir
+    eachFile { FileCopyDetails fcp ->
+        fcp.path = fcp.path.replaceFirst("^jdk-[^/]+/", "")
+    }
+    includeEmptyDirs = false
+}
+
+task bundleWindows(type: Copy, dependsOn: ['buildExe', 'extractWindowsJre']) {
+    def bundleDir = file("${buildDir}/bundles/windows")
+    from(project.tasks.createExe.outputs.files.filter { it.name.endsWith('.exe') }) {
+        into ""
+    }
+    from("${jreCacheDir}/windows-extracted") {
+        into "jre"
+    }
+    destinationDir = bundleDir
+}
+
+task bundleLinux(dependsOn: ['proguard', 'extractLinuxJre']) {
+    def bundleDir = file("${buildDir}/bundles/linux")
+    doLast {
+        bundleDir.mkdirs()
+        def stubFile = file("gradle/stub_linux.sh")
+        def jarFile = project.tasks.proguard.outputs.files.singleFile
+        def outFile = file("${bundleDir}/Veinstride")
+        
+        if (outFile.exists()) outFile.delete()
+        def stubText = stubFile.text.replaceAll("\r\n", "\n")
+        outFile.withOutputStream { out ->
+            out.write(stubText.getBytes("UTF-8"))
+            jarFile.withInputStream { out << it }
+        }
+    }
+}
+
+task copyLinuxJre(type: Copy, dependsOn: ['bundleLinux']) {
+    from("${jreCacheDir}/linux-extracted")
+    into "${buildDir}/bundles/linux/jre"
+}
+
+task bundleMacos(dependsOn: ['proguard', 'extractMacJre']) {
+    def bundleDir = file("${buildDir}/bundles/macos/Veinstride.app")
+    doLast {
+        bundleDir.mkdirs()
+        def stubFile = file("gradle/stub_mac.sh")
+        def jarFile = project.tasks.proguard.outputs.files.singleFile
+        
+        def macOsDir = file("${bundleDir}/Contents/MacOS")
+        macOsDir.mkdirs()
+        def outFile = file("${macOsDir}/Veinstride")
+        
+        if (outFile.exists()) outFile.delete()
+        def stubText = stubFile.text.replaceAll("\r\n", "\n")
+        outFile.withOutputStream { out ->
+            out.write(stubText.getBytes("UTF-8"))
+            jarFile.withInputStream { out << it }
+        }
+    }
+}
+
+task copyMacResources(type: Copy, dependsOn: ['bundleMacos']) {
+    from("gradle/Info.plist") {
+        into "Contents"
+    }
+    // Fallback falls icon.icns existiert
+    from("icon.icns") {
+        into "Contents/Resources"
+    }
+    from("${jreCacheDir}/mac-extracted") {
+        into "Contents/PlugIns/jre"
+    }
+    destinationDir = file("${buildDir}/bundles/macos/Veinstride.app")
+}
+
+task zipBundles(dependsOn: ['bundleWindows', 'copyLinuxJre', 'copyMacResources']) {
+    doLast {
+        def versionStr = project.hasProperty('version') && project.version != 'unspecified' ? project.version : "1.0"
+        def outDir = file("${buildDir}/bundles")
+        
+        ['windows', 'linux', 'macos'].each { osName ->
+            def sourceDir = file("${buildDir}/bundles/${osName}")
+            def zipName1 = "Veinstride_alpha-${osName}.zip"
+            def zipName2 = "Veinstride-${versionStr}_alpha-${osName}.zip"
+            
+            ant.zip(destfile: "${outDir}/${zipName1}") {
+                if (osName == 'linux') {
+                    zipfileset(dir: sourceDir, includes: "Veinstride", filemode: "755")
+                    zipfileset(dir: sourceDir, includes: "jre/bin/*", filemode: "755")
+                    zipfileset(dir: sourceDir, excludes: "Veinstride, jre/bin/*")
+                } else if (osName == 'macos') {
+                    zipfileset(dir: sourceDir, includes: "Veinstride.app/Contents/MacOS/Veinstride", filemode: "755")
+                    zipfileset(dir: sourceDir, includes: "Veinstride.app/Contents/PlugIns/jre/Contents/Home/bin/*", filemode: "755")
+                    zipfileset(dir: sourceDir, excludes: "Veinstride.app/Contents/MacOS/Veinstride, Veinstride.app/Contents/PlugIns/jre/Contents/Home/bin/*")
+                } else {
+                    fileset(dir: sourceDir)
+                }
+            }
+            
+            ant.copy(file: "${outDir}/${zipName1}", tofile: "${outDir}/${zipName2}")
+        }
+    }
+}
+
+task buildAllBundles(dependsOn: ['zipBundles']) {
+    group = 'build'
+    description = 'Baut alle OS-Bundles als ZIP-Archive in build/bundles'
+}

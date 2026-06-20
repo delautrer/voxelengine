@@ -12,13 +12,12 @@ public class Constants {
     public static final float GUI_FONT_HEIGHT = 24.0f;
 
     private static boolean checkIsDev() {
-        if (new File("src/main").exists()) {
-            return true;
-        }
-
         try {
-            String path = Constants.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-            return !(path.endsWith(".jar") || path.endsWith(".exe"));
+            java.net.URL resource = Constants.class.getResource("Constants.class");
+            if (resource != null) {
+                return "file".equals(resource.getProtocol());
+            }
+            return false;
         } catch (Exception e) {
             return false;
         }
