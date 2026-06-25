@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Veinstride Wiki</title>
+  <meta name="description" content="Comprehensive wiki for Veinstride — blocks, items, biomes, crafting recipes, loot tables and game mechanics.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
+  <script src="marked.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app-container">
+
+  <!-- ─────────────── SIDEBAR ─────────────── -->
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <h2>Veinstride Wiki</h2>
+      <p>Game Reference &amp; Documentation</p>
+    </div>
+
+    <div class="sidebar-search">
+      <input id="search-input" type="text" placeholder="Search…" autocomplete="off" spellcheck="false">
+    </div>
+
+    <div id="nav-sections" class="nav-sections"></div>
+  </nav>
+
+  <!-- ─────────────── MAIN CONTENT ─────────────── -->
+  <main class="main-content">
+    <div id="content-container">
+
+      <!-- Welcome Screen -->
+      <div id="welcome-message">
+        <h1>Veinstride Wiki</h1>
+        <p>Select a block, item, biome or game mechanic from the sidebar to get started.<br>
+        The Wiki is fully offline — no server required.</p>
+      </div>
+
+      <!-- Article View -->
+      <div id="article-view" style="display:none;">
+
+        <!-- Header -->
+        <div class="article-header">
+          <div class="article-breadcrumb" id="entry-breadcrumb"></div>
+          <div class="article-header-inner">
+            <h1 class="article-title" id="entry-title"></h1>
+            <span class="type-badge" id="entry-type-badge"></span>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="article-tabs" id="entry-tabs"></div>
+
+        <!-- Body: main + infobox -->
+        <div class="article-body">
+          <div class="article-main" id="entry-main"></div>
+
+          <aside class="infobox">
+            <div class="infobox-title" id="info-title"></div>
+            <div class="infobox-img" id="info-image-container"></div>
+            <ul class="infobox-stats" id="info-stats"></ul>
+          </aside>
+        </div>
+
+      </div><!-- /article-view -->
+    </div><!-- /content-container -->
+  </main>
+
+</div><!-- /app-container -->
+
+<!-- Pre-compiled serverless data – no server needed! -->
+<script src="data/wiki_data.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

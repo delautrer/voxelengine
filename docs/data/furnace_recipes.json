@@ -1,0 +1,87 @@
+[
+  {
+    "input": "engine:cobblestone",
+    "result": "engine:stone",
+    "count": 1,
+    "cook_time": 200
+  },
+  {
+    "input": "engine:sand",
+    "result": "engine:glass",
+    "count": 1,
+    "cook_time": 200
+  },
+  {
+    "input": "engine:stone",
+    "result": "engine:bricks",
+    "count": 1,
+    "cook_time": 200
+  },
+  {
+    "input": "engine:oak_log",
+    "result": "engine:coal",
+    "count": 1,
+    "cook_time": 200
+  },
+  {
+    "input": "engine:birch_log",
+    "result": "engine:coal",
+    "count": 1,
+    "cook_time": 200
+  },
+  {
+    "input": "engine:pine_log",
+    "result": "engine:coal",
+    "count": 1,
+    "cook_time": 200
+  },
+  {
+    "input": "engine:willow_log",
+    "result": "engine:coal",
+    "count": 1,
+    "cook_time": 200
+  },
+  {
+    "input": "engine:baobab_log",
+    "result": "engine:coal",
+    "count": 1,
+    "cook_time": 200
+  },
+  {
+    "input": "engine:mahogany_log",
+    "result": "engine:coal",
+    "count": 1,
+    "cook_time": 200
+  },
+  {
+    "input": "engine:palm_log",
+    "result": "engine:coal",
+    "count": 1,
+    "cook_time": 200
+  },
+  {
+    "input": "engine:raw_iron",
+    "result": "engine:iron_ingot",
+    "count": 1,
+    "cook_time": 200
+  },
+  {
+    "input": "engine:raw_copper",
+    "result": "engine:copper_ingot",
+    "count": 1,
+    "cook_time": 200
+  },
+  {
+    "input": "engine:raw_zinc",
+    "result": "engine:zinc_ingot",
+    "count": 1,
+    "cook_time": 200
+  },
+  {
+    "input": "engine:raw_gold",
+    "result": "engine:gold_ingot",
+    "count": 1,
+    "cook_time": 200
+  }
+]
+

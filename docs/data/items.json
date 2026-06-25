@@ -1,0 +1,1194 @@
+[
+    {
+        "id":  "grass_block",
+        "name":  "Grass",
+        "textureName":  "grass_block",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "natural"
+    },
+    {
+        "id":  "grass_block_slabs",
+        "name":  "Grass Slabs",
+        "textureName":  "grass_block_slabs",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "building"
+    },
+    {
+        "id":  "grass_block_stairs",
+        "name":  "Grass Stairs",
+        "textureName":  "grass_block_stairs",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "building"
+    },
+    {
+        "id":  "dirt",
+        "name":  "Dirt",
+        "textureName":  "dirt",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "natural"
+    },
+    {
+        "id":  "dirt_slabs",
+        "name":  "Dirt Slabs",
+        "textureName":  "dirt_slabs",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "building"
+    },
+    {
+        "id":  "dirt_stairs",
+        "name":  "Dirt Stairs",
+        "textureName":  "dirt_stairs",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "building"
+    },
+    {
+        "id":  "stone",
+        "name":  "Stone",
+        "textureName":  "stone",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "natural"
+    },
+    {
+        "id":  "stone_slabs",
+        "name":  "Stone Slabs",
+        "textureName":  "stone_slabs",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "building"
+    },
+    {
+        "id":  "stone_stairs",
+        "name":  "Stone Stairs",
+        "textureName":  "stone_stairs",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "building"
+    },
+    {
+        "id":  "dolomite",
+        "name":  "Dolomite",
+        "textureName":  "dolomite",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "natural"
+    },
+    {
+        "id":  "cobblestone",
+        "name":  "Cobblestone",
+        "textureName":  "cobblestone",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "natural"
+    },
+    {
+        "id":  "cobblestone_slabs",
+        "name":  "Cobblestone Slabs",
+        "textureName":  "cobblestone_slabs",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "building"
+    },
+    {
+        "id":  "cobblestone_stairs",
+        "name":  "Cobblestone Stairs",
+        "textureName":  "cobblestone_stairs",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "building"
+    },
+    {
+        "id":  "water_bucket",
+        "name":  "Water bucket",
+        "textureName":  "water_bucket",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "tools",
+        "renderAsItem":  true,
+        "blockId":  "water"
+    },
+    {
+        "id":  "empty_bucket",
+        "name":  "Bucket",
+        "textureName":  "empty_bucket",
+        "type":  "empty_bucket",
+        "maxStackSize":  1,
+        "renderAsItem":  true,
+        "category":  "tools"
+    },
+    {
+        "id":  "glass",
+        "name":  "Glass",
+        "textureName":  "glass",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "building"
+    },
+    {
+        "id":  "oak_leaves",
+        "name":  "Oak Leaves",
+        "textureName":  "oak_leaves",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "natural"
+    },
+    {
+        "id":  "torch",
+        "name":  "Torch",
+        "textureName":  "torch",
+        "type":  "block",
+        "maxStackSize":  64,
+        "renderAsItem":  true,
+        "category":  "misc"
+    },
+    {
+        "id":  "bedrock",
+        "name":  "Bedrock",
+        "textureName":  "bedrock",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "natural"
+    },
+    {
+        "id":  "gravel",
+        "name":  "Gravel",
+        "textureName":  "gravel",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "natural"
+    },
+    {
+        "id":  "sand",
+        "name":  "Sand",
+        "textureName":  "sand",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "natural"
+    },
+    {
+        "id":  "oak_log",
+        "name":  "Oak Log",
+        "textureName":  "oak_log",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "wood"
+    },
+    {
+        "id":  "oak_planks",
+        "name":  "Oak Planks",
+        "textureName":  "oak_planks",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "wood"
+    },
+    {
+        "id":  "oak_stairs",
+        "name":  "Oak Stairs",
+        "textureName":  "oak_stairs",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "building"
+    },
+    {
+        "id":  "oak_slabs",
+        "name":  "Oak Slabs",
+        "textureName":  "oak_slabs",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "building"
+    },
+    {
+        "id":  "bricks",
+        "name":  "Bricks",
+        "textureName":  "bricks_block",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "building"
+    },
+    {
+        "id":  "bricks_stairs",
+        "name":  "Bricks Stairs",
+        "textureName":  "bricks_stairs",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "building"
+    },
+    {
+        "id":  "bricks_slabs",
+        "name":  "Bricks Slabs",
+        "textureName":  "bricks_slabs",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "building"
+    },
+    {
+        "id":  "grass",
+        "name":  "Grass",
+        "textureName":  "grass",
+        "type":  "block",
+        "maxStackSize":  64,
+        "renderAsItem":  true,
+        "category":  "natural"
+    },
+    {
+        "id":  "sandy_grass",
+        "name":  "Sandy Grass",
+        "textureName":  "sandy_grass",
+        "type":  "block",
+        "maxStackSize":  64,
+        "renderAsItem":  true,
+        "category":  "natural"
+    },
+    {
+        "id":  "poppy",
+        "name":  "Poppy",
+        "textureName":  "poppy",
+        "type":  "block",
+        "maxStackSize":  64,
+        "renderAsItem":  true,
+        "category":  "natural"
+    },
+    {
+        "id":  "dandelion",
+        "name":  "Dandelion",
+        "textureName":  "dandelion",
+        "type":  "block",
+        "maxStackSize":  64,
+        "renderAsItem":  true,
+        "category":  "natural"
+    },
+    {
+        "id":  "dotty",
+        "name":  "Dotty",
+        "textureName":  "dotty",
+        "type":  "block",
+        "maxStackSize":  64,
+        "renderAsItem":  true,
+        "category":  "natural"
+    },
+    {
+        "id":  "fairy_bell",
+        "name":  "Fairy Bell",
+        "textureName":  "fairy_bell",
+        "type":  "block",
+        "maxStackSize":  64,
+        "renderAsItem":  true,
+        "category":  "natural"
+    },
+    {
+        "id":  "red_tulip",
+        "name":  "Red Tulip",
+        "textureName":  "red_tulip",
+        "type":  "block",
+        "maxStackSize":  64,
+        "renderAsItem":  true,
+        "category":  "natural"
+    },
+    {
+        "id":  "purple_tulip",
+        "name":  "Purple Tulip",
+        "textureName":  "purple_tulip",
+        "type":  "block",
+        "maxStackSize":  64,
+        "renderAsItem":  true,
+        "category":  "natural"
+    },
+    {
+        "id":  "mavvinilia",
+        "name":  "Mavvinilia",
+        "textureName":  "mavvinilia",
+        "type":  "block",
+        "maxStackSize":  64,
+        "renderAsItem":  true,
+        "category":  "natural"
+    },
+    {
+        "id":  "oak_chest",
+        "name":  "Oak Chest",
+        "textureName":  "oak_chest",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "wood"
+    },
+    {
+        "id":  "oak_trapdoor",
+        "name":  "Oak Trapdoor",
+        "textureName":  "oak_trapdoor",
+        "type":  "block",
+        "maxStackSize":  64,
+        "renderAsItem":  true,
+        "category":  "wood"
+    },
+    {
+        "id":  "oak_door",
+        "name":  "Oak Door",
+        "textureName":  "oak_door",
+        "renderAsItem":  true,
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "wood"
+    },
+    {
+        "id":  "oak_sapling",
+        "name":  "Oak Sapling",
+        "textureName":  "oak_sapling",
+        "type":  "block",
+        "maxStackSize":  64,
+        "renderAsItem":  true,
+        "category":  "natural"
+    },
+    {
+        "id":  "birch_log",
+        "name":  "Birch Log",
+        "textureName":  "birch_log",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "wood"
+    },
+    {
+        "id":  "birch_planks",
+        "name":  "Birch Planks",
+        "textureName":  "birch_planks",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "wood"
+    },
+    {
+        "id":  "birch_leaves",
+        "name":  "Birch Leaves",
+        "textureName":  "birch_leaves",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "natural"
+    },
+    {
+        "id":  "birch_stairs",
+        "name":  "Birch Stairs",
+        "textureName":  "birch_stairs",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "building"
+    },
+    {
+        "id":  "birch_slabs",
+        "name":  "Birch Slabs",
+        "textureName":  "birch_slabs",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "building"
+    },
+    {
+        "id":  "birch_chest",
+        "name":  "Birch Chest",
+        "textureName":  "birch_chest",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "wood"
+    },
+    {
+        "id":  "birch_trapdoor",
+        "name":  "Birch Trapdoor",
+        "textureName":  "birch_trapdoor",
+        "renderAsItem":  true,
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "wood"
+    },
+    {
+        "id":  "birch_door",
+        "name":  "Birch Door",
+        "textureName":  "birch_door",
+        "type":  "block",
+        "maxStackSize":  64,
+        "renderAsItem":  true,
+        "category":  "wood"
+    },
+    {
+        "id":  "birch_sapling",
+        "name":  "Birch Sapling",
+        "textureName":  "birch_sapling",
+        "type":  "block",
+        "maxStackSize":  64,
+        "renderAsItem":  true,
+        "category":  "natural"
+    },
+    {
+        "id":  "pine_log",
+        "name":  "Pine Log",
+        "textureName":  "pine_log",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "wood"
+    },
+    {
+        "id":  "pine_planks",
+        "name":  "Pine Planks",
+        "textureName":  "pine_planks",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "wood"
+    },
+    {
+        "id":  "pine_leaves",
+        "name":  "Pine Leaves",
+        "textureName":  "pine_leaves",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "natural"
+    },
+    {
+        "id":  "pine_stairs",
+        "name":  "Pine Stairs",
+        "textureName":  "pine_stairs",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "building"
+    },
+    {
+        "id":  "pine_slabs",
+        "name":  "Pine Slabs",
+        "textureName":  "pine_slabs",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "building"
+    },
+    {
+        "id":  "pine_chest",
+        "name":  "Pine Chest",
+        "textureName":  "pine_chest",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "wood"
+    },
+    {
+        "id":  "pine_trapdoor",
+        "name":  "Pine Trapdoor",
+        "textureName":  "pine_trapdoor",
+        "type":  "block",
+        "maxStackSize":  64,
+        "renderAsItem":  true,
+        "category":  "wood"
+    },
+    {
+        "id":  "pine_door",
+        "name":  "Pine Door",
+        "textureName":  "pine_door",
+        "type":  "block",
+        "maxStackSize":  64,
+        "renderAsItem":  true,
+        "category":  "wood"
+    },
+    {
+        "id":  "pine_sapling",
+        "name":  "Pine Sapling",
+        "textureName":  "pine_sapling",
+        "type":  "block",
+        "maxStackSize":  64,
+        "renderAsItem":  true,
+        "category":  "natural"
+    },
+    {
+        "id":  "willow_log",
+        "name":  "Willow Log",
+        "textureName":  "willow_log",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "wood"
+    },
+    {
+        "id":  "willow_planks",
+        "name":  "Willow Planks",
+        "textureName":  "willow_planks",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "wood"
+    },
+    {
+        "id":  "willow_leaves",
+        "name":  "Willow Leaves",
+        "textureName":  "willow_leaves",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "natural"
+    },
+    {
+        "id":  "willow_stairs",
+        "name":  "Willow Stairs",
+        "textureName":  "willow_stairs",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "building"
+    },
+    {
+        "id":  "willow_slabs",
+        "name":  "Willow Slabs",
+        "textureName":  "willow_slabs",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "building"
+    },
+    {
+        "id":  "willow_chest",
+        "name":  "Willow Chest",
+        "textureName":  "willow_chest",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "wood"
+    },
+    {
+        "id":  "willow_trapdoor",
+        "name":  "Willow Trapdoor",
+        "textureName":  "willow_trapdoor",
+        "type":  "block",
+        "maxStackSize":  64,
+        "renderAsItem":  true,
+        "category":  "wood"
+    },
+    {
+        "id":  "willow_door",
+        "name":  "Willow Door",
+        "textureName":  "willow_door",
+        "type":  "block",
+        "maxStackSize":  64,
+        "renderAsItem":  true,
+        "category":  "wood"
+    },
+    {
+        "id":  "willow_sapling",
+        "name":  "Willow Sapling",
+        "textureName":  "willow_sapling",
+        "type":  "block",
+        "maxStackSize":  64,
+        "renderAsItem":  true,
+        "category":  "natural"
+    },
+    {
+        "id":  "baobab_log",
+        "name":  "Baobab Log",
+        "textureName":  "baobab_log",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "wood"
+    },
+    {
+        "id":  "baobab_planks",
+        "name":  "Baobab Planks",
+        "textureName":  "baobab_planks",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "wood"
+    },
+    {
+        "id":  "baobab_leaves",
+        "name":  "Baobab Leaves",
+        "textureName":  "baobab_leaves",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "natural"
+    },
+    {
+        "id":  "baobab_stairs",
+        "name":  "Baobab Stairs",
+        "textureName":  "baobab_stairs",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "building"
+    },
+    {
+        "id":  "baobab_slabs",
+        "name":  "Baobab Slabs",
+        "textureName":  "baobab_slabs",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "building"
+    },
+    {
+        "id":  "baobab_chest",
+        "name":  "Baobab Chest",
+        "textureName":  "baobab_chest",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "wood"
+    },
+    {
+        "id":  "baobab_trapdoor",
+        "name":  "Baobab Trapdoor",
+        "textureName":  "baobab_trapdoor",
+        "type":  "block",
+        "maxStackSize":  64,
+        "renderAsItem":  true,
+        "category":  "wood"
+    },
+    {
+        "id":  "baobab_door",
+        "name":  "Baobab Door",
+        "textureName":  "baobab_door",
+        "type":  "block",
+        "maxStackSize":  64,
+        "renderAsItem":  true,
+        "category":  "wood"
+    },
+    {
+        "id":  "baobab_sapling",
+        "name":  "Baobab Sapling",
+        "textureName":  "baobab_sapling",
+        "type":  "block",
+        "maxStackSize":  64,
+        "renderAsItem":  true,
+        "category":  "natural"
+    },
+    {
+        "id":  "mahogany_log",
+        "name":  "Mahogany Log",
+        "textureName":  "mahogany_log",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "wood"
+    },
+    {
+        "id":  "mahogany_planks",
+        "name":  "Mahogany Planks",
+        "textureName":  "mahogany_planks",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "wood"
+    },
+    {
+        "id":  "mahogany_leaves",
+        "name":  "Mahogany Leaves",
+        "textureName":  "mahogany_leaves",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "natural"
+    },
+    {
+        "id":  "mahogany_stairs",
+        "name":  "Mahogany Stairs",
+        "textureName":  "mahogany_stairs",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "building"
+    },
+    {
+        "id":  "mahogany_slabs",
+        "name":  "Mahogany Slabs",
+        "textureName":  "mahogany_slabs",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "building"
+    },
+    {
+        "id":  "mahogany_chest",
+        "name":  "Mahogany Chest",
+        "textureName":  "mahogany_chest",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "wood"
+    },
+    {
+        "id":  "mahogany_trapdoor",
+        "name":  "Mahogany Trapdoor",
+        "textureName":  "mahogany_trapdoor",
+        "type":  "block",
+        "maxStackSize":  64,
+        "renderAsItem":  true,
+        "category":  "wood"
+    },
+    {
+        "id":  "mahogany_door",
+        "name":  "Mahogany Door",
+        "textureName":  "mahogany_door",
+        "type":  "block",
+        "maxStackSize":  64,
+        "renderAsItem":  true,
+        "category":  "wood"
+    },
+    {
+        "id":  "mahogany_sapling",
+        "name":  "Mahogany Sapling",
+        "textureName":  "mahogany_sapling",
+        "type":  "block",
+        "maxStackSize":  64,
+        "renderAsItem":  true,
+        "category":  "natural"
+    },
+    {
+        "id":  "palm_log",
+        "name":  "Palm Log",
+        "textureName":  "palm_log",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "wood"
+    },
+    {
+        "id":  "palm_planks",
+        "name":  "Palm Planks",
+        "textureName":  "palm_planks",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "wood"
+    },
+    {
+        "id":  "palm_leaves",
+        "name":  "Palm Leaves",
+        "textureName":  "palm_leaves",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "natural"
+    },
+    {
+        "id":  "palm_stairs",
+        "name":  "Palm Stairs",
+        "textureName":  "palm_stairs",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "building"
+    },
+    {
+        "id":  "palm_slabs",
+        "name":  "Palm Slabs",
+        "textureName":  "palm_slabs",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "building"
+    },
+    {
+        "id":  "palm_chest",
+        "name":  "Palm Chest",
+        "textureName":  "palm_chest",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "wood"
+    },
+    {
+        "id":  "palm_trapdoor",
+        "name":  "Palm Trapdoor",
+        "textureName":  "palm_trapdoor",
+        "type":  "block",
+        "maxStackSize":  64,
+        "renderAsItem":  true,
+        "category":  "wood"
+    },
+    {
+        "id":  "palm_door",
+        "name":  "Palm Door",
+        "textureName":  "palm_door",
+        "type":  "block",
+        "maxStackSize":  64,
+        "renderAsItem":  true,
+        "category":  "wood"
+    },
+    {
+        "id":  "palm_sapling",
+        "name":  "Palm Sapling",
+        "textureName":  "palm_sapling",
+        "type":  "block",
+        "maxStackSize":  64,
+        "renderAsItem":  true,
+        "category":  "natural"
+    },
+    {
+        "id":  "sticks",
+        "name":  "Sticks",
+        "textureName":  "sticks",
+        "type":  "simple",
+        "maxStackSize":  64,
+        "category":  "misc"
+    },
+    {
+        "id":  "crafting_table",
+        "name":  "Crafting Table",
+        "textureName":  "crafting_table",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "misc"
+    },
+    {
+        "id":  "furnace",
+        "name":  "Furnace",
+        "textureName":  "furnace",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "misc"
+    },
+    {
+        "id":  "coal",
+        "name":  "Coal",
+        "textureName":  "coal",
+        "type":  "simple",
+        "maxStackSize":  64,
+        "category":  "misc"
+    },
+    {
+        "id":  "coal_ore",
+        "name":  "Coal Ore",
+        "textureName":  "coal_ore",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "misc"
+    },
+    {
+        "id":  "iron_ore",
+        "name":  "Iron Ore",
+        "textureName":  "iron_ore",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "misc"
+    },
+    {
+        "id":  "copper_ore",
+        "name":  "Copper Ore",
+        "textureName":  "copper_ore",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "misc"
+    },
+    {
+        "id":  "zinc_ore",
+        "name":  "Zinc Ore",
+        "textureName":  "zinc_ore",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "misc"
+    },
+    {
+        "id":  "diamond_ore",
+        "name":  "Diamond Ore",
+        "textureName":  "diamond_ore",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "misc"
+    },
+    {
+        "id":  "gold_ore",
+        "name":  "Gold Ore",
+        "textureName":  "gold_ore",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "misc"
+    },
+    {
+        "id":  "dolomite_coal_ore",
+        "name":  "Dolomite Coal Ore",
+        "textureName":  "dolomite_coal_ore",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "misc"
+    },
+    {
+        "id":  "dolomite_iron_ore",
+        "name":  "Dolomite Iron Ore",
+        "textureName":  "dolomite_iron_ore",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "misc"
+    },
+    {
+        "id":  "dolomite_copper_ore",
+        "name":  "Dolomite Copper Ore",
+        "textureName":  "dolomite_copper_ore",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "misc"
+    },
+    {
+        "id":  "dolomite_zinc_ore",
+        "name":  "Dolomite Zinc Ore",
+        "textureName":  "dolomite_zinc_ore",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "misc"
+    },
+    {
+        "id":  "dolomite_diamond_ore",
+        "name":  "Dolomite Diamond Ore",
+        "textureName":  "dolomite_diamond_ore",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "misc"
+    },
+    {
+        "id":  "dolomite_gold_ore",
+        "name":  "Dolomite Gold Ore",
+        "textureName":  "dolomite_gold_ore",
+        "type":  "block",
+        "maxStackSize":  64,
+        "category":  "misc"
+    },
+    {
+        "id":  "diamond",
+        "name":  "Diamond",
+        "textureName":  "diamond",
+        "type":  "simple",
+        "maxStackSize":  64,
+        "category":  "misc"
+    },
+    {
+        "id":  "raw_iron",
+        "name":  "Raw Iron",
+        "textureName":  "raw_iron",
+        "type":  "simple",
+        "maxStackSize":  64,
+        "category":  "misc"
+    },
+    {
+        "id":  "raw_copper",
+        "name":  "Raw Copper",
+        "textureName":  "raw_copper",
+        "type":  "simple",
+        "maxStackSize":  64,
+        "category":  "misc"
+    },
+    {
+        "id":  "raw_zinc",
+        "name":  "Raw Zinc",
+        "textureName":  "raw_zinc",
+        "type":  "simple",
+        "maxStackSize":  64,
+        "category":  "misc"
+    },
+    {
+        "id":  "raw_gold",
+        "name":  "Raw Gold",
+        "textureName":  "raw_gold",
+        "type":  "simple",
+        "maxStackSize":  64,
+        "category":  "misc"
+    },
+    {
+        "id":  "iron_ingot",
+        "name":  "Iron Ingot",
+        "textureName":  "iron_ingot",
+        "type":  "simple",
+        "maxStackSize":  64,
+        "category":  "misc"
+    },
+    {
+        "id":  "copper_ingot",
+        "name":  "Copper Ingot",
+        "textureName":  "copper_ingot",
+        "type":  "simple",
+        "maxStackSize":  64,
+        "category":  "misc"
+    },
+    {
+        "id":  "zinc_ingot",
+        "name":  "Zinc Ingot",
+        "textureName":  "zinc_ingot",
+        "type":  "simple",
+        "maxStackSize":  64,
+        "category":  "misc"
+    },
+    {
+        "id":  "gold_ingot",
+        "name":  "Gold Ingot",
+        "textureName":  "gold_ingot",
+        "type":  "simple",
+        "maxStackSize":  64,
+        "category":  "misc"
+    },
+    {
+        "id":  "wooden_pickaxe",
+        "name":  "Wooden Pickaxe",
+        "textureName":  "wooden_pickaxe",
+        "type":  "tool",
+        "toolType":  "PICKAXE",
+        "toolTier":  "WOOD",
+        "toolEfficiency":  2.0,
+        "toolMaxDurability":  59,
+        "category":  "tools"
+    },
+    {
+        "id":  "wooden_shovel",
+        "name":  "Wooden Shovel",
+        "textureName":  "wooden_shovel",
+        "type":  "tool",
+        "toolType":  "SHOVEL",
+        "toolTier":  "WOOD",
+        "toolEfficiency":  2.0,
+        "toolMaxDurability":  59,
+        "category":  "tools"
+    },
+    {
+        "id":  "wooden_axe",
+        "name":  "Wooden Axe",
+        "textureName":  "wooden_axe",
+        "type":  "tool",
+        "toolType":  "AXE",
+        "toolTier":  "WOOD",
+        "toolEfficiency":  2.0,
+        "toolMaxDurability":  59,
+        "category":  "tools"
+    },
+    {
+        "id":  "stone_pickaxe",
+        "name":  "Stone Pickaxe",
+        "textureName":  "stone_pickaxe",
+        "type":  "tool",
+        "toolType":  "PICKAXE",
+        "toolTier":  "STONE",
+        "toolEfficiency":  4.0,
+        "toolMaxDurability":  131,
+        "category":  "tools"
+    },
+    {
+        "id":  "stone_shovel",
+        "name":  "Stone Shovel",
+        "textureName":  "stone_shovel",
+        "type":  "tool",
+        "toolType":  "SHOVEL",
+        "toolTier":  "STONE",
+        "toolEfficiency":  4.0,
+        "toolMaxDurability":  131,
+        "category":  "tools"
+    },
+    {
+        "id":  "stone_axe",
+        "name":  "Stone Axe",
+        "textureName":  "stone_axe",
+        "type":  "tool",
+        "toolType":  "AXE",
+        "toolTier":  "STONE",
+        "toolEfficiency":  4.0,
+        "toolMaxDurability":  131,
+        "category":  "tools"
+    },
+    {
+        "id":  "copper_pickaxe",
+        "name":  "Copper Pickaxe",
+        "textureName":  "copper_pickaxe",
+        "type":  "tool",
+        "toolType":  "PICKAXE",
+        "toolTier":  "COPPER",
+        "toolEfficiency":  5.0,
+        "toolMaxDurability":  180,
+        "category":  "tools"
+    },
+    {
+        "id":  "copper_shovel",
+        "name":  "Copper Shovel",
+        "textureName":  "copper_shovel",
+        "type":  "tool",
+        "toolType":  "SHOVEL",
+        "toolTier":  "COPPER",
+        "toolEfficiency":  5.0,
+        "toolMaxDurability":  180,
+        "category":  "tools"
+    },
+    {
+        "id":  "copper_axe",
+        "name":  "Copper Axe",
+        "textureName":  "copper_axe",
+        "type":  "tool",
+        "toolType":  "AXE",
+        "toolTier":  "COPPER",
+        "toolEfficiency":  5.0,
+        "toolMaxDurability":  180,
+        "category":  "tools"
+    },
+    {
+        "id":  "iron_pickaxe",
+        "name":  "Iron Pickaxe",
+        "textureName":  "iron_pickaxe",
+        "type":  "tool",
+        "toolType":  "PICKAXE",
+        "toolTier":  "IRON",
+        "toolEfficiency":  6.0,
+        "toolMaxDurability":  250,
+        "category":  "tools"
+    },
+    {
+        "id":  "iron_shovel",
+        "name":  "Iron Shovel",
+        "textureName":  "iron_shovel",
+        "type":  "tool",
+        "toolType":  "SHOVEL",
+        "toolTier":  "IRON",
+        "toolEfficiency":  6.0,
+        "toolMaxDurability":  250,
+        "category":  "tools"
+    },
+    {
+        "id":  "iron_axe",
+        "name":  "Iron Axe",
+        "textureName":  "iron_axe",
+        "type":  "tool",
+        "toolType":  "AXE",
+        "toolTier":  "IRON",
+        "toolEfficiency":  6.0,
+        "toolMaxDurability":  250,
+        "category":  "tools"
+    },
+    {
+        "id":  "gold_pickaxe",
+        "name":  "Gold Pickaxe",
+        "textureName":  "gold_pickaxe",
+        "type":  "tool",
+        "toolType":  "PICKAXE",
+        "toolTier":  "GOLD",
+        "toolEfficiency":  7.0,
+        "toolMaxDurability":  32,
+        "category":  "tools"
+    },
+    {
+        "id":  "gold_shovel",
+        "name":  "Gold Shovel",
+        "textureName":  "gold_shovel",
+        "type":  "tool",
+        "toolType":  "SHOVEL",
+        "toolTier":  "GOLD",
+        "toolEfficiency":  7.0,
+        "toolMaxDurability":  32,
+        "category":  "tools"
+    },
+    {
+        "id":  "gold_axe",
+        "name":  "Gold Axe",
+        "textureName":  "gold_axe",
+        "type":  "tool",
+        "toolType":  "AXE",
+        "toolTier":  "GOLD",
+        "toolEfficiency":  7.0,
+        "toolMaxDurability":  32,
+        "category":  "tools"
+    },
+    {
+        "id":  "diamond_pickaxe",
+        "name":  "Diamond Pickaxe",
+        "textureName":  "diamond_pickaxe",
+        "type":  "tool",
+        "toolType":  "PICKAXE",
+        "toolTier":  "DIAMOND",
+        "toolEfficiency":  8.0,
+        "toolMaxDurability":  1561,
+        "category":  "tools"
+    },
+    {
+        "id":  "diamond_shovel",
+        "name":  "Diamond Shovel",
+        "textureName":  "diamond_shovel",
+        "type":  "tool",
+        "toolType":  "SHOVEL",
+        "toolTier":  "DIAMOND",
+        "toolEfficiency":  8.0,
+        "toolMaxDurability":  1561,
+        "category":  "tools"
+    },
+    {
+        "id":  "diamond_axe",
+        "name":  "Diamond Axe",
+        "textureName":  "diamond_axe",
+        "type":  "tool",
+        "toolType":  "AXE",
+        "toolTier":  "DIAMOND",
+        "toolEfficiency":  8.0,
+        "toolMaxDurability":  1561,
+        "category":  "tools"
+    }
+]

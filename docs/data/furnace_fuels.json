@@ -1,0 +1,66 @@
+[
+  {
+    "item": "engine:coal",
+    "burn_time": 1600
+  },
+  {
+    "item": "engine:oak_planks",
+    "burn_time": 300
+  },
+  {
+    "item": "engine:birch_planks",
+    "burn_time": 300
+  },
+  {
+    "item": "engine:pine_planks",
+    "burn_time": 300
+  },
+  {
+    "item": "engine:willow_planks",
+    "burn_time": 300
+  },
+  {
+    "item": "engine:baobab_planks",
+    "burn_time": 300
+  },
+  {
+    "item": "engine:mahogany_planks",
+    "burn_time": 300
+  },
+  {
+    "item": "engine:palm_planks",
+    "burn_time": 300
+  },
+  {
+    "item": "engine:oak_log",
+    "burn_time": 300
+  },
+  {
+    "item": "engine:birch_log",
+    "burn_time": 300
+  },
+  {
+    "item": "engine:pine_log",
+    "burn_time": 300
+  },
+  {
+    "item": "engine:willow_log",
+    "burn_time": 300
+  },
+  {
+    "item": "engine:baobab_log",
+    "burn_time": 300
+  },
+  {
+    "item": "engine:mahogany_log",
+    "burn_time": 300
+  },
+  {
+    "item": "engine:palm_log",
+    "burn_time": 300
+  },
+  {
+    "item": "engine:sticks",
+    "burn_time": 100
+  }
+]
