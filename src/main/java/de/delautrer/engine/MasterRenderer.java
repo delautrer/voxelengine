@@ -110,6 +110,7 @@ public class MasterRenderer {
 
     public void rebuildUI(PlayerInteraction interaction, InputManager input, DebugOverlay debugOverlay,
             MenuScreen pauseScreen, ChatOverlay chatOverlay) {
+        renderer.waitForCurrentFrame();
         uiRenderer.rebuildMesh(
                 renderer.getWidth(), renderer.getHeight(),
                 input, interaction, input.getMouseX(), input.getMouseY(),
@@ -118,6 +119,7 @@ public class MasterRenderer {
 
     public boolean drawFrame(Camera camera, World world, PlayerInteraction interaction, boolean hideUI,
             int isoFramesToWait, boolean isTakingIsometric) {
+        renderer.waitForCurrentFrame();
         SkyManager skyManager = world.getSkyManager();
         float aspect = (float) renderer.getWidth() / (float) renderer.getHeight();
         Matrix4f view = camera.getViewMatrix();

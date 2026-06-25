@@ -81,12 +81,17 @@ public class VulkanRenderer {
         renderSystems.add(uiSystem);
     }
 
+    public void waitForCurrentFrame() {
+        long inFlightFence = sync.getInFlightFence(currentFrame);
+        VK10.vkWaitForFences(context.getDevice(), inFlightFence, true, Long.MAX_VALUE);
+    }
+
     public boolean render(RenderPacket packet) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             long inFlightFence = sync.getInFlightFence(currentFrame);
             long imageAvailableSemaphore = sync.getImageAvailableSemaphore(currentFrame);
 
-            VK10.vkWaitForFences(context.getDevice(), inFlightFence, true, Long.MAX_VALUE);
+            waitForCurrentFrame();
 
             java.util.Iterator<ScreenshotTask> it = pendingTasks.iterator();
             while (it.hasNext()) {
