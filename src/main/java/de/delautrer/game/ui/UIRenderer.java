@@ -13,8 +13,8 @@ import java.util.Map;
 public class UIRenderer {
 
     private IMesh[] combinedMeshes = new IMesh[de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT];
-    private int frameIndex = 0;
-    private final List<UIDrawCall> drawCalls = new ArrayList<>();
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private final List<UIDrawCall>[] drawCalls = new List[de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT];
 
     private IGraphicsFactory factory;
     private final IGraphicsContext graphicsContext;
@@ -26,19 +26,23 @@ public class UIRenderer {
         this.graphicsContext = graphicsContext;
         this.uiManager = new UIManager();
         this.meshBuilder = new UIMeshBuilder();
+        for (int i = 0; i < drawCalls.length; i++) {
+            drawCalls[i] = new ArrayList<>();
+        }
     }
 
     public void setGraphicsFactory(IGraphicsFactory factory) {
         this.factory = factory;
     }
 
-    public void rebuildMesh(int width, int height, InputManager input, PlayerInteraction interaction, float mouseX, float mouseY, DebugOverlay debugOverlay, ChatOverlay chatOverlay, IFont font, MenuScreen pauseScreen, int blockAtlasWidth) {
+    public void rebuildMesh(int frameIndex, int width, int height, InputManager input, PlayerInteraction interaction, float mouseX, float mouseY, DebugOverlay debugOverlay, ChatOverlay chatOverlay, IFont font, MenuScreen pauseScreen, int blockAtlasWidth) {
+        if (de.delautrer.Constants.VULKAN_DEBUG) {
+            System.out.println("[UIRenderer] rebuildMesh requested for frameIndex: " + frameIndex + ", size: " + width + "x" + height);
+        }
 
         // --- HIER WURDE AUFGERÄUMT: Kein WaitIdle und kein cleanup mehr am Anfang! ---
-        drawCalls.clear();
+        drawCalls[frameIndex].clear();
         meshBuilder.clear();
-
-        frameIndex = (frameIndex + 1) % de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT;
 
         boolean renderHUD = true;
         if (pauseScreen != null) {
@@ -76,7 +80,7 @@ public class UIRenderer {
                     currentIndexCount += batch.inds.size();
                 } else {
                     if (currentTex != null) {
-                        drawCalls.add(new UIDrawCall(currentTex, currentStartIndex, currentIndexCount));
+                        drawCalls[frameIndex].add(new UIDrawCall(currentTex, currentStartIndex, currentIndexCount));
                     }
                     currentTex = tex;
                     currentStartIndex = allInds.size();
@@ -92,12 +96,15 @@ public class UIRenderer {
         }
 
         if (currentTex != null) {
-            drawCalls.add(new UIDrawCall(currentTex, currentStartIndex, currentIndexCount));
+            drawCalls[frameIndex].add(new UIDrawCall(currentTex, currentStartIndex, currentIndexCount));
         }
 
         // --- MESH UPDATE ---
         if (!allVerts.isEmpty()) {
             MeshData newMeshData = new MeshData(toArray(allVerts), toIntArray(allInds));
+            if (de.delautrer.Constants.VULKAN_DEBUG) {
+                System.out.println("[UIRenderer] Updating UI mesh for frameIndex " + frameIndex + ". Vertices: " + (allVerts.size() / 8) + ", Indices: " + allInds.size() + ", Draw calls: " + drawCalls[frameIndex].size());
+            }
 
             if (combinedMeshes[frameIndex] == null) {
                 combinedMeshes[frameIndex] = factory.createMesh(newMeshData);
@@ -105,6 +112,9 @@ public class UIRenderer {
                 combinedMeshes[frameIndex].updateMesh(newMeshData.vertices(), newMeshData.indices());
             }
         } else {
+            if (de.delautrer.Constants.VULKAN_DEBUG) {
+                System.out.println("[UIRenderer] UI mesh is empty for frameIndex " + frameIndex);
+            }
             if (combinedMeshes[frameIndex] != null) {
                 combinedMeshes[frameIndex].cleanup();
                 combinedMeshes[frameIndex] = null;
@@ -112,8 +122,8 @@ public class UIRenderer {
         }
     }
 
-    public IMesh getCombinedMesh() { return combinedMeshes[frameIndex]; }
-    public List<UIDrawCall> getDrawCalls() { return drawCalls; }
+    public IMesh getCombinedMesh(int frameIndex) { return combinedMeshes[frameIndex]; }
+    public List<UIDrawCall> getDrawCalls(int frameIndex) { return drawCalls[frameIndex]; }
 
     private float[] toArray(List<Float> list) {
         float[] arr = new float[list.size()];

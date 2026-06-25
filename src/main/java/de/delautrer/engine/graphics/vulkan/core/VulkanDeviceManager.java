@@ -136,7 +136,12 @@ public class VulkanDeviceManager {
 
             PointerBuffer extensions = stack.pointers(stack.UTF8(KHRSwapchain.VK_KHR_SWAPCHAIN_EXTENSION_NAME));
             createInfo.ppEnabledExtensionNames(extensions);
-            createInfo.ppEnabledLayerNames(null);
+            if (VulkanContext.validationEnabled) {
+                PointerBuffer validationLayers = stack.pointers(stack.UTF8("VK_LAYER_KHRONOS_validation"));
+                createInfo.ppEnabledLayerNames(validationLayers);
+            } else {
+                createInfo.ppEnabledLayerNames(null);
+            }
 
             PointerBuffer pDevice = stack.mallocPointer(1);
             int result = VK10.vkCreateDevice(physicalDevice, createInfo, null, pDevice);

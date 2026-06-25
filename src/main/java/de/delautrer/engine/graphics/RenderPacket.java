@@ -10,6 +10,7 @@ import java.util.List;
 
 public class RenderPacket {
     public Matrix4f mvp, proj, view, ortho;
+    public int frameIndex;
 
     public List<IMesh> opaqueMeshes;
     public List<IMesh> waterMeshes;

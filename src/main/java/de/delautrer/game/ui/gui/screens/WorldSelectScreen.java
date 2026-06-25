@@ -49,6 +49,7 @@ public class WorldSelectScreen extends MenuScreen {
 
     @Override
     public void onClose() {
+        engine.getGraphicsContext().waitIdle();
         for (de.delautrer.engine.graphics.ITexture tex : thumbnails) {
             tex.cleanup();
         }
@@ -57,6 +58,7 @@ public class WorldSelectScreen extends MenuScreen {
 
     private void buildLayout() {
         elements.clear();
+        engine.getGraphicsContext().waitIdle();
         for (de.delautrer.engine.graphics.ITexture tex : thumbnails) {
             tex.cleanup();
         }

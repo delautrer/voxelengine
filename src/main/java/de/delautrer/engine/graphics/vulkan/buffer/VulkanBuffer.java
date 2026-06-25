@@ -43,6 +43,10 @@ public class VulkanBuffer {
             bufferMemory = pBufferMemory.get(0);
 
             VK10.vkBindBufferMemory(context.getDevice(), buffer, bufferMemory, 0);
+            
+            if (de.delautrer.Constants.VULKAN_DEBUG) {
+                System.out.println("[VulkanBuffer] Created buffer of size " + size + " bytes (handle: 0x" + Long.toHexString(buffer) + ", memory: 0x" + Long.toHexString(bufferMemory) + ")");
+            }
         }
     }
 
@@ -55,6 +59,9 @@ public class VulkanBuffer {
     }
 
     public void cleanup() {
+        if (de.delautrer.Constants.VULKAN_DEBUG) {
+            System.out.println("[VulkanBuffer] Destroying buffer (handle: 0x" + Long.toHexString(buffer) + ", memory: 0x" + Long.toHexString(bufferMemory) + ")");
+        }
         VK10.vkDestroyBuffer(context.getDevice(), buffer, null);
         VK10.vkFreeMemory(context.getDevice(), bufferMemory, null);
     }

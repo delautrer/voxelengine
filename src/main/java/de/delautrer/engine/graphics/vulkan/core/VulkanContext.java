@@ -10,6 +10,8 @@ import java.nio.LongBuffer;
 
 public class VulkanContext implements IGraphicsContext {
 
+    public static boolean validationEnabled = false;
+
     private VkInstance instance;
     private long surface;
     private VulkanDeviceManager deviceManager;
@@ -40,10 +42,29 @@ public class VulkanContext implements IGraphicsContext {
 
             PointerBuffer requiredExtensions = GLFWVulkan.glfwGetRequiredInstanceExtensions();
             createInfo.ppEnabledExtensionNames(requiredExtensions);
-            createInfo.ppEnabledLayerNames(null);
 
             PointerBuffer pInstance = stack.mallocPointer(1);
-            int err = VK10.vkCreateInstance(createInfo, null, pInstance);
+            int err;
+            if (de.delautrer.Constants.VULKAN_DEBUG) {
+                PointerBuffer validationLayers = stack.pointers(stack.UTF8("VK_LAYER_KHRONOS_validation"));
+                createInfo.ppEnabledLayerNames(validationLayers);
+                System.out.println("[VulkanContext] Attempting to create instance with VK_LAYER_KHRONOS_validation...");
+                err = VK10.vkCreateInstance(createInfo, null, pInstance);
+                if (err == VK10.VK_SUCCESS) {
+                    validationEnabled = true;
+                    System.out.println("[VulkanContext] Vulkan Validation Layers successfully enabled.");
+                } else {
+                    System.err.println("[VulkanContext] Validation layers not present or failed to load. Error: " + err + ". Retrying without validation layers...");
+                    createInfo.ppEnabledLayerNames(null);
+                    err = VK10.vkCreateInstance(createInfo, null, pInstance);
+                    validationEnabled = false;
+                }
+            } else {
+                createInfo.ppEnabledLayerNames(null);
+                err = VK10.vkCreateInstance(createInfo, null, pInstance);
+                validationEnabled = false;
+            }
+
             if (err != VK10.VK_SUCCESS) {
                 throw new RuntimeException("Vulkan-Instanz konnte nicht erstellt werden: " + err);
             }

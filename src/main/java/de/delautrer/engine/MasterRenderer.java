@@ -48,7 +48,6 @@ public class MasterRenderer {
     private IMesh[] dynamicOverlayMeshes = new IMesh[de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT];
     private IMesh[] firstPersonMeshes = new IMesh[de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT];
     private de.delautrer.game.items.Item[] lastFirstPersonItems = new de.delautrer.game.items.Item[de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT];
-    private int frameIndex = 0;
     
     private Vector3i[] lastSelectedBlockPositions = new Vector3i[de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT];
     private byte[] lastSelectedBlockStateIds = new byte[de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT];
@@ -112,7 +111,7 @@ public class MasterRenderer {
             MenuScreen pauseScreen, ChatOverlay chatOverlay) {
         renderer.waitForCurrentFrame();
         uiRenderer.rebuildMesh(
-                renderer.getWidth(), renderer.getHeight(),
+                renderer.getCurrentFrame(), renderer.getWidth(), renderer.getHeight(),
                 input, interaction, input.getMouseX(), input.getMouseY(),
                 debugOverlay, chatOverlay, font, pauseScreen, blockAtlas.atlasWidth);
     }
@@ -120,6 +119,7 @@ public class MasterRenderer {
     public boolean drawFrame(Camera camera, World world, PlayerInteraction interaction, boolean hideUI,
             int isoFramesToWait, boolean isTakingIsometric) {
         renderer.waitForCurrentFrame();
+        int frameIndex = renderer.getCurrentFrame();
         SkyManager skyManager = world.getSkyManager();
         float aspect = (float) renderer.getWidth() / (float) renderer.getHeight();
         Matrix4f view = camera.getViewMatrix();
@@ -133,6 +133,7 @@ public class MasterRenderer {
         Matrix4f mvpCameraRelative = new Matrix4f(proj).mul(viewRotOnly);
 
         RenderPacket packet = new RenderPacket();
+        packet.frameIndex = frameIndex;
         packet.mvp = mvpCameraRelative;
         packet.proj = proj;
         packet.view = viewRotOnly;
@@ -140,8 +141,6 @@ public class MasterRenderer {
         packet.cameraPos = camera.getPosition();
 
         boolean isIsoFrame = (isTakingIsometric && isoFramesToWait == -1);
-
-        frameIndex = (frameIndex + 1) % de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT;
 
         CullingUtils.buildVisibleLists(world.getChunkManager(), mvpCameraRelative, packet, isIsoFrame,
                 packet.cameraPos);
@@ -163,8 +162,8 @@ public class MasterRenderer {
         packet.renderDistance = SettingsManager.get().renderDistance * 16.0f;
 
         packet.blockUITexture = blockUITexture;
-        packet.uiCombinedMesh = uiRenderer.getCombinedMesh();
-        packet.uiDrawCalls = uiRenderer.getDrawCalls();
+        packet.uiCombinedMesh = uiRenderer.getCombinedMesh(frameIndex);
+        packet.uiDrawCalls = uiRenderer.getDrawCalls(frameIndex);
 
         packet.uiTexture = uiTexture;
         packet.itemTexture = itemTexture;
@@ -202,7 +201,7 @@ public class MasterRenderer {
         // MULTI-BLOCK CRACKING OVERLAY
         java.util.Map<Vector3i, Float> cracks = interaction.getAllMiningProgresses();
         if (!cracks.isEmpty()) {
-            updateCrackingMesh(world, cracks);
+            updateCrackingMesh(world, cracks, frameIndex);
             packet.overlayMesh = dynamicOverlayMeshes[frameIndex];
         } else {
             if (dynamicOverlayMeshes[frameIndex] != null) {
@@ -362,7 +361,7 @@ public class MasterRenderer {
 
     // --- NEU: Diese Methode baut keine neuen Meshes mehr, sondern updatet unser
     // gespeichertes Mesh ---
-    private void updateCrackingMesh(World world, java.util.Map<Vector3i, Float> activeCracks) {
+    private void updateCrackingMesh(World world, java.util.Map<Vector3i, Float> activeCracks, int frameIndex) {
         int totalBoxes = 0;
         for (java.util.Map.Entry<Vector3i, Float> entry : activeCracks.entrySet()) {
             Vector3i pos = entry.getKey();

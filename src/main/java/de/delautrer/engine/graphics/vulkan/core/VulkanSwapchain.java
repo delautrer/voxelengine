@@ -45,7 +45,7 @@ public class VulkanSwapchain {
             createInfo.imageColorSpace(surfaceFormat.colorSpace());
             createInfo.imageExtent(swapExtent);
             createInfo.imageArrayLayers(1);
-            createInfo.imageUsage(VK10.VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
+            createInfo.imageUsage(VK10.VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK10.VK_IMAGE_USAGE_TRANSFER_SRC_BIT);
 
             createInfo.imageSharingMode(VK10.VK_SHARING_MODE_EXCLUSIVE);
             createInfo.preTransform(capabilities.currentTransform());

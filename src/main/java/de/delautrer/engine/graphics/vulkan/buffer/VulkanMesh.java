@@ -6,6 +6,7 @@ import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 import org.lwjgl.vulkan.VK10;
 
+@SuppressWarnings("this-escape")
 public class VulkanMesh implements de.delautrer.engine.graphics.IMesh {
     private final VulkanContext context;
     private VulkanBuffer vertexBuffer;
@@ -19,16 +20,25 @@ public class VulkanMesh implements de.delautrer.engine.graphics.IMesh {
 
     public VulkanMesh(VulkanContext context, float[] vertices, int[] indices) {
         this.context = context;
+        if (de.delautrer.Constants.VULKAN_DEBUG) {
+            System.out.println("[VulkanMesh] Creating new mesh (float[], int[]) with " + vertices.length + " elements (" + (vertices.length / 8) + " vertices) and " + indices.length + " indices");
+        }
         updateMesh(vertices, indices);
     }
 
     public VulkanMesh(VulkanContext context, float[] vertices, int vertexCount, int[] indices, int indexCount) {
         this.context = context;
+        if (de.delautrer.Constants.VULKAN_DEBUG) {
+            System.out.println("[VulkanMesh] Creating new mesh (float[], count, int[], count) with " + vertexCount + " elements (" + (vertexCount / 8) + " vertices) and " + indexCount + " indices");
+        }
         updateMesh(vertices, vertexCount, indices, indexCount);
     }
 
     public VulkanMesh(VulkanContext context, MeshData data) {
         this.context = context;
+        if (de.delautrer.Constants.VULKAN_DEBUG) {
+            System.out.println("[VulkanMesh] Creating new mesh (MeshData) with " + data.vertices().length + " elements (" + (data.vertices().length / 8) + " vertices) and " + data.indices().length + " indices");
+        }
         updateMesh(data.vertices(), data.indices());
     }
 
@@ -41,6 +51,9 @@ public class VulkanMesh implements de.delautrer.engine.graphics.IMesh {
     }
 
     public final void updateMesh(float[] vertices, int vertexCount, int[] indices, int indexCount) {
+        if (de.delautrer.Constants.VULKAN_DEBUG) {
+            System.out.println("[VulkanMesh] Updating mesh 0x" + Integer.toHexString(hashCode()) + ": " + vertexCount + " elements (" + (vertexCount / 8) + " vertices), " + indexCount + " indices. Max sizes: vertex=" + maxVertexBufferSize + " bytes, index=" + maxIndexBufferSize + " bytes");
+        }
         this.indexCount = indexCount;
         if (indexCount == 0)
             return;
@@ -116,6 +129,9 @@ public class VulkanMesh implements de.delautrer.engine.graphics.IMesh {
     }
 
     public void cleanup() {
+        if (de.delautrer.Constants.VULKAN_DEBUG) {
+            System.out.println("[VulkanMesh] Cleaning up mesh 0x" + Integer.toHexString(hashCode()) + " (vertexBuffer: 0x" + (vertexBuffer != null ? Long.toHexString(vertexBuffer.getBuffer()) : "null") + ", indexBuffer: 0x" + (indexBuffer != null ? Long.toHexString(indexBuffer.getBuffer()) : "null") + ")");
+        }
         if (vertexBuffer != null) {
             vertexBuffer.cleanup();
             vertexBuffer = null;

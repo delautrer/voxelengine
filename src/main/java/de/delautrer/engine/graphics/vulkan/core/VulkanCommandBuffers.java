@@ -10,10 +10,10 @@ public class VulkanCommandBuffers {
     private long commandPool;
     private VkCommandBuffer[] commandBuffers;
 
-    public VulkanCommandBuffers(VulkanContext context, VulkanFramebuffers framebuffers) {
+    public VulkanCommandBuffers(VulkanContext context) {
         this.context = context;
         createCommandPool();
-        allocateCommandBuffers(framebuffers.getFramebuffers().length);
+        allocateCommandBuffers(de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT);
     }
 
     private void createCommandPool() {
@@ -51,9 +51,9 @@ public class VulkanCommandBuffers {
         }
     }
 
-    public VkCommandBuffer beginRecording(int imageIndex, VulkanSwapchain swapchain, VulkanRenderPass renderPass,
+    public VkCommandBuffer beginRecording(int frameIndex, int imageIndex, VulkanSwapchain swapchain, VulkanRenderPass renderPass,
             VulkanFramebuffers framebuffers, float skyR, float skyG, float skyB) {
-        VkCommandBuffer cmd = commandBuffers[imageIndex];
+        VkCommandBuffer cmd = commandBuffers[frameIndex];
         VK10.vkResetCommandBuffer(cmd, 0);
 
         try (MemoryStack stack = MemoryStack.stackPush()) {

@@ -6,6 +6,8 @@ build/
 .kotlin
 *.log
 
+COPYLOG.txt
+
 asesprite_files/
 game_data/
 saves/

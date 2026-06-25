@@ -276,7 +276,13 @@ public final class ChunkManager {
             MeshToDelete item = trashBin.poll();
             if (item != null) {
                 item.framesToLive--;
+                if (de.delautrer.Constants.VULKAN_DEBUG) {
+                    System.out.println("[ChunkManager] Trash bin item 0x" + Integer.toHexString(item.mesh.hashCode()) + " framesToLive: " + item.framesToLive);
+                }
                 if (item.framesToLive <= 0) {
+                    if (de.delautrer.Constants.VULKAN_DEBUG) {
+                        System.out.println("[ChunkManager] Trash bin item 0x" + Integer.toHexString(item.mesh.hashCode()) + " expired. Cleaning up!");
+                    }
                     item.mesh.cleanup();
                 } else {
                     trashBin.add(item); 
@@ -286,6 +292,11 @@ public final class ChunkManager {
     }
 
     public void updateChunkMeshes(long pos, ChunkMesher.ChunkMeshResult result) {
+        if (de.delautrer.Constants.VULKAN_DEBUG) {
+            int cx = (int) (pos >> 32);
+            int cz = (int) pos;
+            System.out.println("[ChunkManager] updateChunkMeshes for chunk (" + cx + ", " + cz + "). Opaque mesh size: " + result.opaque().vertices().length + " floats, Water mesh size: " + result.water().vertices().length + " floats");
+        }
         ChunkMeshPair pair = meshes.computeIfAbsent(pos, k -> new ChunkMeshPair());
 
         if (pair.opaque != null) {

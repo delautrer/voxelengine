@@ -57,7 +57,7 @@ public class VulkanRenderer {
         this.renderPass = new VulkanRenderPass(context, swapchain);
 
         this.framebuffers = new VulkanFramebuffers(context, swapchain, renderPass, depthBuffer);
-        this.commandBuffers = new VulkanCommandBuffers(context, framebuffers);
+        this.commandBuffers = new VulkanCommandBuffers(context);
         this.sync = new VulkanSync(context, swapchain);
 
         skyRenderSystem = new SkyRenderSystem(context, swapchain, renderPass);
@@ -86,12 +86,25 @@ public class VulkanRenderer {
         VK10.vkWaitForFences(context.getDevice(), inFlightFence, true, Long.MAX_VALUE);
     }
 
+    public int getCurrentFrame() {
+        return currentFrame;
+    }
+
     public boolean render(RenderPacket packet) {
+        if (de.delautrer.Constants.VULKAN_DEBUG) {
+            System.out.println("[VulkanRenderer] render() started. currentFrame: " + currentFrame);
+        }
         try (MemoryStack stack = MemoryStack.stackPush()) {
             long inFlightFence = sync.getInFlightFence(currentFrame);
             long imageAvailableSemaphore = sync.getImageAvailableSemaphore(currentFrame);
 
+            if (de.delautrer.Constants.VULKAN_DEBUG) {
+                System.out.println("[VulkanRenderer] Waiting for fence of currentFrame " + currentFrame + " (fence: 0x" + Long.toHexString(inFlightFence) + ")...");
+            }
             waitForCurrentFrame();
+            if (de.delautrer.Constants.VULKAN_DEBUG) {
+                System.out.println("[VulkanRenderer] Fence of currentFrame " + currentFrame + " signaled.");
+            }
 
             java.util.Iterator<ScreenshotTask> it = pendingTasks.iterator();
             while (it.hasNext()) {
@@ -102,16 +115,25 @@ public class VulkanRenderer {
                 }
             }
             IntBuffer pImageIndex = stack.mallocInt(1);
+            if (de.delautrer.Constants.VULKAN_DEBUG) {
+                System.out.println("[VulkanRenderer] vkAcquireNextImageKHR starting...");
+            }
             int acquireResult = KHRSwapchain.vkAcquireNextImageKHR(context.getDevice(), swapchain.getSwapchain(),
                     Long.MAX_VALUE, imageAvailableSemaphore, 0, pImageIndex);
 
             if (acquireResult == KHRSwapchain.VK_ERROR_OUT_OF_DATE_KHR) {
+                if (de.delautrer.Constants.VULKAN_DEBUG) {
+                    System.out.println("[VulkanRenderer] vkAcquireNextImageKHR returned OUT_OF_DATE_KHR.");
+                }
                 return false;
             } else if (acquireResult != VK10.VK_SUCCESS && acquireResult != KHRSwapchain.VK_SUBOPTIMAL_KHR) {
-                throw new RuntimeException("Failed to acquire swapchain image");
+                throw new RuntimeException("Failed to acquire swapchain image, result: " + acquireResult);
             }
 
             int imageIndex = pImageIndex.get(0);
+            if (de.delautrer.Constants.VULKAN_DEBUG) {
+                System.out.println("[VulkanRenderer] vkAcquireNextImageKHR successful. imageIndex: " + imageIndex);
+            }
             VK10.vkResetFences(context.getDevice(), inFlightFence);
 
             /*
@@ -123,7 +145,7 @@ public class VulkanRenderer {
              * commandBuffers.endRecording(cmd);
              */
 
-            VkCommandBuffer cmd = commandBuffers.beginRecording(imageIndex, swapchain, renderPass, framebuffers,
+            VkCommandBuffer cmd = commandBuffers.beginRecording(currentFrame, imageIndex, swapchain, renderPass, framebuffers,
                     packet.skyR, packet.skyG, packet.skyB);
             // VkCommandBuffer cmd = commandBuffers.beginRecording(imageIndex, swapchain,
             // renderPass, framebuffers, clearR, clearG, clearB);
@@ -180,7 +202,16 @@ public class VulkanRenderer {
                     .pCommandBuffers(stack.pointers(cmd.address()))
                     .pSignalSemaphores(stack.longs(sync.getRenderFinishedSemaphore(imageIndex)));
 
-            VK10.vkQueueSubmit(context.getGraphicsQueue(), submitInfo, inFlightFence);
+            if (de.delautrer.Constants.VULKAN_DEBUG) {
+                System.out.println("[VulkanRenderer] Submitting command buffer. frameIndex: " + currentFrame + ", imageIndex: " + imageIndex + " (fence: 0x" + Long.toHexString(inFlightFence) + ")");
+            }
+            int submitResult = VK10.vkQueueSubmit(context.getGraphicsQueue(), submitInfo, inFlightFence);
+            if (submitResult != VK10.VK_SUCCESS) {
+                throw new RuntimeException("Failed to submit command buffer, VkResult: " + submitResult);
+            }
+            if (de.delautrer.Constants.VULKAN_DEBUG) {
+                System.out.println("[VulkanRenderer] vkQueueSubmit succeeded. Presenting...");
+            }
 
             VkPresentInfoKHR presentInfo = VkPresentInfoKHR.calloc(stack)
                     .sType(KHRSwapchain.VK_STRUCTURE_TYPE_PRESENT_INFO_KHR)
@@ -193,9 +224,16 @@ public class VulkanRenderer {
 
             if (presentResult == KHRSwapchain.VK_ERROR_OUT_OF_DATE_KHR
                     || presentResult == KHRSwapchain.VK_SUBOPTIMAL_KHR) {
+                if (de.delautrer.Constants.VULKAN_DEBUG) {
+                    System.out.println("[VulkanRenderer] vkQueuePresentKHR returned OUT_OF_DATE/SUBOPTIMAL.");
+                }
                 return false;
             } else if (presentResult != VK10.VK_SUCCESS) {
-                throw new RuntimeException("Failed to present swapchain image");
+                throw new RuntimeException("Failed to present swapchain image, VkResult: " + presentResult);
+            }
+
+            if (de.delautrer.Constants.VULKAN_DEBUG) {
+                System.out.println("[VulkanRenderer] Frame " + currentFrame + " render and present completed successfully.");
             }
 
             currentFrame = (currentFrame + 1) % VulkanSync.MAX_FRAMES_IN_FLIGHT;
@@ -220,7 +258,7 @@ public class VulkanRenderer {
         this.swapchain = new VulkanSwapchain(context);
         this.depthBuffer = new VulkanDepthBuffer(context, swapchain);
         this.framebuffers = new VulkanFramebuffers(context, swapchain, renderPass, depthBuffer);
-        this.commandBuffers = new VulkanCommandBuffers(context, framebuffers);
+        this.commandBuffers = new VulkanCommandBuffers(context);
         this.sync = new VulkanSync(context, swapchain);
         renderSystems.clear();
 

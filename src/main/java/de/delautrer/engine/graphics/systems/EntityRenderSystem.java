@@ -59,7 +59,6 @@ public class EntityRenderSystem implements IRenderSystem {
 
     private VulkanMesh[] blockMeshes = new VulkanMesh[de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT];
     private VulkanMesh[] itemMeshes = new VulkanMesh[de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT];
-    private int frameIndex = 0;
 
     private final FloatList blockVerts = new FloatList();
     private final IntList blockInds = new IntList();
@@ -149,7 +148,7 @@ public class EntityRenderSystem implements IRenderSystem {
         if (blockVerts.isEmpty() && itemVerts.isEmpty())
             return;
 
-        frameIndex = (frameIndex + 1) % de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT;
+        int frameIndex = packet.frameIndex;
 
         if (!blockVerts.isEmpty()) {
             if (blockMeshes[frameIndex] == null) {

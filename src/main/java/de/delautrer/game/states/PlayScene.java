@@ -54,6 +54,7 @@ public class PlayScene extends Scene {
     private boolean allowCheats = false;
 
     private boolean uiNeedsRebuild = true;
+    private int uiNeedsRebuildCount = 2;
     private boolean wasLoading = true;
     private int loadingWarmup = 15; // Frames zum "Einschwingen" (Licht/Kamera)
 
@@ -499,6 +500,11 @@ public class PlayScene extends Scene {
     @Override
     public void render() {
         if (uiNeedsRebuild) {
+            uiNeedsRebuildCount = de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT;
+            uiNeedsRebuild = false;
+        }
+
+        if (uiNeedsRebuildCount > 0) {
             MenuScreen activeScreen = null;
 
             if (!world.getChunkManager().isInitialLoadComplete() || loadingWarmup > 0) {
@@ -518,7 +524,7 @@ public class PlayScene extends Scene {
                         activeScreen, chatOverlay);
             }
 
-            uiNeedsRebuild = false;
+            uiNeedsRebuildCount--;
         }
 
         if (!masterRenderer.drawFrame(localPlayer.getCamera(), world, localPlayer.getInteraction(), hideUI,
