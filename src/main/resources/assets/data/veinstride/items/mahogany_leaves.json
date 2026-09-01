@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Mahogany Leaves",
+    "texture_name":  "mahogany_leaves",
+    "max_stack_size":  64,
+    "category":  "natural"
+}

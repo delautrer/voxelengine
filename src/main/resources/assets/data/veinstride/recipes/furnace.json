@@ -1,0 +1,16 @@
+﻿{
+  "pattern": [
+    "AAA",
+    "A A",
+    "AAA"
+  ],
+  "keys": {
+    "A": "veinstride:cobblestone"
+  },
+  "type": "shaped",
+  "result": {
+    "count": 1,
+    "item": "veinstride:furnace"
+  }
+}
+

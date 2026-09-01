@@ -1,0 +1,8 @@
+﻿{
+    "type":  "block",
+    "name":  "Red Tulip",
+    "texture_name":  "red_tulip",
+    "max_stack_size":  64,
+    "category":  "natural",
+    "render_as_item":  true
+}

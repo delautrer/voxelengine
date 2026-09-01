@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Birch Planks",
+    "texture_name":  "birch_planks",
+    "max_stack_size":  64,
+    "category":  "wood"
+}

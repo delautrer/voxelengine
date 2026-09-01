@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Grass Slabs",
+    "texture_name":  "grass_block_slabs",
+    "max_stack_size":  64,
+    "category":  "building"
+}

@@ -1,0 +1,17 @@
+﻿{
+  "type": "shaped",
+  "pattern": [
+    "A A",
+    " A "
+  ],
+  "keys": {
+    "A": [
+      "veinstride:iron_ingot",
+      "veinstride:zinc_ingot"
+    ]
+  },
+  "result": {
+    "count": 1,
+    "item": "veinstride:empty_bucket"
+  }
+}

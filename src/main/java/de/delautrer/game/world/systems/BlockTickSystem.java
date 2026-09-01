@@ -25,17 +25,17 @@ public class BlockTickSystem implements WorldSystem {
     private final Random random = new Random();
     private static final int RANDOM_TICKS_PER_CHUNK = 12;
 
-    private byte grassId = -1;
-    private byte dirtId = -1;
-    private byte sandId = -1;
-    private byte gravelId = -1;
+    private Block grassBlock;
+    private Block dirtBlock;
+    private Block sandBlock;
+    private Block gravelBlock;
 
-    private void initIds() {
-        if (grassId == -1) {
-            grassId = BlockRegistry.get(de.delautrer.Constants.NAMESPACE + ":grass_block").getId();
-            dirtId = BlockRegistry.get(de.delautrer.Constants.NAMESPACE + ":dirt").getId();
-            sandId = BlockRegistry.get(de.delautrer.Constants.NAMESPACE + ":sand").getId();
-            gravelId = BlockRegistry.get(de.delautrer.Constants.NAMESPACE + ":gravel").getId();
+    private void initBlocks() {
+        if (grassBlock == null) {
+            grassBlock = de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:grass_block");
+            dirtBlock = de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:dirt");
+            sandBlock = de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:sand");
+            gravelBlock = de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:gravel");
         }
     }
 
@@ -52,9 +52,8 @@ public class BlockTickSystem implements WorldSystem {
 
             if (y < Chunk.MIN_Y || y >= Chunk.MAX_Y) continue;
 
-            byte blockId = world.getBlockAt(x, y, z);
-            if (blockId != 0) {
-                Block block = BlockRegistry.get(blockId);
+            Block block = world.getBlock(x, y, z);
+            if (block != null && !block.isAir()) {
                 block.randomDisplayTick(world, new Vector3i(x, y, z), random);
             }
         }
@@ -62,7 +61,7 @@ public class BlockTickSystem implements WorldSystem {
 
     @Override
     public void onTick(World world, LocalPlayer localPlayer) {
-        initIds();
+        initBlocks();
         
         // Random Ticks (3 pro Chunk pro Spiel-Tick)
         for (Chunk chunk : world.getChunkManager().getLoadedChunks()) {
@@ -74,13 +73,12 @@ public class BlockTickSystem implements WorldSystem {
                 int globalX = chunk.getWorldX() * Chunk.SIZE + x;
                 int globalZ = chunk.getWorldZ() * Chunk.SIZE + z;
 
-                byte blockId = chunk.getBlock(x, y, z);
-                if (blockId == grassId) {
+                Block block = chunk.getBlock(x, y, z);
+                if (block == grassBlock) {
                     handleGrassDecay(world, globalX, y, globalZ);
-                } else if (blockId == dirtId) {
+                } else if (block == dirtBlock) {
                     handleGrassSpread(world, globalX, y, globalZ, chunk);
                 } else {
-                    Block block = BlockRegistry.get(blockId);
                     if (block instanceof LeavesBlock) {
                         handleLeavesDecay(world, globalX, y, globalZ);
                     } else if (block instanceof SaplingBlock) {
@@ -93,10 +91,9 @@ public class BlockTickSystem implements WorldSystem {
 
     private void handleGrassDecay(World world, int x, int y, int z) {
         if (y < Chunk.MAX_Y - 1) {
-            byte blockAbove = world.getBlockAt(x, y + 1, z);
-            Block bAbove = BlockRegistry.get(blockAbove);
-            if (bAbove.isSolid && !bAbove.isTransparent) {
-                world.setBlock(x, y, z, dirtId, false);
+            Block bAbove = world.getBlock(x, y + 1, z);
+            if (bAbove != null && bAbove.isSolid && !bAbove.isTransparent) {
+                world.setBlock(x, y, z, dirtBlock, (byte) 0);
             }
         }
     }
@@ -112,8 +109,8 @@ public class BlockTickSystem implements WorldSystem {
         }
         
         // Check if block above is transparent
-        byte blockAboveId = world.getBlockAt(x, y + 1, z);
-        if (BlockRegistry.get(blockAboveId).isSolid && !BlockRegistry.get(blockAboveId).isTransparent) {
+        Block bAbove = world.getBlock(x, y + 1, z);
+        if (bAbove != null && bAbove.isSolid && !bAbove.isTransparent) {
             return;
         }
 
@@ -123,9 +120,9 @@ public class BlockTickSystem implements WorldSystem {
                 for (int dz = -1; dz <= 1; dz++) {
                     if (dx == 0 && dy == 0 && dz == 0) continue;
                     
-                    if (world.getBlockAt(x + dx, y + dy, z + dz) == grassId) {
+                    if (world.getBlock(x + dx, y + dy, z + dz) == grassBlock) {
                         // Found grass neighbor!
-                        world.setBlock(x, y, z, grassId, false);
+                        world.setBlock(x, y, z, grassBlock, (byte) 0);
                         return;
                     }
                 }
@@ -144,7 +141,7 @@ public class BlockTickSystem implements WorldSystem {
 
         // Kein Holz -> Drop Items und löschen
         dropBlockAsItem(world, x, y, z, state);
-        world.setBlock(x, y, z, (byte) 0);
+        world.setBlock(x, y, z, de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:air"));
     }
 
     private boolean isLogNearby(World world, int x, int y, int z, int radius) {

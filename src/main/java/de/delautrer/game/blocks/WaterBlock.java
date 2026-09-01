@@ -31,6 +31,7 @@ public class WaterBlock extends Block {
 
     public WaterBlock() {
         super(false, true, true, false);
+        this.mesher = new de.delautrer.engine.graphics.meshing.WaterMesher(this);
     }
 
     @Override
@@ -43,7 +44,7 @@ public class WaterBlock extends Block {
     }
 
     @Override
-    public void onNeighborChanged(World world, int x, int y, int z, Vector3i neighborPos, byte newNeighborId) {
+    public void onNeighborChanged(World world, int x, int y, int z, Vector3i neighborPos, Block changedBlock) {
         world.getTickScheduler().scheduleTick(new Vector3i(x, y, z), this, 5);
     }
 
@@ -314,7 +315,7 @@ public class WaterBlock extends Block {
     }
 
     // --- RENDER LOGIK (UNVERÄNDERT) ---
-    private float getWaterHeight(int x, int y, int z, Chunk chunk, ChunkManager cm) {
+    public float getWaterHeight(int x, int y, int z, Chunk chunk, ChunkManager cm) {
         if (y < Chunk.MIN_Y || y >= Chunk.MAX_Y)
             return 1.0f;
         int globalX = chunk.getWorldX() * Chunk.SIZE + x;
@@ -344,129 +345,7 @@ public class WaterBlock extends Block {
         return neighborBlock.isTransparent;
     }
 
-    @Override
-    public void generateMesh(int x, int y, int z, Chunk chunk, ChunkManager cm) {
-        float h = getWaterHeight(x, y, z, chunk, cm);
-        float yTop = y + h;
-        float lightTop = 1.0f, lightBot = 0.4f, lightFrontBack = 0.8f, lightLeftRight = 0.65f;
-        TextureStitcher.AtlasRegion reg = getModel().top;
 
-        Block topNeighbor = BlockRegistry.get(chunk.getBlockAt(x, y + 1, z, cm));
-        if (shouldRenderFaceAgainst(topNeighbor, h, 1.0f) || h < 0.99f) {
-            float sl0 = chunk.getSmoothSkyLight(x, y + 1, z, -1, 0, 0, 0, 0, -1, cm);
-            float sl1 = chunk.getSmoothSkyLight(x, y + 1, z, -1, 0, 0, 0, 0, 1, cm);
-            float sl2 = chunk.getSmoothSkyLight(x, y + 1, z, 1, 0, 0, 0, 0, 1, cm);
-            float sl3 = chunk.getSmoothSkyLight(x, y + 1, z, 1, 0, 0, 0, 0, -1, cm);
-            float bl0 = chunk.getSmoothBlockLight(x, y + 1, z, -1, 0, 0, 0, 0, -1, cm);
-            float bl1 = chunk.getSmoothBlockLight(x, y + 1, z, -1, 0, 0, 0, 0, 1, cm);
-            float bl2 = chunk.getSmoothBlockLight(x, y + 1, z, 1, 0, 0, 0, 0, 1, cm);
-            float bl3 = chunk.getSmoothBlockLight(x, y + 1, z, 1, 0, 0, 0, 0, -1, cm);
-
-            chunk.addFace(x, yTop, z, 1, x, yTop, z + 1, 1, x + 1, yTop, z + 1, 1, x + 1, yTop, z, 1, reg.u0, reg.v0,
-                    reg.u1, reg.v1, reg.layer, lightTop, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
-
-            if (topNeighbor != this) {
-                float surfaceY = yTop - 0.001f;
-                chunk.addFace(x, surfaceY, z + 1, 1, x, surfaceY, z, 1, x + 1, surfaceY, z, 1, x + 1, surfaceY, z + 1,
-                        1, reg.u0, reg.v0, reg.u1, reg.v1, reg.layer, 0.5f, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2,
-                        bl3);
-            }
-        }
-
-        Block bottomNeighbor = BlockRegistry.get(chunk.getBlockAt(x, y - 1, z, cm));
-        if (shouldRenderFaceAgainst(bottomNeighbor, h, 1.0f) && y > Chunk.MIN_Y) {
-            float sl0 = chunk.getSmoothSkyLight(x, y - 1, z, -1, 0, 0, 0, 0, 1, cm);
-            float sl1 = chunk.getSmoothSkyLight(x, y - 1, z, -1, 0, 0, 0, 0, -1, cm);
-            float sl2 = chunk.getSmoothSkyLight(x, y - 1, z, 1, 0, 0, 0, 0, -1, cm);
-            float sl3 = chunk.getSmoothSkyLight(x, y - 1, z, 1, 0, 0, 0, 0, 1, cm);
-            float bl0 = chunk.getSmoothBlockLight(x, y - 1, z, -1, 0, 0, 0, 0, 1, cm);
-            float bl1 = chunk.getSmoothBlockLight(x, y - 1, z, -1, 0, 0, 0, 0, -1, cm);
-            float bl2 = chunk.getSmoothBlockLight(x, y - 1, z, 1, 0, 0, 0, 0, -1, cm);
-            float bl3 = chunk.getSmoothBlockLight(x, y - 1, z, 1, 0, 0, 0, 0, 1, cm);
-            chunk.addFace(x, y, z + 1, 1, x, y, z, 1, x + 1, y, z, 1, x + 1, y, z + 1, 1, reg.u0, reg.v0, reg.u1,
-                    reg.v1, reg.layer, lightBot, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
-        }
-
-        // Z+
-        float nHeightZPlus = getWaterHeight(x, y, z + 1, chunk, cm);
-        Block zPlusNeighbor = BlockRegistry.get(chunk.getBlockAt(x, y, z + 1, cm));
-        if (shouldRenderFaceAgainst(zPlusNeighbor, h, nHeightZPlus)) {
-            float yBot = (zPlusNeighbor == this) ? y + nHeightZPlus : y;
-            float vBot = reg.v1;
-            if (zPlusNeighbor == this && h > 0)
-                vBot = reg.v1 - (nHeightZPlus / h) * (reg.v1 - reg.v0);
-            float sl0 = chunk.getSmoothSkyLight(x, y, z + 1, -1, 0, 0, 0, -1, 0, cm);
-            float sl1 = chunk.getSmoothSkyLight(x, y, z + 1, 1, 0, 0, 0, -1, 0, cm);
-            float sl2 = chunk.getSmoothSkyLight(x, y, z + 1, 1, 0, 0, 0, 1, 0, cm);
-            float sl3 = chunk.getSmoothSkyLight(x, y, z + 1, -1, 0, 0, 0, 1, 0, cm);
-            float bl0 = chunk.getSmoothBlockLight(x, y, z + 1, -1, 0, 0, 0, -1, 0, cm);
-            float bl1 = chunk.getSmoothBlockLight(x, y, z + 1, 1, 0, 0, 0, -1, 0, cm);
-            float bl2 = chunk.getSmoothBlockLight(x, y, z + 1, 1, 0, 0, 0, 1, 0, cm);
-            float bl3 = chunk.getSmoothBlockLight(x, y, z + 1, -1, 0, 0, 0, 1, 0, cm);
-            chunk.addFace(x, yBot, z + 1, 1, x + 1, yBot, z + 1, 1, x + 1, yTop, z + 1, 1, x, yTop, z + 1, 1, reg.u0,
-                    reg.v0, reg.u1, vBot, reg.layer, lightFrontBack, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
-        }
-
-        // Z-
-        float nHeightZMinus = getWaterHeight(x, y, z - 1, chunk, cm);
-        Block zMinusNeighbor = BlockRegistry.get(chunk.getBlockAt(x, y, z - 1, cm));
-        if (shouldRenderFaceAgainst(zMinusNeighbor, h, nHeightZMinus)) {
-            float yBot = (zMinusNeighbor == this) ? y + nHeightZMinus : y;
-            float vBot = reg.v1;
-            if (zMinusNeighbor == this && h > 0)
-                vBot = reg.v1 - (nHeightZMinus / h) * (reg.v1 - reg.v0);
-            float sl0 = chunk.getSmoothSkyLight(x, y, z - 1, 1, 0, 0, 0, -1, 0, cm);
-            float sl1 = chunk.getSmoothSkyLight(x, y, z - 1, -1, 0, 0, 0, -1, 0, cm);
-            float sl2 = chunk.getSmoothSkyLight(x, y, z - 1, -1, 0, 0, 0, 1, 0, cm);
-            float sl3 = chunk.getSmoothSkyLight(x, y, z - 1, 1, 0, 0, 0, 1, 0, cm);
-            float bl0 = chunk.getSmoothBlockLight(x, y, z - 1, 1, 0, 0, 0, -1, 0, cm);
-            float bl1 = chunk.getSmoothBlockLight(x, y, z - 1, -1, 0, 0, 0, -1, 0, cm);
-            float bl2 = chunk.getSmoothBlockLight(x, y, z - 1, -1, 0, 0, 0, 1, 0, cm);
-            float bl3 = chunk.getSmoothBlockLight(x, y, z - 1, 1, 0, 0, 0, 1, 0, cm);
-            chunk.addFace(x + 1, yBot, z, 1, x, yBot, z, 1, x, yTop, z, 1, x + 1, yTop, z, 1, reg.u0, reg.v0, reg.u1,
-                    vBot, reg.layer, lightFrontBack, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
-        }
-
-        // X-
-        float nHeightXMinus = getWaterHeight(x - 1, y, z, chunk, cm);
-        Block xMinusNeighbor = BlockRegistry.get(chunk.getBlockAt(x - 1, y, z, cm));
-        if (shouldRenderFaceAgainst(xMinusNeighbor, h, nHeightXMinus)) {
-            float yBot = (xMinusNeighbor == this) ? y + nHeightXMinus : y;
-            float vBot = reg.v1;
-            if (xMinusNeighbor == this && h > 0)
-                vBot = reg.v1 - (nHeightXMinus / h) * (reg.v1 - reg.v0);
-            float sl0 = chunk.getSmoothSkyLight(x - 1, y, z, 0, -1, 0, 0, 0, -1, cm);
-            float sl1 = chunk.getSmoothSkyLight(x - 1, y, z, 0, -1, 0, 0, 0, 1, cm);
-            float sl2 = chunk.getSmoothSkyLight(x - 1, y, z, 0, 1, 0, 0, 0, 1, cm);
-            float sl3 = chunk.getSmoothSkyLight(x - 1, y, z, 0, 1, 0, 0, 0, -1, cm);
-            float bl0 = chunk.getSmoothBlockLight(x - 1, y, z, 0, -1, 0, 0, 0, -1, cm);
-            float bl1 = chunk.getSmoothBlockLight(x - 1, y, z, 0, -1, 0, 0, 0, 1, cm);
-            float bl2 = chunk.getSmoothBlockLight(x - 1, y, z, 0, 1, 0, 0, 0, 1, cm);
-            float bl3 = chunk.getSmoothBlockLight(x - 1, y, z, 0, 1, 0, 0, 0, -1, cm);
-            chunk.addFace(x, yBot, z, 1, x, yBot, z + 1, 1, x, yTop, z + 1, 1, x, yTop, z, 1, reg.u0, reg.v0, reg.u1,
-                    vBot, reg.layer, lightLeftRight, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
-        }
-
-        // X+
-        float nHeightXPlus = getWaterHeight(x + 1, y, z, chunk, cm);
-        Block xPlusNeighbor = BlockRegistry.get(chunk.getBlockAt(x + 1, y, z, cm));
-        if (shouldRenderFaceAgainst(xPlusNeighbor, h, nHeightXPlus)) {
-            float yBot = (xPlusNeighbor == this) ? y + nHeightXPlus : y;
-            float vBot = reg.v1;
-            if (xPlusNeighbor == this && h > 0)
-                vBot = reg.v1 - (nHeightXPlus / h) * (reg.v1 - reg.v0);
-            float sl0 = chunk.getSmoothSkyLight(x + 1, y, z, 0, -1, 0, 0, 0, 1, cm);
-            float sl1 = chunk.getSmoothSkyLight(x + 1, y, z, 0, -1, 0, 0, 0, -1, cm);
-            float sl2 = chunk.getSmoothSkyLight(x + 1, y, z, 0, 1, 0, 0, 0, -1, cm);
-            float sl3 = chunk.getSmoothSkyLight(x + 1, y, z, 0, 1, 0, 0, 0, 1, cm);
-            float bl0 = chunk.getSmoothBlockLight(x + 1, y, z, 0, -1, 0, 0, 0, 1, cm);
-            float bl1 = chunk.getSmoothBlockLight(x + 1, y, z, 0, -1, 0, 0, 0, -1, cm);
-            float bl2 = chunk.getSmoothBlockLight(x + 1, y, z, 0, 1, 0, 0, 0, -1, cm);
-            float bl3 = chunk.getSmoothBlockLight(x + 1, y, z, 0, 1, 0, 0, 0, 1, cm);
-            chunk.addFace(x + 1, yBot, z + 1, 1, x + 1, yBot, z, 1, x + 1, yTop, z, 1, x + 1, yTop, z + 1, 1, reg.u0,
-                    reg.v0, reg.u1, vBot, reg.layer, lightLeftRight, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
-        }
-    }
 
     public boolean canBeReplaced(BlockState state, BlockItem item, Vector3i hitFace, Vector3f exactHit) {
         return true;
@@ -475,10 +354,10 @@ public class WaterBlock extends Block {
     @Override
     public void randomDisplayTick(World world, Vector3i pos, java.util.Random random) {
         if (random.nextFloat() < 0.1f) {
-            byte blockBelowId = world.getBlockAt(pos.x, pos.y - 1, pos.z);
-            if (blockBelowId != Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air").getId() && blockBelowId != this.getId()) {
-                byte blockTwoBelowId = world.getBlockAt(pos.x, pos.y - 2, pos.z);
-                if (blockTwoBelowId == Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air").getId()) {
+            Block blockBelow = world.getBlock(pos.x, pos.y - 1, pos.z);
+            if (!blockBelow.isAir() && blockBelow != this) {
+                Block blockTwoBelow = world.getBlock(pos.x, pos.y - 2, pos.z);
+                if (blockTwoBelow.isAir()) {
                     de.delautrer.game.particle.ParticleSpawner.spawnDrop(world, pos.x + 0.5f, pos.y - 1.05f, pos.z + 0.5f);
                 }
             }

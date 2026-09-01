@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Cobblestone",
+    "texture_name":  "cobblestone",
+    "max_stack_size":  64,
+    "category":  "natural"
+}

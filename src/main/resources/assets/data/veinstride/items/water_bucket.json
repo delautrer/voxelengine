@@ -1,0 +1,9 @@
+﻿{
+    "type":  "block",
+    "name":  "Water bucket",
+    "texture_name":  "water_bucket",
+    "max_stack_size":  64,
+    "category":  "tools",
+    "render_as_item":  true,
+    "block_id":  "veinstride:water"
+}

@@ -1,0 +1,6 @@
+﻿{
+    "type":  "torch",
+    "hardness":  0.0001,
+    "light_emission":  14,
+    "category":  "misc"
+}

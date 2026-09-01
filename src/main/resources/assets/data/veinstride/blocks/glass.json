@@ -1,0 +1,6 @@
+﻿{
+    "type":  "cube",
+    "transparent":  true,
+    "hardness":  0.25,
+    "category":  "building"
+}

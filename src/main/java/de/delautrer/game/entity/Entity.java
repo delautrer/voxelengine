@@ -168,19 +168,16 @@ public abstract class Entity {
         int x = (int) Math.floor(position.x);
         int y = (int) Math.floor(position.y + height * 0.5f);
         int z = (int) Math.floor(position.z);
-        return BlockRegistry.get(cm.getWorld().getBlockAt(x, y, z)) instanceof WaterBlock;
+        return cm.getWorld().getBlock(x, y, z) instanceof WaterBlock;
     }
 
     private void applyWaterCurrent(ChunkManager cm, float dt) {
         int x = (int) Math.floor(position.x);
         int y = (int) Math.floor(position.y + height * 0.5f);
         int z = (int) Math.floor(position.z);
-        Block b = BlockRegistry.get(cm.getWorld().getBlockAt(x, y, z));
+        Block b = cm.getWorld().getBlock(x, y, z);
         if (b instanceof WaterBlock wb) {
             // Flow direction is based on levels
-            // We need a World reference for WaterBlock.getFlowDirection, but moveAndCollide usually only has cm
-            // Let's assume Entity.onTick or similar provides world, or we cast.
-            // For now, let's keep it simple or use a placeholder if world isn't available.
         }
     }
 
@@ -198,10 +195,10 @@ public abstract class Entity {
                         boxes.add(new AABB(new Vector3f(x, y, z), new Vector3f(x + 1, y + 1, z + 1)));
                         continue;
                     }
-                    byte blockId = c.getBlock(Math.floorMod(x, Chunk.SIZE), y, Math.floorMod(z, Chunk.SIZE));
-                    if (blockId != 0 && !BlockRegistry.get(blockId).isPassable) {
-                        BlockState state = c.getBlockState(Math.floorMod(x, Chunk.SIZE), y, Math.floorMod(z, Chunk.SIZE));
-                        for (AABB box : BlockRegistry.get(blockId).getCollisionBoxes(state)) {
+                    de.delautrer.game.blocks.Block block = chunkManager.getWorld().getBlock(x, y, z);
+                    if (block != null && !block.isPassable) {
+                        BlockState state = chunkManager.getWorld().getBlockState(x, y, z);
+                        for (AABB box : block.getCollisionBoxes(state)) {
                             boxes.add(new AABB(
                                     new Vector3f(box.min).add(x, y, z),
                                     new Vector3f(box.max).add(x, y, z)

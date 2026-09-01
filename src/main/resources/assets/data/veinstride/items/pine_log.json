@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Pine Log",
+    "texture_name":  "pine_log",
+    "max_stack_size":  64,
+    "category":  "wood"
+}

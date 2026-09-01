@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Baobab Planks",
+    "texture_name":  "baobab_planks",
+    "max_stack_size":  64,
+    "category":  "wood"
+}

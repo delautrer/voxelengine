@@ -1,0 +1,17 @@
+﻿{
+  "type": "shaped",
+  "pattern": [
+    "MMM",
+    " S ",
+    " S "
+  ],
+  "keys": {
+    "M": "veinstride:gold_ingot",
+    "S": "veinstride:sticks"
+  },
+  "result": {
+    "item": "veinstride:gold_pickaxe",
+    "count": 1
+  }
+}
+

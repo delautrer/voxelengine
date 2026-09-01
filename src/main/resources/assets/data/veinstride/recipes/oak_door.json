@@ -1,0 +1,16 @@
+﻿{
+  "type": "shaped",
+  "pattern": [
+    "AA",
+    "AA",
+    "AA"
+  ],
+  "keys": {
+    "A": "veinstride:oak_planks"
+  },
+  "result": {
+    "count": 3,
+    "item": "veinstride:oak_door"
+  }
+}
+

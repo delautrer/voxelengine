@@ -1,0 +1,7 @@
+﻿{
+    "type":  "simple",
+    "name":  "Gold Ingot",
+    "texture_name":  "gold_ingot",
+    "max_stack_size":  64,
+    "category":  "misc"
+}

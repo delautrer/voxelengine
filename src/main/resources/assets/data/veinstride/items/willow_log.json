@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Willow Log",
+    "texture_name":  "willow_log",
+    "max_stack_size":  64,
+    "category":  "wood"
+}

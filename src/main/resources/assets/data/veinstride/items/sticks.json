@@ -1,0 +1,7 @@
+﻿{
+    "type":  "simple",
+    "name":  "Sticks",
+    "texture_name":  "sticks",
+    "max_stack_size":  64,
+    "category":  "misc"
+}

@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Zinc Ore",
+    "texture_name":  "zinc_ore",
+    "max_stack_size":  64,
+    "category":  "misc"
+}

@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Sand",
+    "texture_name":  "sand",
+    "max_stack_size":  64,
+    "category":  "natural"
+}

@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Oak Slabs",
+    "texture_name":  "oak_slabs",
+    "max_stack_size":  64,
+    "category":  "building"
+}

@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Dirt Stairs",
+    "texture_name":  "dirt_stairs",
+    "max_stack_size":  64,
+    "category":  "building"
+}

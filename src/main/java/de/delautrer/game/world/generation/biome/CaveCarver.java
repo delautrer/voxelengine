@@ -1,6 +1,7 @@
 package de.delautrer.game.world.generation.biome;
 
 import de.delautrer.Constants;
+import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkSection;
@@ -8,28 +9,12 @@ import java.util.Random;
 
 public class CaveCarver {
 
-    private static byte AIR = 0;
-    private static byte WATER = 0;
-    private static byte BEDROCK = 0;
-
     private static boolean initialized = false;
-    private static boolean[] whitelist = new boolean[256];
-
     private static de.delautrer.game.world.NoiseGenerator riverNoise;
     private static long currentSeed = -1;
 
     private static void init(long seed) {
         if (initialized && currentSeed == seed) return;
-        AIR = BlockRegistry.get(Constants.NAMESPACE + ":air").getId();
-        WATER = BlockRegistry.get(Constants.NAMESPACE + ":water").getId();
-        BEDROCK = BlockRegistry.get(Constants.NAMESPACE + ":bedrock").getId();
-
-        whitelist[BlockRegistry.get(Constants.NAMESPACE + ":stone").getId() & 0xFF] = true;
-        whitelist[BlockRegistry.get(Constants.NAMESPACE + ":dirt").getId() & 0xFF] = true;
-        whitelist[BlockRegistry.get(Constants.NAMESPACE + ":grass_block").getId() & 0xFF] = true;
-        whitelist[BlockRegistry.get(Constants.NAMESPACE + ":gravel").getId() & 0xFF] = true;
-        whitelist[BlockRegistry.get(Constants.NAMESPACE + ":sand").getId() & 0xFF] = true;
-
         riverNoise = new de.delautrer.game.world.NoiseGenerator(seed * 234);
         currentSeed = seed;
         initialized = true;
@@ -145,6 +130,10 @@ public class CaveCarver {
 
         ChunkSection[] sections = chunk.getSections();
 
+        Block air = de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:air");
+        Block water = de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:water");
+        Block bedrock = de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:bedrock");
+
         for (int lx = minX; lx <= maxX; lx++) {
             double dX = ((lx + chunkOffX) + 0.5 - cx) / radius;
             for (int lz = minZ; lz <= maxZ; lz++) {
@@ -154,30 +143,15 @@ public class CaveCarver {
                 for (int ly = maxY; ly >= minY; ly--) {
                     double dY = (ly + 0.5 - cy) / radiusY;
 
-                    int secIdx = (ly - Chunk.MIN_Y) >> 4;
-                    if (secIdx < 0 || secIdx >= sections.length) continue;
-                    ChunkSection section = sections[secIdx];
-                    if (section == null) continue;
-
-                    byte[] blocks = section.getBlocks();
-                    byte[] states = section.getStates();
-                    int localY = (ly - Chunk.MIN_Y) & 15;
-                    int idx = (lx << 8) | (lz << 4) | localY;
-                    byte currentBlock = blocks[idx];
-
                     if (dX * dX + dY * dY + dZ * dZ < 1.0) {
-                        if (currentBlock == BEDROCK) continue;
-                        boolean canCarve = whitelist[currentBlock & 0xFF] || currentBlock == AIR || currentBlock == WATER;
-                        if (canCarve) {
-                            if (currentBlock != WATER) {
-                                blocks[idx] = AIR;
-                                states[idx] = 0;
-                            }
+                        Block currentBlock = chunk.getBlock(lx, ly, lz);
+                        if (currentBlock == bedrock) continue;
+                        if (currentBlock != water && currentBlock != air) {
+                            chunk.setBlock(lx, ly, lz, air, (byte) 0, chunk.getPalette());
                         }
                     }
                 }
             }
         }
-        for (ChunkSection sec : sections) if (sec != null) sec.recalculateAir();
     }
 }

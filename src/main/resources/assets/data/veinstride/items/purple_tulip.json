@@ -1,0 +1,8 @@
+﻿{
+    "type":  "block",
+    "name":  "Purple Tulip",
+    "texture_name":  "purple_tulip",
+    "max_stack_size":  64,
+    "category":  "natural",
+    "render_as_item":  true
+}

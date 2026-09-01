@@ -1,0 +1,10 @@
+﻿{
+    "type":  "tool",
+    "name":  "Iron Shovel",
+    "texture_name":  "iron_shovel",
+    "category":  "tools",
+    "tool_type":  "shovel",
+    "tool_tier":  "iron",
+    "tool_efficiency":  6.0,
+    "tool_max_durability":  250
+}

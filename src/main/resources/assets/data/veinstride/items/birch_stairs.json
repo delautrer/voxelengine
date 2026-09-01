@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Birch Stairs",
+    "texture_name":  "birch_stairs",
+    "max_stack_size":  64,
+    "category":  "building"
+}

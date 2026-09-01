@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Stone",
+    "texture_name":  "stone",
+    "max_stack_size":  64,
+    "category":  "natural"
+}

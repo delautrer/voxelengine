@@ -12,11 +12,12 @@ import de.delautrer.game.world.ChunkManager;
 import de.delautrer.game.world.World;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
+import de.delautrer.engine.graphics.meshing.BlockMesher;
 import java.util.*;
 import de.delautrer.game.items.ToolTier;
 
 public abstract class Block {
-    private byte internalId;
+    protected BlockMesher mesher;
     private BlockModelData model;
 
     protected int lightEmission = 0;
@@ -54,9 +55,6 @@ public abstract class Block {
         generateBlockStates();
     }
 
-    public byte getId() { return internalId; }
-    public void setId(byte id) { this.internalId = id; }
-
     public Block setLightEmission(int level) {
         this.lightEmission = Math.max(0, Math.min(15, level));
         return this;
@@ -70,18 +68,20 @@ public abstract class Block {
     }
 
     public boolean shouldRenderFaceAgainst(Block neighborBlock, float myHeight, float neighborHeight) {
-        if (neighborBlock.getId() == 0) return true;
-        if (this.isTransparent && this.getId() == neighborBlock.getId()) return false;
+        if (neighborBlock == null || neighborBlock.isAir()) return true;
+        if (this.isTransparent && this == neighborBlock) return false;
         return neighborBlock.isTransparent;
     }
 
-    public abstract void generateMesh(int x, int y, int z, Chunk chunk, ChunkManager cm);
+    public BlockMesher getMesher() {
+        return mesher;
+    }
 
     /**
      * Wird aufgerufen, wenn sich direkt neben diesem Block ein anderer Block ändert.
      * (z.B. Spieler baut etwas ab, Wasser fließt daneben, etc.)
      */
-    public void onNeighborChanged(World world, int x, int y, int z, Vector3i neighborPos, byte newNeighborId) {}
+    public void onNeighborChanged(World world, int x, int y, int z, Vector3i neighborPos, Block changedBlock) {}
 
     /**
      * Wird aufgerufen, wenn der Block in der Welt platziert wurde.
@@ -149,10 +149,16 @@ public abstract class Block {
     public BlockState getDefaultState() {
         return defaultState;
     }
-    public BlockState getStateForId(byte id) {
+    public BlockState getStateForId(byte stateId) {
+        int id = stateId & 0xFF;
         if (id >= 0 && id < stateArray.length) return stateArray[id];
         return defaultState;
     }
+
+    public int getStateCount() {
+        return stateArray != null ? stateArray.length : 1;
+    }
+
     public BlockState getStateForPlacement(World world, Player player, Vector3i hitPos, Vector3i hitFace, Vector3f exactHit){
         return getDefaultState();
     }
@@ -232,6 +238,10 @@ public abstract class Block {
         return this;
     }
     public String getLootTable() { return lootTable; }
+
+    public boolean isAir() {
+        return this == de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:air");
+    }
 
     public Block setSoundMaterialName(String soundMaterialName) {
         if (this.soundMaterialName != null) return this;

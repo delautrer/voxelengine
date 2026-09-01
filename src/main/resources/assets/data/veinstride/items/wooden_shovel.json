@@ -1,0 +1,10 @@
+﻿{
+    "type":  "tool",
+    "name":  "Wooden Shovel",
+    "texture_name":  "wooden_shovel",
+    "category":  "tools",
+    "tool_type":  "shovel",
+    "tool_tier":  "wood",
+    "tool_efficiency":  2.0,
+    "tool_max_durability":  59
+}

@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Palm Planks",
+    "texture_name":  "palm_planks",
+    "max_stack_size":  64,
+    "category":  "wood"
+}

@@ -1,0 +1,35 @@
+﻿{
+    "id":  "veinstride:desert",
+    "temperature":  [
+                        0.3,
+                        1.0
+                    ],
+    "humidity":  [
+                     -1.0,
+                     -0.2
+                 ],
+    "continentalness":  [
+                            -0.1,
+                            1.0
+                        ],
+    "erosion":  [
+                    -1.0,
+                    0.4
+                ],
+    "weirdness":  [
+                      -1.0,
+                      1.0
+                  ],
+    "topBlock":  "sand",
+    "underBlock":  "sand",
+    "underwaterBlock":  "sand",
+    "deepBlock":  "sand",
+    "baseHeight":  1.0,
+    "heightVariation":  15.0,
+    "floraProbability":  0.08,
+    "treeProbability":  0.0,
+    "undergroundBlobs":  {
+                             "gravel":  0.05
+                         }
+}
+

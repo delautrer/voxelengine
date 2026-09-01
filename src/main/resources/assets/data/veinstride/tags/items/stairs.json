@@ -1,0 +1,17 @@
+﻿{
+    "replace":  false,
+    "values":  [
+                   "veinstride:oak_stairs",
+                   "veinstride:birch_stairs",
+                   "veinstride:palm_stairs",
+                   "veinstride:willow_stairs",
+                   "veinstride:baobab_stairs",
+                   "veinstride:mahogany_stairs",
+                   "veinstride:pine_stairs",
+                   "veinstride:stone_stairs",
+                   "veinstride:cobblestone_stairs",
+                   "veinstride:bricks_stairs",
+                   "veinstride:dirt_stairs",
+                   "veinstride:grass_block_stairs"
+               ]
+}

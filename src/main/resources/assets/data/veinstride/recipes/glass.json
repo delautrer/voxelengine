@@ -1,0 +1,10 @@
+﻿{
+  "type": "shapeless",
+  "ingredients": [
+    "veinstride:sand"
+  ],
+  "result": {
+    "item": "veinstride:glass",
+    "count": 1
+  }
+}

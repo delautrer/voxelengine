@@ -6,6 +6,7 @@ import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.engine.graphics.ChunkMesher;
 import de.delautrer.game.world.generation.biome.Biome;
+import de.delautrer.game.world.persistence.WorldPalette;
 
 public class Chunk {
     public static final int SIZE = 16;
@@ -18,6 +19,7 @@ public class Chunk {
     private final ChunkSection[] sections = new ChunkSection[NUM_SECTIONS];
 
     private final int worldX, worldZ;
+    private WorldPalette palette;
     private boolean isDirty = false;
     private boolean needsMeshUpdate = false;
     private long lastAccessedTime;
@@ -29,6 +31,14 @@ public class Chunk {
         this.worldX = worldX;
         this.worldZ = worldZ;
         this.lastAccessedTime = System.currentTimeMillis();
+    }
+
+    public void setPalette(WorldPalette palette) {
+        this.palette = palette;
+    }
+
+    public WorldPalette getPalette() {
+        return palette;
     }
 
     public ChunkSection[] getSections() {
@@ -51,34 +61,67 @@ public class Chunk {
         return biomeMap;
     }
 
-    public void setBlock(int x, int y, int z, byte type, byte state) {
+    public void setBlock(int x, int y, int z, int paletteIndex, byte state) {
         if (x < 0 || x >= SIZE || y < MIN_Y || y >= MAX_Y || z < 0 || z >= SIZE) return;
         ChunkSection sec = getOrCreateSection(y);
         if (sec != null) {
-            sec.setBlock(x, (y - MIN_Y) & 15, z, type, state);
+            sec.setBlock(x, (y - MIN_Y) & 15, z, paletteIndex, state);
             this.isDirty = true;
             this.needsMeshUpdate = true;
         }
     }
 
-    public void setBlock(int x, int y, int z, byte type) {
-        setBlock(x, y, z, type, (byte) 0);
+    public void setBlock(int x, int y, int z, int paletteIndex) {
+        setBlock(x, y, z, paletteIndex, (byte) 0);
     }
 
-    public byte getBlockAt(int x, int y, int z, ChunkManager cm) {
-        if (y < MIN_Y || y >= MAX_Y) return 0;
+    public void setBlock(int x, int y, int z, Block block, byte state, WorldPalette palette) {
+        if (x < 0 || x >= SIZE || y < MIN_Y || y >= MAX_Y || z < 0 || z >= SIZE || block == null) return;
+        WorldPalette usePalette = (palette != null) ? palette : this.palette;
+        if (usePalette == null) return;
+        short pIdx = usePalette.getOrAppend(de.delautrer.game.registry.Registries.BLOCKS.getKey(block));
+        setBlock(x, y, z, pIdx, state);
+    }
+
+    public void setBlock(int x, int y, int z, Block block) {
+        setBlock(x, y, z, block, (byte) 0, this.palette);
+    }
+
+    public Block getBlock(int x, int y, int z, WorldPalette palette) {
+        if (y < MIN_Y || y >= MAX_Y) return de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:air");
         if (x >= 0 && x < SIZE && z >= 0 && z < SIZE) {
             ChunkSection sec = getSection(y);
-            return sec == null ? 0 : sec.getBlock(x, (y - MIN_Y) & 15, z);
+            if (sec == null) return de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:air");
+            int pIdx = sec.getBlockIndex(x, (y - MIN_Y) & 15, z);
+            WorldPalette usePalette = (palette != null) ? palette : this.palette;
+            if (usePalette != null) {
+                return usePalette.getBlock(pIdx);
+            }
+            return de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:air");
         }
-        if (cm == null) return 0;
-        Chunk neighbor = cm.getChunkAtBlock(worldX * SIZE + x, y, worldZ * SIZE + z);
-        if (neighbor == null) return 0;
-        return neighbor.getBlock((worldX * SIZE + x) & 15, y, (worldZ * SIZE + z) & 15);
+        return de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:air");
     }
 
-    public byte getBlock(int x, int y, int z) {
-        return getBlockAt(x, y, z, null);
+    public Block getBlock(int x, int y, int z) {
+        return getBlock(x, y, z, this.palette);
+    }
+
+    public Block getBlock(int x, int y, int z, ChunkManager cm) {
+        if (y < MIN_Y || y >= MAX_Y) return de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:air");
+        WorldPalette palette = (cm != null && cm.getWorld() != null) ? cm.getWorld().getBlockPalette() : null;
+        if (x >= 0 && x < SIZE && z >= 0 && z < SIZE) {
+            return getBlock(x, y, z, palette);
+        }
+        if (cm == null) return de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:air");
+        Chunk neighbor = cm.getChunkAtBlock(worldX * SIZE + x, y, worldZ * SIZE + z);
+        if (neighbor == null) return de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:air");
+        return neighbor.getBlock((worldX * SIZE + x) & 15, y, (worldZ * SIZE + z) & 15, palette);
+    }
+
+    public int getBlockPaletteIndex(int x, int y, int z) {
+        if (y < MIN_Y || y >= MAX_Y || x < 0 || x >= SIZE || z < 0 || z >= SIZE) return 0;
+        ChunkSection sec = getSection(y);
+        return sec == null ? 0 : sec.getBlockIndex(x, (y - MIN_Y) & 15, z);
     }
 
     public byte getStateAt(int x, int y, int z, ChunkManager cm) {
@@ -100,10 +143,13 @@ public class Chunk {
     }
 
     public BlockState getBlockState(int x, int y, int z) {
-        byte blockId = getBlock(x, y, z);
-        if (blockId == 0) return BlockRegistry.get((byte) 0).getDefaultState();
+        return getBlockState(x, y, z, (WorldPalette) null);
+    }
+
+    public BlockState getBlockState(int x, int y, int z, WorldPalette palette) {
+        Block block = getBlock(x, y, z, palette);
         byte stateId = getState(x, y, z);
-        return BlockRegistry.get(blockId).getStateForId(stateId);
+        return block.getStateForId(stateId);
     }
 
     public void setBlockLight(int x, int y, int z, int val) {
@@ -192,15 +238,16 @@ public class Chunk {
 
     private int getOpacityAt(int x, int y, int z, ChunkManager cm) {
         if (y < MIN_Y || y >= MAX_Y) return 0;
+        WorldPalette palette = (cm != null && cm.getWorld() != null) ? cm.getWorld().getBlockPalette() : null;
         if (x >= 0 && x < SIZE && z >= 0 && z < SIZE) {
-            return BlockRegistry.get(getBlock(x, y, z)).getOpacity(getBlockState(x, y, z));
+            return getBlock(x, y, z, palette).getOpacity(getBlockState(x, y, z, palette));
         }
         if (cm != null) {
             Chunk neighbor = cm.getChunkAtBlock(worldX * SIZE + x, y, worldZ * SIZE + z);
             if (neighbor != null) {
                 int lx = (worldX * SIZE + x) & 15;
                 int lz = (worldZ * SIZE + z) & 15;
-                return BlockRegistry.get(neighbor.getBlock(lx, y, lz)).getOpacity(neighbor.getBlockState(lx, y, lz));
+                return neighbor.getBlock(lx, y, lz, palette).getOpacity(neighbor.getBlockState(lx, y, lz, palette));
             }
         }
         return 0;

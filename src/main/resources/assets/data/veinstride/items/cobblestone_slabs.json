@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Cobblestone Slabs",
+    "texture_name":  "cobblestone_slabs",
+    "max_stack_size":  64,
+    "category":  "building"
+}

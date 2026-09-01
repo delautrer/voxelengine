@@ -1,0 +1,10 @@
+﻿{
+    "type":  "tool",
+    "name":  "Iron Pickaxe",
+    "texture_name":  "iron_pickaxe",
+    "category":  "tools",
+    "tool_type":  "pickaxe",
+    "tool_tier":  "iron",
+    "tool_efficiency":  6.0,
+    "tool_max_durability":  250
+}

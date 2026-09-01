@@ -1,0 +1,14 @@
+﻿{
+  "type": "shaped",
+  "pattern": [
+    "AAA"
+  ],
+  "keys": {
+    "A": "veinstride:willow_planks"
+  },
+  "result": {
+    "count": 6,
+    "item": "veinstride:willow_slabs"
+  }
+}
+

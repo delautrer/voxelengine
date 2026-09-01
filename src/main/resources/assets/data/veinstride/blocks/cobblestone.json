@@ -1,0 +1,7 @@
+﻿{
+    "type":  "cube",
+    "hardness":  2.0,
+    "sound_material":  "veinstride:rock",
+    "category":  "building",
+    "min_tool_tier":  "wood"
+}

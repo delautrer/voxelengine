@@ -1,0 +1,10 @@
+﻿{
+    "type":  "tool",
+    "name":  "Stone Pickaxe",
+    "texture_name":  "stone_pickaxe",
+    "category":  "tools",
+    "tool_type":  "pickaxe",
+    "tool_tier":  "stone",
+    "tool_efficiency":  4.0,
+    "tool_max_durability":  131
+}

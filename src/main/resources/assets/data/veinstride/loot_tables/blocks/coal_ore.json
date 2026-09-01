@@ -1,0 +1,23 @@
+﻿{
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "item": "veinstride:coal",
+          "chance": 1.0,
+          "min": 1,
+          "max": 4
+        },
+        {
+          "item": "veinstride:cobblestone",
+          "chance": 1.0,
+          "min": 1,
+          "max": 1
+        }
+      ]
+    }
+  ]
+}
+
+

@@ -14,6 +14,7 @@ import de.delautrer.game.events.InventoryToggleEvent;
 import de.delautrer.game.events.PlayerDamageEvent;
 import de.delautrer.game.events.PlayerItemDropEvent;
 import de.delautrer.game.items.ItemStack;
+import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
 import de.delautrer.game.world.World;
 import org.joml.Vector3d;
@@ -39,7 +40,7 @@ public class LocalPlayer extends Player {
     private boolean isChatOpen = false;
     private float lastSpacePressTime = 0.0f;
     private double cameraVisualYOffset = 0.0;
-    private final float jumpForce = 9.0f;
+    private final float jumpForce = 8.3f;
     private final float speed = 5.0f;
 
     private float distanceWalked = 0.0f;
@@ -65,7 +66,45 @@ public class LocalPlayer extends Player {
         this.interaction = new PlayerInteraction(world, this.camera, this, eventBus);
     }
 
+    private boolean initialSpawnPlaced = false;
+
+    public void resetSpawnPlacement() {
+        this.initialSpawnPlaced = false;
+    }
+
+    public void ensureGroundPlacement(ChunkManager chunkManager) {
+        if (initialSpawnPlaced || gameMode == GameMode.SPECTATOR || isFlying) return;
+
+        int bx = (int) Math.floor(position.x);
+        int bz = (int) Math.floor(position.z);
+        Chunk chunk = chunkManager.getChunkAtBlock(bx, (int) Math.floor(position.y), bz);
+        if (chunk == null) return;
+
+        int lx = bx & 15;
+        int lz = bz & 15;
+
+        for (int y = Chunk.MAX_Y - 2; y >= Chunk.MIN_Y; y--) {
+            Block b = chunk.getBlock(lx, y, lz);
+            if (b != null && !b.isAir() && b.isSolid && !b.isPassable) {
+                position.y = y + 1.0;
+                velocity.y = 0;
+                onGround = true;
+                initialSpawnPlaced = true;
+                return;
+            }
+        }
+        initialSpawnPlaced = true;
+    }
+
     public void updateLocal(InputManager input, ChunkManager chunkManager, float deltaTime) {
+        Chunk currentChunk = chunkManager.getChunkAtBlock((int) Math.floor(position.x), (int) Math.floor(position.y), (int) Math.floor(position.z));
+        if (currentChunk == null) {
+            velocity.set(0, 0, 0);
+            return;
+        }
+
+        ensureGroundPlacement(chunkManager);
+
         if (isDead) {
             velocity.x = 0;
             velocity.z = 0;
@@ -88,14 +127,13 @@ public class LocalPlayer extends Player {
         int byHead = (int) Math.floor(getEyePosition().y);
         int bz = (int) Math.floor(position.z);
 
-        byte blockFeet = chunkManager.getWorld().getBlockAt(bx, byFeet, bz);
-        byte blockWaist = chunkManager.getWorld().getBlockAt(bx, byWaist, bz);
-        byte blockBody = chunkManager.getWorld().getBlockAt(bx, byBody, bz);
-        byte blockHead = chunkManager.getWorld().getBlockAt(bx, byHead, bz);
-        byte waterId = Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "water").getId();
+        Block blockFeet = chunkManager.getWorld().getBlock(bx, byFeet, bz);
+        Block blockBody = chunkManager.getWorld().getBlock(bx, byBody, bz);
+        Block blockHead = chunkManager.getWorld().getBlock(bx, byHead, bz);
+        Block waterBlock = Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "water");
 
-        this.isInWater = (blockFeet == waterId || blockBody == waterId);
-        this.isHeadInWater = (blockHead == waterId);
+        this.isInWater = (blockFeet == waterBlock || blockBody == waterBlock);
+        this.isHeadInWater = (blockHead == waterBlock);
 
         if (!isChatOpen) {
             if (input.isActionJustPressed("JUMP")) {
@@ -150,9 +188,9 @@ public class LocalPlayer extends Player {
                     ItemStack selectedStack = inventory.getStack(inventory.getSelectedSlot());
                     if (selectedStack != null && selectedStack.type instanceof BlockItem) {
                         BlockItem blockItem = (BlockItem) selectedStack.type;
-                        eventBus.publish(new BlockSelectedEvent(blockItem.getBlock().getId()));
+                        eventBus.publish(new BlockSelectedEvent(blockItem.getBlock()));
                     } else {
-                        eventBus.publish(new BlockSelectedEvent((byte) 0));
+                        eventBus.publish(new BlockSelectedEvent(null));
                     }
                 }
             }
@@ -198,14 +236,14 @@ public class LocalPlayer extends Player {
             }
 
             if (isInWater && gameMode != GameMode.SPECTATOR) {
-                if (isSprinting && input.isActionActive("MOVE_FORWARD") && !swimLock && blockWaist == waterId) {
+                if (isSprinting && input.isActionActive("MOVE_FORWARD") && !swimLock) {
                     isSwimming = true;
                 }
                 if (!input.isActionActive("MOVE_FORWARD")) {
                     isSwimming = false;
                 }
 
-                if (isSwimming && blockWaist != waterId) {
+                if (isSwimming && !isInWater) {
                     isSwimming = false;
                     swimLock = true;
                 }
@@ -220,12 +258,12 @@ public class LocalPlayer extends Player {
         }
 
         if (!isSwimming && swimProgress > 0.1f) {
-            int headBlockWhenStanding = chunkManager.getWorld().getBlockAt(
+            Block headBlockWhenStanding = chunkManager.getWorld().getBlock(
                     (int) Math.floor(position.x),
                     (int) Math.floor(position.y + 1.8f),
                     (int) Math.floor(position.z));
 
-            if (BlockRegistry.get((byte) headBlockWhenStanding).isSolid) {
+            if (headBlockWhenStanding != null && headBlockWhenStanding.isSolid) {
                 isSwimming = true;
             }
         }
@@ -292,8 +330,8 @@ public class LocalPlayer extends Player {
                 velocity.z = moveDir.z;
                 velocity.y = moveDir.y;
 
-                int blockAtTop = chunkManager.getWorld().getBlockAt(bx, (int) Math.floor(position.y + height + 0.1f), bz);
-                if (blockAtTop != waterId && velocity.y > 0 && !input.isActionActive("JUMP")) {
+                Block blockAtTop = chunkManager.getWorld().getBlock(bx, (int) Math.floor(position.y + height + 0.1f), bz);
+                if (blockAtTop != waterBlock && velocity.y > 0 && !input.isActionActive("JUMP")) {
                     velocity.y *= 0.1f;
                     
                     // SPAWN WATER SURFACE SPLASH PARTICLES
@@ -344,33 +382,18 @@ public class LocalPlayer extends Player {
                 velocity.z = moveDir.z;
 
                 if (isInWater) {
-                    if (blockWaist == waterId) {
-                        if (input.isActionActive("JUMP")) {
-                            velocity.y += 15.0f * deltaTime;
-                            if (velocity.y > 4.0f)
-                                velocity.y = 4.0f;
-                        } else if (input.isActionActive("SNEAK")) {
-                            velocity.y -= 15.0f * deltaTime;
-                            if (velocity.y < -4.0f)
-                                velocity.y = -4.0f;
-                        } else {
-                            velocity.y -= 2.0f * deltaTime;
-                            if (velocity.y < -2.0f)
-                                velocity.y = -2.0f;
-                        }
+                    if (input.isActionActive("JUMP")) {
+                        velocity.y += 15.0f * deltaTime;
+                        if (velocity.y > 4.0f)
+                            velocity.y = 4.0f;
+                    } else if (input.isActionActive("SNEAK")) {
+                        velocity.y -= 15.0f * deltaTime;
+                        if (velocity.y < -4.0f)
+                            velocity.y = -4.0f;
                     } else {
-                        if (input.isActionActive("JUMP")) {
-                            if (onGround) {
-                                velocity.y = jumpForce;
-                                onGround = false;
-                            } else {
-                                velocity.y += 15.0f * deltaTime;
-                                if (velocity.y > 3.0f)
-                                    velocity.y = 3.0f;
-                            }
-                        } else {
-                            velocity.y += gravity * deltaTime;
-                        }
+                        velocity.y -= 2.0f * deltaTime;
+                        if (velocity.y < -2.0f)
+                            velocity.y = -2.0f;
                     }
                 } else if (onGround && input.isActionActive("JUMP")) {
                     velocity.y = jumpForce;
@@ -480,7 +503,7 @@ public class LocalPlayer extends Player {
 
         cameraVisualYOffset += (0.0f - cameraVisualYOffset) * 15.0f * deltaTime;
 
-        Block b = BlockRegistry.get(blockHead);
+        Block b = blockHead;
         if (b.isSolid && !b.isTransparent) {
             headBlock = b;
         } else {
@@ -564,7 +587,7 @@ public class LocalPlayer extends Player {
     }
 
     private boolean isFreeForPush(ChunkManager cm, int x, int y, int z) {
-        Block b = BlockRegistry.get(cm.getWorld().getBlockAt(x, y, z));
+        Block b = cm.getWorld().getBlock(x, y, z);
         // Frei für Push-Out sind alle Blöcke, die keine vollen undurchsichtigen Blöcke sind.
         return !b.isSolid || b.isTransparent || b.isPassable;
     }
@@ -644,6 +667,7 @@ public class LocalPlayer extends Player {
         this.currentHealth = this.maxHealth;
         this.isDead = false;
         this.fallDistance = 0.0f;
+        this.initialSpawnPlaced = false;
 
         if (interaction != null) {
             interaction.resetCooldown();
@@ -660,20 +684,18 @@ public class LocalPlayer extends Player {
         int byFeet = (int) Math.floor(position.y + 0.1f);
         int bz = (int) Math.floor(position.z);
 
-        byte blockInsideId = chunkManager.getWorld().getBlockAt(bx, byFeet, bz);
-        Block blockInside = BlockRegistry.get(blockInsideId);
+        Block blockInside = chunkManager.getWorld().getBlock(bx, byFeet, bz);
 
-        if (blockInsideId != 0 && (!blockInside.isSolid
+        if (blockInside != null && !blockInside.isAir() && (!blockInside.isSolid
                 || blockInside == Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "water"))) {
             SoundManager.playEvent(blockInside.getSoundMaterialName(), action, volume, minPitch, maxPitch, source);
             return;
         }
 
         int footY = (int) Math.floor(position.y - 0.2f);
-        byte groundBlockId = chunkManager.getWorld().getBlockAt(bx, footY, bz);
+        Block groundBlock = chunkManager.getWorld().getBlock(bx, footY, bz);
 
-        if (groundBlockId != 0) {
-            Block groundBlock = BlockRegistry.get(groundBlockId);
+        if (groundBlock != null && !groundBlock.isAir()) {
             SoundManager.playEvent(groundBlock.getSoundMaterialName(), action, volume, minPitch, maxPitch, source);
         }
     }

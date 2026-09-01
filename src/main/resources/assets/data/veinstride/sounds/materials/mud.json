@@ -1,0 +1,33 @@
+{
+  "materialName": "mud",
+  "actions": {
+    "jump_land": [
+      "/assets/sounds/footsteps/mud/jump/land01.ogg",
+      "/assets/sounds/footsteps/mud/jump/land02.ogg",
+      "/assets/sounds/footsteps/mud/jump/land03.ogg",
+      "/assets/sounds/footsteps/mud/jump/land04.ogg",
+      "/assets/sounds/footsteps/mud/jump/land05.ogg"
+    ],
+    "run": [
+      "/assets/sounds/footsteps/mud/run/run01.ogg",
+      "/assets/sounds/footsteps/mud/run/run02.ogg",
+      "/assets/sounds/footsteps/mud/run/run03.ogg",
+      "/assets/sounds/footsteps/mud/run/run04.ogg",
+      "/assets/sounds/footsteps/mud/run/run05.ogg",
+      "/assets/sounds/footsteps/mud/run/run06.ogg",
+      "/assets/sounds/footsteps/mud/run/run07.ogg"
+    ],
+    "walk": [
+      "/assets/sounds/footsteps/mud/walk/walk01.ogg",
+      "/assets/sounds/footsteps/mud/walk/walk02.ogg",
+      "/assets/sounds/footsteps/mud/walk/walk03.ogg",
+      "/assets/sounds/footsteps/mud/walk/walk04.ogg",
+      "/assets/sounds/footsteps/mud/walk/walk05.ogg",
+      "/assets/sounds/footsteps/mud/walk/walk06.ogg",
+      "/assets/sounds/footsteps/mud/walk/walk07.ogg",
+      "/assets/sounds/footsteps/mud/walk/walk08.ogg",
+      "/assets/sounds/footsteps/mud/walk/walk09.ogg",
+      "/assets/sounds/footsteps/mud/walk/walk10.ogg"
+    ]
+  }
+}

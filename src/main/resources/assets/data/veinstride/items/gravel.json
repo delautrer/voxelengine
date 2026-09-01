@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Gravel",
+    "texture_name":  "gravel",
+    "max_stack_size":  64,
+    "category":  "natural"
+}

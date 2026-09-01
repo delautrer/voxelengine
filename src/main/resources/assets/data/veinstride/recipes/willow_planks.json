@@ -1,0 +1,11 @@
+﻿{
+  "type": "shapeless",
+  "ingredients": [
+    "veinstride:willow_log"
+  ],
+  "result": {
+    "item": "veinstride:willow_planks",
+    "count": 4
+  }
+}
+

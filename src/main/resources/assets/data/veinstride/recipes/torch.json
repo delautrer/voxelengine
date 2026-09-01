@@ -1,0 +1,24 @@
+﻿{
+  "type": "shaped",
+  "pattern": [
+    "A",
+    "B"
+  ],
+  "keys": {
+    "A": [
+      "veinstride:oak_planks",
+      "veinstride:birch_planks",
+      "veinstride:pine_planks",
+      "veinstride:willow_planks",
+      "veinstride:baobab_planks",
+      "veinstride:mahogany_planks",
+      "veinstride:palm_planks",
+      "veinstride:coal"
+    ],
+    "B": "veinstride:sticks"
+  },
+  "result": {
+    "item": "veinstride:torch",
+    "count": 4
+  }
+}

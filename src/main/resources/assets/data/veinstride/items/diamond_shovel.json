@@ -1,0 +1,10 @@
+﻿{
+    "type":  "tool",
+    "name":  "Diamond Shovel",
+    "texture_name":  "diamond_shovel",
+    "category":  "tools",
+    "tool_type":  "shovel",
+    "tool_tier":  "diamond",
+    "tool_efficiency":  8.0,
+    "tool_max_durability":  1561
+}

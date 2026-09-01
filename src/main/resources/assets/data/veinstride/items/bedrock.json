@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Bedrock",
+    "texture_name":  "bedrock",
+    "max_stack_size":  64,
+    "category":  "natural"
+}

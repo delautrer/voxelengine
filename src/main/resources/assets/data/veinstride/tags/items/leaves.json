@@ -1,0 +1,12 @@
+﻿{
+    "replace":  false,
+    "values":  [
+                   "veinstride:oak_leaves",
+                   "veinstride:birch_leaves",
+                   "veinstride:palm_leaves",
+                   "veinstride:willow_leaves",
+                   "veinstride:baobab_leaves",
+                   "veinstride:mahogany_leaves",
+                   "veinstride:pine_leaves"
+               ]
+}

@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Diamond Ore",
+    "texture_name":  "diamond_ore",
+    "max_stack_size":  64,
+    "category":  "misc"
+}

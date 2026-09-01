@@ -1,15 +1,15 @@
 package de.delautrer.game.blocks;
 
-import de.delautrer.Constants;
 import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.blocks.state.IntProperty;
 import de.delautrer.game.blocks.state.Property;
 import de.delautrer.game.entity.player.Player;
 import de.delautrer.game.world.World;
 import de.delautrer.game.world.generation.biome.TreeFeature;
+import de.delautrer.game.world.generation.feature.ConfiguredFeature;
+import de.delautrer.game.world.generation.feature.FeatureRegistry;
 import de.delautrer.game.registry.Registries;
 import de.delautrer.game.registry.NamespacedKey;
-import org.joml.Vector3f;
 import org.joml.Vector3i;
 import java.util.List;
 import java.util.Random;
@@ -17,39 +17,24 @@ import java.util.Random;
 public class SaplingBlock extends PlantBlock {
     public static final IntProperty STAGE = IntProperty.create("stage", 0, 1);
 
-    private final String treeType;
-    private final String logBlockName;
-    private final String leavesBlockName;
+    private final String treeFeatureKey;
+    private final String logBlockKey;
+    private final String leavesBlockKey;
     private final int minGrowthTime;
     private final int maxGrowthTime;
 
-    public SaplingBlock(String name, int minGrowthTime, int maxGrowthTime) {
+    public SaplingBlock(String treeFeatureKey, String logBlockKey, String leavesBlockKey, int minGrowthTime, int maxGrowthTime) {
         super();
         this.minGrowthTime = minGrowthTime;
         this.maxGrowthTime = maxGrowthTime;
-        String base = name.replace("_sapling", "");
-        this.logBlockName = base + "_log";
-        this.leavesBlockName = base + "_leaves";
-
-        // Map to specific TreeFeature types
-        if (base.equals("oak")) {
-            this.treeType = "alpha_oak";
-        } else if (base.equals("birch")) {
-            this.treeType = "alpha_birch";
-        } else if (base.equals("pine")) {
-            this.treeType = "alpha_pine";
-        } else if (base.equals("willow")) {
-            this.treeType = "alpha_willow";
-        } else if (base.equals("baobab")) {
-            this.treeType = "alpha_baobab";
-        } else if (base.equals("mahogany")) {
-            this.treeType = "alpha_mahogany";
-        } else if (base.equals("palm")) {
-            this.treeType = "alpha_palm";
-        } else {
-            this.treeType = "alpha_oak";
-        }
+        this.treeFeatureKey = treeFeatureKey;
+        this.logBlockKey = logBlockKey;
+        this.leavesBlockKey = leavesBlockKey;
     }
+
+    public String getTreeFeatureKey() { return treeFeatureKey; }
+    public String getLogBlockKey() { return logBlockKey; }
+    public String getLeavesBlockKey() { return leavesBlockKey; }
 
     @Override
     protected void appendProperties(List<Property<?>> properties) {
@@ -76,49 +61,50 @@ public class SaplingBlock extends PlantBlock {
         if (maxTicks > minTicks) {
             delayTicks += random.nextInt(maxTicks - minTicks + 1);
         }
-        world.getTickScheduler().scheduleTick(new Vector3i(x, y, z), this, delayTicks);
+        world.getTickScheduler().scheduleTick(new de.delautrer.game.world.BlockPos(x, y, z), this, delayTicks);
     }
 
     public void grow(World world, int x, int y, int z, Random random) {
         BlockState state = world.getBlockState(x, y, z);
         if (state.getBlock() != this) return;
 
-        // Ensure sapling is placed on valid ground before growing
-        byte belowId = world.getBlockAt(x, y - 1, z);
-        Block belowBlock = BlockRegistry.get(belowId);
-        NamespacedKey belowKey = BlockRegistry.REGISTRY.getKey(belowBlock);
+        Block belowBlock = world.getBlock(x, y - 1, z);
+        NamespacedKey belowKey = Registries.BLOCKS.getKey(belowBlock);
         if (belowKey == null) return;
-        String belowName = belowKey.getKey();
-        boolean isSoil = belowName.equals("grass_block") || belowName.equals("dirt");
+        String belowPath = belowKey.getKey();
+        boolean isSoil = belowPath.equals("grass_block") || belowPath.equals("dirt");
         if (!isSoil) return;
 
         int stage = state.getValue(STAGE);
         if (stage < 1) {
-            // Stage 0 -> 1
-            world.setBlockWithState(x, y, z, this.getId(), state.with(STAGE, 1).getStateId(), false);
+            world.setBlockState(x, y, z, state.with(STAGE, 1));
             scheduleGrowthIfAbsent(world, x, y, z);
         } else {
-            // Stage 1 -> Grow Tree
-            // Turn grass block below the sapling to dirt
-            byte grassBlockId = Registries.BLOCKS.get(Constants.NAMESPACE + ":grass_block").getId();
-            byte dirtId = Registries.BLOCKS.get(Constants.NAMESPACE + ":dirt").getId();
-            if (world.getBlockAt(x, y - 1, z) == grassBlockId) {
-                world.setBlock(x, y - 1, z, dirtId);
+            Block grassBlock = Registries.BLOCKS.get("veinstride:grass_block");
+            Block dirtBlock = Registries.BLOCKS.get("veinstride:dirt");
+            if (world.getBlock(x, y - 1, z) == grassBlock) {
+                world.setBlock(x, y - 1, z, dirtBlock);
             }
 
-            // Temporarily clear the sapling block so the generator starts cleanly
-            world.setBlock(x, y, z, (byte) 0, false);
+            world.setBlock(x, y, z, Registries.BLOCKS.get("veinstride:air"));
 
-            byte logId = Registries.BLOCKS.get(Constants.NAMESPACE + ":" + logBlockName).getId();
-            byte leavesId = Registries.BLOCKS.get(Constants.NAMESPACE + ":" + leavesBlockName).getId();
+            Block logBlock = Registries.BLOCKS.get(logBlockKey);
+            Block leavesBlock = Registries.BLOCKS.get(leavesBlockKey);
+            if (logBlock == null) logBlock = Registries.BLOCKS.get("veinstride:oak_log");
+            if (leavesBlock == null) leavesBlock = Registries.BLOCKS.get("veinstride:oak_leaves");
 
-            String actualTreeType = this.treeType;
-            if (actualTreeType.equals("alpha_pine") && random.nextBoolean()) {
-                actualTreeType = "alpha_tall_pine";
+            if (treeFeatureKey != null) {
+                NamespacedKey featKey = NamespacedKey.fromString(treeFeatureKey);
+                ConfiguredFeature feature = FeatureRegistry.getConfiguredFeature(featKey);
+                if (feature != null) {
+                    feature.generate(world, x, y, z, random.nextLong());
+                    return;
+                }
             }
 
+            TreeFeature.TreeShape shape = TreeFeature.TreeShape.STANDARD;
             long treeSeed = random.nextLong();
-            TreeFeature.generate(world, x, y, z, treeSeed, actualTreeType, logId, leavesId);
+            TreeFeature.generate(world, x, y, z, treeSeed, shape, logBlock, leavesBlock, 4, 3);
         }
     }
 }

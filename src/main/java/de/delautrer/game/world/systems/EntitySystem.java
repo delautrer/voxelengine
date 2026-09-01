@@ -89,8 +89,8 @@ public class EntitySystem implements WorldSystem {
                             int bx = (int) Math.floor(localPlayer.position.x);
                             int by = (int) Math.floor(localPlayer.position.y - 0.1);
                             int bz = (int) Math.floor(localPlayer.position.z);
-                            byte groundBlockId = world.getBlockAt(bx, by, bz);
-                            String mat = de.delautrer.game.blocks.BlockRegistry.get(groundBlockId).getSoundMaterialName();
+                            de.delautrer.game.blocks.Block groundBlock = world.getBlock(bx, by, bz);
+                            String mat = groundBlock != null ? groundBlock.getSoundMaterialName() : null;
                             // de.delautrer.engine.audio.SoundManager.playEvent(mat, "jump_start", 0.15f, 1.3f, 1.6f);
 
                             int leftover = localPlayer.getInventory().addItem(itemEntity.stack);

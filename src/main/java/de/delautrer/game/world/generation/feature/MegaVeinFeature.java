@@ -14,9 +14,12 @@ public class MegaVeinFeature extends ConfiguredFeature {
     private NoiseGenerator noiseGenerator;
     private boolean noiseInitialized = false;
 
-    public MegaVeinFeature(byte blockId, byte carrierId, double oreChance) {
-        super(blockId);
-        this.carrierId = carrierId;
+    private final de.delautrer.game.blocks.Block carrierBlock;
+
+    public MegaVeinFeature(de.delautrer.game.blocks.Block block, de.delautrer.game.blocks.Block carrierBlock, double oreChance) {
+        super(block);
+        this.carrierBlock = carrierBlock != null ? carrierBlock : block;
+        this.carrierId = 0;
         this.oreChance = oreChance;
     }
 
@@ -28,8 +31,7 @@ public class MegaVeinFeature extends ConfiguredFeature {
     @Override
     public void generate(Chunk chunk, int lx, int y, int lz, int worldX, int worldZ, Random rand, PlacementModifier modifier) {
         if (!noiseInitialized) {
-            // Seed base on block ID to make different mega veins look different
-            long noiseSeed = 12345L + blockId * 789L;
+            long noiseSeed = 12345L + (block != null ? block.hashCode() : 0) * 789L;
             this.noiseGenerator = new NoiseGenerator(noiseSeed);
             this.noiseInitialized = true;
         }
@@ -43,9 +45,9 @@ public class MegaVeinFeature extends ConfiguredFeature {
         if (Math.abs(noiseVal) < 0.035f) {
             if (modifier.canReplace(chunk, lx, y, lz, rand)) {
                 if (rand.nextDouble() < oreChance) {
-                    chunk.setBlock(lx, y, lz, getVariantBlockId(carrierId));
+                    chunk.setBlock(lx, y, lz, getVariantBlock(carrierBlock), (byte) 0, null);
                 } else {
-                    chunk.setBlock(lx, y, lz, carrierId);
+                    chunk.setBlock(lx, y, lz, carrierBlock, (byte) 0, null);
                 }
             }
         }

@@ -1,0 +1,8 @@
+﻿{
+    "type":  "block",
+    "name":  "Sandy Grass",
+    "texture_name":  "sandy_grass",
+    "max_stack_size":  64,
+    "category":  "natural",
+    "render_as_item":  true
+}

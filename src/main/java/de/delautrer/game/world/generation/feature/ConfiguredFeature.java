@@ -1,73 +1,53 @@
 package de.delautrer.game.world.generation.feature;
 
+import de.delautrer.game.blocks.Block;
+import de.delautrer.game.blocks.BlockRegistry;
+import de.delautrer.game.registry.NamespacedKey;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.generation.feature.placement.PlacementModifier;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 public abstract class ConfiguredFeature {
-    protected final byte blockId;
-    private final java.util.Map<Byte, Byte> variantCache = new java.util.HashMap<>();
+    protected final Block block;
+    private final Map<Byte, Byte> variantCache = new HashMap<>();
 
-    public ConfiguredFeature(byte blockId) {
-        this.blockId = blockId;
+    public ConfiguredFeature(Block block) {
+        this.block = block;
     }
 
-    protected byte getVariantBlockId(byte replacedBlockId) {
-        if (variantCache.containsKey(replacedBlockId)) {
-            return variantCache.get(replacedBlockId);
-        }
+    protected Block getVariantBlock(Block replacedBlock) {
+        if (block == null) return null;
+        if (replacedBlock == null) return block;
         
-        de.delautrer.game.blocks.Block replacedBlock = de.delautrer.game.blocks.BlockRegistry.get(replacedBlockId);
-        de.delautrer.game.blocks.Block baseOre = de.delautrer.game.blocks.BlockRegistry.get(blockId);
-        
-        if (replacedBlock == null || baseOre == null) {
-            variantCache.put(replacedBlockId, blockId);
-            return blockId;
-        }
-        
-        de.delautrer.game.registry.NamespacedKey replacedKey = de.delautrer.game.blocks.BlockRegistry.REGISTRY.getKey(replacedBlock);
-        de.delautrer.game.registry.NamespacedKey oreKey = de.delautrer.game.blocks.BlockRegistry.REGISTRY.getKey(baseOre);
+        NamespacedKey replacedKey = de.delautrer.game.registry.Registries.BLOCKS.getKey(replacedBlock);
+        NamespacedKey oreKey = de.delautrer.game.registry.Registries.BLOCKS.getKey(block);
         
         if (replacedKey == null || oreKey == null) {
-            variantCache.put(replacedBlockId, blockId);
-            return blockId;
+            return block;
         }
         
-        String carrierName = replacedKey.getKey(); // e.g. "dolomite"
-        String oreName = oreKey.getKey(); // e.g. "coal_ore"
+        String carrierName = replacedKey.getKey();
+        String oreName = oreKey.getKey();
         
         if (carrierName.equals("stone")) {
-            variantCache.put(replacedBlockId, blockId);
-            return blockId;
+            return block;
         }
         
         String variantName = carrierName + "_" + oreName;
-        de.delautrer.game.blocks.Block variant = de.delautrer.game.blocks.BlockRegistry.get(de.delautrer.Constants.NAMESPACE + ":" + variantName);
-        if (variant != null && variant.getId() != 0) {
-            variantCache.put(replacedBlockId, variant.getId());
-            return variant.getId();
+        Block variant = de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:" + variantName);
+        if (variant != null) {
+            return variant;
         }
         
-        variantCache.put(replacedBlockId, blockId);
-        return blockId;
+        return block;
     }
 
-    /**
-     * Ob diese Feature pro Block (Global/MegaVein) evaluiert wird, oder punktuell (StandardVein).
-     */
     public abstract boolean isGlobal();
-
-    /**
-     * Generiert die Struktur im Chunk.
-     * @param chunk Der aktuelle Chunk
-     * @param lx Start-X im Chunk (0-15)
-     * @param y Start-Y
-     * @param lz Start-Z im Chunk (0-15)
-     * @param worldX Globale X-Koordinate
-     * @param worldZ Globale Z-Koordinate
-     * @param rand Der Random-Generator für diesen Feature-Spawn
-     * @param modifier Der PlacementModifier, um Target-Blocks und Air-Exposure zu prüfen
-     */
     public abstract void generate(Chunk chunk, int lx, int y, int lz, int worldX, int worldZ, Random rand, PlacementModifier modifier);
+
+    public void generate(Chunk chunk, de.delautrer.game.world.WorldGenerator wg, int worldX, int worldY, int worldZ, long seed) {}
+    public void generate(de.delautrer.game.world.World world, int worldX, int worldY, int worldZ, long seed) {}
 }

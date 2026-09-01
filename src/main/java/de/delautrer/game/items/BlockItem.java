@@ -87,14 +87,14 @@ public class BlockItem extends Item {
 
             if (!placeEvent.isCancelled()) {
                 if (this.block == Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "water")) {
-                    world.setBlockWithState(placePos.x, placePos.y, placePos.z, block.getId(), (byte)8);
+                    world.setBlockWithState(placePos.x, placePos.y, placePos.z, block, (byte)8, true);
                 } else {
                     world.setBlockState(placePos.x, placePos.y, placePos.z, newState);
                 }
 
                 this.block.onBlockPlaced(world, placePos, newState, player);
 
-                SoundManager.playEvent(this.block.getSoundMaterialName(), "walk", 0.4f);
+                SoundManager.playEvent(this.block.getSoundMaterialName(), "place", 0.4f);
 
                 return true;
             }

@@ -1,0 +1,10 @@
+﻿{
+    "type":  "tool",
+    "name":  "Copper Axe",
+    "texture_name":  "copper_axe",
+    "category":  "tools",
+    "tool_type":  "axe",
+    "tool_tier":  "copper",
+    "tool_efficiency":  5.0,
+    "tool_max_durability":  180
+}

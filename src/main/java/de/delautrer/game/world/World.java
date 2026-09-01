@@ -12,6 +12,8 @@ import de.delautrer.game.events.BlockChangeEvent;
 import de.delautrer.game.events.BlockNeighborUpdateEvent;
 import de.delautrer.game.world.persistence.PlayerData;
 import de.delautrer.game.world.persistence.WorldData;
+import de.delautrer.game.world.persistence.WorldPalette;
+import de.delautrer.game.world.persistence.BiomePalette;
 import de.delautrer.game.world.sky.CloudSystem;
 import de.delautrer.game.world.sky.SkyManager;
 import de.delautrer.game.world.sky.Weather;
@@ -67,13 +69,16 @@ public class World {
     private boolean allowCheats = false;
 
     @SuppressWarnings("this-escape")
+    private final WorldPalette blockPalette;
+    private final BiomePalette biomePalette;
+
     public World(IGraphicsFactory graphicsFactory, LocalPlayer localPlayer, EventBus eventBus, long defaultSeed,
             String worldName, String worldSave, String generatorType, String generatorOptions, de.delautrer.game.entity.player.GameMode initialGameMode, boolean allowCheats) {
         this.eventBus = eventBus;
         this.graphicsFactory = graphicsFactory;
         this.worldName = worldName;
         this.worldSave = worldSave;
-        this.storageManager = new WorldStorageManager(worldSave);
+        this.storageManager = new WorldStorageManager(worldSave, this);
         this.skyManager = new SkyManager();
         this.particleManager = new ParticleManager();
 
@@ -101,7 +106,17 @@ public class World {
             this.generatorOptions = wData.generatorOptions != null ? wData.generatorOptions : "";
             this.allowCheats = wData.allowCheats;
             
-            // Save immediately to update lastOpened
+            if (wData.blockPalette != null) {
+                this.blockPalette = WorldPalette.fromKeyList(wData.blockPalette);
+            } else {
+                this.blockPalette = WorldPalette.createFreshFromRegistry();
+            }
+            if (wData.biomePalette != null) {
+                this.biomePalette = BiomePalette.fromKeyList(wData.biomePalette);
+            } else {
+                this.biomePalette = BiomePalette.createFreshFromRegistry();
+            }
+
             saveWorldData();
         } else {
             this.seed = defaultSeed;
@@ -120,12 +135,17 @@ public class World {
             this.generatorOptions = generatorOptions;
             this.allowCheats = allowCheats;
             
+            this.blockPalette = WorldPalette.createFreshFromRegistry();
+            this.biomePalette = BiomePalette.createFreshFromRegistry();
+
             saveWorldData();
         }
 
-        // ChunkManager und Threads erst DANACH starten!
         this.chunkManager = new ChunkManager(this, graphicsFactory);
         this.tickScheduler = new TickScheduler(this);
+        if (wData != null && wData.currentTick > 0) {
+            this.tickScheduler.setCurrentTick(wData.currentTick);
+        }
         this.cloudSystem = new CloudSystem();
 
         this.entitySystem = new EntitySystem();
@@ -195,18 +215,19 @@ public class World {
     }
 
     public void scheduleBlockUpdate(int x, int y, int z) {
-        byte blockId = getBlockAt(x, y, z);
-        if (blockId != 0) {
-            tickScheduler.scheduleTick(new Vector3i(x, y, z), BlockRegistry.get(blockId), 1);
+        Block block = getBlock(x, y, z);
+        if (!block.isAir()) {
+            tickScheduler.scheduleTick(new Vector3i(x, y, z), block, 1);
         }
     }
 
-    public void setBlock(int x, int y, int z, byte newBlockId) {
-        setBlock(x, y, z, newBlockId, true);
+    public void setBlock(Vector3i pos, Block block) {
+        if (pos != null)
+            setBlock(pos.x, pos.y, pos.z, block);
     }
 
-    public void setBlock(int x, int y, int z, byte newBlockId, boolean playSound) {
-        if (y < Chunk.MIN_Y || y >= Chunk.MAX_Y)
+    public void setBlockWithState(int x, int y, int z, Block newBlock, byte newState, boolean playSound) {
+        if (y < Chunk.MIN_Y || y >= Chunk.MAX_Y || newBlock == null)
             return;
         Chunk targetChunk = chunkManager.getChunkAtBlock(x, y, z);
         if (targetChunk == null)
@@ -215,125 +236,40 @@ public class World {
         int localX = x & 15;
         int localZ = z & 15;
 
-        byte oldBlockId = targetChunk.getBlock(localX, y, localZ);
-        if (oldBlockId == newBlockId)
+        Block oldBlock = targetChunk.getBlock(localX, y, localZ, blockPalette);
+        byte oldState = targetChunk.getState(localX, y, localZ);
+
+        if (oldBlock == newBlock && oldState == newState)
             return;
 
         Vector3i pos = new Vector3i(x, y, z);
-        byte oldState = targetChunk.getState(localX, y, localZ);
-        targetChunk.setBlock(localX, y, localZ, newBlockId);
+        targetChunk.setBlock(localX, y, localZ, newBlock, newState, blockPalette);
 
         // Altes BlockEntity entfernen (Items droppen)
         BlockEntity oldEntity = getBlockEntity(pos);
-        if (oldEntity != null && oldBlockId != newBlockId) {
+        if (oldEntity != null && oldBlock != newBlock) {
             oldEntity.onRemove();
             setBlockEntity(pos, null);
         }
 
-        if (oldBlockId != 0 && oldBlockId != newBlockId) {
-            Block oldBlock = BlockRegistry.get(oldBlockId);
+        if (oldBlock != null && !oldBlock.isAir() && oldBlock != newBlock) {
             oldBlock.onBlockRemoved(this, pos, oldBlock.getStateForId(oldState));
-            // NEU: Break Sound abspielen (Leiser)
-            if (playSound) {
+            // Break Sound & Partikel abspielen (Leiser), aber NICHT für Wasser!
+            if (playSound && !(oldBlock instanceof de.delautrer.game.blocks.WaterBlock) && !(newBlock instanceof de.delautrer.game.blocks.WaterBlock)) {
                 de.delautrer.engine.audio.SoundManager.playEvent(oldBlock.getSoundMaterialName(), "jump_land", 0.35f, 0.6f, 1.2f, x + 0.5f, y + 0.5f, z + 0.5f);
                 
                 // PARTIKEL SPAWNEN
-                de.delautrer.game.blocks.Block b = de.delautrer.game.blocks.BlockRegistry.get(oldBlockId);
-                de.delautrer.game.particle.ParticleSpawner.spawnBreak(this, x, y, z, b);
+                de.delautrer.game.particle.ParticleSpawner.spawnBreak(this, x, y, z, oldBlock);
             }
         }
 
-        Block oldBlock = BlockRegistry.get(oldBlockId);
-        int oldLightEmission = oldBlock.getLightEmission(oldBlock.getStateForId(oldState));
-        Block newBlock = BlockRegistry.get(newBlockId);
-        int newLightEmission = newBlock.getLightEmission(newBlock.getDefaultState());
-
-        if (oldLightEmission > 0) {
-            chunkManager.getLightEngine().removeBlockLight(x, y, z, oldLightEmission);
-        }
-
-        targetChunk.recalculateSunlightColumn(localX, localZ, chunkManager.getLightEngine());
-        chunkManager.getLightEngine().notifyBlockChanged(x, y, z);
-
-        if (newLightEmission > 0) {
-            chunkManager.getLightEngine().addBlockLightSource(x, y, z, newLightEmission);
-        }
-
-        chunkManager.getLightEngine().processLightUpdates();
-
-        eventBus.publish(new BlockChangeEvent(pos, oldBlockId, newBlockId, targetChunk));
-
-        int[][] dirs = { { 0, 1, 0 }, { 0, -1, 0 }, { 1, 0, 0 }, { -1, 0, 0 }, { 0, 0, 1 }, { 0, 0, -1 } };
-        for (int[] dir : dirs) {
-            Vector3i nPos = new Vector3i(x + dir[0], y + dir[1], z + dir[2]);
-            eventBus.publish(new BlockNeighborUpdateEvent(nPos, pos, newBlockId));
-        }
-
-        Block placedBlock = BlockRegistry.get(newBlockId);
-        if (placedBlock != null) {
-            if (placedBlock.hasBlockEntity() && (oldBlockId != newBlockId || getBlockEntity(pos) == null)) {
-                setBlockEntity(pos, placedBlock.createBlockEntity(this, pos));
-            }
-
-            byte blockBelow = getBlockAt(x, y - 1, z);
-            placedBlock.onNeighborChanged(this, x, y, z, new Vector3i(x, y - 1, z), blockBelow);
-        }
-    }
-
-    public void setBlock(Vector3i pos, byte newBlockId) {
-        if (pos != null)
-            setBlock(pos.x, pos.y, pos.z, newBlockId);
-    }
-
-    public void setBlockWithState(int x, int y, int z, byte newBlockId, byte newState) {
-        setBlockWithState(x, y, z, newBlockId, newState, true);
-    }
-
-    public void setBlockWithState(int x, int y, int z, byte newBlockId, byte newState, boolean playSound) {
-        if (y < Chunk.MIN_Y || y >= Chunk.MAX_Y)
-            return;
-        Chunk targetChunk = chunkManager.getChunkAtBlock(x, y, z);
-        if (targetChunk == null)
-            return;
-
-        int localX = x & 15;
-        int localZ = z & 15;
-
-        byte oldBlockId = targetChunk.getBlock(localX, y, localZ);
-        byte oldState = targetChunk.getState(localX, y, localZ);
-
-        if (oldBlockId == newBlockId && oldState == newState)
-            return;
-
-        Vector3i pos = new Vector3i(x, y, z);
-        targetChunk.setBlock(localX, y, localZ, newBlockId, newState);
-
-        // Altes BlockEntity entfernen
-        BlockEntity oldEntity = getBlockEntity(pos);
-        if (oldEntity != null && oldBlockId != newBlockId) {
-            oldEntity.onRemove();
-            setBlockEntity(pos, null);
-        }
-
-        if (oldBlockId != 0 && oldBlockId != newBlockId) {
-            Block oldBlock = BlockRegistry.get(oldBlockId);
-            oldBlock.onBlockRemoved(this, pos, oldBlock.getStateForId(oldState));
-            // NEU: Break Sound abspielen (Leiser)
-            if (playSound) {
-                de.delautrer.engine.audio.SoundManager.playEvent(oldBlock.getSoundMaterialName(), "jump_land", 0.35f, 0.6f, 1.2f, x + 0.5f, y + 0.5f, z + 0.5f);
-            }
-        }
-
-        Block oldBlock = BlockRegistry.get(oldBlockId);
-        int oldLightEmission = oldBlock.getLightEmission(oldBlock.getStateForId(oldState));
-        Block newBlock = BlockRegistry.get(newBlockId);
+        int oldLightEmission = (oldBlock != null) ? oldBlock.getLightEmission(oldBlock.getStateForId(oldState)) : 0;
         int newLightEmission = newBlock.getLightEmission(newBlock.getStateForId(newState));
 
         if (oldLightEmission > 0) {
             chunkManager.getLightEngine().removeBlockLight(x, y, z, oldLightEmission);
         }
 
-        // Licht-Updates
         targetChunk.recalculateSunlightColumn(localX, localZ, chunkManager.getLightEngine());
         chunkManager.getLightEngine().notifyBlockChanged(x, y, z);
 
@@ -343,28 +279,28 @@ public class World {
 
         chunkManager.getLightEngine().processLightUpdates();
 
-        // Events
-        eventBus.publish(new BlockChangeEvent(pos, oldBlockId, newBlockId, targetChunk));
+        eventBus.publish(new BlockChangeEvent(pos, oldBlock, newBlock, targetChunk));
 
         int[][] dirs = { { 0, 1, 0 }, { 0, -1, 0 }, { 1, 0, 0 }, { -1, 0, 0 }, { 0, 0, 1 }, { 0, 0, -1 } };
         for (int[] dir : dirs) {
             Vector3i nPos = new Vector3i(x + dir[0], y + dir[1], z + dir[2]);
-            eventBus.publish(new BlockNeighborUpdateEvent(nPos, pos, newBlockId));
+            eventBus.publish(new BlockNeighborUpdateEvent(nPos, pos, newBlock));
         }
 
-        Block placedBlock = BlockRegistry.get(newBlockId);
-        if (placedBlock != null) {
-            if (placedBlock.hasBlockEntity() && (oldBlockId != newBlockId || getBlockEntity(pos) == null)) {
-                setBlockEntity(pos, placedBlock.createBlockEntity(this, pos));
+        if (newBlock != null) {
+            if (newBlock.hasBlockEntity() && (oldBlock != newBlock || getBlockEntity(pos) == null)) {
+                setBlockEntity(pos, newBlock.createBlockEntity(this, pos));
             }
 
-            byte blockBelow = getBlockAt(x, y - 1, z);
-            placedBlock.onNeighborChanged(this, x, y, z, new Vector3i(x, y - 1, z), blockBelow);
+            Block blockBelow = getBlock(x, y - 1, z);
+            newBlock.onNeighborChanged(this, x, y, z, new Vector3i(x, y - 1, z), blockBelow);
         }
     }
 
     public void setBlockState(int x, int y, int z, BlockState state) {
-        setBlockWithState(x, y, z, state.getBlock().getId(), state.getStateId());
+        if (state != null) {
+            setBlockWithState(x, y, z, state.getBlock(), state.getStateId(), true);
+        }
     }
 
     public BlockState getBlockState(int x, int y, int z) {
@@ -378,15 +314,22 @@ public class World {
         return getBlockState(pos.x, pos.y, pos.z);
     }
 
-    public byte getBlockAt(int x, int y, int z) {
-        Chunk c = chunkManager.getChunkAtBlock(x, y, z);
-        if (c == null)
-            return 0;
-        return c.getBlock(x & 15, y, z & 15);
+    public Block getBlock(int x, int y, int z) {
+        Chunk chunk = chunkManager.getChunkAtBlock(x, y, z);
+        if (chunk == null) return Registries.BLOCKS.get("veinstride:air");
+        return chunk.getBlock(x & 15, y, z & 15, blockPalette);
     }
 
-    public byte getBlockAt(Vector3i pos) {
-        return getBlockAt(pos.x, pos.y, pos.z);
+    public Block getBlock(Vector3i pos) {
+        return pos != null ? getBlock(pos.x, pos.y, pos.z) : Registries.BLOCKS.get("veinstride:air");
+    }
+
+    public void setBlock(int x, int y, int z, Block block) {
+        setBlock(x, y, z, block, (byte) 0);
+    }
+
+    public void setBlock(int x, int y, int z, Block block, byte state) {
+        setBlockWithState(x, y, z, block, state, true);
     }
 
     public final void saveWorldData() {
@@ -410,8 +353,15 @@ public class World {
         wData.generatorOptions = this.generatorOptions;
         wData.allowCheats = this.allowCheats;
         
+        if (this.blockPalette != null) wData.blockPalette = this.blockPalette.toKeyList();
+        if (this.biomePalette != null) wData.biomePalette = this.biomePalette.toKeyList();
+        if (this.tickScheduler != null) wData.currentTick = this.tickScheduler.getCurrentTick();
+
         storageManager.saveLevelMetadata(wData);
     }
+
+    public WorldPalette getBlockPalette() { return blockPalette; }
+    public BiomePalette getBiomePalette() { return biomePalette; }
 
     public void saveWorld(LocalPlayer localPlayer) {
         saveWorldData();
@@ -445,8 +395,8 @@ public class World {
         }
 
         for (int y = Chunk.MAX_Y - 3; y > Chunk.MIN_Y; y--) {
-            if (getBlockAt(x, y, z) != 0) {
-                if (getBlockAt(x, y + 1, z) == 0 && getBlockAt(x, y + 2, z) == 0) {
+            if (!getBlock(x, y, z).isAir()) {
+                if (getBlock(x, y + 1, z).isAir() && getBlock(x, y + 2, z).isAir()) {
                     return new Vector3f(x + 0.5f, y + 1.0f, z + 0.5f);
                 }
             }
@@ -474,6 +424,14 @@ public class World {
 
     public List<Entity> getEntities() {
         return entitySystem.getEntities();
+    }
+
+    public EntitySystem getEntitySystem() {
+        return entitySystem;
+    }
+
+    public Map<Vector3i, BlockEntity> getBlockEntities() {
+        return blockEntities;
     }
 
     public BlockEntity getBlockEntity(Vector3i pos) {
@@ -511,7 +469,7 @@ public class World {
 
         int px = (int) Math.floor(preferred.x);
         int pz = (int) Math.floor(preferred.z);
-        byte waterId = Registries.BLOCKS.get(Constants.NAMESPACE + ":water").getId();
+        Block waterBlock = Registries.BLOCKS.get(Constants.NAMESPACE + ":water");
 
         // Search spiral radius of 5 chunks around the preferred spawn
         int searchRadius = 80; // blocks
@@ -524,10 +482,9 @@ public class World {
                     if (c == null) continue; // Skip unloaded chunks
 
                     for (int y = Chunk.MAX_Y - 2; y > Chunk.MIN_Y; y--) {
-                        byte blockId = c.getBlock(x & 15, y, z & 15);
-                        if (blockId != 0) {
-                            if (blockId != waterId) {
-                                Block b = de.delautrer.game.blocks.BlockRegistry.get(blockId);
+                        Block b = c.getBlock(x & 15, y, z & 15, blockPalette);
+                        if (b != null && !b.isAir()) {
+                            if (b != waterBlock) {
                                 if (b.isSolid && !b.isTransparent && !b.isPassable) {
                                     return new Vector3d(x + 0.5, y + 1.5, z + 0.5);
                                 }

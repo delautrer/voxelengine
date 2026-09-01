@@ -1,0 +1,10 @@
+﻿{
+    "type":  "slab",
+    "solid":  false,
+    "transparent":  true,
+    "opacity":  15,
+    "hardness":  2.0,
+    "sound_material":  "veinstride:rock",
+    "category":  "building",
+    "min_tool_tier":  "wood"
+}

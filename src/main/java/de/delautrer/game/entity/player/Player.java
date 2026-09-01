@@ -59,8 +59,7 @@ public class Player extends Entity {
         int byHead = (int) Math.floor(getEyePosition().y);
         int bz = (int) Math.floor(position.z);
 
-        byte headBlockId = world.getBlockAt(bx, byHead, bz);
-        Block headBlock = de.delautrer.game.blocks.BlockRegistry.get(headBlockId);
+        Block headBlock = world.getBlock(bx, byHead, bz);
 
         if (headBlock.isSolid && !headBlock.isTransparent) {
             if (tickCounter % 20 == 0) {

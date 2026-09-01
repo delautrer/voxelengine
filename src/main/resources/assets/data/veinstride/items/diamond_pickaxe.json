@@ -1,0 +1,10 @@
+﻿{
+    "type":  "tool",
+    "name":  "Diamond Pickaxe",
+    "texture_name":  "diamond_pickaxe",
+    "category":  "tools",
+    "tool_type":  "pickaxe",
+    "tool_tier":  "diamond",
+    "tool_efficiency":  8.0,
+    "tool_max_durability":  1561
+}

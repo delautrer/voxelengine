@@ -1,0 +1,25 @@
+﻿{
+  "type": "shaped",
+  "pattern": [
+    "MMM",
+    " S ",
+    " S "
+  ],
+  "keys": {
+    "M": [
+      "veinstride:oak_planks",
+      "veinstride:birch_planks",
+      "veinstride:pine_planks",
+      "veinstride:willow_planks",
+      "veinstride:baobab_planks",
+      "veinstride:mahogany_planks",
+      "veinstride:palm_planks"
+    ],
+    "S": "veinstride:sticks"
+  },
+  "result": {
+    "item": "veinstride:wooden_pickaxe",
+    "count": 1
+  }
+}
+

@@ -1,0 +1,12 @@
+﻿{
+    "replace":  false,
+    "values":  [
+                   "veinstride:oak_door",
+                   "veinstride:birch_door",
+                   "veinstride:palm_door",
+                   "veinstride:willow_door",
+                   "veinstride:baobab_door",
+                   "veinstride:mahogany_door",
+                   "veinstride:pine_door"
+               ]
+}

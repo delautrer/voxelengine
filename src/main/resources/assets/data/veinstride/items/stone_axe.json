@@ -1,0 +1,10 @@
+﻿{
+    "type":  "tool",
+    "name":  "Stone Axe",
+    "texture_name":  "stone_axe",
+    "category":  "tools",
+    "tool_type":  "axe",
+    "tool_tier":  "stone",
+    "tool_efficiency":  4.0,
+    "tool_max_durability":  131
+}

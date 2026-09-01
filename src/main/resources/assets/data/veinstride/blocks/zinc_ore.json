@@ -1,0 +1,7 @@
+﻿{
+    "type":  "cube",
+    "hardness":  3.0,
+    "sound_material":  "veinstride:rock",
+    "category":  "natural",
+    "min_tool_tier":  "stone"
+}

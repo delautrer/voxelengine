@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Dolomite Coal Ore",
+    "texture_name":  "dolomite_coal_ore",
+    "max_stack_size":  64,
+    "category":  "misc"
+}

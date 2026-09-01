@@ -1,0 +1,43 @@
+﻿{
+    "id":  "veinstride:swamp",
+    "temperature":  [
+                        0.2,
+                        1.0
+                    ],
+    "humidity":  [
+                     0.3,
+                     1.0
+                 ],
+    "continentalness":  [
+                            -0.1,
+                            1.0
+                        ],
+    "erosion":  [
+                    -1.0,
+                    0.3
+                ],
+    "weirdness":  [
+                      0.3,
+                      1.0
+                  ],
+    "topBlock":  "grass_block",
+    "underBlock":  "dirt",
+    "underwaterBlock":  "water",
+    "shoreBlock":  "dirt",
+    "deepBlock":  "stone",
+    "baseHeight":  -2.0,
+    "heightVariation":  5.0,
+    "floraProbability":  0.6,
+    "floraPatchThreshold":  -0.3,
+    "floraDensity":  0.6,
+    "flora":  {
+                  "grass":  200,
+                  "fairy_bell":  40,
+                  "dotty":  15
+              },
+    "treeProbability":  0.15,
+    "trees":  {
+                  "veinstride:willow":  1
+              }
+}
+

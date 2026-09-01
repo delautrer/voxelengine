@@ -1,0 +1,8 @@
+﻿{
+    "type":  "block",
+    "name":  "Willow Sapling",
+    "texture_name":  "willow_sapling",
+    "max_stack_size":  64,
+    "category":  "natural",
+    "render_as_item":  true
+}

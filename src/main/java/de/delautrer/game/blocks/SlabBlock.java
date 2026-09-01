@@ -19,6 +19,7 @@ public class SlabBlock extends CubeBlock {
 
     public SlabBlock(boolean isSolid, boolean isTransparent) {
         super(isSolid, isTransparent);
+        this.mesher = new de.delautrer.engine.graphics.meshing.SlabMesher(this);
     }
 
     @Override
@@ -47,15 +48,7 @@ public class SlabBlock extends CubeBlock {
         return getDefaultState().with(TYPE, yFrac > 0.5f ? SlabType.TOP : SlabType.BOTTOM);
     }
 
-    @Override
-    public void generateMesh(int x, int y, int z, Chunk chunk, ChunkManager cm) {
-        BlockState state = chunk.getBlockState(x, y, z);
-        SlabType type = state.getValue(TYPE);
 
-        if (type == SlabType.DOUBLE) renderBox(state, x, y, z, 0, 0, 0, 1, 1, 1, true, true, true, true, true, true, false, chunk, cm);
-        else if (type == SlabType.TOP) renderBox(state, x, y, z, 0, 0.5f, 0, 1, 1, 1, true, true, true, true, true, true, false, chunk, cm);
-        else renderBox(state, x, y, z, 0, 0, 0, 1, 0.5f, 1, true, true, true, true, true, true, false, chunk, cm);
-    }
 
     @Override
     public List<AABB> getBoundingBoxes(BlockState state) {
@@ -70,7 +63,7 @@ public class SlabBlock extends CubeBlock {
     @Override
     public boolean shouldRenderFaceAgainstState(BlockState myState, BlockState neighborState, BlockFace face) {
         Block nBlock = neighborState.getBlock();
-        if (nBlock.getId() == 0) return true;
+        if (nBlock == null || nBlock.isAir()) return true;
 
         if (nBlock == this) {
             SlabType myType = myState.getValue(TYPE);

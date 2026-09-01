@@ -1,0 +1,14 @@
+﻿{
+  "type": "shaped",
+  "pattern": [
+    "A ",
+    "AA"
+  ],
+  "keys": {
+    "A": "veinstride:grass_block"
+  },
+  "result": {
+    "item": "veinstride:grass_block_stairs",
+    "count": 4
+  }
+}

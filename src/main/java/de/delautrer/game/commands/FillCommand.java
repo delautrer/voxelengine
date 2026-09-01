@@ -3,6 +3,7 @@ package de.delautrer.game.commands;
 import de.delautrer.Constants;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
+import de.delautrer.game.registry.Registries;
 import de.delautrer.game.blocks.LeavesBlock;
 import de.delautrer.game.blocks.state.*;
 import de.delautrer.game.entity.ItemEntity;
@@ -72,7 +73,7 @@ public class FillCommand implements ICommand {
                     for (int z = minZ; z <= maxZ; z++) {
                         boolean isEdge = x == minX || x == maxX || y == minY || y == maxY || z == minZ || z == maxZ;
                         
-                        byte currentBlockId = world.getBlockAt(x, y, z);
+                        Block currentBlock = world.getBlock(x, y, z);
                         BlockState currentState = world.getBlockState(new Vector3i(x, y, z));
                         
                         boolean shouldPlace = false;
@@ -82,7 +83,7 @@ public class FillCommand implements ICommand {
                         switch (mode) {
                             case "replace":
                                 if (filterState != null) {
-                                    if (currentState.getBlock().getId() == filterState.getBlock().getId()) {
+                                    if (currentState.getBlock() == filterState.getBlock()) {
                                         shouldPlace = true;
                                     }
                                 } else {
@@ -90,15 +91,13 @@ public class FillCommand implements ICommand {
                                 }
                                 break;
                             case "keep":
-                                if (currentBlockId == 0) { // Air
+                                if (currentBlock.isAir()) {
                                     shouldPlace = true;
                                 }
                                 break;
                             case "outline":
                                 if (isEdge) {
                                     shouldPlace = true;
-                                } else {
-                                    // inside does not change
                                 }
                                 break;
                             case "hollow":
@@ -110,7 +109,7 @@ public class FillCommand implements ICommand {
                                 break;
                             case "destroy":
                                 shouldPlace = true;
-                                if (currentBlockId != 0) {
+                                if (!currentBlock.isAir()) {
                                     shouldDestroy = true;
                                 }
                                 break;
@@ -120,7 +119,6 @@ public class FillCommand implements ICommand {
                         }
 
                         if (shouldDestroy) {
-                            Block currentBlock = BlockRegistry.get(currentBlockId);
                             if (currentBlock != null) {
                                 String lootPath = currentBlock.getLootTable();
                                 if (lootPath != null) {
@@ -139,10 +137,10 @@ public class FillCommand implements ICommand {
                         }
 
                         if (shouldPlace) {
-                            world.setBlockWithState(x, y, z, fillState.getBlock().getId(), fillState.getStateId(), false);
+                            world.setBlockWithState(x, y, z, fillState.getBlock(), fillState.getStateId(), false);
                             count++;
                         } else if (shouldPlaceAir) {
-                            world.setBlock(x, y, z, (byte) 0);
+                            world.setBlock(x, y, z, Registries.BLOCKS.get("veinstride:air"));
                             count++;
                         }
                     }

@@ -5,6 +5,7 @@ import de.delautrer.engine.audio.data.SoundMaterialDefinition;
 import de.delautrer.engine.utils.ResourceUtils;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,41 +23,28 @@ public class SoundManager {
     }
 
     private static void loadAllDefinitions() {
-        String folderPath = "/assets/data/sounds";
+        loadFromFolder("assets/data/sounds");
+    }
 
-        List<String> files = ResourceUtils.listResourceFolder(folderPath);
-
-        if (files == null || files.isEmpty()) {
-            System.err.println("Hm. Where sounds?... " + folderPath);
-            return;
-        }
-
+    private static void loadFromFolder(String folderPath) {
+        List<String> files = ResourceUtils.listResources(folderPath, ".json");
         for (String fileName : files) {
-            if (!fileName.endsWith(".json")) continue;
-
             String fullPath = folderPath + "/" + fileName;
-
-            // Laden als Stream (funktioniert im .jar / .exe)
-            try (InputStream is = SoundManager.class.getResourceAsStream(fullPath)) {
-                if (is == null) {
-                    System.err.println("Could not read file: " + fullPath);
-                    continue;
-                }
-
-                try (InputStreamReader reader = new InputStreamReader(is)) {
-                    SoundMaterialDefinition def = GSON.fromJson(reader, SoundMaterialDefinition.class);
+            try {
+                Reader reader = ResourceUtils.readResourceToReader(fullPath);
+                SoundMaterialDefinition def = GSON.fromJson(reader, SoundMaterialDefinition.class);
+                if (def != null && def.materialName != null) {
                     materialDefinitions.put(def.materialName.toLowerCase(), def);
-
-                    // Alle in der JSON gefundenen OGGs direkt laden
-                    for (List<String> paths : def.actions.values()) {
-                        for (String path : paths) {
-                            audioEngine.loadSound(path);
+                    if (audioEngine != null && def.actions != null) {
+                        for (List<String> paths : def.actions.values()) {
+                            for (String path : paths) {
+                                audioEngine.loadSound(path);
+                            }
                         }
                     }
-                    //System.out.println("Geladen: " + def.materialName);
                 }
             } catch (Exception e) {
-                System.err.println("Error while parsing: " + fileName + ": " + e.getMessage());
+                System.err.println("[SoundManager] Error loading sound definition " + fullPath + ": " + e.getMessage());
             }
         }
     }
@@ -85,32 +73,57 @@ public class SoundManager {
         playEvent(materialName, action, volume, minPitch, maxPitch, x, y, z, false, source);
     }
 
+    private static String resolveMaterialName(String rawName) {
+        if (rawName == null || rawName.isEmpty()) return "default";
+        if (rawName.contains(":")) {
+            rawName = rawName.substring(rawName.indexOf(':') + 1);
+        }
+        String name = rawName.toLowerCase();
+        if (materialDefinitions.containsKey(name)) {
+            return name;
+        }
+        return "default";
+    }
+
     private static void playEvent(String materialName, String action, float volume, float minPitch, float maxPitch, float x, float y, float z, boolean relative, String source) {
         if (audioEngine == null) return;
 
-        materialName = (materialName != null) ? materialName.toLowerCase() : "default";
+        materialName = resolveMaterialName(materialName);
         action = action.toLowerCase();
 
         SoundMaterialDefinition def = materialDefinitions.get(materialName);
 
-        // Debug Logging
-        if (de.delautrer.game.settings.SettingsManager.get().soundDebug) {
-            float dist = (float) Math.sqrt((x-lastListenerPos.x)*(x-lastListenerPos.x) + (y-lastListenerPos.y)*(y-lastListenerPos.y) + (z-lastListenerPos.z)*(z-lastListenerPos.z));
-            System.out.printf("[SoundDebug] [%-11s] Action: %-12s | Mat: %-8s | Vol: %.2f | Dist: %4.1f\n",
-                source, action, materialName, volume, dist);
-        }
-
         // 1. Versuch: Hat das spezifische Material genau diese Aktion definiert?
-        if (def != null && def.actions.containsKey(action) && !def.actions.get(action).isEmpty()) {
-            audioEngine.playRandomFromList(def.actions.get(action), volume, minPitch, maxPitch, x, y, z, relative);
-            return;
+        if (def != null && def.actions != null) {
+            List<String> sounds = def.actions.get(action);
+            if (sounds == null || sounds.isEmpty()) {
+                if ("place".equals(action) || "step".equals(action)) {
+                    sounds = def.actions.get("walk");
+                } else if ("break".equals(action)) {
+                    sounds = def.actions.get("jump_land");
+                }
+            }
+            if (sounds != null && !sounds.isEmpty()) {
+                audioEngine.playRandomFromList(sounds, volume, minPitch, maxPitch, x, y, z, relative);
+                return;
+            }
         }
 
-        // 2. Versuch (FALLBACK): Gibt es ein Material namens "default", das diese Aktion hat?
+        // 2. Versuch (FALLBACK): Material "default"
         SoundMaterialDefinition defaultDef = materialDefinitions.get("default");
-        if (defaultDef != null && defaultDef.actions.containsKey(action) && !defaultDef.actions.get(action).isEmpty()) {
-            audioEngine.playRandomFromList(defaultDef.actions.get(action), volume, minPitch, maxPitch, x, y, z, relative);
-            return;
+        if (defaultDef != null && defaultDef.actions != null) {
+            List<String> sounds = defaultDef.actions.get(action);
+            if (sounds == null || sounds.isEmpty()) {
+                if ("place".equals(action) || "step".equals(action)) {
+                    sounds = defaultDef.actions.get("walk");
+                } else if ("break".equals(action)) {
+                    sounds = defaultDef.actions.get("jump_land");
+                }
+            }
+            if (sounds != null && !sounds.isEmpty()) {
+                audioEngine.playRandomFromList(sounds, volume, minPitch, maxPitch, x, y, z, relative);
+                return;
+            }
         }
     }
 

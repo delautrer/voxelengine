@@ -1,0 +1,8 @@
+﻿{
+    "type":  "block",
+    "name":  "Baobab Sapling",
+    "texture_name":  "baobab_sapling",
+    "max_stack_size":  64,
+    "category":  "natural",
+    "render_as_item":  true
+}

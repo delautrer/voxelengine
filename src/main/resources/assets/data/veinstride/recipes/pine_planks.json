@@ -1,0 +1,11 @@
+﻿{
+  "type": "shapeless",
+  "ingredients": [
+    "veinstride:pine_log"
+  ],
+  "result": {
+    "item": "veinstride:pine_planks",
+    "count": 4
+  }
+}
+

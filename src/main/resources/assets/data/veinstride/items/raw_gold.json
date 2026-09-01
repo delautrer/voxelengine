@@ -1,0 +1,7 @@
+﻿{
+    "type":  "simple",
+    "name":  "Raw Gold",
+    "texture_name":  "raw_gold",
+    "max_stack_size":  64,
+    "category":  "misc"
+}

@@ -131,7 +131,7 @@ public class EntityRenderSystem implements IRenderSystem {
                     }
                 }
             } else if (e instanceof de.delautrer.game.entity.FallingBlockEntity fallingBlock) {
-                de.delautrer.game.blocks.Block block = de.delautrer.game.blocks.BlockRegistry.get(fallingBlock.getBlockId());
+                de.delautrer.game.blocks.Block block = fallingBlock.getBlock();
                 if (block instanceof CubeBlock cubeBlock) {
                     Matrix4f modelMat = new Matrix4f()
                             .translate((float) (e.position.x - packet.cameraPos.x),

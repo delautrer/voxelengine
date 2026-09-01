@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Birch Leaves",
+    "texture_name":  "birch_leaves",
+    "max_stack_size":  64,
+    "category":  "natural"
+}

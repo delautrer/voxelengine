@@ -1,0 +1,7 @@
+﻿{
+    "type":  "simple",
+    "name":  "Coal",
+    "texture_name":  "coal",
+    "max_stack_size":  64,
+    "category":  "misc"
+}

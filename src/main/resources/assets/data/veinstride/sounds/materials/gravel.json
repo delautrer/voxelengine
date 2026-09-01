@@ -1,0 +1,39 @@
+{
+  "materialName": "gravel",
+  "actions": {
+    "jump_land": [
+      "/assets/sounds/footsteps/gravel/jump/land01.ogg",
+      "/assets/sounds/footsteps/gravel/jump/land02.ogg",
+      "/assets/sounds/footsteps/gravel/jump/land03.ogg"
+    ],
+    "jump_start": [
+      "/assets/sounds/footsteps/gravel/jump/start01.ogg",
+      "/assets/sounds/footsteps/gravel/jump/start02.ogg",
+      "/assets/sounds/footsteps/gravel/jump/start03.ogg"
+    ],
+    "run": [
+      "/assets/sounds/footsteps/gravel/run/run01.ogg",
+      "/assets/sounds/footsteps/gravel/run/run02.ogg",
+      "/assets/sounds/footsteps/gravel/run/run03.ogg",
+      "/assets/sounds/footsteps/gravel/run/run04.ogg",
+      "/assets/sounds/footsteps/gravel/run/run05.ogg",
+      "/assets/sounds/footsteps/gravel/run/run06.ogg",
+      "/assets/sounds/footsteps/gravel/run/run07.ogg",
+      "/assets/sounds/footsteps/gravel/run/run08.ogg",
+      "/assets/sounds/footsteps/gravel/run/run09.ogg",
+      "/assets/sounds/footsteps/gravel/run/run10.ogg"
+    ],
+    "walk": [
+      "/assets/sounds/footsteps/gravel/walk/walk01.ogg",
+      "/assets/sounds/footsteps/gravel/walk/walk02.ogg",
+      "/assets/sounds/footsteps/gravel/walk/walk03.ogg",
+      "/assets/sounds/footsteps/gravel/walk/walk04.ogg",
+      "/assets/sounds/footsteps/gravel/walk/walk05.ogg",
+      "/assets/sounds/footsteps/gravel/walk/walk06.ogg",
+      "/assets/sounds/footsteps/gravel/walk/walk07.ogg",
+      "/assets/sounds/footsteps/gravel/walk/walk08.ogg",
+      "/assets/sounds/footsteps/gravel/walk/walk09.ogg",
+      "/assets/sounds/footsteps/gravel/walk/walk10.ogg"
+    ]
+  }
+}

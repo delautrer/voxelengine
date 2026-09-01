@@ -374,7 +374,8 @@ public class LightEngine {
         if (c == null) return 15;
         int lx = worldX & 15;
         int lz = worldZ & 15;
-        return BlockRegistry.get(c.getBlock(lx, worldY, lz)).getOpacity(c.getBlockState(lx, worldY, lz));
+        de.delautrer.game.world.persistence.WorldPalette palette = chunkManager.getWorld() != null ? chunkManager.getWorld().getBlockPalette() : null;
+        return c.getBlock(lx, worldY, lz, palette).getOpacity(c.getBlockState(lx, worldY, lz, palette));
     }
 
     // ==========================================

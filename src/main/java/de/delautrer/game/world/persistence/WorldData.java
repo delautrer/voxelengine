@@ -20,4 +20,11 @@ public class WorldData {
     // World Generation Configuration
     public String generatorType = "DEFAULT";
     public String generatorOptions = "";
+
+    // Save format & migration
+    public int saveFormatVersion = 1;
+    public java.util.List<String> blockPalette;
+    public java.util.List<String> biomePalette;
+    public java.util.Map<String, String> namespaceAliases;
+    public long currentTick = 0;
 }

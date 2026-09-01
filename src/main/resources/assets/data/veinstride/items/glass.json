@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Glass",
+    "texture_name":  "glass",
+    "max_stack_size":  64,
+    "category":  "building"
+}

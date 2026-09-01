@@ -46,7 +46,7 @@ public class WorldEventHandler {
 
         event.chunk.recalculateSunlightColumn(localX, localZ, le);
 
-        Block newBlock = BlockRegistry.get(event.newBlockId);
+        Block newBlock = world.getBlock(x, y, z);
         de.delautrer.game.blocks.state.BlockState newState = world.getBlockState(x, y, z);
         int newEmission = newBlock.getLightEmission(newState);
         if (newEmission > 0) {
@@ -74,10 +74,9 @@ public class WorldEventHandler {
     }
 
     private void onNeighborUpdate(BlockNeighborUpdateEvent event) {
-        byte receiverId = world.getBlockAt(event.pos.x, event.pos.y, event.pos.z);
-        if (receiverId != 0) {
-            Block receiverBlock = BlockRegistry.get(receiverId);
-            receiverBlock.onNeighborChanged(world, event.pos.x, event.pos.y, event.pos.z, event.neighborPos, event.changedNeighborId);
+        Block receiverBlock = world.getBlock(event.pos.x, event.pos.y, event.pos.z);
+        if (receiverBlock != null && !receiverBlock.isAir()) {
+            receiverBlock.onNeighborChanged(world, event.pos.x, event.pos.y, event.pos.z, event.source, event.changedBlock);
         }
     }
 

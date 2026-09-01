@@ -1,0 +1,8 @@
+﻿{
+    "type":  "block",
+    "name":  "Mavvinilia",
+    "texture_name":  "mavvinilia",
+    "max_stack_size":  64,
+    "category":  "natural",
+    "render_as_item":  true
+}

@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Oak Leaves",
+    "texture_name":  "oak_leaves",
+    "max_stack_size":  64,
+    "category":  "natural"
+}

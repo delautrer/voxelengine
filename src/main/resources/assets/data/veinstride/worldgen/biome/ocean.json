@@ -1,0 +1,40 @@
+﻿{
+    "id":  "veinstride:ocean",
+    "temperature":  [
+                        -1.0,
+                        1.0
+                    ],
+    "humidity":  [
+                     -1.0,
+                     1.0
+                 ],
+    "continentalness":  [
+                            -1.0,
+                            -0.3
+                        ],
+    "erosion":  [
+                    -1.0,
+                    1.0
+                ],
+    "weirdness":  [
+                      -1.0,
+                      1.0
+                  ],
+    "topBlock":  "gravel",
+    "underBlock":  "gravel",
+    "underwaterBlock":  "gravel",
+    "deepBlock":  "stone",
+    "baseHeight":  -29.0,
+    "heightVariation":  10.0,
+    "floraProbability":  0.0,
+    "treeProbability":  0.0,
+    "undergroundBlobs":  {
+                             "dirt":  0.05
+                         },
+    "underwaterBlobScale":  0.05,
+    "underwaterBlobs":  {
+                            "sand":  0.7,
+                            "gravel":  0.3
+                        }
+}
+

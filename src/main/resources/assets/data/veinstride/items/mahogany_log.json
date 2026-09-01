@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Mahogany Log",
+    "texture_name":  "mahogany_log",
+    "max_stack_size":  64,
+    "category":  "wood"
+}

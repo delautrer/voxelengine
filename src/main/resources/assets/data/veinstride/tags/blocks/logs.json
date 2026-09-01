@@ -1,0 +1,12 @@
+﻿{
+    "replace":  false,
+    "values":  [
+                   "veinstride:oak_log",
+                   "veinstride:birch_log",
+                   "veinstride:palm_log",
+                   "veinstride:willow_log",
+                   "veinstride:baobab_log",
+                   "veinstride:mahogany_log",
+                   "veinstride:pine_log"
+               ]
+}

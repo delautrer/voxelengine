@@ -192,11 +192,12 @@ public class PlayScene extends Scene {
         debugOverlay.addLine("Target Block", () -> {
             org.joml.Vector3i target = localPlayer.getInteraction().getSelectedBlockPos();
             if (target != null) {
-                byte blockId = world.getBlockAt(target);
+                Block block = world.getBlock(target);
                 BlockState state = world.getBlockState(target.x, target.y, target.z);
                 String name = Registries.BLOCKS.getKey(state.getBlock()).getKey();
-                return String.format("[%d %d %d] Name: %s (ID: %d, State: %d)",
-                        target.x, target.y, target.z, name, Byte.toUnsignedInt(blockId), state.getStateId());
+                int paletteIdx = world.getBlockPalette().getOrAppend(Registries.BLOCKS.getKey(block));
+                return String.format("[%d %d %d] Name: %s (PaletteIdx: %d, State: %d)",
+                        target.x, target.y, target.z, name, paletteIdx, state.getStateId());
             }
             return "-";
         });

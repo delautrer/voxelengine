@@ -1,0 +1,10 @@
+﻿{
+    "type":  "tool",
+    "name":  "Diamond Axe",
+    "texture_name":  "diamond_axe",
+    "category":  "tools",
+    "tool_type":  "axe",
+    "tool_tier":  "diamond",
+    "tool_efficiency":  8.0,
+    "tool_max_durability":  1561
+}

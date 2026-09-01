@@ -140,7 +140,8 @@ public class MainMenuScene extends Scene {
                 // ── Footer ───────────────────────────────────────────────
                 if (font != null) {
                     String version = "v" + Constants.VERSION;
-                    String playerInfo = "Player: " + de.delautrer.game.settings.SettingsManager.get().playerName;
+                    //String playerInfo = "Player: " + de.delautrer.game.settings.SettingsManager.get().playerName;
+                    String playerInfo = "Made with <3 by delautrer";
 
                     float margin = 16f;
                     float footerY = 28f;

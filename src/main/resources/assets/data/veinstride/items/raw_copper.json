@@ -1,0 +1,7 @@
+﻿{
+    "type":  "simple",
+    "name":  "Raw Copper",
+    "texture_name":  "raw_copper",
+    "max_stack_size":  64,
+    "category":  "misc"
+}

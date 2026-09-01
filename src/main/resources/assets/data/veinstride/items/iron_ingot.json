@@ -1,0 +1,7 @@
+﻿{
+    "type":  "simple",
+    "name":  "Iron Ingot",
+    "texture_name":  "iron_ingot",
+    "max_stack_size":  64,
+    "category":  "misc"
+}

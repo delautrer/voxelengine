@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Dolomite",
+    "texture_name":  "dolomite",
+    "max_stack_size":  64,
+    "category":  "natural"
+}

@@ -30,7 +30,7 @@ public class Engine {
     private TextureStitcher.AtlasResult blockAtlas;
     private TextureStitcher.AtlasResult itemAtlas;
 
-    private float lastFrame = 0.0f;
+    private double lastFrame = 0.0;
     private int currentFps = 0;
 
     public Engine() {
@@ -111,15 +111,12 @@ public class Engine {
                 }
             }
 
-            float currentFrameTime = (float) GLFW.glfwGetTime();
-            float deltaTime = currentFrameTime - lastFrame;
+            double currentFrameTime = GLFW.glfwGetTime();
+            float deltaTime = (float) Math.min(0.1, currentFrameTime - lastFrame);
             lastFrame = currentFrameTime;
 
             if (deltaTime > 0)
                 currentFps = (int) (1.0f / deltaTime);
-            if (deltaTime > 0.1f) {
-                deltaTime = 0.1f;
-            }
 
             window.pollEvents();
 

@@ -1,0 +1,16 @@
+﻿{
+  "type": "shaped",
+  "pattern": [
+    "A  ",
+    "AA ",
+    "AAA"
+  ],
+  "keys": {
+    "A": "veinstride:palm_planks"
+  },
+  "result": {
+    "count": 4,
+    "item": "veinstride:palm_stairs"
+  }
+}
+

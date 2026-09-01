@@ -1,18 +1,16 @@
 package de.delautrer.game.blocks;
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import de.delautrer.Constants;
+import de.delautrer.engine.utils.ResourceUtils;
 import de.delautrer.game.blocks.data.BlockDefinition;
 import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.items.BlockItem;
-import org.joml.Vector3f;
-import org.joml.Vector3i;
 import de.delautrer.game.registry.NamespacedKey;
 import de.delautrer.game.registry.Registry;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.lang.reflect.Type;
+import org.joml.Vector3f;
+import org.joml.Vector3i;
+import java.io.Reader;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -21,20 +19,14 @@ import de.delautrer.game.world.ChunkManager;
 
 public class BlockRegistry {
     public static final Registry<Block> REGISTRY = new Registry<>();
-    private static final Block[] BLOCKS_BY_ID = new Block[256];
     private static final Gson GSON = new Gson();
-
     private static boolean isInitialized = false;
-    static {
-        init();
-    }
 
     public static void init() {
-        if (isInitialized)
-            return; // Wenn schon geladen, abbrechen
+        if (isInitialized) return;
         isInitialized = true;
-        System.out.println("Initializing...");
 
+        BlockTypeRegistry.initBuiltinTypes();
         registerAir();
         loadBlocksFromJson();
 
@@ -43,122 +35,52 @@ public class BlockRegistry {
 
     private static void registerAir() {
         Block air = new Block(false, true, true, false) {
-            @Override
-            public void generateMesh(int x, int y, int z, Chunk chunk, ChunkManager cm) {
-            }
+
 
             @Override
             public boolean canBeReplaced(BlockState state, BlockItem item, Vector3i hitFace, Vector3f exactHit) {
                 return true;
             }
         };
-        air.setId((byte) 0);
-        BLOCKS_BY_ID[0] = air;
-        REGISTRY.register(new NamespacedKey(Constants.NAMESPACE, "air"), air);
+        NamespacedKey airKey = new NamespacedKey(Constants.NAMESPACE, "air");
+        REGISTRY.register(airKey, air);
     }
 
     private static void loadBlocksFromJson() {
-        try {
-            // Lesen der Datei. getResourceAsStream funktioniert sowohl in der IDE als auch
-            // in der .exe (.jar)
-            InputStream is = BlockRegistry.class.getResourceAsStream("/assets/data/blocks.json");
-            if (is == null) {
-                System.err.println("Error: /assets/data/blocks.json nicht gefunden!");
-                return;
-            }
+        List<String> files = ResourceUtils.listResources("assets/data/veinstride/blocks", ".json");
+        for (String file : files) {
+            String path = file.substring(0, file.length() - 5).replace('\\', '/');
+            NamespacedKey key = new NamespacedKey(Constants.NAMESPACE, path);
+            try {
+                Reader reader = ResourceUtils.readResourceToReader("assets/data/veinstride/blocks/" + file);
+                BlockDefinition def = GSON.fromJson(reader, BlockDefinition.class);
+                if (def.name == null) def.name = path;
 
-            Type listType = new TypeToken<List<BlockDefinition>>() {
-            }.getType();
-            List<BlockDefinition> definitions = GSON.fromJson(new InputStreamReader(is), listType);
-
-            for (BlockDefinition def : definitions) {
-                Block block = createBlockInstance(def);
-                if (block != null) {
-                    register((byte) def.id, def.name, block, def);
-                }
+                Block block = BlockTypeRegistry.create(def.type, def, key);
+                registerBlock(key, block, def);
+            } catch (Exception e) {
+                System.err.println("Fehler beim Laden von Block: " + file);
+                throw new IllegalStateException("Failed to load block file: " + file, e);
             }
-        } catch (Exception e) {
-            System.err.println("Fehler beim Laden der blocks.json");
-            e.printStackTrace();
         }
     }
 
-    private static Block createBlockInstance(BlockDefinition def) {
-        if (def.type == null) {
-            System.err.println("Block '" + def.name + "' hat keinen type!");
-            return null;
-        }
-
-        switch (def.type.toLowerCase()) {
-            case "cube":
-                return new CubeBlock(def.isSolid, def.isTransparent);
-            case "slab":
-                return new SlabBlock(def.isSolid, true);
-            case "stair":
-                return new StairBlock(def.isSolid, true);
-            case "plant":
-                return new PlantBlock();
-            case "water":
-                return new WaterBlock();
-            case "leaves":
-                return new LeavesBlock();
-            case "torch":
-                return new TorchBlock();
-            case "log":
-                return new LogBlock();
-            case "chest":
-                return new ChestBlock();
-            case "trapdoor":
-                return new TrapdoorBlock();
-            case "door":
-                return new DoorBlock();
-            case "gravity":
-                return new GravityBlock();
-            case "crafting_table":
-                return new CraftingTableBlock();
-            case "furnace":
-                return new FurnaceBlock();
-            case "sapling":
-                return new SaplingBlock(def.name, def.minGrowthTime, def.maxGrowthTime);
-            default:
-                System.err.println("Unbekannter Block Type: " + def.type + " bei " + def.name);
-                return null;
-        }
-    }
-
-    private static void register(byte id, String path, Block block, BlockDefinition def) {
-        // String fullId = Constants.NAMESPACE + ":" + path;
-        block.setId(id);
+    private static void registerBlock(NamespacedKey key, Block block, BlockDefinition def) {
         block.setHardness(def.hardness);
+        if (def.lightEmission > 0) block.setLightEmission(def.lightEmission);
+        if (def.opacity != -1) block.setOpacity(def.opacity);
 
-        if (def.lightEmission > 0) {
-            block.setLightEmission(def.lightEmission);
-        }
-
-        if (def.opacity != -1) {
-            block.setOpacity(def.opacity);
-        }
-
-        // Sound und Loot-Table (Nutzt die überschriebenen Werte, falls vorhanden, sonst
-        // Fallback)
-        block.setSoundMaterialName(def.soundMaterial != null ? def.soundMaterial : path);
-        block.setLootTable(def.customLootTable != null ? def.customLootTable : "blocks/" + path + ".json");
+        block.setSoundMaterialName(def.soundMaterial != null ? def.soundMaterial : key.getKey());
+        block.setLootTable(def.customLootTable != null ? def.customLootTable : "blocks/" + key.getKey() + ".json");
         block.setCategory(def.category);
 
         try {
             block.setMinToolTier(de.delautrer.game.items.ToolTier.valueOf(def.minToolTier.toUpperCase()));
         } catch (IllegalArgumentException e) {
-            System.err.println("Unknown ToolTier: " + def.minToolTier + " for block " + def.name);
+            System.err.println("Unknown ToolTier: " + def.minToolTier + " for block " + key);
         }
 
-        NamespacedKey key = new NamespacedKey(Constants.NAMESPACE, path);
         REGISTRY.register(key, block);
-        BLOCKS_BY_ID[id & 0xFF] = block;
-    }
-
-    public static Block get(byte internalId) {
-        return BLOCKS_BY_ID[internalId & 0xFF] != null ? BLOCKS_BY_ID[internalId & 0xFF]
-                : get(Constants.NAMESPACE + ":air");
     }
 
     public static Block get(String fullId) {

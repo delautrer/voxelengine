@@ -27,6 +27,7 @@ public class TrapdoorBlock extends CubeBlock implements IInteractable {
         super(false, true); // nicht voll-solid, transparent (da Löcher in der Textur sein könnten)
         setSoundMaterialName("wood");
         setHardness(2.0f);
+        this.mesher = new de.delautrer.engine.graphics.meshing.TrapdoorMesher(this);
     }
 
     @Override
@@ -145,92 +146,5 @@ public class TrapdoorBlock extends CubeBlock implements IInteractable {
         }
 
         return super.getTextureForFace(state, face);
-    }
-
-    @Override
-    public void generateMesh(int x, int y, int z, Chunk chunk, ChunkManager cm) {
-        BlockState state = chunk.getBlockState(x, y, z);
-        AABB b = getBoundingBoxes(state).get(0);
-        
-        boolean open = state.getValue(OPEN);
-        Direction facing = state.getValue(FACING);
-        boolean isTop = state.getValue(HALF) == Half.TOP;
-        float t = 0.1875f; // 3/16
-
-        // Edge UV range: bottom 3px (BOTTOM half) or top 3px flipped (TOP half)
-        // Swapping v0/v1 (v0 > v1) causes vertical flip in addMappedFace UV sampling
-        float edgeV0 = isTop ? t        : (1.0f - t);
-        float edgeV1 = isTop ? 0.0f    : 1.0f;
-
-        int rotN = 0, rotS = 0, rotE = 0, rotW = 0, rotUp = 0, rotDown = 0;
-        float tu0=-1, tv0=-1, tu1=-1, tv1=-1;
-        float bu0=-1, bv0=-1, bu1=-1, bv1=-1;
-        float nu0=-1, nv0=-1, nu1=-1, nv1=-1;
-        float su0=-1, sv0=-1, su1=-1, sv1=-1;
-        float eu0=-1, ev0=-1, eu1=-1, ev1=-1;
-        float wu0=-1, wv0=-1, wu1=-1, wv1=-1;
-        boolean mirTop = false, mirBot = false;
-        boolean mirN = false, mirS = false, mirE = false, mirW = false;
-
-        if (!open) {
-            // Closed: wide faces = TOP + BOT, thin edges = N/S/E/W
-            if (facing == Direction.EAST || facing == Direction.WEST) {
-                rotUp = 1; rotDown = 1;
-            }
-            if (!isTop) {
-                // BOTTOM half mirroring per user spec (closed)
-                if (facing == Direction.NORTH) {
-                    mirBot = true; mirE = true;
-                } else if (facing == Direction.EAST) {
-                    mirTop = true; mirW = true;
-                } else if (facing == Direction.SOUTH) {
-                    mirTop = true; mirE = true;
-                } else if (facing == Direction.WEST) {
-                    mirBot = true; mirW = true;
-                }
-            }
-        } else {
-            // Open: each direction is independent
-            if (facing == Direction.SOUTH) {
-                // Wide: N+S. Thin: TOP, BOT, E, W.
-                tu0 = 0; tv0 = edgeV0; tu1 = 1; tv1 = edgeV1;
-                bu0 = 0; bv0 = edgeV0; bu1 = 1; bv1 = edgeV1;
-                eu0 = 0; ev0 = edgeV0; eu1 = 1; ev1 = edgeV1; rotE = 1;
-                wu0 = 0; wv0 = edgeV0; wu1 = 1; wv1 = edgeV1; rotW = 1;
-                mirBot = true; mirW = true;
-            } else if (facing == Direction.EAST) {
-                // Wide: E+W. Thin: TOP, BOT, N, S.
-                tu0 = 0; tv0 = edgeV0; tu1 = 1; tv1 = edgeV1; rotUp = 1;
-                bu0 = 0; bv0 = edgeV0; bu1 = 1; bv1 = edgeV1; rotDown = 1;
-                nu0 = 0; nv0 = edgeV0; nu1 = 1; nv1 = edgeV1; rotN = 1;
-                su0 = 0; sv0 = edgeV0; su1 = 1; sv1 = edgeV1; rotS = 1;
-                mirN = true;
-            } else if (facing == Direction.NORTH) {
-                // Wide: N+S. Thin: TOP, BOT, E, W.
-                tu0 = 0; tv0 = edgeV0; tu1 = 1; tv1 = edgeV1;
-                bu0 = 0; bv0 = edgeV0; bu1 = 1; bv1 = edgeV1;
-                eu0 = 0; ev0 = edgeV0; eu1 = 1; ev1 = edgeV1; rotE = 1;
-                wu0 = 0; wv0 = edgeV0; wu1 = 1; wv1 = edgeV1; rotW = 1;
-                mirBot = true; mirE = true;
-            } else if (facing == Direction.WEST) {
-                // Wide: E+W. Thin: TOP, BOT, N, S.
-                tu0 = 0; tv0 = edgeV0; tu1 = 1; tv1 = edgeV1; rotUp = 1;
-                bu0 = 0; bv0 = edgeV0; bu1 = 1; bv1 = edgeV1; rotDown = 1;
-                nu0 = 0; nv0 = edgeV0; nu1 = 1; nv1 = edgeV1; rotN = 1;
-                su0 = 0; sv0 = edgeV0; su1 = 1; sv1 = edgeV1; rotS = 1;
-                mirBot = true; mirTop = true; mirS = true;
-            }
-        }
-        
-        renderBox(state, x, y, z, b.min.x, b.min.y, b.min.z, b.max.x, b.max.y, b.max.z, 
-                true, true, true, true, true, true, false, chunk, cm, 
-                rotUp, rotDown, rotN, rotS, rotE, rotW, 
-                mirTop, mirBot, mirN, mirS, mirE, mirW,
-                tu0, tv0, tu1, tv1,
-                bu0, bv0, bu1, bv1,
-                nu0, nv0, nu1, nv1,
-                su0, sv0, su1, sv1,
-                eu0, ev0, eu1, ev1,
-                wu0, wv0, wu1, wv1);
     }
 }

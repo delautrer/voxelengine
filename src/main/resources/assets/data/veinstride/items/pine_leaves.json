@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Pine Leaves",
+    "texture_name":  "pine_leaves",
+    "max_stack_size":  64,
+    "category":  "natural"
+}

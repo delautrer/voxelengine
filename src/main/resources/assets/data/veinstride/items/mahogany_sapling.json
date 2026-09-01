@@ -1,0 +1,8 @@
+﻿{
+    "type":  "block",
+    "name":  "Mahogany Sapling",
+    "texture_name":  "mahogany_sapling",
+    "max_stack_size":  64,
+    "category":  "natural",
+    "render_as_item":  true
+}

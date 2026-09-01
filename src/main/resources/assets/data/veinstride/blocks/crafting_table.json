@@ -1,0 +1,6 @@
+﻿{
+    "type":  "crafting_table",
+    "hardness":  1.5,
+    "sound_material":  "veinstride:wood",
+    "category":  "building"
+}

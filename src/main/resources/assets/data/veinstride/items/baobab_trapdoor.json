@@ -1,0 +1,8 @@
+﻿{
+    "type":  "block",
+    "name":  "Baobab Trapdoor",
+    "texture_name":  "baobab_trapdoor",
+    "max_stack_size":  64,
+    "category":  "wood",
+    "render_as_item":  true
+}

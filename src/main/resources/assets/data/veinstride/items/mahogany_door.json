@@ -1,0 +1,8 @@
+﻿{
+    "type":  "block",
+    "name":  "Mahogany Door",
+    "texture_name":  "mahogany_door",
+    "max_stack_size":  64,
+    "category":  "wood",
+    "render_as_item":  true
+}

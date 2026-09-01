@@ -1,0 +1,10 @@
+﻿{
+  "type": "shapeless",
+  "ingredients": [
+    "veinstride:gravel",
+    "veinstride:sand"
+  ],
+  "result": {
+    "item": "veinstride:bricks"
+  }
+}

@@ -12,7 +12,7 @@ public class GravityBlock extends CubeBlock {
     }
 
     @Override
-    public void onNeighborChanged(World world, int x, int y, int z, Vector3i neighborPos, byte newNeighborId) {
+    public void onNeighborChanged(World world, int x, int y, int z, Vector3i neighborPos, Block changedBlock) {
         world.getTickScheduler().scheduleTick(new Vector3i(x, y, z), this, 2);
     }
 
@@ -27,17 +27,18 @@ public class GravityBlock extends CubeBlock {
     }
 
     private void checkFalling(World world, int x, int y, int z) {
-        if (y > Chunk.MIN_Y && world.getBlockAt(x, y - 1, z) == 0) {
-            byte blockId = world.getBlockAt(x, y, z);
-            if (blockId != getId()) return;
+        Block blockBelow = world.getBlock(x, y - 1, z);
+        if (y > Chunk.MIN_Y && (blockBelow == null || blockBelow.isAir() || blockBelow.canWaterFlowInto())) {
+            Block blockSelf = world.getBlock(x, y, z);
+            if (blockSelf != this) return;
 
             BlockState stateObj = world.getBlockState(x, y, z);
             byte state = stateObj.getStateId();
             
-            world.setBlock(x, y, z, (byte) 0);
+            world.setBlock(x, y, z, de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:air"));
             
             de.delautrer.game.entity.FallingBlockEntity falling = new de.delautrer.game.entity.FallingBlockEntity(
-                blockId, state, new org.joml.Vector3d(x + 0.5, y, z + 0.5)
+                this, state, new org.joml.Vector3d(x + 0.5, y, z + 0.5)
             );
             world.spawnEntity(falling);
         }

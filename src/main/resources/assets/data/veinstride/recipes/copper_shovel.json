@@ -1,0 +1,17 @@
+﻿{
+  "type": "shaped",
+  "pattern": [
+    "M",
+    "S",
+    "S"
+  ],
+  "keys": {
+    "M": "veinstride:copper_ingot",
+    "S": "veinstride:sticks"
+  },
+  "result": {
+    "item": "veinstride:copper_shovel",
+    "count": 1
+  }
+}
+

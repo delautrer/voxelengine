@@ -1,0 +1,7 @@
+﻿{
+    "type":  "furnace",
+    "ingredient":  "veinstride:iron_ore",
+    "result":  "veinstride:iron_ingot",
+    "experience":  0.7,
+    "cookingtime":  200
+}

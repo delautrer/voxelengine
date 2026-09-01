@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Willow Leaves",
+    "texture_name":  "willow_leaves",
+    "max_stack_size":  64,
+    "category":  "natural"
+}

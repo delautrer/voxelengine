@@ -1,0 +1,8 @@
+﻿{
+    "type":  "block",
+    "name":  "Pine Trapdoor",
+    "texture_name":  "pine_trapdoor",
+    "max_stack_size":  64,
+    "category":  "wood",
+    "render_as_item":  true
+}

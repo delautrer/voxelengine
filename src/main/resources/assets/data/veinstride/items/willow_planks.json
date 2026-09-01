@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Willow Planks",
+    "texture_name":  "willow_planks",
+    "max_stack_size":  64,
+    "category":  "wood"
+}

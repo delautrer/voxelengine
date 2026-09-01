@@ -1,0 +1,8 @@
+﻿{
+    "type":  "block",
+    "name":  "Pine Sapling",
+    "texture_name":  "pine_sapling",
+    "max_stack_size":  64,
+    "category":  "natural",
+    "render_as_item":  true
+}

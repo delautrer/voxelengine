@@ -1,0 +1,33 @@
+{
+  "materialName": "default",
+  "actions": {
+    "jump_land": [
+      "/assets/sounds/footsteps/tile/jump/land01.ogg",
+      "/assets/sounds/footsteps/tile/jump/land02.ogg",
+      "/assets/sounds/footsteps/tile/jump/land03.ogg"
+    ],
+    "jump_start": [
+      "/assets/sounds/footsteps/tile/jump/start01.ogg",
+      "/assets/sounds/footsteps/tile/jump/start02.ogg",
+      "/assets/sounds/footsteps/tile/jump/start03.ogg"
+    ],
+    "run": [
+      "/assets/sounds/footsteps/tile/run/run01.ogg",
+      "/assets/sounds/footsteps/tile/run/run02.ogg",
+      "/assets/sounds/footsteps/tile/run/run03.ogg",
+      "/assets/sounds/footsteps/tile/run/run04.ogg",
+      "/assets/sounds/footsteps/tile/run/run05.ogg",
+      "/assets/sounds/footsteps/tile/run/run06.ogg"
+    ],
+    "walk": [
+      "/assets/sounds/footsteps/tile/walk/walk01.ogg",
+      "/assets/sounds/footsteps/tile/walk/walk02.ogg",
+      "/assets/sounds/footsteps/tile/walk/walk03.ogg",
+      "/assets/sounds/footsteps/tile/walk/walk04.ogg",
+      "/assets/sounds/footsteps/tile/walk/walk05.ogg",
+      "/assets/sounds/footsteps/tile/walk/walk06.ogg",
+      "/assets/sounds/footsteps/tile/walk/walk07.ogg",
+      "/assets/sounds/footsteps/tile/walk/walk08.ogg"
+    ]
+  }
+}

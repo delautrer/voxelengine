@@ -3,6 +3,7 @@ package de.delautrer.engine.graphics;
 import de.delautrer.Constants;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
+import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
 
@@ -81,16 +82,19 @@ public class ChunkMesher {
             de.delautrer.game.world.ChunkSection sec = sections[i];
             if (sec == null || sec.isAir()) continue;
             
-            byte[] blocks = sec.getBlocks();
+            short[] blocks = sec.getBlocks();
             int startY = Chunk.MIN_Y + (i * de.delautrer.game.world.ChunkSection.SIZE);
             for (int x = 0; x < Chunk.SIZE; x++) {
                 for (int y = 0; y < de.delautrer.game.world.ChunkSection.SIZE; y++) {
                     for (int z = 0; z < Chunk.SIZE; z++) {
                         int index = (x << 8) | (z << 4) | y;
-                        byte id = blocks[index];
-                        if (id != 0) {
-                            Block block = BlockRegistry.get(id);
-                            block.generateMesh(x, startY + y, z, chunk, cm);
+                        int pIdx = blocks[index] & 0xFFFF;
+                        if (pIdx == 0) continue;
+                        Block block = (chunk.getPalette() != null) ? chunk.getPalette().getBlock(pIdx) : ((cm != null && cm.getWorld() != null && cm.getWorld().getBlockPalette() != null) ? cm.getWorld().getBlockPalette().getBlock(pIdx) : de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:air"));
+                        BlockState state = chunk.getBlockState(x, startY + y, z);
+                        de.delautrer.engine.graphics.meshing.BlockMesher mesher = block.getMesher();
+                        if (mesher != null) {
+                            mesher.generate(state, x, startY + y, z, chunk, cm);
                         }
                     }
                 }

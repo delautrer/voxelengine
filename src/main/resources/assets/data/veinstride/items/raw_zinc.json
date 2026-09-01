@@ -1,0 +1,7 @@
+﻿{
+    "type":  "simple",
+    "name":  "Raw Zinc",
+    "texture_name":  "raw_zinc",
+    "max_stack_size":  64,
+    "category":  "misc"
+}

@@ -1,0 +1,8 @@
+﻿{
+    "type":  "tree",
+    "shape":  "pine",
+    "log":  "veinstride:pine_log",
+    "leaves":  "veinstride:pine_leaves",
+    "baseHeight":  6,
+    "heightVariation":  3
+}

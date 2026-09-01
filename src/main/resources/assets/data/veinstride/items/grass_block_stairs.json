@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Grass Stairs",
+    "texture_name":  "grass_block_stairs",
+    "max_stack_size":  64,
+    "category":  "building"
+}

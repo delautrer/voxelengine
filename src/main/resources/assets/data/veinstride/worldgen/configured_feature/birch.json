@@ -1,0 +1,8 @@
+﻿{
+    "type":  "tree",
+    "shape":  "standard",
+    "log":  "veinstride:birch_log",
+    "leaves":  "veinstride:birch_leaves",
+    "baseHeight":  5,
+    "heightVariation":  2
+}

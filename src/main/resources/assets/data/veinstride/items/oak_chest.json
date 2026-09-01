@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Oak Chest",
+    "texture_name":  "oak_chest",
+    "max_stack_size":  64,
+    "category":  "wood"
+}

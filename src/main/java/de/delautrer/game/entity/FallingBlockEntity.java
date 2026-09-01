@@ -1,5 +1,6 @@
 package de.delautrer.game.entity;
 
+import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.world.Chunk;
@@ -9,12 +10,12 @@ import org.joml.Vector3d;
 import org.joml.Vector3f;
 
 public class FallingBlockEntity extends Entity {
-    private final byte blockId;
+    private final Block block;
     private final byte blockState;
 
-    public FallingBlockEntity(byte blockId, byte blockState, Vector3d spawnPos) {
+    public FallingBlockEntity(Block block, byte blockState, Vector3d spawnPos) {
         super(spawnPos);
-        this.blockId = blockId;
+        this.block = block;
         this.blockState = blockState;
         this.width = 0.45f;
         this.height = 0.9f;
@@ -54,12 +55,11 @@ public class FallingBlockEntity extends Entity {
         int y = (int) Math.floor(position.y + 0.1);
         int z = (int) Math.floor(position.z);
 
-        if (world.getBlockAt(x, y, z) == 0 || world.getBlockAt(x, y + 1, z) == 0) {
-            int targetY = world.getBlockAt(x, y, z) == 0 ? y : y + 1;
-            world.setBlockWithState(x, targetY, z, blockId, blockState);
-
-            // NEU: Lande-Sound abspielen (3D)
-            // de.delautrer.engine.audio.SoundManager.playEvent(BlockRegistry.get(blockId).getSoundMaterialName(), "jump_land", 0.7f, 0.8f, 1.2f, x + 0.5f, targetY + 0.5f, z + 0.5f);
+        Block bAt = world.getBlock(x, y, z);
+        Block bAbove = world.getBlock(x, y + 1, z);
+        if (bAt.isAir() || bAbove.isAir()) {
+            int targetY = bAt.isAir() ? y : y + 1;
+            world.setBlockWithState(x, targetY, z, block, blockState, true);
 
             this.setDead(true);
         } else {
@@ -68,8 +68,8 @@ public class FallingBlockEntity extends Entity {
         }
     }
 
-    public byte getBlockId() {
-        return blockId;
+    public Block getBlock() {
+        return block;
     }
 
     public byte getBlockState() {

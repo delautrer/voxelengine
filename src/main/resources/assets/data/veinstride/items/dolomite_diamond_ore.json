@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Dolomite Diamond Ore",
+    "texture_name":  "dolomite_diamond_ore",
+    "max_stack_size":  64,
+    "category":  "misc"
+}

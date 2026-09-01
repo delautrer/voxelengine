@@ -1,0 +1,8 @@
+﻿{
+    "type":  "empty_bucket",
+    "name":  "Bucket",
+    "texture_name":  "empty_bucket",
+    "max_stack_size":  1,
+    "category":  "tools",
+    "render_as_item":  true
+}

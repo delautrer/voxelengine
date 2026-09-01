@@ -1,5 +1,6 @@
 package de.delautrer.game.world.generation.biome;
 
+import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.Constants;
 import java.util.Map;
@@ -63,14 +64,17 @@ public class Biome {
         return id;
     }
 
-    public byte getTopBlockId() { return getBlockId(topBlock); }
-    public byte getUnderBlockId() { return getBlockId(underBlock); }
-    public byte getUnderwaterBlockId() { return getBlockId(underwaterBlock); }
-    public byte getShoreBlockId() { return getBlockId(shoreBlock != null ? shoreBlock : topBlock); }
-    public byte getDeepBlockId() { return getBlockId(deepBlock != null ? deepBlock : "stone"); }
+    public de.delautrer.game.blocks.Block getTopBlock() { return getBlock(topBlock); }
+    public de.delautrer.game.blocks.Block getUnderBlock() { return getBlock(underBlock); }
+    public de.delautrer.game.blocks.Block getUnderwaterBlock() { return getBlock(underwaterBlock); }
+    public de.delautrer.game.blocks.Block getShoreBlock() { return getBlock(shoreBlock != null ? shoreBlock : topBlock); }
+    public de.delautrer.game.blocks.Block getDeepBlock() { return getBlock(deepBlock != null ? deepBlock : "stone"); }
 
-    private byte getBlockId(String name) {
-        if (name == null) return 0;
-        return BlockRegistry.get(Constants.NAMESPACE + ":" + name).getId();
+    private de.delautrer.game.blocks.Block getBlock(String name) {
+        if (name == null) return de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:air");
+        if ("grass".equalsIgnoreCase(name)) name = "grass_block";
+        if (!name.contains(":")) name = "veinstride:" + name;
+        de.delautrer.game.blocks.Block b = de.delautrer.game.registry.Registries.BLOCKS.get(de.delautrer.game.registry.NamespacedKey.fromString(name));
+        return b != null ? b : de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:air");
     }
 }

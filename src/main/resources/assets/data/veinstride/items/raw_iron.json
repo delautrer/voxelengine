@@ -1,0 +1,7 @@
+﻿{
+    "type":  "simple",
+    "name":  "Raw Iron",
+    "texture_name":  "raw_iron",
+    "max_stack_size":  64,
+    "category":  "misc"
+}

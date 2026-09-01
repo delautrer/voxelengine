@@ -195,12 +195,11 @@ public class MasterRenderer {
         packet.selectedBlockPos = selectedBlockPos;
 
         if (selectedBlockPos != null) {
-            byte selectedBlockId = world.getBlockAt(selectedBlockPos);
-            Block block = BlockRegistry.get(selectedBlockId);
+            Block block = world.getBlock(selectedBlockPos);
             BlockState state = world.getBlockState(selectedBlockPos);
 
             // HIGHLIGHT MESH UPDATE
-            if (dynamicHighlightMeshes[frameIndex] == null || !selectedBlockPos.equals(lastSelectedBlockPositions[frameIndex]) || state.getStateId() != lastSelectedBlockStateIds[frameIndex] || selectedBlockId != lastSelectedBlockIds[frameIndex]) {
+            if (dynamicHighlightMeshes[frameIndex] == null || !selectedBlockPos.equals(lastSelectedBlockPositions[frameIndex]) || state.getStateId() != lastSelectedBlockStateIds[frameIndex]) {
                 if (dynamicHighlightMeshes[frameIndex] == null) {
                     dynamicHighlightMeshes[frameIndex] = graphicsFactory.createMesh(block.getHighlightVertices(state),
                             block.getHighlightIndices(state));
@@ -210,7 +209,6 @@ public class MasterRenderer {
                 if (lastSelectedBlockPositions[frameIndex] == null) lastSelectedBlockPositions[frameIndex] = new Vector3i();
                 lastSelectedBlockPositions[frameIndex].set(selectedBlockPos);
                 lastSelectedBlockStateIds[frameIndex] = state.getStateId();
-                lastSelectedBlockIds[frameIndex] = selectedBlockId;
             }
             packet.highlightMesh = dynamicHighlightMeshes[frameIndex];
 
@@ -393,9 +391,8 @@ public class MasterRenderer {
         int totalBoxes = 0;
         for (java.util.Map.Entry<Vector3i, Float> entry : activeCracks.entrySet()) {
             Vector3i pos = entry.getKey();
-            byte id = world.getBlockAt(pos);
-            if (id != 0) {
-                de.delautrer.game.blocks.Block block = de.delautrer.game.blocks.BlockRegistry.get(id);
+            de.delautrer.game.blocks.Block block = world.getBlock(pos);
+            if (block != null && !block.isAir()) {
                 de.delautrer.game.blocks.state.BlockState state = world.getBlockState(pos);
                 totalBoxes += block.getHighlightBoxes(state).size();
             }
@@ -418,9 +415,8 @@ public class MasterRenderer {
 
         for (java.util.Map.Entry<Vector3i, Float> entry : activeCracks.entrySet()) {
             Vector3i pos = entry.getKey();
-            byte id = world.getBlockAt(pos);
-            if (id == 0) continue;
-            de.delautrer.game.blocks.Block block = de.delautrer.game.blocks.BlockRegistry.get(id);
+            de.delautrer.game.blocks.Block block = world.getBlock(pos);
+            if (block == null || block.isAir()) continue;
             de.delautrer.game.blocks.state.BlockState state = world.getBlockState(pos);
             java.util.List<de.delautrer.engine.physics.AABB> boxes = block.getHighlightBoxes(state);
 

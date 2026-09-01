@@ -19,15 +19,19 @@ public class NamespacedKey {
     }
 
     public static NamespacedKey fromString(String value) {
-        if (value == null)
+        if (value == null || value.trim().isEmpty())
             return null;
-        String[] parts = value.split(":");
-        if (parts.length == 2) {
-            return new NamespacedKey(parts[0], parts[1]);
-        } else if (parts.length == 1) {
-            return new NamespacedKey(Constants.NAMESPACE, parts[0]); // Default fallback
+        int firstColon = value.indexOf(':');
+        if (firstColon != -1) {
+            String ns = value.substring(0, firstColon).trim();
+            String path = value.substring(firstColon + 1).trim();
+            if ("engine".equalsIgnoreCase(ns)) {
+                ns = Constants.NAMESPACE;
+            }
+            return new NamespacedKey(ns, path);
+        } else {
+            return new NamespacedKey(Constants.NAMESPACE, value.trim());
         }
-        throw new IllegalArgumentException("Invalid NamespacedKey format: " + value);
     }
 
     public String getNamespace() {

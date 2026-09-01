@@ -1,8 +1,10 @@
 package de.delautrer.game.world.generation.feature;
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import de.delautrer.game.blocks.BlockRegistry;
+import de.delautrer.engine.utils.ResourceUtils;
+import de.delautrer.game.blocks.Block;
+import de.delautrer.game.registry.NamespacedKey;
+import de.delautrer.game.registry.Registries;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.generation.feature.config.ConfiguredFeatureDTO;
 import de.delautrer.game.world.generation.feature.config.PlacedFeatureDTO;
@@ -11,13 +13,16 @@ import de.delautrer.game.world.generation.feature.placement.PlacementModifier;
 import de.delautrer.game.world.generation.feature.placement.TrapezoidDistribution;
 import de.delautrer.game.world.generation.feature.placement.UniformDistribution;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
+import de.delautrer.game.world.generation.feature.config.PlacementDTO;
+import de.delautrer.game.world.generation.biome.TreeFeature;
+
+import java.io.Reader;
+import java.util.*;
+import java.util.Objects;
+import de.delautrer.game.world.WorldGenerator;
 
 public class FeatureRegistry {
+    private static final Map<NamespacedKey, ConfiguredFeature> CONFIGURED_FEATURES = new HashMap<>();
     private static final List<PlacedFeature> FEATURES = new ArrayList<>();
     private static final Gson GSON = new Gson();
     private static boolean isInitialized = false;
@@ -25,79 +30,109 @@ public class FeatureRegistry {
     public static synchronized void init() {
         if (isInitialized) return;
 
-        try (InputStream is = FeatureRegistry.class.getResourceAsStream("/assets/world/ores.json")) {
-            if (is == null) {
-                System.out.println("No ores.json found, skipping data-driven ore generation.");
-                isInitialized = true;
-                return;
-            }
+        loadConfiguredFeatures();
+        loadPlacedFeatures();
 
-            List<PlacedFeatureDTO> dtos = GSON.fromJson(
-                    new InputStreamReader(is, StandardCharsets.UTF_8),
-                    new TypeToken<List<PlacedFeatureDTO>>() {}.getType()
-            );
-
-            if (dtos != null) {
-                for (PlacedFeatureDTO dto : dtos) {
-                    PlacedFeature feature = parseFeature(dto);
-                    if (feature != null) {
-                        FEATURES.add(feature);
-                    }
-                }
-                System.out.println("Loaded " + FEATURES.size() + " data-driven features.");
-            }
-        } catch (Exception e) {
-            System.err.println("Error loading ores.json:");
-            e.printStackTrace();
-        }
-
+        System.out.println("Loaded " + CONFIGURED_FEATURES.size() + " configured features and " + FEATURES.size() + " placed features.");
         isInitialized = true;
     }
 
-    private static PlacedFeature parseFeature(PlacedFeatureDTO dto) {
-        if (dto.feature == null || dto.placement == null) {
-            System.err.println("Missing feature or placement in DTO for id: " + dto.id);
-            return null;
+    private static void loadConfiguredFeatures() {
+        List<String> files = ResourceUtils.listResources("assets/data/veinstride/worldgen/configured_feature", ".json");
+        for (String file : files) {
+            String id = file.endsWith(".json") ? file.substring(0, file.length() - 5) : file;
+            NamespacedKey key = NamespacedKey.fromString("veinstride:" + id);
+            try {
+                Reader reader = ResourceUtils.readResourceToReader("assets/data/veinstride/worldgen/configured_feature/" + file);
+                ConfiguredFeatureDTO dto = GSON.fromJson(reader, ConfiguredFeatureDTO.class);
+                ConfiguredFeature feature = parseConfiguredFeature(dto, file);
+                if (feature != null) {
+                    CONFIGURED_FEATURES.put(key, feature);
+                }
+            } catch (Exception e) {
+                System.err.println("[FeatureRegistry] Failed to load configured feature: " + file);
+                throw new IllegalStateException("Failed to load configured feature: " + file, e);
+            }
         }
-
-        ConfiguredFeature configured = parseConfiguredFeature(dto.feature);
-        if (configured == null) {
-            System.err.println("Failed to parse ConfiguredFeature for id: " + dto.id);
-            return null;
-        }
-
-        DistributionModel distribution = parseDistribution(dto.placement.distribution);
-        if (distribution == null) return null;
-
-        PlacementModifier modifier = new PlacementModifier(
-                dto.placement.modifiers != null ? dto.placement.modifiers.target_blocks : null,
-                dto.placement.modifiers != null ? dto.placement.modifiers.air_exposure_chance : 0.0,
-                dto.placement.modifiers != null ? dto.placement.modifiers.biomes : null
-        );
-
-        return new PlacedFeature(dto.id, configured, dto.placement.count, distribution, modifier);
     }
 
-    private static ConfiguredFeature parseConfiguredFeature(ConfiguredFeatureDTO dto) {
-        byte blockId = getBlockId(dto.block);
-        if (blockId == 0) {
-            System.err.println("Invalid block for feature: " + dto.block);
-            return null; // Invalid block
+    private static void loadPlacedFeatures() {
+        List<String> files = ResourceUtils.listResources("assets/data/veinstride/worldgen/placed_feature", ".json");
+        for (String file : files) {
+            String id = file.endsWith(".json") ? file.substring(0, file.length() - 5) : file;
+            try {
+                Reader reader = ResourceUtils.readResourceToReader("assets/data/veinstride/worldgen/placed_feature/" + file);
+                PlacedFeatureDTO dto = GSON.fromJson(reader, PlacedFeatureDTO.class);
+                if (dto != null && dto.placement != null) {
+                    String featureKeyStr = (dto.feature != null) ? dto.feature : ("veinstride:" + id);
+                    ConfiguredFeature configured = CONFIGURED_FEATURES.get(NamespacedKey.fromString(featureKeyStr));
+                    if (configured == null) {
+                        throw new IllegalStateException("Placed feature '" + id + "' in file " + file + " references unknown configured feature '" + featureKeyStr + "'");
+                    }
+                    DistributionModel distribution = parseDistribution(dto.placement.distribution);
+                    PlacementModifier modifier = new PlacementModifier(
+                            dto.placement.modifiers != null ? dto.placement.modifiers.target_blocks : null,
+                            dto.placement.modifiers != null ? dto.placement.modifiers.air_exposure_chance : 0.0,
+                            dto.placement.modifiers != null ? dto.placement.modifiers.biomes : null
+                    );
+                    FEATURES.add(new PlacedFeature(id, configured, dto.placement.count, distribution, modifier));
+                }
+            } catch (Exception e) {
+                System.err.println("[FeatureRegistry] Failed to load placed feature: " + file);
+                throw new IllegalStateException("Failed to load placed feature: " + file, e);
+            }
+        }
+    }
+
+    public static ConfiguredFeature getConfiguredFeature(NamespacedKey key) {
+        return CONFIGURED_FEATURES.get(key);
+    }
+
+    private static ConfiguredFeature parseConfiguredFeature(ConfiguredFeatureDTO dto, String file) {
+        if (dto == null) {
+            throw new IllegalStateException("Configured feature file " + file + " is empty or null!");
         }
 
         if ("standard_vein".equalsIgnoreCase(dto.type)) {
-            return new StandardVeinFeature(blockId, dto.size > 0 ? dto.size : 8);
+            Block block = getBlock(dto.block);
+            if (block == null) {
+                throw new IllegalStateException("Configured feature " + file + " references missing block '" + dto.block + "'");
+            }
+            return new StandardVeinFeature(block, dto.size > 0 ? dto.size : 8);
         } else if ("mega_vein".equalsIgnoreCase(dto.type)) {
-            byte carrierId = getBlockId(dto.carrier);
-            if (carrierId == 0) carrierId = blockId; // Fallback
-            return new MegaVeinFeature(blockId, carrierId, dto.ore_chance > 0 ? dto.ore_chance : 0.1);
+            Block block = getBlock(dto.block);
+            if (block == null) {
+                throw new IllegalStateException("Configured feature " + file + " references missing ore block '" + dto.block + "'");
+            }
+            Block carrier = getBlock(dto.carrier);
+            if (carrier == null) carrier = block;
+            return new MegaVeinFeature(block, carrier, dto.ore_chance > 0 ? dto.ore_chance : 0.1);
+        } else if ("tree".equalsIgnoreCase(dto.type)) {
+            Block log = getBlock(dto.log);
+            if (log == null) {
+                throw new IllegalStateException("Tree configured feature " + file + " references missing log block '" + dto.log + "'");
+            }
+            Block leaves = getBlock(dto.leaves);
+            if (leaves == null) {
+                throw new IllegalStateException("Tree configured feature " + file + " references missing leaves block '" + dto.leaves + "'");
+            }
+
+            if (dto.shape == null || dto.shape.trim().isEmpty()) {
+                throw new IllegalStateException("Tree configured feature " + file + " is missing required 'shape' property!");
+            }
+            TreeFeature.TreeShape shape;
+            try {
+                shape = TreeFeature.TreeShape.valueOf(dto.shape.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalStateException("Invalid tree shape '" + dto.shape + "' in configured feature " + file, e);
+            }
+            return new TreeConfiguredFeature(shape, log, leaves, dto.baseHeight > 0 ? dto.baseHeight : 4, dto.heightVariation > 0 ? dto.heightVariation : 3);
         }
-        System.err.println("Unknown feature type: " + dto.type);
-        return null;
+        throw new IllegalStateException("Unknown configured_feature type '" + dto.type + "' in file " + file);
     }
 
     private static DistributionModel parseDistribution(de.delautrer.game.world.generation.feature.config.DistributionDTO dto) {
-        if (dto == null) return new UniformDistribution(0, 128); // Fallback
+        if (dto == null) return new UniformDistribution(0, 128);
 
         if ("trapezoid".equalsIgnoreCase(dto.type)) {
             return new TrapezoidDistribution(dto.min_y, dto.max_y, dto.peak_y);
@@ -105,25 +140,32 @@ public class FeatureRegistry {
         return new UniformDistribution(dto.min_y, dto.max_y);
     }
 
-    private static byte getBlockId(String name) {
-        if (name == null) return 0;
-        var block = BlockRegistry.get(name);
-        if (block != null && block.getId() != 0) return block.getId();
-        block = BlockRegistry.get(de.delautrer.Constants.NAMESPACE + ":" + name);
-        if (block != null && block.getId() != 0) return block.getId();
-        return 0;
+    private static Block getBlock(String name) {
+        if (name == null) return null;
+        return Registries.BLOCKS.get(NamespacedKey.fromString(name));
     }
 
-    public static void generateOres(Chunk chunk, long seed) {
+    public static void generateOres(Chunk chunk, long seed, WorldGenerator wg) {
+        Objects.requireNonNull(wg, "WorldGenerator cannot be null");
         if (!isInitialized) init();
-        
-        if (FEATURES.isEmpty()) {
-            System.err.println("Warning: generateOres called, but FEATURES list is empty!");
-            return;
+
+        de.delautrer.game.world.generation.biome.Climate.TargetPoint[] chunkClimates = null;
+        if (wg.getTerrainGenerator() != null && wg.getTerrainGenerator().getSampler() != null) {
+            de.delautrer.game.world.generation.biome.MultiNoiseSampler sampler = wg.getTerrainGenerator().getSampler();
+            chunkClimates = new de.delautrer.game.world.generation.biome.Climate.TargetPoint[Chunk.SIZE * Chunk.SIZE];
+            int chunkX = chunk.getWorldX();
+            int chunkZ = chunk.getWorldZ();
+            for (int lx = 0; lx < Chunk.SIZE; lx++) {
+                for (int lz = 0; lz < Chunk.SIZE; lz++) {
+                    int worldX = chunkX * Chunk.SIZE + lx;
+                    int worldZ = chunkZ * Chunk.SIZE + lz;
+                    chunkClimates[lx * Chunk.SIZE + lz] = sampler.sample(worldX, worldZ);
+                }
+            }
         }
-        
+
         for (PlacedFeature feature : FEATURES) {
-            feature.generate(chunk, seed, null);
+            feature.generate(chunk, seed, chunkClimates);
         }
     }
 }

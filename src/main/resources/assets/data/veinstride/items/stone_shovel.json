@@ -1,0 +1,10 @@
+﻿{
+    "type":  "tool",
+    "name":  "Stone Shovel",
+    "texture_name":  "stone_shovel",
+    "category":  "tools",
+    "tool_type":  "shovel",
+    "tool_tier":  "stone",
+    "tool_efficiency":  4.0,
+    "tool_max_durability":  131
+}

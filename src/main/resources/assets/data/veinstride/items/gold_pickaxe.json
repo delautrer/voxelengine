@@ -1,0 +1,10 @@
+﻿{
+    "type":  "tool",
+    "name":  "Gold Pickaxe",
+    "texture_name":  "gold_pickaxe",
+    "category":  "tools",
+    "tool_type":  "pickaxe",
+    "tool_tier":  "gold",
+    "tool_efficiency":  7.0,
+    "tool_max_durability":  32
+}

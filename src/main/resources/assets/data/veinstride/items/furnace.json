@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Furnace",
+    "texture_name":  "furnace",
+    "max_stack_size":  64,
+    "category":  "misc"
+}

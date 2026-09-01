@@ -1,0 +1,10 @@
+﻿{
+  "type": "shapeless",
+  "ingredients": [
+    "veinstride:dirt_slabs",
+    "veinstride:grass"
+  ],
+  "result": {
+    "item": "veinstride:grass_block_slabs"
+  }
+}

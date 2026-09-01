@@ -1,0 +1,8 @@
+﻿{
+    "type":  "block",
+    "name":  "Torch",
+    "texture_name":  "torch",
+    "max_stack_size":  64,
+    "category":  "misc",
+    "render_as_item":  true
+}

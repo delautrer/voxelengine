@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Palm Leaves",
+    "texture_name":  "palm_leaves",
+    "max_stack_size":  64,
+    "category":  "natural"
+}

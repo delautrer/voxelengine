@@ -1,0 +1,10 @@
+﻿{
+  "type": "shapeless",
+  "ingredients": [
+    "veinstride:dirt"
+  ],
+  "result": {
+    "item": "veinstride:dirt_slabs",
+    "count": 2
+  }
+}

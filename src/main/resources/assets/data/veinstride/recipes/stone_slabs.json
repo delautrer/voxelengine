@@ -1,0 +1,13 @@
+﻿{
+  "type": "shaped",
+  "pattern": [
+    "AAA"
+  ],
+  "keys": {
+    "A": "veinstride:stone"
+  },
+  "result": {
+    "count": 6,
+    "item": "veinstride:stone_slabs"
+  }
+}

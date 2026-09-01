@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Mahogany Chest",
+    "texture_name":  "mahogany_chest",
+    "max_stack_size":  64,
+    "category":  "wood"
+}

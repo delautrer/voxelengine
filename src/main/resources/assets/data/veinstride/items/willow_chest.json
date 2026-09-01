@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Willow Chest",
+    "texture_name":  "willow_chest",
+    "max_stack_size":  64,
+    "category":  "wood"
+}

@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Birch Slabs",
+    "texture_name":  "birch_slabs",
+    "max_stack_size":  64,
+    "category":  "building"
+}

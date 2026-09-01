@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Baobab Log",
+    "texture_name":  "baobab_log",
+    "max_stack_size":  64,
+    "category":  "wood"
+}

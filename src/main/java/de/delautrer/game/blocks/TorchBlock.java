@@ -30,7 +30,7 @@ public class TorchBlock extends CubeBlock {
     public static final EnumProperty<TorchAttach> ATTACH = EnumProperty.create("attach", TorchAttach.class);
 
     // Speicher für die vorberechneten rotierten Eckpunkte (Maximale Performance!)
-    private static final Vector3f[][] VERTS = new Vector3f[5][8];
+    public static final Vector3f[][] VERTS = new Vector3f[5][8];
 
     static {
         float w = 1f / 16f; // Fackel ist 2 Pixel breit
@@ -48,14 +48,14 @@ public class TorchBlock extends CubeBlock {
 
             if (attach == TorchAttach.FLOOR) {
                 mat.translate(0.5f, 0.0f, 0.5f);
-            } else if (attach == TorchAttach.NORTH) { // Hängt an Z=0 Wand (Lehnt nach Süd)
-                mat.translate(0.5f, 0.2f, 0.0f).rotateX((float) Math.toRadians(25));
-            } else if (attach == TorchAttach.SOUTH) { // Hängt an Z=1 Wand (Lehnt nach Nord)
-                mat.translate(0.5f, 0.2f, 1.0f).rotateX((float) Math.toRadians(-25));
-            } else if (attach == TorchAttach.WEST) { // Hängt an X=0 Wand (Lehnt nach Ost)
-                mat.translate(0.0f, 0.2f, 0.5f).rotateZ((float) Math.toRadians(-25));
-            } else if (attach == TorchAttach.EAST) { // Hängt an X=1 Wand (Lehnt nach West)
-                mat.translate(1.0f, 0.2f, 0.5f).rotateZ((float) Math.toRadians(25));
+            } else if (attach == TorchAttach.NORTH) {
+                mat.translate(0.5f, 0.2f, 0.5f - 0.3f).rotateX((float) Math.toRadians(15));
+            } else if (attach == TorchAttach.SOUTH) {
+                mat.translate(0.5f, 0.2f, 0.5f + 0.3f).rotateX((float) Math.toRadians(-15));
+            } else if (attach == TorchAttach.WEST) {
+                mat.translate(0.5f - 0.3f, 0.2f, 0.5f).rotateZ((float) Math.toRadians(-15));
+            } else if (attach == TorchAttach.EAST) {
+                mat.translate(0.5f + 0.3f, 0.2f, 0.5f).rotateZ((float) Math.toRadians(15));
             }
 
             VERTS[attach.ordinal()] = new Vector3f[8];
@@ -67,6 +67,7 @@ public class TorchBlock extends CubeBlock {
 
     public TorchBlock() {
         super(false, true, true);
+        this.mesher = new de.delautrer.engine.graphics.meshing.TorchMesher(this);
     }
 
     @Override
@@ -134,7 +135,7 @@ public class TorchBlock extends CubeBlock {
     }
 
     @Override
-    public void onNeighborChanged(World world, int x, int y, int z, Vector3i neighborPos, byte newNeighborId) {
+    public void onNeighborChanged(World world, int x, int y, int z, Vector3i neighborPos, Block changedBlock) {
         BlockState state = world.getBlockState(x, y, z);
         TorchAttach attach = state.getValue(ATTACH);
 
@@ -203,24 +204,7 @@ public class TorchBlock extends CubeBlock {
         return super.getBoundingBoxes(state);
     }
 
-    @Override
-    public void generateMesh(int x, int y, int z, Chunk chunk, ChunkManager cm) {
-        BlockState state = chunk.getBlockState(x, y, z);
-        TorchAttach attach = state.getValue(ATTACH);
-        Vector3f[] v = VERTS[attach.ordinal()];
-        float light = 1.0f;
 
-        TextureStitcher.AtlasRegion reg = getModel().top;
-        if (reg == null)
-            return;
-
-        addQuad(chunk, x, y, z, v[4], v[7], v[6], v[5], 7f / 16f, 6f / 16f, 9f / 16f, 8f / 16f, reg, light);
-        addQuad(chunk, x, y, z, v[3], v[0], v[1], v[2], 7f / 16f, 14f / 16f, 9f / 16f, 1.0f, reg, light);
-        addQuad(chunk, x, y, z, v[3], v[2], v[6], v[7], 7f / 16f, 6f / 16f, 9f / 16f, 1.0f, reg, light);
-        addQuad(chunk, x, y, z, v[1], v[0], v[4], v[5], 7f / 16f, 6f / 16f, 9f / 16f, 1.0f, reg, light);
-        addQuad(chunk, x, y, z, v[0], v[3], v[7], v[4], 7f / 16f, 6f / 16f, 9f / 16f, 1.0f, reg, light);
-        addQuad(chunk, x, y, z, v[2], v[1], v[5], v[6], 7f / 16f, 6f / 16f, 9f / 16f, 1.0f, reg, light);
-    }
 
     private void addQuad(Chunk chunk, int x, int y, int z, Vector3f vec0, Vector3f vec1, Vector3f vec2, Vector3f vec3,
             float lu0, float lv0, float lu1, float lv1, TextureStitcher.AtlasRegion reg, float light) {

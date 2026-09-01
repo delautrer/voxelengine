@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Pine Chest",
+    "texture_name":  "pine_chest",
+    "max_stack_size":  64,
+    "category":  "wood"
+}

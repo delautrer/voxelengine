@@ -1,0 +1,15 @@
+﻿{
+  "type": "shaped",
+  "pattern": [
+    "AAA",
+    "AAA"
+  ],
+  "keys": {
+    "A": "veinstride:birch_planks"
+  },
+  "result": {
+    "count": 2,
+    "item": "veinstride:birch_trapdoor"
+  }
+}
+

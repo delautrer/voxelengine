@@ -85,8 +85,7 @@ public class ItemEntity extends Entity {
 
         Chunk c = cm.getChunkAtBlock((int) Math.floor(nextX), (int) Math.floor(nextY), (int) Math.floor(nextZ));
         if (c != null) {
-            byte blockBelowId = c.getBlock(Math.floorMod((int) Math.floor(nextX), Chunk.SIZE), (int) Math.floor(nextY), Math.floorMod((int) Math.floor(nextZ), Chunk.SIZE));
-            de.delautrer.game.blocks.Block blockBelow = BlockRegistry.get(blockBelowId);
+            de.delautrer.game.blocks.Block blockBelow = c.getBlock(Math.floorMod((int) Math.floor(nextX), Chunk.SIZE), (int) Math.floor(nextY), Math.floorMod((int) Math.floor(nextZ), Chunk.SIZE));
             
             if (blockBelow.isSolid) {
                 // NEU: Lande-Sound abspielen, wenn wir von oben kommen

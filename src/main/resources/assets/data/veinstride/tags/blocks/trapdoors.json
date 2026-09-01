@@ -1,0 +1,12 @@
+﻿{
+    "replace":  false,
+    "values":  [
+                   "veinstride:oak_trapdoor",
+                   "veinstride:birch_trapdoor",
+                   "veinstride:palm_trapdoor",
+                   "veinstride:willow_trapdoor",
+                   "veinstride:baobab_trapdoor",
+                   "veinstride:mahogany_trapdoor",
+                   "veinstride:pine_trapdoor"
+               ]
+}

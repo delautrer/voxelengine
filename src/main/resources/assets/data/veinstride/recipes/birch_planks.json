@@ -1,0 +1,11 @@
+﻿{
+  "type": "shapeless",
+  "ingredients": [
+    "veinstride:birch_log"
+  ],
+  "result": {
+    "item": "veinstride:birch_planks",
+    "count": 4
+  }
+}
+

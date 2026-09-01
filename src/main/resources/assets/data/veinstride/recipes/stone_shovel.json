@@ -1,0 +1,17 @@
+﻿{
+  "type": "shaped",
+  "pattern": [
+    "M",
+    "S",
+    "S"
+  ],
+  "keys": {
+    "M": "veinstride:cobblestone",
+    "S": "veinstride:sticks"
+  },
+  "result": {
+    "item": "veinstride:stone_shovel",
+    "count": 1
+  }
+}
+

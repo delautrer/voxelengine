@@ -1,0 +1,8 @@
+﻿{
+    "type":  "block",
+    "name":  "Dandelion",
+    "texture_name":  "dandelion",
+    "max_stack_size":  64,
+    "category":  "natural",
+    "render_as_item":  true
+}

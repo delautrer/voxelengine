@@ -1,0 +1,44 @@
+﻿{
+    "id":  "veinstride:mountains",
+    "temperature":  [
+                        -1.0,
+                        1.0
+                    ],
+    "humidity":  [
+                     -1.0,
+                     1.0
+                 ],
+    "continentalness":  [
+                            -0.1,
+                            1.0
+                        ],
+    "erosion":  [
+                    0.3,
+                    1.0
+                ],
+    "weirdness":  [
+                      -1.0,
+                      1.0
+                  ],
+    "topBlock":  "stone",
+    "underBlock":  "stone",
+    "underwaterBlock":  "stone",
+    "shoreBlock":  "stone",
+    "deepBlock":  "stone",
+    "baseHeight":  46.0,
+    "heightVariation":  140.0,
+    "floraProbability":  0.0,
+    "treeProbability":  0.0,
+    "surfaceBlobs":  {
+                         "gravel":  0.4
+                     },
+    "undergroundBlobs":  {
+                             "gravel":  0.1
+                         },
+    "underwaterBlobScale":  0.08,
+    "underwaterBlobs":  {
+                            "gravel":  0.8,
+                            "stone":  0.2
+                        }
+}
+

@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Baobab Slabs",
+    "texture_name":  "baobab_slabs",
+    "max_stack_size":  64,
+    "category":  "building"
+}

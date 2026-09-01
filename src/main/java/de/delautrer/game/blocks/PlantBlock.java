@@ -24,47 +24,10 @@ public class PlantBlock extends Block {
 
     public PlantBlock() {
         super(false, true, true, true);
+        this.mesher = new de.delautrer.engine.graphics.meshing.PlantMesher(this);
     }
 
-    @Override
-    public void generateMesh(int x, int y, int z, Chunk chunk, ChunkManager cm) {
-        TextureStitcher.AtlasRegion reg = getModel().top;
-        if (reg == null)
-            return;
 
-        // Deterministic offset based on coordinates
-        long seed = ((long) x * 3129871) ^ ((long) z * 116129781L) ^ ((long) y);
-        seed = seed * seed * 42317861L + seed * 11L;
-        float offX = (((float) (seed >> 16 & 15L) / 15.0f) - 0.5f) * 0.5f;
-        float offZ = (((float) (seed >> 24 & 15L) / 15.0f) - 0.5f) * 0.5f;
-
-        float x0 = x + offX;
-        float x1 = x + 1 + offX;
-        float z0 = z + offZ;
-        float z1 = z + 1 + offZ;
-
-        float light = 1.0f;
-        float sl = chunk.getSmoothSkyLight(x, y, z, 0, 0, 0, 0, 0, 0, cm);
-        float bl = chunk.getSmoothBlockLight(x, y, z, 0, 0, 0, 0, 0, 0, cm);
-        float slBottom = sl * 0.67f;
-        float blBottom = bl * 0.67f;
-
-        // --- ERSTES KREUZ ---
-        chunk.addFace(x0, y, z0, 1.0f, x1, y, z1, 1.0f, x1, y + 1, z1, 1.0f, x0, y + 1, z0, 1.0f,
-                reg.u0, reg.v0, reg.u1, reg.v1, reg.layer, light, this, slBottom, slBottom, sl, sl, blBottom, blBottom,
-                bl, bl);
-        chunk.addFace(x1, y, z1, 1.0f, x0, y, z0, 1.0f, x0, y + 1, z0, 1.0f, x1, y + 1, z1, 1.0f,
-                reg.u0, reg.v0, reg.u1, reg.v1, reg.layer, light, this, slBottom, slBottom, sl, sl, blBottom, blBottom,
-                bl, bl);
-
-        // --- ZWEITES KREUZ ---
-        chunk.addFace(x1, y, z0, 1.0f, x0, y, z1, 1.0f, x0, y + 1, z1, 1.0f, x1, y + 1, z0, 1.0f,
-                reg.u0, reg.v0, reg.u1, reg.v1, reg.layer, light, this, slBottom, slBottom, sl, sl, blBottom, blBottom,
-                bl, bl);
-        chunk.addFace(x0, y, z1, 1.0f, x1, y, z0, 1.0f, x1, y + 1, z0, 1.0f, x0, y + 1, z1, 1.0f,
-                reg.u0, reg.v0, reg.u1, reg.v1, reg.layer, light, this, slBottom, slBottom, sl, sl, blBottom, blBottom,
-                bl, bl);
-    }
 
     @Override
     public boolean canBeReplaced(BlockState state, BlockItem item, Vector3i hitFace, Vector3f exactHit) {
@@ -104,9 +67,8 @@ public class PlantBlock extends Block {
             }
         }
 
-        byte belowId = world.getBlockAt(hitPos.x, hitPos.y - 1, hitPos.z);
-        Block belowBlock = BlockRegistry.get(belowId);
-        NamespacedKey belowKey = BlockRegistry.REGISTRY.getKey(belowBlock);
+        Block belowBlock = world.getBlock(hitPos.x, hitPos.y - 1, hitPos.z);
+        NamespacedKey belowKey = de.delautrer.game.registry.Registries.BLOCKS.getKey(belowBlock);
         
         if (belowKey != null && canSurviveOn(belowKey.getKey())) {
             return getDefaultState();
@@ -115,10 +77,10 @@ public class PlantBlock extends Block {
     }
 
     @Override
-    public void onNeighborChanged(World world, int x, int y, int z, Vector3i neighborPos, byte newNeighborId) {
+    public void onNeighborChanged(World world, int x, int y, int z, Vector3i neighborPos, Block changedBlock) {
         if (neighborPos.x == x && neighborPos.y == y - 1 && neighborPos.z == z) {
-            Block blockBelow = BlockRegistry.get(newNeighborId);
-            NamespacedKey belowKey = BlockRegistry.REGISTRY.getKey(blockBelow);
+            Block blockBelow = world.getBlock(x, y - 1, z);
+            NamespacedKey belowKey = de.delautrer.game.registry.Registries.BLOCKS.getKey(blockBelow);
             boolean isValid = false;
             
             if (belowKey != null) {
@@ -127,7 +89,7 @@ public class PlantBlock extends Block {
 
             if (!isValid) {
                 dropAsItem(world, x, y, z);
-                world.setBlock(x, y, z, Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air").getId());
+                world.setBlock(x, y, z, de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:air"));
             }
         }
     }

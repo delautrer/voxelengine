@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Mahogany Slabs",
+    "texture_name":  "mahogany_slabs",
+    "max_stack_size":  64,
+    "category":  "building"
+}

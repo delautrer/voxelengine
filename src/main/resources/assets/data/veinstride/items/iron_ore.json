@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Iron Ore",
+    "texture_name":  "iron_ore",
+    "max_stack_size":  64,
+    "category":  "misc"
+}

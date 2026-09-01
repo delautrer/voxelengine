@@ -1,0 +1,7 @@
+﻿{
+    "type":  "simple",
+    "name":  "Diamond",
+    "texture_name":  "diamond",
+    "max_stack_size":  64,
+    "category":  "misc"
+}

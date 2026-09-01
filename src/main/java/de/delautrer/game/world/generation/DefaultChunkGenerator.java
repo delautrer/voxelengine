@@ -18,7 +18,7 @@ public class DefaultChunkGenerator implements IChunkGenerator {
         int chunkX = chunk.getWorldX();
         int chunkZ = chunk.getWorldZ();
 
-        worldGenerator.getTerrainGenerator().generateBaseTerrain(chunk, chunkX, chunkZ);
+        worldGenerator.getTerrainGenerator().generateBaseTerrain(chunk, chunkX, chunkZ, worldGenerator.getBlockPalette());
         CaveCarver.carve(chunk, seed, worldGenerator.getTerrainGenerator().getSampler());
         worldGenerator.getSurfaceBuilder().buildSurface(chunk, chunkX, chunkZ, worldGenerator);
 
@@ -29,19 +29,15 @@ public class DefaultChunkGenerator implements IChunkGenerator {
                 if (pb.y >= Chunk.MIN_Y && pb.y < Chunk.MAX_Y) {
                     int lx = pb.x & 15;
                     int lz = pb.z & 15;
-                    byte existing = chunk.getBlock(lx, pb.y, lz);
-                    if (existing == 0) {
-                        chunk.setBlock(lx, pb.y, lz, pb.blockId, pb.state);
-                    } else {
-                        de.delautrer.game.blocks.Block b = de.delautrer.game.blocks.BlockRegistry.get(existing);
-                        if (b instanceof de.delautrer.game.blocks.PlantBlock || b instanceof de.delautrer.game.blocks.LeavesBlock) {
-                            chunk.setBlock(lx, pb.y, lz, pb.blockId, pb.state);
-                        }
+                    de.delautrer.game.blocks.Block existing = chunk.getBlock(lx, pb.y, lz);
+                    if (existing == null || existing.isAir() || existing instanceof de.delautrer.game.blocks.PlantBlock || existing instanceof de.delautrer.game.blocks.LeavesBlock) {
+                        de.delautrer.game.world.persistence.WorldPalette palette = worldGenerator.getBlockPalette();
+                        chunk.setBlock(lx, pb.y, lz, pb.block, pb.state, palette);
                     }
                 }
             }
         }
         
-        FeatureRegistry.generateOres(chunk, seed);
+        FeatureRegistry.generateOres(chunk, seed, worldGenerator);
     }
 }

@@ -1,15 +1,16 @@
 package de.delautrer.game.events;
 
 import de.delautrer.engine.events.Event;
+import de.delautrer.game.blocks.Block;
 
 public class BlockSelectedEvent implements Event {
-    private final byte blockType;
+    private final Block block;
 
-    public BlockSelectedEvent(byte blockType) {
-        this.blockType = blockType;
+    public BlockSelectedEvent(Block block) {
+        this.block = block;
     }
 
-    public byte getBlockType() {
-        return blockType;
+    public Block getBlock() {
+        return block;
     }
 }

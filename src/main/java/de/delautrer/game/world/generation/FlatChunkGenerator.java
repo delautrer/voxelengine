@@ -1,12 +1,13 @@
 package de.delautrer.game.world.generation;
 
-import de.delautrer.game.blocks.BlockRegistry;
+import de.delautrer.game.blocks.Block;
+import de.delautrer.game.registry.Registries;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.WorldGenerator;
 
 public class FlatChunkGenerator implements IChunkGenerator {
 
-    private final byte[] layers;
+    private final Block[] layers;
 
     public FlatChunkGenerator(String options) {
         if (options == null || options.trim().isEmpty()) {
@@ -26,7 +27,7 @@ public class FlatChunkGenerator implements IChunkGenerator {
             }
         }
 
-        layers = new byte[totalHeight];
+        layers = new Block[totalHeight];
         int currentY = 0;
 
         for (String part : parts) {
@@ -39,11 +40,11 @@ public class FlatChunkGenerator implements IChunkGenerator {
                     if (!blockName.contains(":")) {
                         blockName = de.delautrer.Constants.NAMESPACE + ":" + blockName;
                     }
-                    byte blockId = BlockRegistry.get(blockName).getId();
+                    Block block = Registries.BLOCKS.get(blockName);
                     
                     for (int i = 0; i < count; i++) {
                         if (currentY < totalHeight) {
-                            layers[currentY++] = blockId;
+                            layers[currentY++] = block;
                         }
                     }
                 } catch (Exception e) {
@@ -60,7 +61,7 @@ public class FlatChunkGenerator implements IChunkGenerator {
                 for (int i = 0; i < layers.length; i++) {
                     int y = Chunk.MIN_Y + i;
                     if (y < Chunk.MAX_Y) {
-                        chunk.setBlock(x, y, z, layers[i]);
+                        chunk.setBlock(x, y, z, layers[i], (byte) 0, null);
                     }
                 }
             }

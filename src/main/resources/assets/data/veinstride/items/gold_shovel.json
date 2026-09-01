@@ -1,0 +1,10 @@
+﻿{
+    "type":  "tool",
+    "name":  "Gold Shovel",
+    "texture_name":  "gold_shovel",
+    "category":  "tools",
+    "tool_type":  "shovel",
+    "tool_tier":  "gold",
+    "tool_efficiency":  7.0,
+    "tool_max_durability":  32
+}

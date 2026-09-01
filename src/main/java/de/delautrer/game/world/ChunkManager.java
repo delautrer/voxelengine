@@ -2,7 +2,6 @@ package de.delautrer.game.world;
 
 import de.delautrer.Constants;
 import de.delautrer.engine.graphics.*;
-import de.delautrer.engine.graphics.vulkan.buffer.VulkanMesh;
 import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.settings.SettingsManager;
 import java.util.*;
@@ -51,6 +50,15 @@ public final class ChunkManager {
     private final Set<Long> chunksInPreparation = ConcurrentHashMap.newKeySet();
     private final Set<Long> chunksLoading = ConcurrentHashMap.newKeySet();
     private final ConcurrentLinkedQueue<Chunk> newlyLoadedQueue = new ConcurrentLinkedQueue<>();
+    private final Set<Long> corruptChunks = ConcurrentHashMap.newKeySet();
+
+    public void markCorruptChunk(int cx, int cz) {
+        corruptChunks.add(packPos(cx, cz));
+    }
+
+    public boolean isChunkCorrupt(int cx, int cz) {
+        return corruptChunks.contains(packPos(cx, cz));
+    }
     private final LightEngine lightEngine;
 
     private final IGraphicsFactory graphicsFactory;
@@ -66,6 +74,7 @@ public final class ChunkManager {
         this.requiredInitialRadius = SettingsManager.get().renderDistance;
         this.world = world;
         this.worldGenerator = new WorldGenerator(this.world.getSeed(), this.world.getGeneratorType(), this.world.getGeneratorOptions());
+        this.worldGenerator.setPalettes(this.world.getBlockPalette(), this.world.getBiomePalette());
         this.graphicsFactory = graphicsFactory;
         int threads = Math.max(1, Runtime.getRuntime().availableProcessors() - 2);
         this.chunkExecutor = Executors.newFixedThreadPool(threads);
@@ -90,7 +99,7 @@ public final class ChunkManager {
             for (int x = pX - dataDistance; x <= pX + dataDistance; x++) {
                 for (int z = pZ - dataDistance; z <= pZ + dataDistance; z++) {
                     long pos = packPos(x, z);
-                    if (!chunks.containsKey(pos) && !chunksLoading.contains(pos)) {
+                    if (!chunks.containsKey(pos) && !chunksInPreparation.contains(pos) && !chunksLoading.contains(pos)) {
                         chunksToLoad.add(pos);
                     }
                 }
@@ -100,21 +109,26 @@ public final class ChunkManager {
             chunksToLoad.sort(Comparator.comparingDouble(pos -> {
                 int cx = (int) (pos >> 32);
                 int cz = (int) (long) pos;
-                return (cx - pX) * (cx - pX) + (cz - pZ) * (cz - pZ);
+                return Math.hypot(cx - pX, cz - pZ);
             }));
 
-            for (Long pos : chunksToLoad) {
+            for (long pos : chunksToLoad) {
                 chunksLoading.add(pos);
                 int finalX = (int) (pos >> 32);
                 int finalZ = (int) (long) pos;
                 chunkExecutor.submit(() -> {
                     try {
                         Chunk newChunk = new Chunk(finalX, finalZ);
+                        newChunk.setPalette(world.getBlockPalette());
                         boolean isLoaded = world.getStorageManager().loadChunkFromDisk(newChunk);
                         if (!isLoaded) {
-                            worldGenerator.generate(newChunk);
-                            newChunk.calculateSunlight();
-                            newChunk.markDirty();
+                            if (!isChunkCorrupt(finalX, finalZ)) {
+                                worldGenerator.generate(newChunk);
+                                newChunk.calculateSunlight();
+                                newChunk.markDirty();
+                            } else {
+                                System.err.println("[ChunkManager] Skipped terrain generation for corrupt chunk at (" + finalX + "," + finalZ + ")");
+                            }
                         } else {
                             newChunk.clearDirty();
                         }
@@ -303,22 +317,20 @@ public final class ChunkManager {
             trashBin.add(new MeshToDelete(pair.opaque));
         }
         pair.opaque = graphicsFactory.createMesh(result.opaque());
-        if (pair.opaque instanceof VulkanMesh vm) {
+        if (pair.opaque != null) {
             int cx = (int) (pos >> 32);
             int cz = (int) pos;
-            vm.chunkOffsetX = cx * Chunk.SIZE;
-            vm.chunkOffsetZ = cz * Chunk.SIZE;
+            pair.opaque.setChunkOffset(cx * Chunk.SIZE, cz * Chunk.SIZE);
         }
 
         if (pair.water != null) {
             trashBin.add(new MeshToDelete(pair.water));
         }
         pair.water = graphicsFactory.createMesh(result.water());
-        if (pair.water instanceof VulkanMesh vm) {
+        if (pair.water != null) {
             int cx = (int) (pos >> 32);
             int cz = (int) pos;
-            vm.chunkOffsetX = cx * Chunk.SIZE;
-            vm.chunkOffsetZ = cz * Chunk.SIZE;
+            pair.water.setChunkOffset(cx * Chunk.SIZE, cz * Chunk.SIZE);
         }
     }
 

@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Palm Chest",
+    "texture_name":  "palm_chest",
+    "max_stack_size":  64,
+    "category":  "wood"
+}

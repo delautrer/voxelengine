@@ -1,0 +1,6 @@
+﻿{
+    "type":  "stair",
+    "hardness":  2.0,
+    "sound_material":  "veinstride:wood",
+    "category":  "wood"
+}

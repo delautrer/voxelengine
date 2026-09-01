@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Willow Stairs",
+    "texture_name":  "willow_stairs",
+    "max_stack_size":  64,
+    "category":  "building"
+}

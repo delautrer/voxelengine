@@ -1,0 +1,10 @@
+﻿{
+    "type":  "tool",
+    "name":  "Copper Pickaxe",
+    "texture_name":  "copper_pickaxe",
+    "category":  "tools",
+    "tool_type":  "pickaxe",
+    "tool_tier":  "copper",
+    "tool_efficiency":  5.0,
+    "tool_max_durability":  180
+}

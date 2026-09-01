@@ -1,0 +1,10 @@
+﻿{
+    "type":  "tool",
+    "name":  "Iron Axe",
+    "texture_name":  "iron_axe",
+    "category":  "tools",
+    "tool_type":  "axe",
+    "tool_tier":  "iron",
+    "tool_efficiency":  6.0,
+    "tool_max_durability":  250
+}

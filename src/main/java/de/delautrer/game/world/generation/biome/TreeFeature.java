@@ -2,57 +2,60 @@ package de.delautrer.game.world.generation.biome;
 
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.World;
-import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.game.blocks.Block;
-import de.delautrer.Constants;
+import de.delautrer.game.registry.Registries;
+import de.delautrer.game.world.persistence.WorldPalette;
 import java.util.Random;
 
 public class TreeFeature {
+
+    public enum TreeShape {
+        STANDARD, PINE, TALL_PINE, WILLOW, PALM, BAOBAB, MAHOGANY
+    }
 
     public static final byte LOG_VERTICAL = 1;
 
     @FunctionalInterface
     private interface BlockSetter {
-        void setBlock(int x, int y, int z, byte id, byte state);
+        void setBlock(int x, int y, int z, Block block, byte state);
     }
 
-    public static void generate(Chunk targetChunk, de.delautrer.game.world.WorldGenerator wg, int worldX, int worldY, int worldZ, long worldSeed, String treeType, byte logId, byte leavesId) {
-        BlockSetter setter = (x, y, z, id, state) -> setBlockIfInChunk(targetChunk, wg, x, y, z, id, state);
-        generateInternal(setter, worldX, worldY, worldZ, worldSeed, treeType, logId, leavesId);
+    public static void generate(Chunk targetChunk, de.delautrer.game.world.WorldGenerator wg, int worldX, int worldY, int worldZ, long worldSeed, TreeShape shape, Block log, Block leaves, int baseHeight, int heightVariation) {
+        BlockSetter setter = (x, y, z, b, state) -> setBlockIfInChunk(targetChunk, wg, x, y, z, b, state);
+        generateInternal(setter, worldX, worldY, worldZ, worldSeed, shape, log, leaves, baseHeight, heightVariation);
     }
 
-    public static void generate(World world, int worldX, int worldY, int worldZ, long worldSeed, String treeType, byte logId, byte leavesId) {
-        BlockSetter setter = (x, y, z, id, state) -> {
+    public static void generate(World world, int worldX, int worldY, int worldZ, long worldSeed, TreeShape shape, Block log, Block leaves, int baseHeight, int heightVariation) {
+        BlockSetter setter = (x, y, z, b, state) -> {
             if (y >= Chunk.MIN_Y && y < Chunk.MAX_Y) {
-                byte existing = world.getBlockAt(x, y, z);
-                if (canReplace(existing)) world.setBlockWithState(x, y, z, id, state);
+                Block existing = world.getBlock(x, y, z);
+                if (canReplace(existing)) world.setBlock(x, y, z, b, state);
             }
         };
-        generateInternal(setter, worldX, worldY, worldZ, worldSeed, treeType, logId, leavesId);
+        generateInternal(setter, worldX, worldY, worldZ, worldSeed, shape, log, leaves, baseHeight, heightVariation);
     }
 
-    private static void generateInternal(BlockSetter setter, int worldX, int worldY, int worldZ, long worldSeed, String treeType, byte logId, byte leavesId) {
-        if (treeType == null) treeType = "alpha_oak";
-        
-        switch (treeType) {
-            case "alpha_pine": generatePine(setter, worldX, worldY, worldZ, worldSeed, logId, leavesId, 8, 4, false); break;
-            case "alpha_tall_pine": generatePine(setter, worldX, worldY, worldZ, worldSeed, logId, leavesId, 14, 6, true); break;
-            case "alpha_willow": generateWillow(setter, worldX, worldY, worldZ, worldSeed, logId, leavesId); break;
-            case "alpha_palm": generatePalm(setter, worldX, worldY, worldZ, worldSeed, logId, leavesId); break;
-            case "alpha_baobab": generateBaobab(setter, worldX, worldY, worldZ, worldSeed, logId, leavesId); break;
-            case "alpha_mahogany": generateMahogany(setter, worldX, worldY, worldZ, worldSeed, logId, leavesId); break;
-            case "alpha_tall_oak": generateStandard(setter, worldX, worldY, worldZ, worldSeed, logId, leavesId, 10, 5); break;
-            case "alpha_tall_birch": generateStandard(setter, worldX, worldY, worldZ, worldSeed, logId, leavesId, 10, 5); break;
-            case "alpha_oak":
-            case "alpha_birch":
-            default: generateStandard(setter, worldX, worldY, worldZ, worldSeed, logId, leavesId, 4, 3); break;
+    private static void generateInternal(BlockSetter setter, int worldX, int worldY, int worldZ, long worldSeed, TreeShape shape, Block log, Block leaves, int baseHeight, int heightVariation) {
+        if (shape == null) shape = TreeShape.STANDARD;
+        if (baseHeight <= 0) baseHeight = 4;
+        if (heightVariation <= 0) heightVariation = 3;
+
+        switch (shape) {
+            case PINE: generatePine(setter, worldX, worldY, worldZ, worldSeed, log, leaves, baseHeight, heightVariation, false); break;
+            case TALL_PINE: generatePine(setter, worldX, worldY, worldZ, worldSeed, log, leaves, baseHeight, heightVariation, true); break;
+            case WILLOW: generateWillow(setter, worldX, worldY, worldZ, worldSeed, log, leaves); break;
+            case PALM: generatePalm(setter, worldX, worldY, worldZ, worldSeed, log, leaves); break;
+            case BAOBAB: generateBaobab(setter, worldX, worldY, worldZ, worldSeed, log, leaves); break;
+            case MAHOGANY: generateMahogany(setter, worldX, worldY, worldZ, worldSeed, log, leaves); break;
+            case STANDARD:
+            default: generateStandard(setter, worldX, worldY, worldZ, worldSeed, log, leaves, baseHeight, heightVariation); break;
         }
     }
 
-    private static void generateStandard(BlockSetter setter, int worldX, int worldY, int worldZ, long worldSeed, byte logId, byte leavesId, int baseHeight, int varHeight) {
+    private static void generateStandard(BlockSetter setter, int worldX, int worldY, int worldZ, long worldSeed, Block log, Block leaves, int baseHeight, int varHeight) {
         Random random = new Random(worldSeed ^ ((long) worldX * 31234567L ^ (long) worldZ * 11612345L ^ (long) worldY * 99999L));
-        int height = baseHeight + random.nextInt(varHeight);
-        for (int i = 0; i < height; i++) setter.setBlock(worldX, worldY + i, worldZ, logId, LOG_VERTICAL);
+        int height = baseHeight + random.nextInt(Math.max(1, varHeight));
+        for (int i = 0; i < height; i++) setter.setBlock(worldX, worldY + i, worldZ, log, LOG_VERTICAL);
         int crownBottom = worldY + height - 3;
         int crownTop = worldY + height + 1;
         for (int y = crownBottom; y <= crownTop; y++) {
@@ -61,33 +64,27 @@ public class TreeFeature {
                 for (int z = worldZ - radius; z <= worldZ + radius; z++) {
                     if (x == worldX && z == worldZ && y < worldY + height) continue;
                     if (Math.abs(x - worldX) == radius && Math.abs(z - worldZ) == radius && (y == crownTop || random.nextBoolean())) continue;
-                    setter.setBlock(x, y, z, leavesId, (byte) 0);
+                    setter.setBlock(x, y, z, leaves, (byte) 0);
                 }
             }
         }
     }
 
-    /**
-     * Fichte (Pine) - Verbessertes Modell mit "Tall" Logik
-     */
-    private static void generatePine(BlockSetter setter, int worldX, int worldY, int worldZ, long worldSeed, byte logId, byte leavesId, int baseHeight, int varHeight, boolean isTall) {
+    private static void generatePine(BlockSetter setter, int worldX, int worldY, int worldZ, long worldSeed, Block log, Block leaves, int baseHeight, int varHeight, boolean isTall) {
         Random random = new Random(worldSeed ^ ((long) worldX * 7312345L ^ (long) worldZ * 91612345L));
-        int totalHeight = baseHeight + random.nextInt(varHeight);
+        int totalHeight = baseHeight + random.nextInt(Math.max(1, varHeight));
         
-        // Tall Pines haben einfach einen längeren nackten Stamm unten
         int leafStartY = isTall ? (4 + random.nextInt(3)) : (1 + random.nextInt(2));
         int crownHeight = totalHeight - leafStartY;
         if (crownHeight < 5) crownHeight = 5;
 
-        // Der Stamm geht bis zum Anfang der obersten Sektion
         int trunkHeight = totalHeight - 3;
         if (trunkHeight < leafStartY) trunkHeight = leafStartY;
 
         for (int i = 0; i < trunkHeight; i++) {
-            setter.setBlock(worldX, worldY + i, worldZ, logId, LOG_VERTICAL);
+            setter.setBlock(worldX, worldY + i, worldZ, log, LOG_VERTICAL);
         }
 
-        // 2-3 Sektionen
         int numSections = (crownHeight > 8) ? 3 : 2;
         float sectionH = (float)crownHeight / numSections;
         
@@ -106,38 +103,35 @@ public class TreeFeature {
                 
                 for (int x = worldX - r; x <= worldX + r; x++) {
                     for (int z = worldZ - r; z <= worldZ + r; z++) {
-                        // Nur setzen, wenn wir uns über dem worldY befinden (keine Säulen nach unten!)
                         if (y < worldY) continue; 
-                        
                         if (x == worldX && z == worldZ && y < worldY + trunkHeight) continue;
                         
                         if (Math.abs(x - worldX) + Math.abs(z - worldZ) <= r + (y == sectionBottom ? 1 : 0)) {
-                            setter.setBlock(x, y, z, leavesId, (byte) 0);
+                            setter.setBlock(x, y, z, leaves, (byte) 0);
                         }
                     }
                 }
             }
         }
         
-        // Top Auffüllen
         for (int y = Math.max(trunkHeight, worldY); y <= worldY + totalHeight; y++) {
-            setter.setBlock(worldX, y, worldZ, leavesId, (byte) 0);
+            setter.setBlock(worldX, y, worldZ, leaves, (byte) 0);
         }
     }
 
-    private static void generateWillow(BlockSetter setter, int worldX, int worldY, int worldZ, long worldSeed, byte logId, byte leavesId) {
+    private static void generateWillow(BlockSetter setter, int worldX, int worldY, int worldZ, long worldSeed, Block log, Block leaves) {
         Random random = new Random(worldSeed ^ ((long) worldX * 12345L ^ (long) worldZ * 67890L));
         int height = 5 + random.nextInt(2);
-        for (int i = 0; i < height; i++) setter.setBlock(worldX, worldY + i, worldZ, logId, LOG_VERTICAL);
+        for (int i = 0; i < height; i++) setter.setBlock(worldX, worldY + i, worldZ, log, LOG_VERTICAL);
         int crownY = worldY + height - 1;
         for (int x = -3; x <= 3; x++) {
             for (int z = -3; z <= 3; z++) {
                 for (int y = -1; y <= 1; y++) {
                     double d = x*x + z*z + y*y*2;
                     if (d < 10) {
-                        setter.setBlock(worldX + x, crownY + y, worldZ + z, leavesId, (byte) 0);
+                        setter.setBlock(worldX + x, crownY + y, worldZ + z, leaves, (byte) 0);
                         if (d > 6 && random.nextFloat() < 0.7f) {
-                            for (int h = 1; h <= 2 + random.nextInt(2); h++) setter.setBlock(worldX + x, crownY + y - h, worldZ + z, leavesId, (byte) 0);
+                            for (int h = 1; h <= 2 + random.nextInt(2); h++) setter.setBlock(worldX + x, crownY + y - h, worldZ + z, leaves, (byte) 0);
                         }
                     }
                 }
@@ -145,14 +139,14 @@ public class TreeFeature {
         }
     }
 
-    private static void generatePalm(BlockSetter setter, int worldX, int worldY, int worldZ, long worldSeed, byte logId, byte leavesId) {
+    private static void generatePalm(BlockSetter setter, int worldX, int worldY, int worldZ, long worldSeed, Block log, Block leaves) {
         Random random = new Random(worldSeed ^ ((long) worldX * 999L ^ (long) worldZ * 888L));
         int height = 7 + random.nextInt(5);
         double curveX = 0, curveZ = 0;
         double speedX = (random.nextDouble() - 0.5) * 0.5;
         double speedZ = (random.nextDouble() - 0.5) * 0.5;
         for (int i = 0; i < height; i++) {
-            setter.setBlock(worldX + (int)Math.round(curveX), worldY + i, worldZ + (int)Math.round(curveZ), logId, LOG_VERTICAL);
+            setter.setBlock(worldX + (int)Math.round(curveX), worldY + i, worldZ + (int)Math.round(curveZ), log, LOG_VERTICAL);
             curveX += speedX;
             curveZ += speedZ;
             speedX += (random.nextDouble() - 0.5) * 0.15;
@@ -173,13 +167,13 @@ public class TreeFeature {
                 int ly = topY + 1;
                 if (l >= 3) ly -= 1;
                 if (l >= 5) ly -= 1;
-                setter.setBlock(lx, ly, lz, leavesId, (byte) 0);
+                setter.setBlock(lx, ly, lz, leaves, (byte) 0);
             }
         }
-        setter.setBlock(topX, worldY + height, topZ, leavesId, (byte) 0);
+        setter.setBlock(topX, worldY + height, topZ, leaves, (byte) 0);
     }
 
-    private static void generateBaobab(BlockSetter setter, int worldX, int worldY, int worldZ, long worldSeed, byte logId, byte leavesId) {
+    private static void generateBaobab(BlockSetter setter, int worldX, int worldY, int worldZ, long worldSeed, Block log, Block leaves) {
         Random random = new Random(worldSeed ^ ((long) worldX * 555L ^ (long) worldZ * 444L));
         int height = 5 + random.nextInt(8);
         boolean isBig = height > 8;
@@ -191,7 +185,7 @@ public class TreeFeature {
                     double dist = x*x + z*z;
                     double noise = new Random(worldSeed + i + (long)x*10 + (long)z*20).nextDouble() * 0.5;
                     if (dist <= baseRadius * baseRadius + noise) {
-                        setter.setBlock(worldX + x, worldY + i, worldZ + z, logId, LOG_VERTICAL);
+                        setter.setBlock(worldX + x, worldY + i, worldZ + z, log, LOG_VERTICAL);
                     }
                 }
             }
@@ -204,81 +198,78 @@ public class TreeFeature {
                 double d = x*x + z*z;
                 double threshold = (crownRadius * crownRadius) * 0.8 + crownRand.nextInt(6);
                 if (d < threshold) {
-                    setter.setBlock(worldX + x, topY, worldZ + z, leavesId, (byte) 0);
-                    if (d < threshold * 0.6) setter.setBlock(worldX + x, topY + 1, worldZ + z, leavesId, (byte) 0);
+                    setter.setBlock(worldX + x, topY, worldZ + z, leaves, (byte) 0);
+                    if (d < threshold * 0.6) setter.setBlock(worldX + x, topY + 1, worldZ + z, leaves, (byte) 0);
                 }
             }
         }
     }
 
-    private static void generateMahogany(BlockSetter setter, int worldX, int worldY, int worldZ, long worldSeed, byte logId, byte leavesId) {
+    private static void generateMahogany(BlockSetter setter, int worldX, int worldY, int worldZ, long worldSeed, Block log, Block leaves) {
         Random random = new Random(worldSeed ^ ((long) worldX * 111L ^ (long) worldZ * 222L));
         int height = 8 + random.nextInt(4);
-        for (int i = 0; i < height; i++) setter.setBlock(worldX, worldY + i, worldZ, logId, LOG_VERTICAL);
+        for (int i = 0; i < height; i++) setter.setBlock(worldX, worldY + i, worldZ, log, LOG_VERTICAL);
         int crownY = worldY + height - 2;
         for (int r = 4; r >= 1; r--) {
             int y = crownY + (4 - r);
             for (int x = -r; x <= r; x++) {
                 for (int z = -r; z <= r; z++) {
-                    if (x*x + z*z <= r*r) setter.setBlock(worldX + x, y, worldZ + z, leavesId, (byte) 0);
+                    if (x*x + z*z <= r*r) setter.setBlock(worldX + x, y, worldZ + z, leaves, (byte) 0);
                 }
             }
         }
     }
 
-    private static void setBlockIfInChunk(Chunk chunk, de.delautrer.game.world.WorldGenerator wg, int worldX, int worldY, int worldZ, byte blockId, byte state) {
+    private static void setBlockIfInChunk(Chunk chunk, de.delautrer.game.world.WorldGenerator wg, int worldX, int worldY, int worldZ, Block block, byte state) {
         int lx = worldX - chunk.getWorldX() * Chunk.SIZE;
         int lz = worldZ - chunk.getWorldZ() * Chunk.SIZE;
+        WorldPalette palette = null;
         if (lx >= 0 && lx < Chunk.SIZE && lz >= 0 && lz < Chunk.SIZE && worldY >= Chunk.MIN_Y && worldY < Chunk.MAX_Y) {
-            byte existing = chunk.getBlock(lx, worldY, lz);
+            Block existing = chunk.getBlock(lx, worldY, lz, palette);
             
             if (state == LOG_VERTICAL) {
-                byte grassId = BlockRegistry.get(Constants.NAMESPACE + ":grass").getId();
-                byte sGrassId = BlockRegistry.get(Constants.NAMESPACE + ":sandy_grass").getId();
-                byte dirtId = BlockRegistry.get(Constants.NAMESPACE + ":dirt").getId();
-                byte sandId = BlockRegistry.get(Constants.NAMESPACE + ":sand").getId();
+                Block grassBlock = Registries.BLOCKS.get("veinstride:grass_block");
+                Block sGrassBlock = Registries.BLOCKS.get("veinstride:sandy_grass");
+                Block dirtBlock = Registries.BLOCKS.get("veinstride:dirt");
+                Block sandBlock = Registries.BLOCKS.get("veinstride:sand");
                 
-                if (existing == grassId || existing == sGrassId || existing == dirtId || existing == sandId) {
-                    chunk.setBlock(lx, worldY, lz, blockId, state);
-                    // Gras unter dem Stamm immer zu Dirt machen
+                if (existing == grassBlock || existing == sGrassBlock || existing == dirtBlock || existing == sandBlock) {
+                    chunk.setBlock(lx, worldY, lz, block, state, palette);
                     if (worldY - 1 >= Chunk.MIN_Y) {
-                        byte below = chunk.getBlock(lx, worldY - 1, lz);
-                        if (below == grassId || below == sGrassId) {
-                            chunk.setBlock(lx, worldY - 1, lz, dirtId);
+                        Block below = chunk.getBlock(lx, worldY - 1, lz, palette);
+                        if (below == grassBlock || below == sGrassBlock) {
+                            chunk.setBlock(lx, worldY - 1, lz, dirtBlock, (byte) 0, palette);
                         }
                     }
                 } else if (canReplace(existing)) {
-                    chunk.setBlock(lx, worldY, lz, blockId, state);
+                    chunk.setBlock(lx, worldY, lz, block, state, palette);
                     
-                    // STABILITÄT: Wenn der Stamm in der Luft hängt (z.B. Baobab Rand), fülle nach unten auf
                     for (int d = 1; d <= 256; d++) {
                         int dy = worldY - d;
                         if (dy < Chunk.MIN_Y) break;
-                        byte below = chunk.getBlock(lx, dy, lz);
-                        if (below == blockId) break; // Bereits gefüllt
+                        Block below = chunk.getBlock(lx, dy, lz, palette);
+                        if (below == block) break;
                         
                         if (canReplace(below)) {
-                            chunk.setBlock(lx, dy, lz, blockId, state);
+                            chunk.setBlock(lx, dy, lz, block, state, palette);
                         } else {
-                            // Boden erreicht -> Gras zu Dirt
-                            if (below == grassId || below == sGrassId) {
-                                chunk.setBlock(lx, dy, lz, dirtId);
+                            if (below == grassBlock || below == sGrassBlock) {
+                                chunk.setBlock(lx, dy, lz, dirtBlock, (byte) 0, palette);
                             }
                             break;
                         }
                     }
                 }
             } else {
-                if (canReplace(existing)) chunk.setBlock(lx, worldY, lz, blockId, state);
+                if (canReplace(existing)) chunk.setBlock(lx, worldY, lz, block, state, palette);
             }
         } else if (wg != null) {
-            wg.addPendingBlock(worldX, worldY, worldZ, blockId, state);
+            wg.addPendingBlock(worldX, worldY, worldZ, block, state);
         }
     }
 
-    private static boolean canReplace(byte blockId) {
-        if (blockId == 0) return true;
-        Block block = BlockRegistry.get(blockId);
-        return block != null && block instanceof de.delautrer.game.blocks.PlantBlock;
+    private static boolean canReplace(Block block) {
+        if (block == null || block.isAir()) return true;
+        return block instanceof de.delautrer.game.blocks.PlantBlock || block.isPassable;
     }
 }

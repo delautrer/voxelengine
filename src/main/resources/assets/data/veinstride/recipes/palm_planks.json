@@ -1,0 +1,11 @@
+﻿{
+  "type": "shapeless",
+  "ingredients": [
+    "veinstride:palm_log"
+  ],
+  "result": {
+    "item": "veinstride:palm_planks",
+    "count": 4
+  }
+}
+

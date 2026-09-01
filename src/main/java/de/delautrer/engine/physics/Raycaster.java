@@ -45,8 +45,7 @@ public class Raycaster {
         float dist = 0.0f;
 
         while (dist <= maxDistance) {
-            byte blockId = world.getBlockAt(x, y, z);
-            Block block = BlockRegistry.get(blockId);
+            Block block = world.getBlock(x, y, z);
 
             if (block != null && block.isRaycastable) {
                 BlockState state = world.getBlockState(x, y, z);

@@ -1,0 +1,10 @@
+﻿{
+    "type":  "tool",
+    "name":  "Gold Axe",
+    "texture_name":  "gold_axe",
+    "category":  "tools",
+    "tool_type":  "axe",
+    "tool_tier":  "gold",
+    "tool_efficiency":  7.0,
+    "tool_max_durability":  32
+}

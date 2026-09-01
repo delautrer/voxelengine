@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Baobab Chest",
+    "texture_name":  "baobab_chest",
+    "max_stack_size":  64,
+    "category":  "wood"
+}

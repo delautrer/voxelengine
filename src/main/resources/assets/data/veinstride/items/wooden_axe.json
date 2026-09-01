@@ -1,0 +1,10 @@
+﻿{
+    "type":  "tool",
+    "name":  "Wooden Axe",
+    "texture_name":  "wooden_axe",
+    "category":  "tools",
+    "tool_type":  "axe",
+    "tool_tier":  "wood",
+    "tool_efficiency":  2.0,
+    "tool_max_durability":  59
+}

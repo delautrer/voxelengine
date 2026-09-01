@@ -1,0 +1,14 @@
+﻿{
+  "type": "shaped",
+  "pattern": [
+    "AAA"
+  ],
+  "keys": {
+    "A": "veinstride:mahogany_planks"
+  },
+  "result": {
+    "count": 6,
+    "item": "veinstride:mahogany_slabs"
+  }
+}
+

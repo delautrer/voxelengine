@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Stone Stairs",
+    "texture_name":  "stone_stairs",
+    "max_stack_size":  64,
+    "category":  "building"
+}

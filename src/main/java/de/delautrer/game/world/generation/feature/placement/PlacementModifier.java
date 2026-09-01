@@ -8,7 +8,7 @@ import java.util.Random;
 import java.util.Set;
 
 public class PlacementModifier {
-    private final Set<Byte> targetBlocks;
+    private final Set<de.delautrer.game.blocks.Block> targetBlocks;
     private final double airExposureChance;
     private final Set<String> validBiomes;
 
@@ -16,9 +16,10 @@ public class PlacementModifier {
         this.targetBlocks = new HashSet<>();
         if (targetBlockNames != null) {
             for (String name : targetBlockNames) {
-                Byte id = getBlockId(name);
-                if (id != null) {
-                    this.targetBlocks.add(id);
+                String key = name.contains(":") ? name : ("veinstride:" + name);
+                de.delautrer.game.blocks.Block b = de.delautrer.game.registry.Registries.BLOCKS.get(key);
+                if (b != null) {
+                    this.targetBlocks.add(b);
                 }
             }
         }
@@ -31,28 +32,15 @@ public class PlacementModifier {
         }
     }
 
-    private Byte getBlockId(String name) {
-        var block = BlockRegistry.get(name);
-        if (block != null) {
-            return block.getId();
-        }
-        // Fallback for names without namespace
-        block = BlockRegistry.get("voxelengine:" + name);
-        if (block != null) {
-            return block.getId();
-        }
-        return null;
-    }
-
     public boolean isValidBiome(String biomeId) {
         if (validBiomes.isEmpty()) return true;
-        return validBiomes.contains(biomeId) || validBiomes.contains("minecraft:" + biomeId.toLowerCase()) || validBiomes.contains("voxelengine:" + biomeId.toLowerCase());
+        return validBiomes.contains(biomeId) || validBiomes.contains("veinstride:" + biomeId.toLowerCase());
     }
 
     public boolean canReplace(Chunk chunk, int lx, int y, int lz, Random rand) {
         if (y < Chunk.MIN_Y || y >= Chunk.MAX_Y) return false;
         
-        byte existingBlock = chunk.getBlock(lx, y, lz);
+        de.delautrer.game.blocks.Block existingBlock = chunk.getBlock(lx, y, lz);
         
         // Target Block Check
         if (!targetBlocks.isEmpty() && !targetBlocks.contains(existingBlock)) {
@@ -72,15 +60,13 @@ public class PlacementModifier {
     }
 
     private boolean isExposedToAir(Chunk chunk, int lx, int y, int lz) {
-        byte airId = 0; // Assuming 0 is air
+        if (y < Chunk.MAX_Y - 1 && chunk.getBlock(lx, y + 1, lz).isAir()) return true;
+        if (y > Chunk.MIN_Y && chunk.getBlock(lx, y - 1, lz).isAir()) return true;
         
-        if (y < Chunk.MAX_Y - 1 && chunk.getBlock(lx, y + 1, lz) == airId) return true;
-        if (y > Chunk.MIN_Y && chunk.getBlock(lx, y - 1, lz) == airId) return true;
-        
-        if (lx > 0 && chunk.getBlock(lx - 1, y, lz) == airId) return true;
-        if (lx < Chunk.SIZE - 1 && chunk.getBlock(lx + 1, y, lz) == airId) return true;
-        if (lz > 0 && chunk.getBlock(lx, y, lz - 1) == airId) return true;
-        if (lz < Chunk.SIZE - 1 && chunk.getBlock(lx, y, lz + 1) == airId) return true;
+        if (lx > 0 && chunk.getBlock(lx - 1, y, lz).isAir()) return true;
+        if (lx < Chunk.SIZE - 1 && chunk.getBlock(lx + 1, y, lz).isAir()) return true;
+        if (lz > 0 && chunk.getBlock(lx, y, lz - 1).isAir()) return true;
+        if (lz < Chunk.SIZE - 1 && chunk.getBlock(lx, y, lz + 1).isAir()) return true;
         
         return false;
     }

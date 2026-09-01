@@ -44,9 +44,15 @@ public class WorldStorageManager {
     private Thread writerThread;
     private volatile boolean running = true;
     private final Gson gson;
+    private World world;
 
     // Der Parameter "folderName" ist hier jetzt der sichere Ordnername (z.B. "Neue_Welt-1")
     public WorldStorageManager(String folderName) {
+        this(folderName, null);
+    }
+
+    public WorldStorageManager(String folderName, World world) {
+        this.world = world;
         this.worldDir = GamePaths.SAVES_DIR.resolve(folderName);
         this.regionDir = worldDir.resolve("regions");
         this.playerDataDir = worldDir.resolve("playerdata");
@@ -61,6 +67,10 @@ public class WorldStorageManager {
         }
 
         startWriterThread();
+    }
+
+    public void setWorld(World world) {
+        this.world = world;
     }
 
     // ==========================================
@@ -132,7 +142,12 @@ public class WorldStorageManager {
         Vector2i rPos = new Vector2i(rx, rz);
         return regionCache.computeIfAbsent(rPos, pos -> {
             File file = regionDir.resolve("r." + pos.x + "." + pos.y + ".dat").toFile();
-            return new RegionFile(file);
+            try {
+                return new RegionFile(file);
+            } catch (IOException e) {
+                System.err.println("[WorldStorageManager] Could not open region file: " + file);
+                return null;
+            }
         });
     }
 
@@ -140,32 +155,71 @@ public class WorldStorageManager {
         saveQueue.add(chunk);
     }
 
-    private void saveChunkToDisk(Chunk chunk) {
+    private void handleCorruptChunk(Chunk chunk, byte[] data) {
+        System.err.println("[WorldStorageManager] Corrupt chunk at (" + chunk.getWorldX() + "," + chunk.getWorldZ() + "). Quarantining chunk file!");
+        Path bakPath = regionDir.resolve("r." + (chunk.getWorldX() >> 5) + "." + (chunk.getWorldZ() >> 5) + ".dat.corrupt-chunk-c" + chunk.getWorldX() + "-c" + chunk.getWorldZ() + ".bak");
         try {
-            chunk.clearDirty();
-
-            byte[] data = ChunkSerializer.serialize(chunk);
-            RegionFile region = getRegionFile(chunk.getWorldX(), chunk.getWorldZ());
-            region.writeChunk(chunk.getWorldX(), chunk.getWorldZ(), data);
-
+            if (data != null) {
+                Files.write(bakPath, data, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            } else {
+                Files.write(bakPath, new byte[0], StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            }
         } catch (IOException e) {
-            System.err.println("Fehler beim Speichern von Chunk " + chunk.getWorldX() + "," + chunk.getWorldZ());
+            System.err.println("[WorldStorageManager] Could not write corrupt chunk backup: " + e.getMessage());
+        }
+        if (world.getChunkManager() != null) {
+            world.getChunkManager().markCorruptChunk(chunk.getWorldX(), chunk.getWorldZ());
+        }
+    }
+
+    private void saveChunkToDisk(Chunk chunk) {
+        if (world == null) {
+            chunk.markDirty();
+            return;
+        }
+        if (world.getChunkManager() != null && world.getChunkManager().isChunkCorrupt(chunk.getWorldX(), chunk.getWorldZ())) {
+            return;
+        }
+        try {
+            byte[] data = ChunkSerializer.serialize(chunk, world);
+            RegionFile region = getRegionFile(chunk.getWorldX(), chunk.getWorldZ());
+            if (region != null) {
+                region.writeChunk(chunk.getWorldX(), chunk.getWorldZ(), data);
+                chunk.clearDirty();
+            } else {
+                chunk.markDirty();
+            }
+        } catch (IOException e) {
+            System.err.println("[WorldStorageManager] Error saving chunk (" + chunk.getWorldX() + "," + chunk.getWorldZ() + "): " + e.getMessage());
             e.printStackTrace();
             chunk.markDirty();
         }
     }
 
     public boolean loadChunkFromDisk(Chunk chunk) {
+        if (world == null) {
+            throw new IllegalStateException("World instance must be set before loading chunks!");
+        }
         RegionFile region = getRegionFile(chunk.getWorldX(), chunk.getWorldZ());
-        byte[] data = region.readChunk(chunk.getWorldX(), chunk.getWorldZ());
+        if (region == null) return false;
+        RegionFile.ReadResult result = region.readChunk(chunk.getWorldX(), chunk.getWorldZ());
 
-        if (data == null) return false;
+        if (result.type == RegionFile.ReadResultType.MISSING) {
+            return false;
+        }
+
+        if (result.type == RegionFile.ReadResultType.CORRUPT) {
+            handleCorruptChunk(chunk, result.data);
+            return false;
+        }
 
         try {
-            ChunkSerializer.deserialize(chunk, data);
+            ChunkSerializer.deserialize(chunk, result.data, world);
+            chunk.clearDirty();
             return true;
-        } catch (IOException e) {
-            System.err.println("Beschädigter Chunk gefunden bei " + chunk.getWorldX() + "," + chunk.getWorldZ());
+        } catch (Exception e) {
+            System.err.println("[WorldStorageManager] Failed to deserialize chunk at (" + chunk.getWorldX() + "," + chunk.getWorldZ() + "): " + e.getMessage());
+            handleCorruptChunk(chunk, result.data);
             return false;
         }
     }
@@ -175,34 +229,13 @@ public class WorldStorageManager {
     // ==========================================
 
     public void saveBlockEntities(Map<Vector3i, BlockEntity> entities) {
-        Path file = worldDir.resolve("block_entities.dat");
-        try (DataOutputStream out = new DataOutputStream(Files.newOutputStream(file, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING))) {
-            out.writeInt(entities.size());
-            for (Map.Entry<Vector3i, BlockEntity> entry : entities.entrySet()) {
-                Vector3i pos = entry.getKey();
-                out.writeInt(pos.x); out.writeInt(pos.y); out.writeInt(pos.z);
-
-                if (entry.getValue() instanceof ChestBlockEntity chest) {
-                    out.writeUTF("CHEST");
-                    saveInventory(out, chest.getInventory());
-                } else if (entry.getValue() instanceof FurnaceBlockEntity furnace) {
-                    out.writeUTF("FURNACE");
-                    out.writeInt(furnace.getBurnTime());
-                    out.writeInt(furnace.getMaxBurnTime());
-                    out.writeInt(furnace.getCookTime());
-                    saveInventory(out, furnace.getInventory());
-                } else {
-                    out.writeUTF("UNKNOWN");
-                }
-            }
-        } catch (IOException e) {
-            System.err.println("[WorldStorageManager] Error saving block entities: " + e.getMessage());
-        }
+        // Legacy file writing disabled for v1 chunk payloads.
     }
 
     public void loadBlockEntities(World world) {
         Path file = worldDir.resolve("block_entities.dat");
-        if (!Files.exists(file)) return;
+        Path migratedFile = worldDir.resolve("block_entities.dat.migrated");
+        if (Files.exists(migratedFile) || !Files.exists(file)) return;
 
         try (DataInputStream in = new DataInputStream(Files.newInputStream(file))) {
             int count = in.readInt();
@@ -222,34 +255,20 @@ public class WorldStorageManager {
                     world.setBlockEntity(pos, furnace);
                 }
             }
+            Files.move(file, migratedFile, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             System.err.println("[WorldStorageManager] Error loading block entities: " + e.getMessage());
         }
     }
 
     public void saveEntities(List<Entity> entities) {
-        Path file = worldDir.resolve("entities.dat");
-        try (DataOutputStream out = new DataOutputStream(Files.newOutputStream(file, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING))) {
-            // Wir filtern nur ItemEntities (Drops)
-            List<ItemEntity> items = entities.stream()
-                    .filter(e -> e instanceof ItemEntity)
-                    .map(e -> (ItemEntity) e)
-                    .toList();
-
-            out.writeInt(items.size());
-            for (ItemEntity item : items) {
-                out.writeFloat((float)item.position.x); out.writeFloat((float)item.position.y); out.writeFloat((float)item.position.z);
-                out.writeFloat(item.velocity.x); out.writeFloat(item.velocity.y); out.writeFloat(item.velocity.z);
-                saveItemStack(out, item.stack);
-            }
-        } catch (IOException e) {
-            System.err.println("[WorldStorageManager] Error saving entities: " + e.getMessage());
-        }
+        // Legacy file writing disabled for v1 chunk payloads.
     }
 
     public void loadEntities(World world) {
         Path file = worldDir.resolve("entities.dat");
-        if (!Files.exists(file)) return;
+        Path migratedFile = worldDir.resolve("entities.dat.migrated");
+        if (Files.exists(migratedFile) || !Files.exists(file)) return;
 
         try (DataInputStream in = new DataInputStream(Files.newInputStream(file))) {
             int count = in.readInt();
@@ -261,6 +280,7 @@ public class WorldStorageManager {
                     world.spawnEntity(new ItemEntity(stack, pos, vel));
                 }
             }
+            Files.move(file, migratedFile, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             System.err.println("[WorldStorageManager] Error loading entities: " + e.getMessage());
         }
@@ -355,7 +375,9 @@ public class WorldStorageManager {
         System.out.println("Saving world data...");
         running = false;
         try {
-            writerThread.join();
+            if (writerThread != null) {
+                writerThread.join(5000);
+            }
             System.out.println("All chunks saved.");
 
             for (RegionFile region : regionCache.values()) {

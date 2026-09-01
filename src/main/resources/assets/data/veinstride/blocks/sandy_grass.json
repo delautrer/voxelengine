@@ -1,0 +1,6 @@
+﻿{
+    "type":  "plant",
+    "hardness":  0.0001,
+    "sound_material":  "veinstride:leaves",
+    "category":  "misc"
+}

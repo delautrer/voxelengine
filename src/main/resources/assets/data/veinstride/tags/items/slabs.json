@@ -1,0 +1,17 @@
+﻿{
+    "replace":  false,
+    "values":  [
+                   "veinstride:oak_slabs",
+                   "veinstride:birch_slabs",
+                   "veinstride:palm_slabs",
+                   "veinstride:willow_slabs",
+                   "veinstride:baobab_slabs",
+                   "veinstride:mahogany_slabs",
+                   "veinstride:pine_slabs",
+                   "veinstride:stone_slabs",
+                   "veinstride:cobblestone_slabs",
+                   "veinstride:bricks_slabs",
+                   "veinstride:dirt_slabs",
+                   "veinstride:grass_block_slabs"
+               ]
+}

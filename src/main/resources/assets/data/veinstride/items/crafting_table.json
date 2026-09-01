@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Crafting Table",
+    "texture_name":  "crafting_table",
+    "max_stack_size":  64,
+    "category":  "misc"
+}

@@ -15,14 +15,17 @@ public class CubeBlock extends Block {
 
     public CubeBlock(boolean isSolid, boolean isTransparent, boolean isPassable, boolean isRaycastable) {
         super(isSolid, isTransparent, isPassable, isRaycastable);
+        this.mesher = new de.delautrer.engine.graphics.meshing.CubeMesher(this);
     }
 
     public CubeBlock(boolean isSolid, boolean isTransparent, boolean isPassable) {
         super(isSolid, isTransparent, isPassable, true);
+        this.mesher = new de.delautrer.engine.graphics.meshing.CubeMesher(this);
     }
 
     public CubeBlock(boolean isSolid, boolean isTransparent) {
         super(isSolid, isTransparent, false, true);
+        this.mesher = new de.delautrer.engine.graphics.meshing.CubeMesher(this);
     }
 
     protected float getColorTint() {
@@ -47,17 +50,15 @@ public class CubeBlock extends Block {
     }
 
     protected BlockState getNeighborState(Chunk chunk, ChunkManager cm, int nx, int ny, int nz) {
-        byte bId = chunk.getBlockAt(nx, ny, nz, cm);
-        if (bId == 0)
-            return Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air").getDefaultState();
+        Block nBlock = chunk.getBlock(nx, ny, nz, cm);
         byte sId = chunk.getStateAt(nx, ny, nz, cm);
-        return BlockRegistry.get(bId).getStateForId(sId);
+        return nBlock.getStateForId(sId);
     }
 
     public boolean shouldRenderFaceAgainstState(BlockState myState, BlockState neighborState, BlockFace face) {
         Block myBlock = myState.getBlock();
         Block nBlock = neighborState.getBlock();
-        if (nBlock.getId() == 0)
+        if (nBlock == null || nBlock.isAir())
             return true;
 
         if (myBlock.isTransparent && myBlock == nBlock) {
@@ -98,7 +99,7 @@ public class CubeBlock extends Block {
 
     @Override
     public boolean shouldRenderFaceAgainst(Block neighborBlock, float myHeight, float neighborHeight) {
-        if (neighborBlock.getId() == 0)
+        if (neighborBlock == null || neighborBlock.isAir())
             return true;
         if (neighborBlock instanceof SlabBlock)
             return true;
@@ -107,15 +108,9 @@ public class CubeBlock extends Block {
         if (neighborBlock instanceof ChestBlock)
             return true;
 
-        if (this.isTransparent && this.getId() == neighborBlock.getId())
+        if (this.isTransparent && this == neighborBlock)
             return false;
         return neighborBlock.isTransparent;
-    }
-
-    @Override
-    public void generateMesh(int x, int y, int z, Chunk chunk, ChunkManager cm) {
-        BlockState state = chunk.getBlockState(x, y, z);
-        renderBox(state, x, y, z, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, true, true, true, true, true, true, false, chunk, cm);
     }
 
     private float bilerp(float c00, float c10, float c11, float c01, float u, float v) {
@@ -163,21 +158,21 @@ public class CubeBlock extends Block {
                 reg.layer, light, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
     }
 
-    protected void renderBox(BlockState state, int x, int y, int z, float minX, float minY, float minZ, float maxX,
+    public void renderBox(BlockState state, int x, int y, int z, float minX, float minY, float minZ, float maxX,
             float maxY, float maxZ, boolean rTop, boolean rBot, boolean rN, boolean rS, boolean rE, boolean rW,
             boolean fullUVs, Chunk chunk, ChunkManager cm) {
         renderBox(state, x, y, z, minX, minY, minZ, maxX, maxY, maxZ, rTop, rBot, rN, rS, rE, rW, fullUVs, chunk, cm, 0,
                 0, 0, 0, 0, 0, false, false, false, false, false, false);
     }
 
-    protected void renderBox(BlockState state, int x, int y, int z, float minX, float minY, float minZ, float maxX,
+    public void renderBox(BlockState state, int x, int y, int z, float minX, float minY, float minZ, float maxX,
             float maxY, float maxZ, boolean rTop, boolean rBot, boolean rN, boolean rS, boolean rE, boolean rW,
             boolean fullUVs, Chunk chunk, ChunkManager cm, boolean mirrorHorizontal) {
         renderBox(state, x, y, z, minX, minY, minZ, maxX, maxY, maxZ, rTop, rBot, rN, rS, rE, rW, fullUVs, chunk, cm, 0,
                 0, 0, 0, 0, 0, mirrorHorizontal, mirrorHorizontal, mirrorHorizontal, mirrorHorizontal, mirrorHorizontal, mirrorHorizontal);
     }
 
-    protected void renderBox(BlockState state, int x, int y, int z, float minX, float minY, float minZ, float maxX,
+    public void renderBox(BlockState state, int x, int y, int z, float minX, float minY, float minZ, float maxX,
             float maxY, float maxZ, boolean rTop, boolean rBot, boolean rN, boolean rS, boolean rE, boolean rW,
             boolean fullUVs, Chunk chunk, ChunkManager cm, int rotTop, int rotBot, int rotN, int rotS, int rotE,
             int rotW) {
@@ -185,7 +180,7 @@ public class CubeBlock extends Block {
                 rotBot, rotN, rotS, rotE, rotW, false, false, false, false, false, false);
     }
 
-    protected void renderBox(BlockState state, int x, int y, int z, float minX, float minY, float minZ, float maxX,
+    public void renderBox(BlockState state, int x, int y, int z, float minX, float minY, float minZ, float maxX,
             float maxY, float maxZ, boolean rTop, boolean rBot, boolean rN, boolean rS, boolean rE, boolean rW,
             boolean fullUVs, Chunk chunk, ChunkManager cm, int rotTop, int rotBot, int rotN, int rotS, int rotE,
             int rotW, boolean mirTop, boolean mirBot, boolean mirN, boolean mirS, boolean mirE, boolean mirW) {
@@ -201,7 +196,7 @@ public class CubeBlock extends Block {
         );
     }
 
-    protected void renderBox(BlockState state, int x, int y, int z, float minX, float minY, float minZ, float maxX,
+    public void renderBox(BlockState state, int x, int y, int z, float minX, float minY, float minZ, float maxX,
             float maxY, float maxZ, boolean rTop, boolean rBot, boolean rN, boolean rS, boolean rE, boolean rW,
             boolean fullUVs, Chunk chunk, ChunkManager cm, int rotTop, int rotBot, int rotN, int rotS, int rotE,
             int rotW, boolean mirTop, boolean mirBot, boolean mirN, boolean mirS, boolean mirE, boolean mirW,

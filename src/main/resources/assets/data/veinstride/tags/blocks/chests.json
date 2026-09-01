@@ -1,0 +1,12 @@
+﻿{
+    "replace":  false,
+    "values":  [
+                   "veinstride:oak_chest",
+                   "veinstride:birch_chest",
+                   "veinstride:palm_chest",
+                   "veinstride:willow_chest",
+                   "veinstride:baobab_chest",
+                   "veinstride:mahogany_chest",
+                   "veinstride:pine_chest"
+               ]
+}

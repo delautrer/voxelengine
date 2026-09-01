@@ -1,0 +1,17 @@
+﻿{
+    "replace":  false,
+    "values":  [
+                   "veinstride:coal_ore",
+                   "veinstride:iron_ore",
+                   "veinstride:copper_ore",
+                   "veinstride:gold_ore",
+                   "veinstride:diamond_ore",
+                   "veinstride:zinc_ore",
+                   "veinstride:dolomite_coal_ore",
+                   "veinstride:dolomite_iron_ore",
+                   "veinstride:dolomite_copper_ore",
+                   "veinstride:dolomite_gold_ore",
+                   "veinstride:dolomite_diamond_ore",
+                   "veinstride:dolomite_zinc_ore"
+               ]
+}

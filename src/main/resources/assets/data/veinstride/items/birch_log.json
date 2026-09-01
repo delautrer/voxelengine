@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Birch Log",
+    "texture_name":  "birch_log",
+    "max_stack_size":  64,
+    "category":  "wood"
+}

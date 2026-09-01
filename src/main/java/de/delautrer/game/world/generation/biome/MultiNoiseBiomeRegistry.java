@@ -15,44 +15,60 @@ public class MultiNoiseBiomeRegistry {
     private static boolean isInitialized = false;
     private static Biome FALLBACK_BIOME;
 
+    public static final de.delautrer.game.registry.Registry<Biome> BIOME_REGISTRY = new de.delautrer.game.registry.Registry<>();
+
+
+
     public static synchronized void init() {
         if (isInitialized) return;
-        
+
         if (FALLBACK_BIOME == null) {
             FALLBACK_BIOME = new Biome();
-            FALLBACK_BIOME.id = "PLAINS";
+            FALLBACK_BIOME.id = "veinstride:plains";
             FALLBACK_BIOME.temperature = new float[]{-1f, 1f};
             FALLBACK_BIOME.humidity = new float[]{-1f, 1f};
             FALLBACK_BIOME.continentalness = new float[]{-1f, 1f};
             FALLBACK_BIOME.erosion = new float[]{-1f, 1f};
             FALLBACK_BIOME.weirdness = new float[]{-1f, 1f};
-            FALLBACK_BIOME.topBlock = "grass";
+            FALLBACK_BIOME.topBlock = "grass_block";
             FALLBACK_BIOME.underBlock = "dirt";
             FALLBACK_BIOME.underwaterBlock = "sand";
         }
 
-        try (InputStream is = MultiNoiseBiomeRegistry.class.getResourceAsStream("/assets/world/biomes.json")) {
-            if (is == null) {
-                System.err.println("ERROR: /assets/world/biomes.json not found! Using fallback.");
-                BIOMES = new ArrayList<>(Collections.singletonList(FALLBACK_BIOME));
-                isInitialized = true;
-                return;
-            }
-            List<Biome> loaded = GSON.fromJson(new InputStreamReader(is, StandardCharsets.UTF_8), new TypeToken<List<Biome>>(){}.getType());
-            if (loaded != null && !loaded.isEmpty()) {
-                BIOMES = Collections.unmodifiableList(loaded);
-                isInitialized = true;
-                System.out.println("Loaded " + BIOMES.size() + " biomes from JSON.");
-            } else {
-                BIOMES = new ArrayList<>(Collections.singletonList(FALLBACK_BIOME));
-                isInitialized = true;
-            }
-        } catch (Exception e) {
-            System.err.println("Failed to load biomes: " + e.getMessage());
-            BIOMES = new ArrayList<>(Collections.singletonList(FALLBACK_BIOME));
-            isInitialized = true;
-            e.printStackTrace();
+        List<Biome> loadedList = new ArrayList<>();
+        List<String> files = de.delautrer.engine.utils.ResourceUtils.listResources("assets/data/veinstride/worldgen/biome", ".json");
+        if (files == null || files.isEmpty()) {
+            throw new IllegalStateException("Critical Error: No biome JSON files found in assets/data/veinstride/worldgen/biome!");
         }
+
+        for (String file : files) {
+            if (file == null || file.trim().isEmpty()) continue;
+            String path = file.endsWith(".json") ? file.substring(0, file.length() - 5).replace('\\', '/').toLowerCase() : file.replace('\\', '/').toLowerCase();
+            if (path.trim().isEmpty()) continue;
+            de.delautrer.game.registry.NamespacedKey key = new de.delautrer.game.registry.NamespacedKey(de.delautrer.Constants.NAMESPACE, path);
+            try {
+                java.io.Reader reader = de.delautrer.engine.utils.ResourceUtils.readResourceToReader("assets/data/veinstride/worldgen/biome/" + file);
+                Biome biome = GSON.fromJson(reader, Biome.class);
+                if (biome != null) {
+                    biome.id = key.toString();
+                    if ("grass".equals(biome.topBlock)) biome.topBlock = "grass_block";
+                    BIOME_REGISTRY.register(key, biome);
+                    loadedList.add(biome);
+                }
+            } catch (Exception e) {
+                System.err.println("[MultiNoiseBiomeRegistry] Failed to load biome: " + file);
+                throw new IllegalStateException("Failed to load biome file: " + file, e);
+            }
+        }
+
+        if (!loadedList.isEmpty()) {
+            BIOMES = Collections.unmodifiableList(loadedList);
+        } else {
+            BIOME_REGISTRY.register(de.delautrer.game.registry.NamespacedKey.fromString("veinstride:plains"), FALLBACK_BIOME);
+            BIOMES = new ArrayList<>(Collections.singletonList(FALLBACK_BIOME));
+        }
+        isInitialized = true;
+        System.out.println("Loaded " + BIOMES.size() + " biomes.");
     }
 
     public static Biome getBiomeFor(Climate.TargetPoint point) {

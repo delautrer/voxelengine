@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Palm Stairs",
+    "texture_name":  "palm_stairs",
+    "max_stack_size":  64,
+    "category":  "building"
+}

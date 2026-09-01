@@ -1,0 +1,7 @@
+﻿{
+    "type":  "simple",
+    "name":  "Zinc Ingot",
+    "texture_name":  "zinc_ingot",
+    "max_stack_size":  64,
+    "category":  "misc"
+}

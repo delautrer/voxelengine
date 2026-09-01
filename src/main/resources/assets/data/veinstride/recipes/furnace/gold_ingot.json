@@ -1,0 +1,7 @@
+﻿{
+    "type":  "furnace",
+    "ingredient":  "veinstride:raw_gold",
+    "result":  "veinstride:gold_ingot",
+    "experience":  1,
+    "cookingtime":  200
+}

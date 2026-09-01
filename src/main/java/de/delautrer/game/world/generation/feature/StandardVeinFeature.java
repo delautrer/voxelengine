@@ -7,8 +7,8 @@ import java.util.Random;
 public class StandardVeinFeature extends ConfiguredFeature {
     private final int size;
 
-    public StandardVeinFeature(byte blockId, int size) {
-        super(blockId);
+    public StandardVeinFeature(de.delautrer.game.blocks.Block block, int size) {
+        super(block);
         this.size = size;
     }
 
@@ -57,8 +57,8 @@ public class StandardVeinFeature extends ConfiguredFeature {
                         if (dx * dx + dy * dy + dz * dz < 1.0) {
                             if (currX >= 0 && currX < Chunk.SIZE && currZ >= 0 && currZ < Chunk.SIZE) {
                                 if (modifier.canReplace(chunk, currX, currY, currZ, rand)) {
-                                    byte replacedBlock = chunk.getBlock(currX, currY, currZ);
-                                    chunk.setBlock(currX, currY, currZ, getVariantBlockId(replacedBlock));
+                                    de.delautrer.game.blocks.Block replacedBlock = chunk.getBlock(currX, currY, currZ);
+                                    chunk.setBlock(currX, currY, currZ, getVariantBlock(replacedBlock), (byte) 0, null);
                                 }
                             }
                         }

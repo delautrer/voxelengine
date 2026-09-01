@@ -1,0 +1,6 @@
+﻿{
+    "type":  "mega_vein",
+    "block":  "veinstride:coal_ore",
+    "carrier":  "veinstride:dolomite",
+    "ore_chance":  0.2
+}

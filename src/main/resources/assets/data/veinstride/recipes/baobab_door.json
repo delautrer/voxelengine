@@ -1,0 +1,16 @@
+﻿{
+  "type": "shaped",
+  "pattern": [
+    "AA",
+    "AA",
+    "AA"
+  ],
+  "keys": {
+    "A": "veinstride:baobab_planks"
+  },
+  "result": {
+    "count": 3,
+    "item": "veinstride:baobab_door"
+  }
+}
+

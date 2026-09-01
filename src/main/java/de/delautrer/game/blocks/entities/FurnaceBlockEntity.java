@@ -28,6 +28,52 @@ public class FurnaceBlockEntity extends BlockEntity {
         return inventory;
     }
 
+    @Override
+    public BlockEntityType<?> getType() {
+        return BlockEntityTypeRegistry.FURNACE;
+    }
+
+    @Override
+    public void write(java.io.DataOutputStream dos) throws java.io.IOException {
+        super.write(dos);
+        dos.writeInt(burnTime);
+        dos.writeInt(maxBurnTime);
+        dos.writeInt(cookTime);
+        dos.writeInt(maxCookTime);
+        dos.writeInt(inventory.getSize());
+        for (int i = 0; i < inventory.getSize(); i++) {
+            ItemStack stack = inventory.getStack(i);
+            if (stack != null && stack.type != null && stack.amount > 0) {
+                dos.writeInt(i);
+                dos.writeUTF(de.delautrer.game.registry.Registries.ITEMS.getKey(stack.type).toString());
+                dos.writeInt(stack.amount);
+            } else {
+                dos.writeInt(-1);
+            }
+        }
+    }
+
+    @Override
+    public void read(java.io.DataInputStream dis) throws java.io.IOException {
+        super.read(dis);
+        this.burnTime = dis.readInt();
+        this.maxBurnTime = dis.readInt();
+        this.cookTime = dis.readInt();
+        this.maxCookTime = dis.readInt();
+        int size = dis.readInt();
+        for (int i = 0; i < size; i++) {
+            int slot = dis.readInt();
+            if (slot != -1) {
+                String itemKey = dis.readUTF();
+                int amount = dis.readInt();
+                de.delautrer.game.items.Item item = de.delautrer.game.registry.Registries.ITEMS.get(itemKey);
+                if (item != null && amount > 0) {
+                    inventory.setStack(slot, new ItemStack(item, amount));
+                }
+            }
+        }
+    }
+
     public int getBurnTime() {
         return burnTime;
     }

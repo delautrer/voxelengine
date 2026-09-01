@@ -11,13 +11,16 @@ import de.delautrer.game.world.generation.FlatChunkGenerator;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.Collection;
 
+import de.delautrer.game.blocks.Block;
+
 public class WorldGenerator {
 
     public static class PendingBlock {
         public final int x, y, z;
-        public final byte blockId, state;
-        public PendingBlock(int x, int y, int z, byte blockId, byte state) {
-            this.x = x; this.y = y; this.z = z; this.blockId = blockId; this.state = state;
+        public final Block block;
+        public final byte state;
+        public PendingBlock(int x, int y, int z, Block block, byte state) {
+            this.x = x; this.y = y; this.z = z; this.block = block; this.state = state;
         }
     }
 
@@ -26,7 +29,23 @@ public class WorldGenerator {
     private final MultiNoiseSurfaceBuilder surfaceBuilder;
     private final Map<Long, Collection<PendingBlock>> pendingCrossChunkBlocks = new ConcurrentHashMap<>();
 
+    private de.delautrer.game.world.persistence.WorldPalette blockPalette;
+    private de.delautrer.game.world.persistence.BiomePalette biomePalette;
+
     private final IChunkGenerator chunkGenerator;
+
+    public void setPalettes(de.delautrer.game.world.persistence.WorldPalette blockPalette, de.delautrer.game.world.persistence.BiomePalette biomePalette) {
+        this.blockPalette = blockPalette;
+        this.biomePalette = biomePalette;
+    }
+
+    public de.delautrer.game.world.persistence.WorldPalette getBlockPalette() {
+        return blockPalette;
+    }
+
+    public de.delautrer.game.world.persistence.BiomePalette getBiomePalette() {
+        return biomePalette;
+    }
 
     public WorldGenerator(long seed, String generatorType, String generatorOptions) {
         this.seed = seed;
@@ -51,10 +70,10 @@ public class WorldGenerator {
         chunkGenerator.generate(chunk, this);
     }
 
-    public void addPendingBlock(int worldX, int worldY, int worldZ, byte blockId, byte state) {
+    public void addPendingBlock(int worldX, int worldY, int worldZ, Block block, byte state) {
         long pos = ChunkManager.packPos(worldX >> 4, worldZ >> 4);
         pendingCrossChunkBlocks.computeIfAbsent(pos, k -> new ConcurrentLinkedQueue<>())
-            .add(new PendingBlock(worldX, worldY, worldZ, blockId, state));
+            .add(new PendingBlock(worldX, worldY, worldZ, block, state));
     }
 
     public MultiNoiseChunkGenerator getTerrainGenerator() {

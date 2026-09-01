@@ -1,0 +1,12 @@
+﻿{
+    "replace":  false,
+    "values":  [
+                   "veinstride:oak_sapling",
+                   "veinstride:birch_sapling",
+                   "veinstride:palm_sapling",
+                   "veinstride:willow_sapling",
+                   "veinstride:baobab_sapling",
+                   "veinstride:mahogany_sapling",
+                   "veinstride:pine_sapling"
+               ]
+}

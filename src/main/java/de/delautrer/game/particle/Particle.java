@@ -107,8 +107,8 @@ public class Particle extends Entity {
         
         if (collideWithBlocks && chunkManager.getWorld() != null) {
             // Very simple point collision
-            byte blockId = chunkManager.getWorld().getBlockAt((int) Math.floor(position.x + dx), (int) Math.floor(position.y + dy), (int) Math.floor(position.z + dz));
-            if (blockId != 0) {
+            de.delautrer.game.blocks.Block b = chunkManager.getWorld().getBlock((int) Math.floor(position.x + dx), (int) Math.floor(position.y + dy), (int) Math.floor(position.z + dz));
+            if (b != null && !b.isAir() && !b.isPassable) {
                 if (bounciness > 0.0f) {
                     // Simple bounce
                     velocity.y = -velocity.y * bounciness;

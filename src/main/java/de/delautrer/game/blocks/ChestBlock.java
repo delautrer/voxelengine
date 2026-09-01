@@ -24,6 +24,7 @@ public class ChestBlock extends CubeBlock implements IInteractable {
 
     public ChestBlock() {
         super(true, true);
+        this.mesher = new de.delautrer.engine.graphics.meshing.ChestMesher(this);
     }
 
     @Override
@@ -108,12 +109,7 @@ public class ChestBlock extends CubeBlock implements IInteractable {
         return List.of(new AABB(new Vector3f(offset, 0.0f, offset), new Vector3f(1.0f - offset, 14.0f / 16.0f, 1.0f - offset)));
     }
 
-    @Override
-    public void generateMesh(int x, int y, int z, Chunk chunk, ChunkManager cm) {
-        BlockState state = chunk.getBlockState(x, y, z);
-        float offset = 1.0f / 16.0f;
-        renderBox(state, x, y, z, offset, 0.0f, offset, 1.0f - offset, 14.0f / 16.0f, 1.0f - offset, true, true, true, true, true, true, true, chunk, cm);
-    }
+
 
     @Override
     public boolean shouldRenderFaceAgainstState(BlockState myState, BlockState neighborState, BlockFace face) {

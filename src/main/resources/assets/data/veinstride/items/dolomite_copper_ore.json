@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Dolomite Copper Ore",
+    "texture_name":  "dolomite_copper_ore",
+    "max_stack_size":  64,
+    "category":  "misc"
+}

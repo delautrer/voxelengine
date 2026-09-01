@@ -49,18 +49,15 @@ public class LeavesBlock extends CubeBlock {
 
     @Override
     public boolean shouldRenderFaceAgainst(Block neighborBlock, float myHeight, float neighborHeight) {
-        if (this.getId() == Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "oak_leaves").getId()) return true;
+        if (this == Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "oak_leaves")) return true;
         return super.shouldRenderFaceAgainst(neighborBlock, myHeight, neighborHeight);
     }
 
-    @Override
-    public void generateMesh(int x, int y, int z, Chunk chunk, ChunkManager cm) {
-        super.generateMesh(x, y, z, chunk, cm);
-    }
+
 
     @Override
     public boolean shouldRenderFaceAgainstState(BlockState myState, BlockState neighborState, BlockProperties.BlockFace face) {
-        if (this.getId() == neighborState.getBlock().getId()) return true;
+        if (this == neighborState.getBlock()) return true;
         return super.shouldRenderFaceAgainstState(myState, neighborState, face);
     }
 
@@ -70,7 +67,7 @@ public class LeavesBlock extends CubeBlock {
     }
 
     @Override
-    public void onNeighborChanged(World world, int x, int y, int z, Vector3i neighborPos, byte newNeighborId) {
+    public void onNeighborChanged(World world, int x, int y, int z, Vector3i neighborPos, Block changedBlock) {
         BlockState state = world.getBlockState(x, y, z);
         if (state.getValue(PERSISTENT)) return;
 
@@ -86,7 +83,7 @@ public class LeavesBlock extends CubeBlock {
 
         if (!isLogNearby(world, x, y, z, 6)) {
             dropBlockAsItem(world, x, y, z, state);
-            world.setBlock(x, y, z, (byte) 0);
+            world.setBlock(x, y, z, de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:air"));
         }
     }
 

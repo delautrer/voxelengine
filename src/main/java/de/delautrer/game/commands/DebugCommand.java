@@ -11,6 +11,10 @@ import de.delautrer.game.world.generation.biome.TreeFeature;
 import de.delautrer.game.world.generation.biome.Biome;
 import java.util.ArrayList;
 import java.util.List;
+import de.delautrer.game.registry.NamespacedKey;
+import de.delautrer.game.registry.Registries;
+import de.delautrer.game.world.generation.feature.ConfiguredFeature;
+import de.delautrer.game.world.generation.feature.FeatureRegistry;
 import de.delautrer.Constants;
 import de.delautrer.game.blocks.state.BlockProperties.Axis;
 import de.delautrer.game.blocks.state.BlockProperties.Half;
@@ -81,8 +85,7 @@ public class DebugCommand implements ICommand {
         Block block = state.getBlock();
         String blockName = BlockRegistry.REGISTRY.getKey(block).toString();
         
-        manager.sendMessageInChat("--- Block Analysis ---");
-        manager.sendMessageInChat("Type: " + blockName + " (" + block.getId() + ")");
+        manager.sendMessageInChat("Type: " + blockName);
         manager.sendMessageInChat("Pos: " + result.hitPos.x + ", " + result.hitPos.y + ", " + result.hitPos.z);
         
         StringBuilder sb = new StringBuilder();
@@ -159,15 +162,15 @@ public class DebugCommand implements ICommand {
         int count = allBlocks.length;
         int gridSize = (int) Math.ceil(Math.sqrt(count));
 
-        byte airId = 0;
-        byte floorId = BlockRegistry.get(Constants.NAMESPACE + ":grass_block").getId();
+        Block air = Registries.BLOCKS.get("veinstride:air");
+        Block floor = Registries.BLOCKS.get(Constants.NAMESPACE + ":grass_block");
 
         for (int gx = -1; gx <= gridSize * 2; gx++) {
             for (int gz = -1; gz <= gridSize * 2; gz++) {
                 int bx = startX + gx;
                 int bz = startZ + gz;
-                world.setBlock(bx, targetY - 1, bz, floorId);
-                for (int y = 0; y < 5; y++) world.setBlock(bx, targetY + y, bz, airId);
+                world.setBlock(bx, targetY - 1, bz, floor);
+                for (int y = 0; y < 5; y++) world.setBlock(bx, targetY + y, bz, air);
             }
         }
 
@@ -178,7 +181,7 @@ public class DebugCommand implements ICommand {
                 int bx = startX + (gx * 2);
                 int bz = startZ + (gz * 2);
                 Block b = allBlocks[blockIndex++];
-                if (b.getId() == 0) continue;
+                if (b.isAir()) continue;
                 
                 if (b instanceof LogBlock) {
                     BlockState logState = b.getDefaultState().with(LogBlock.AXIS, Axis.Y);
@@ -190,7 +193,7 @@ public class DebugCommand implements ICommand {
                     BlockState topState = b.getDefaultState().with(DoorBlock.HALF, Half.TOP);
                     world.setBlockState(bx, targetY + 1, bz, topState);
                 } else {
-                    world.setBlock(bx, targetY, bz, b.getId());
+                    world.setBlock(bx, targetY, bz, b);
                 }
             }
         }
@@ -199,22 +202,25 @@ public class DebugCommand implements ICommand {
 
     private void generateTrees(LocalPlayer player, World world, CommandManager manager, String specificType) {
         String[][] treeTypes = {
-            {"oak", "oak_log", "oak_leaves"},
-            {"birch", "birch_log", "birch_leaves"},
-            {"pine", "pine_log", "pine_leaves"},
-            {"willow", "willow_log", "willow_leaves"},
-            {"baobab", "baobab_log", "baobab_leaves"},
-            {"mahogany", "mahogany_log", "mahogany_leaves"},
-            {"palm", "palm_log", "palm_leaves"},
-            {"tall_oak", "oak_log", "oak_leaves"},
-            {"tall_birch", "birch_log", "birch_leaves"},
-            {"tall_pine", "pine_log", "pine_leaves"}
+            {"oak", "oak_log", "oak_leaves", "STANDARD"},
+            {"birch", "birch_log", "birch_leaves", "STANDARD"},
+            {"pine", "pine_log", "pine_leaves", "PINE"},
+            {"tall_pine", "pine_log", "pine_leaves", "TALL_PINE"},
+            {"willow", "willow_log", "willow_leaves", "WILLOW"},
+            {"baobab", "baobab_log", "baobab_leaves", "BAOBAB"},
+            {"mahogany", "mahogany_log", "mahogany_leaves", "MAHOGANY"},
+            {"palm", "palm_log", "palm_leaves", "PALM"}
         };
+
+        int startX = (int) Math.floor(player.position.x);
+        int startZ = (int) Math.floor(player.position.z);
+        int targetY = (int) Math.floor(player.position.y);
+        Block floorBlock = Registries.BLOCKS.get("veinstride:grass_block");
 
         if (specificType != null) {
             String[] target = null;
             for (String[] td : treeTypes) {
-                if (td[0].equals(specificType)) {
+                if (td[0].equalsIgnoreCase(specificType)) {
                     target = td;
                     break;
                 }
@@ -223,55 +229,49 @@ public class DebugCommand implements ICommand {
                 manager.sendMessageInChat("Unknown tree type: " + specificType);
                 return;
             }
-            
-            int startX = (int) Math.floor(player.position.x);
-            int startZ = (int) Math.floor(player.position.z);
-            int targetY = 128;
-            player.position.set(startX, targetY + 2.0f, startZ);
-            player.velocity.set(0);
-
-            byte logId = BlockRegistry.get(Constants.NAMESPACE + ":" + target[1]).getId();
-            byte leavesId = BlockRegistry.get(Constants.NAMESPACE + ":" + target[2]).getId();
-            
-            byte floorId = BlockRegistry.get(Constants.NAMESPACE + ":grass_block").getId();
-            byte airId = 0;
-            for (int gx = -8; gx <= 24; gx++) {
-                for (int gz = -8; gz <= 24; gz++) {
-                    world.setBlock(startX + gx, targetY - 1, startZ + gz, floorId);
-                    for (int y = 0; y < 15; y++) world.setBlock(startX + gx, targetY + y, startZ + gz, airId);
-                }
-            }
 
             for (int i = 0; i < 6; i++) {
-                int bx = startX + (i % 3 * 8);
-                int bz = startZ + (i / 3 * 8);
-                TreeFeature.generate(world, bx, targetY, bz, world.getSeed() + (i * 999), "alpha_" + target[0], logId, leavesId);
+                int bx = startX + (i % 3 * 10);
+                int bz = startZ + (i / 3 * 10);
+                for (int dx = -3; dx <= 3; dx++) {
+                    for (int dz = -3; dz <= 3; dz++) {
+                        world.setBlock(bx + dx, targetY - 1, bz + dz, floorBlock);
+                    }
+                }
+                NamespacedKey featKey = NamespacedKey.fromString("veinstride:" + target[0]);
+                ConfiguredFeature feature = FeatureRegistry.getConfiguredFeature(featKey);
+                if (feature != null) {
+                    feature.generate(world, bx, targetY, bz, world.getSeed() + (i * 999));
+                } else {
+                    Block logBlock = Registries.BLOCKS.get("veinstride:" + target[1]);
+                    Block leavesBlock = Registries.BLOCKS.get("veinstride:" + target[2]);
+                    TreeFeature.TreeShape shape = TreeFeature.TreeShape.valueOf(target[3]);
+                    TreeFeature.generate(world, bx, targetY, bz, world.getSeed() + (i * 999), shape, logBlock, leavesBlock, 4, 3);
+                }
             }
             manager.sendMessageInChat("Debug-Trees (6x " + target[0] + ") generated!");
         } else {
-            // All trees grid logic
-            int startX = (int) Math.floor(player.position.x);
-            int startZ = (int) Math.floor(player.position.z);
-            int targetY = 128;
-            player.position.set(startX, targetY + 2.0f, startZ);
             int spacing = 12;
             int gridSize = (int) Math.ceil(Math.sqrt(treeTypes.length));
-
-            byte floorId = BlockRegistry.get(Constants.NAMESPACE + ":grass_block").getId();
-            byte airId = 0;
-            for (int gx = -spacing; gx <= gridSize * spacing; gx++) {
-                for (int gz = -spacing; gz <= gridSize * spacing; gz++) {
-                    world.setBlock(startX + gx, targetY - 1, startZ + gz, floorId);
-                    for (int y = 0; y < 20; y++) world.setBlock(startX + gx, targetY + y, startZ + gz, airId);
-                }
-            }
 
             for (int i = 0; i < treeTypes.length; i++) {
                 int bx = startX + (i % gridSize * spacing);
                 int bz = startZ + (i / gridSize * spacing);
-                byte logId = BlockRegistry.get(Constants.NAMESPACE + ":" + treeTypes[i][1]).getId();
-                byte leavesId = BlockRegistry.get(Constants.NAMESPACE + ":" + treeTypes[i][2]).getId();
-                TreeFeature.generate(world, bx, targetY, bz, world.getSeed(), "alpha_" + treeTypes[i][0], logId, leavesId);
+                for (int dx = -4; dx <= 4; dx++) {
+                    for (int dz = -4; dz <= 4; dz++) {
+                        world.setBlock(bx + dx, targetY - 1, bz + dz, floorBlock);
+                    }
+                }
+                NamespacedKey featKey = NamespacedKey.fromString("veinstride:" + treeTypes[i][0]);
+                ConfiguredFeature feature = FeatureRegistry.getConfiguredFeature(featKey);
+                if (feature != null) {
+                    feature.generate(world, bx, targetY, bz, world.getSeed() + (i * 999));
+                } else {
+                    Block logBlock = Registries.BLOCKS.get("veinstride:" + treeTypes[i][1]);
+                    Block leavesBlock = Registries.BLOCKS.get("veinstride:" + treeTypes[i][2]);
+                    TreeFeature.TreeShape shape = TreeFeature.TreeShape.valueOf(treeTypes[i][3]);
+                    TreeFeature.generate(world, bx, targetY, bz, world.getSeed() + (i * 999), shape, logBlock, leavesBlock, 4, 3);
+                }
             }
             manager.sendMessageInChat("Debug-Trees (All) generated!");
         }

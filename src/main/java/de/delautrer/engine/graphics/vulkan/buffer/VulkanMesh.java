@@ -18,6 +18,12 @@ public class VulkanMesh implements de.delautrer.engine.graphics.IMesh {
     public float chunkOffsetX = 0.0f;
     public float chunkOffsetZ = 0.0f;
 
+    @Override
+    public void setChunkOffset(float x, float z) {
+        this.chunkOffsetX = x;
+        this.chunkOffsetZ = z;
+    }
+
     public VulkanMesh(VulkanContext context, float[] vertices, int[] indices) {
         this.context = context;
         if (de.delautrer.Constants.VULKAN_DEBUG) {

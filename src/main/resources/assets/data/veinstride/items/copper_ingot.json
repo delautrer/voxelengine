@@ -1,0 +1,7 @@
+﻿{
+    "type":  "simple",
+    "name":  "Copper Ingot",
+    "texture_name":  "copper_ingot",
+    "max_stack_size":  64,
+    "category":  "misc"
+}

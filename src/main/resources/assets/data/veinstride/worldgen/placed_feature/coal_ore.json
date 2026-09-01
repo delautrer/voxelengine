@@ -1,0 +1,13 @@
+﻿{
+    "count":  25,
+    "distribution":  {
+                         "type":  "trapezoid",
+                         "min_y":  -32,
+                         "max_y":  384,
+                         "peak_y":  128
+                     },
+    "modifiers":  {
+                      "target_blocks":  "veinstride:stone",
+                      "air_exposure_chance":  0.1
+                  }
+}

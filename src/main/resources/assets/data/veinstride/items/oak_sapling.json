@@ -1,0 +1,8 @@
+﻿{
+    "type":  "block",
+    "name":  "Oak Sapling",
+    "texture_name":  "oak_sapling",
+    "max_stack_size":  64,
+    "category":  "natural",
+    "render_as_item":  true
+}

@@ -1,0 +1,10 @@
+{
+  "type": "shapeless",
+  "ingredients": [
+    "#veinstride:leaves"
+  ],
+  "result": {
+    "item": "veinstride:grass",
+    "count": 4
+  }
+}

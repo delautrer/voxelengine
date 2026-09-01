@@ -1,0 +1,16 @@
+﻿{
+  "type": "shaped",
+  "pattern": [
+    "A  ",
+    "AA ",
+    "AAA"
+  ],
+  "keys": {
+    "A": "veinstride:birch_planks"
+  },
+  "result": {
+    "count": 4,
+    "item": "veinstride:birch_stairs"
+  }
+}
+

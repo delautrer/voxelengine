@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Coal Ore",
+    "texture_name":  "coal_ore",
+    "max_stack_size":  64,
+    "category":  "misc"
+}

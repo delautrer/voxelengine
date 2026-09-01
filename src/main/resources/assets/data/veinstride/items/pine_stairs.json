@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Pine Stairs",
+    "texture_name":  "pine_stairs",
+    "max_stack_size":  64,
+    "category":  "building"
+}

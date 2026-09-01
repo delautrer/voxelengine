@@ -1,0 +1,13 @@
+﻿{
+    "type":  "sapling",
+    "solid":  false,
+    "transparent":  true,
+    "hardness":  0.0,
+    "sound_material":  "veinstride:grass",
+    "min_growth_time":  60,
+    "max_growth_time":  180,
+    "category":  "natural",
+    "tree":  "veinstride:birch",
+    "log":  "veinstride:birch_log",
+    "leaves":  "veinstride:birch_leaves"
+}

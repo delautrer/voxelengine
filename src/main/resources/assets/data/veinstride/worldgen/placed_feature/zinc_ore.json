@@ -1,0 +1,11 @@
+﻿{
+    "count":  10,
+    "distribution":  {
+                         "type":  "uniform",
+                         "min_y":  -64,
+                         "max_y":  64
+                     },
+    "modifiers":  {
+                      "target_blocks":  "veinstride:stone"
+                  }
+}

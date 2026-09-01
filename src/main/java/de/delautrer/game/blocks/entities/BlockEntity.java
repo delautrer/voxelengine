@@ -14,6 +14,15 @@ public abstract class BlockEntity {
 
     public Vector3i getPos() { return pos; }
     public World getWorld() { return world; }
+    public abstract BlockEntityType<?> getType();
+
+    public void write(java.io.DataOutputStream dos) throws java.io.IOException {
+        dos.writeInt(pos.x);
+        dos.writeInt(pos.y);
+        dos.writeInt(pos.z);
+    }
+
+    public void read(java.io.DataInputStream dis) throws java.io.IOException {}
 
     public void onRemove() {}
 

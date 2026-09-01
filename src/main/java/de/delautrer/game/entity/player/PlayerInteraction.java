@@ -134,11 +134,11 @@ public class PlayerInteraction {
 
         // 2. Pick Block (Mittlere Maustaste)
         if (input.isActionJustPressed("PICK_BLOCK") && selectedBlockPos != null) {
-            byte targetId = world.getBlockAt(selectedBlockPos);
+            Block targetBlock = world.getBlock(selectedBlockPos);
             for (int i = 0; i < 9; i++) {
                 ItemStack stack = player.getInventory().getStack(i);
                 if (stack != null && stack.type instanceof BlockItem) {
-                    if (((BlockItem) stack.type).block.getId() == targetId) {
+                    if (((BlockItem) stack.type).block == targetBlock) {
                         player.getInventory().setSelectedSlot(i);
                         eventBus.publish(new HotbarSlotChangeEvent(i));
                         break;
@@ -172,8 +172,7 @@ public class PlayerInteraction {
                 }
             } else if (player.getGameMode() == GameMode.SURVIVAL) {
                 if (selectedBlockPos != null) {
-                    byte blockId = world.getBlockAt(selectedBlockPos);
-                    Block targetBlock = BlockRegistry.get(blockId);
+                    Block targetBlock = world.getBlock(selectedBlockPos);
 
                     if (targetBlock != Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air")
                             && targetBlock.getHardness() >= 0) {
@@ -228,12 +227,11 @@ public class PlayerInteraction {
                             miningSoundTimer = 0.0f;
                             
                             // PARTIKEL FÜR ABBAU-PROGRESS
-                            de.delautrer.game.blocks.Block b = de.delautrer.game.blocks.BlockRegistry.get(blockId);
-                            de.delautrer.game.particle.ParticleSpawner.spawnBreaking(world, selectedBlockPos.x, selectedBlockPos.y, selectedBlockPos.z, b);
+                            de.delautrer.game.particle.ParticleSpawner.spawnBreaking(world, selectedBlockPos.x, selectedBlockPos.y, selectedBlockPos.z, targetBlock);
                         }
 
                         if (state.progress >= requiredTime) {
-                            handleSurvivalBreak(targetBlock, blockId, canHarvest);
+                            handleSurvivalBreak(targetBlock, canHarvest);
                             miningStates.remove(selectedBlockPos);
                             interactTimer = INTERACT_COOLDOWN;
                         }
@@ -277,7 +275,7 @@ public class PlayerInteraction {
         }
     }
 
-    private void handleSurvivalBreak(Block block, byte blockId, boolean canHarvest) {
+    private void handleSurvivalBreak(Block block, boolean canHarvest) {
         if (selectedBlockPos == null)
             return;
 
@@ -287,7 +285,8 @@ public class PlayerInteraction {
         eventBus.publish(breakEvent);
 
         if (!breakEvent.isCancelled()) {
-            world.setBlock(selectedBlockPos, (byte) 0);
+            Block airBlock = de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:air");
+            world.setBlock(selectedBlockPos.x, selectedBlockPos.y, selectedBlockPos.z, airBlock);
 
             // Werkzeug-Haltbarkeit reduzieren
             ItemStack heldStack = player.getInventory().getSelectedHotbarStack();
@@ -296,7 +295,7 @@ public class PlayerInteraction {
                 if (heldStack.durability <= 0) {
                     player.getInventory().setStack(player.getInventory().getSelectedSlot(), null);
                     eventBus.publish(new InventoryChangeEvent());
-                    SoundManager.playEvent("rock", "break", 1.0f, 1.0f, 1.0f, "Player");
+                    SoundManager.playEvent("metal", "break", 1.0f, 1.0f, 1.0f, "Player");
                 } else {
                     eventBus.publish(new InventoryChangeEvent());
                 }
@@ -320,15 +319,14 @@ public class PlayerInteraction {
 
             // NEU: Wenn ein Baum-Stamm an seiner Basis (auf Erde/Gras/Sand) abgebaut wird, droppe 4 Saplings
             if (block instanceof LogBlock) {
-                NamespacedKey logKey = BlockRegistry.REGISTRY.getKey(block);
+                NamespacedKey logKey = de.delautrer.game.registry.Registries.BLOCKS.getKey(block);
                 if (logKey != null) {
                     String logName = logKey.getKey(); // z.B. "oak_log"
                     String baseName = logName.replace("_log", "");
                     
                     // Check if block below is soil
-                    byte belowId = world.getBlockAt(selectedBlockPos.x, selectedBlockPos.y - 1, selectedBlockPos.z);
-                    Block belowBlock = BlockRegistry.get(belowId);
-                    NamespacedKey belowKey = BlockRegistry.REGISTRY.getKey(belowBlock);
+                    Block belowBlock = world.getBlock(selectedBlockPos.x, selectedBlockPos.y - 1, selectedBlockPos.z);
+                    NamespacedKey belowKey = de.delautrer.game.registry.Registries.BLOCKS.getKey(belowBlock);
                     if (belowKey != null) {
                         String belowName = belowKey.getKey();
                         boolean isSoil = belowName.equals("grass_block") || belowName.equals("dirt") || belowName.equals("sand") || belowName.equals("sandy_grass");
@@ -339,9 +337,8 @@ public class PlayerInteraction {
                             for (int dx = -6; dx <= 6 && !leavesNearby; dx++) {
                                 for (int dy = -6; dy <= 6 && !leavesNearby; dy++) {
                                     for (int dz = -6; dz <= 6 && !leavesNearby; dz++) {
-                                        byte nearbyId = world.getBlockAt(selectedBlockPos.x + dx, selectedBlockPos.y + dy, selectedBlockPos.z + dz);
-                                        Block nearbyBlock = BlockRegistry.get(nearbyId);
-                                        NamespacedKey nearbyKey = BlockRegistry.REGISTRY.getKey(nearbyBlock);
+                                        Block nearbyBlock = world.getBlock(selectedBlockPos.x + dx, selectedBlockPos.y + dy, selectedBlockPos.z + dz);
+                                        NamespacedKey nearbyKey = de.delautrer.game.registry.Registries.BLOCKS.getKey(nearbyBlock);
                                         if (nearbyKey != null && nearbyKey.getKey().equals(leavesName)) {
                                             leavesNearby = true;
                                         }
@@ -389,7 +386,8 @@ public class PlayerInteraction {
             eventBus.publish(breakEvent);
 
             if (!breakEvent.isCancelled()) {
-                world.setBlock(selectedBlockPos, (byte) 0);
+                Block airBlock = de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:air");
+                world.setBlock(selectedBlockPos.x, selectedBlockPos.y, selectedBlockPos.z, airBlock);
                 return true;
             }
             return false;
@@ -398,7 +396,7 @@ public class PlayerInteraction {
                 return false;
 
             if (!player.isSneaking) {
-                Block clickedBlock = BlockRegistry.get(world.getBlockAt(selectedBlockPos));
+                Block clickedBlock = world.getBlock(selectedBlockPos);
 
                 if (clickedBlock instanceof IInteractable interactable) {
                     boolean handled = interactable.onInteract(world, selectedBlockPos, player);
@@ -463,8 +461,7 @@ public class PlayerInteraction {
     }
 
     private float calculateProgressPercent(Vector3i pos, float currentProgress) {
-        byte blockId = world.getBlockAt(pos);
-        Block targetBlock = BlockRegistry.get(blockId);
+        Block targetBlock = world.getBlock(pos);
         if (targetBlock == Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air") || targetBlock.getHardness() < 0) {
             return 0.0f;
         }

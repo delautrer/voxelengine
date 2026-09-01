@@ -1,0 +1,11 @@
+﻿{
+  "type": "shapeless",
+  "ingredients": [
+    "veinstride:mahogany_log"
+  ],
+  "result": {
+    "item": "veinstride:mahogany_planks",
+    "count": 4
+  }
+}
+

@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Dirt",
+    "texture_name":  "dirt",
+    "max_stack_size":  64,
+    "category":  "natural"
+}

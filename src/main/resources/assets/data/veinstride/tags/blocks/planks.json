@@ -1,0 +1,12 @@
+﻿{
+    "replace":  false,
+    "values":  [
+                   "veinstride:oak_planks",
+                   "veinstride:birch_planks",
+                   "veinstride:palm_planks",
+                   "veinstride:willow_planks",
+                   "veinstride:baobab_planks",
+                   "veinstride:mahogany_planks",
+                   "veinstride:pine_planks"
+               ]
+}

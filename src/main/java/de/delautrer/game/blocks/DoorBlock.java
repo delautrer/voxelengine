@@ -12,6 +12,7 @@ import de.delautrer.game.items.BlockItem;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
 import de.delautrer.game.world.World;
+import de.delautrer.game.registry.Registries;
 import de.delautrer.engine.graphics.utils.TextureStitcher.AtlasRegion;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
@@ -29,6 +30,7 @@ public class DoorBlock extends CubeBlock implements IInteractable {
         super(false, true); // Nicht voll-solid, transparent
         setSoundMaterialName("wood");
         setHardness(2.0f);
+        this.mesher = new de.delautrer.engine.graphics.meshing.DoorMesher(this);
     }
 
     @Override
@@ -47,7 +49,7 @@ public class DoorBlock extends CubeBlock implements IInteractable {
     @Override
     public BlockState getStateForPlacement(World world, Player player, Vector3i hitPos, Vector3i hitFace, Vector3f exactHit) {
         if (hitPos.y >= Chunk.MAX_Y - 1) return null;
-        if (world.getBlockAt(hitPos.x, hitPos.y + 1, hitPos.z) != 0) return null;
+        if (!world.getBlock(hitPos.x, hitPos.y + 1, hitPos.z).isAir()) return null;
 
         float yaw = ((LocalPlayer) player).getCamera().getYaw();
         yaw = (yaw % 360 + 360) % 360;
@@ -82,17 +84,18 @@ public class DoorBlock extends CubeBlock implements IInteractable {
 
     @Override
     public void onBlockRemoved(World world, Vector3i pos, BlockState state) {
+        Block airBlock = Registries.BLOCKS.get(de.delautrer.Constants.NAMESPACE + ":air");
         if (state.getValue(HALF) == Half.BOTTOM) {
             Vector3i topPos = new Vector3i(pos.x, pos.y + 1, pos.z);
             BlockState topState = world.getBlockState(topPos.x, topPos.y, topPos.z);
             if (topState.getBlock() == this && topState.getValue(HALF) == Half.TOP) {
-                world.setBlock(topPos.x, topPos.y, topPos.z, (byte) 0);
+                world.setBlock(topPos.x, topPos.y, topPos.z, airBlock);
             }
         } else {
             Vector3i botPos = new Vector3i(pos.x, pos.y - 1, pos.z);
             BlockState botState = world.getBlockState(botPos.x, botPos.y, botPos.z);
             if (botState.getBlock() == this && botState.getValue(HALF) == Half.BOTTOM) {
-                world.setBlock(botPos.x, botPos.y, botPos.z, (byte) 0);
+                world.setBlock(botPos.x, botPos.y, botPos.z, airBlock);
             }
         }
     }
@@ -254,52 +257,5 @@ public class DoorBlock extends CubeBlock implements IInteractable {
     @Override
     public boolean shouldRenderFaceAgainstState(BlockState myState, BlockState neighborState, BlockFace face) {
         return true; 
-    }
-
-    @Override
-    public void generateMesh(int x, int y, int z, Chunk chunk, ChunkManager cm) {
-        BlockState state = chunk.getBlockState(x, y, z);
-        AABB b = getBoundingBoxes(state).get(0);
-        
-        Direction facing = state.getValue(FACING);
-        boolean open = state.getValue(OPEN);
-        boolean hingeLeft = state.getValue(HINGE) == DoorHinge.LEFT;
-        
-        boolean mirN = false, mirS = false, mirE = false, mirW = false;
-
-        if (!open) {
-            if (facing == Direction.NORTH) {
-                mirS = !hingeLeft; mirN = hingeLeft;
-            } else if (facing == Direction.SOUTH) {
-                mirS = hingeLeft; mirN = !hingeLeft;
-            } else if (facing == Direction.WEST) {
-                mirE = !hingeLeft; mirW = hingeLeft;
-            } else if (facing == Direction.EAST) {
-                mirE = hingeLeft; mirW = !hingeLeft;
-            }
-        } else {
-            if (facing == Direction.NORTH) {
-                mirE = hingeLeft; mirW = !hingeLeft;
-            } else if (facing == Direction.SOUTH) {
-                mirE = !hingeLeft; mirW = hingeLeft;
-            } else if (facing == Direction.WEST) {
-                mirS = !hingeLeft; mirN = hingeLeft;
-            } else if (facing == Direction.EAST) {
-                mirS = hingeLeft; mirN = !hingeLeft;
-            }
-        }
-
-        // If the hinge is on the right side, flip/invert all horizontal mirror settings
-        if (!hingeLeft && open) {
-            mirN = !mirN;
-            mirS = !mirS;
-            mirE = !mirE;
-            mirW = !mirW;
-        }
-
-        renderBox(state, x, y, z, b.min.x, b.min.y, b.min.z, b.max.x, b.max.y, b.max.z, 
-                true, true, true, true, true, true, false, chunk, cm, 
-                0, 0, 0, 0, 0, 0, 
-                false, false, mirN, mirS, mirE, mirW);
     }
 }

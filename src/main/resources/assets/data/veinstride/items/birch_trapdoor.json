@@ -1,0 +1,8 @@
+﻿{
+    "type":  "block",
+    "name":  "Birch Trapdoor",
+    "texture_name":  "birch_trapdoor",
+    "max_stack_size":  64,
+    "category":  "wood",
+    "render_as_item":  true
+}

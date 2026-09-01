@@ -1,0 +1,7 @@
+﻿{
+    "type":  "block",
+    "name":  "Pine Planks",
+    "texture_name":  "pine_planks",
+    "max_stack_size":  64,
+    "category":  "wood"
+}

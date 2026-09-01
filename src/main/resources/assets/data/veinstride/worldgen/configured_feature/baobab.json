@@ -1,0 +1,8 @@
+﻿{
+    "type":  "tree",
+    "shape":  "baobab",
+    "log":  "veinstride:baobab_log",
+    "leaves":  "veinstride:baobab_leaves",
+    "baseHeight":  7,
+    "heightVariation":  4
+}

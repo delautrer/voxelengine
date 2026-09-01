@@ -1,0 +1,10 @@
+﻿{
+  "type": "shapeless",
+  "ingredients": [
+    "veinstride:oak_log"
+  ],
+  "result": {
+    "item": "veinstride:oak_planks",
+    "count": 4
+  }
+}

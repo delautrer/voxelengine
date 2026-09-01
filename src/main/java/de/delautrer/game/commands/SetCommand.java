@@ -177,7 +177,7 @@ public class SetCommand implements ICommand {
                         boolean isEdge = x == minX || x == maxX || y == minY || y == maxY || z == minZ || z == maxZ;
                         if (!isEdge) continue;
                     }
-                    world.setBlockWithState(x, y, z, state.getBlock().getId(), state.getStateId(), false);
+                    world.setBlockWithState(x, y, z, state.getBlock(), state.getStateId(), false);
                     count++;
                 }
             }
@@ -201,7 +201,7 @@ public class SetCommand implements ICommand {
             for (int z = -radius; z <= radius; z++) {
                 double dist = Math.sqrt(x*x + z*z);
                 if (dist <= radius) {
-                    world.setBlockWithState(cx + x, cy, cz + z, state.getBlock().getId(), state.getStateId(), false);
+                    world.setBlockWithState(cx + x, cy, cz + z, state.getBlock(), state.getStateId(), false);
                     count++;
                 }
             }
@@ -228,7 +228,7 @@ public class SetCommand implements ICommand {
                     double dist = Math.sqrt(x*x + y*y + z*z);
                     if (dist <= radius) {
                         if (hollow && dist < radius - 1) continue;
-                        world.setBlockWithState(cx + x, cy + y, cz + z, state.getBlock().getId(), state.getStateId(), false);
+                        world.setBlockWithState(cx + x, cy + y, cz + z, state.getBlock(), state.getStateId(), false);
                         count++;
                     }
                 }
@@ -257,7 +257,7 @@ public class SetCommand implements ICommand {
                 if (dist <= radius) {
                     for (int y = 0; y < height; y++) {
                         if (hollow && dist < radius - 1 && y > 0 && y < height - 1) continue;
-                        world.setBlockWithState(cx + x, cy + y, cz + z, state.getBlock().getId(), state.getStateId(), false);
+                        world.setBlockWithState(cx + x, cy + y, cz + z, state.getBlock(), state.getStateId(), false);
                         count++;
                     }
                 }
