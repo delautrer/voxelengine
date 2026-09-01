@@ -162,7 +162,9 @@ public class ChatScreen extends MenuScreen {
 
                     eventBus.publish(new CommandExecutedEvent(command, args, player, world));
                 } else {
-                    eventBus.publish(new ChatMessageEvent("[Player] " + inputText));
+                    String pName = de.delautrer.game.settings.SettingsManager.get().playerName;
+                    if (pName == null || pName.trim().isEmpty()) pName = "Player";
+                    eventBus.publish(new ChatMessageEvent("" + pName + ": " + inputText));
                 }
             }
             closeCallback.run(); // Chat schließen

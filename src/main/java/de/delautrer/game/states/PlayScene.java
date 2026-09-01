@@ -268,6 +268,9 @@ public class PlayScene extends Scene {
 
     @Override
     public void update(float deltaTime) {
+        if (masterRenderer != null) {
+            masterRenderer.waitForCurrentFrame();
+        }
         // --- 0. LADEBILDSCHIRM LOGIK ---
         if (!world.getChunkManager().isInitialLoadComplete() || loadingWarmup > 0) {
             world.getChunkManager().update(localPlayer.position.x, localPlayer.position.z);

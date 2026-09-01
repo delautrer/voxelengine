@@ -15,6 +15,7 @@ import de.delautrer.game.world.persistence.WorldData;
 import de.delautrer.game.world.sky.CloudSystem;
 import de.delautrer.game.world.sky.SkyManager;
 import de.delautrer.game.world.sky.Weather;
+import de.delautrer.game.particle.ParticleManager;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
@@ -37,6 +38,7 @@ public class World {
     private final CloudSystem cloudSystem;
     private final WorldStorageManager storageManager;
     private final SkyManager skyManager;
+    private final ParticleManager particleManager;
 
     private Vector3d worldSpawnpoint;
     private final long seed;
@@ -73,6 +75,7 @@ public class World {
         this.worldSave = worldSave;
         this.storageManager = new WorldStorageManager(worldSave);
         this.skyManager = new SkyManager();
+        this.particleManager = new ParticleManager();
 
         WorldData wData = storageManager.loadLevelMetadata();
         long now = System.currentTimeMillis();
@@ -233,6 +236,10 @@ public class World {
             // NEU: Break Sound abspielen (Leiser)
             if (playSound) {
                 de.delautrer.engine.audio.SoundManager.playEvent(oldBlock.getSoundMaterialName(), "jump_land", 0.35f, 0.6f, 1.2f, x + 0.5f, y + 0.5f, z + 0.5f);
+                
+                // PARTIKEL SPAWNEN
+                de.delautrer.game.blocks.Block b = de.delautrer.game.blocks.BlockRegistry.get(oldBlockId);
+                de.delautrer.game.particle.ParticleSpawner.spawnBreak(this, x, y, z, b);
             }
         }
 
@@ -459,6 +466,10 @@ public class World {
 
     public void removeEntity(Entity entity) {
         entitySystem.removeEntity(entity);
+    }
+
+    public ParticleManager getParticleManager() {
+        return particleManager;
     }
 
     public List<Entity> getEntities() {

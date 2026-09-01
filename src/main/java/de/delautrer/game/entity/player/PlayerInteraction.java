@@ -226,6 +226,10 @@ public class PlayerInteraction {
                         if (miningSoundTimer >= 0.25f) {
                             SoundManager.playEvent(targetBlock.getSoundMaterialName(), "walk", 0.3f, 0.7f, 0.9f, "Player");
                             miningSoundTimer = 0.0f;
+                            
+                            // PARTIKEL FÜR ABBAU-PROGRESS
+                            de.delautrer.game.blocks.Block b = de.delautrer.game.blocks.BlockRegistry.get(blockId);
+                            de.delautrer.game.particle.ParticleSpawner.spawnBreaking(world, selectedBlockPos.x, selectedBlockPos.y, selectedBlockPos.z, b);
                         }
 
                         if (state.progress >= requiredTime) {
@@ -541,6 +545,8 @@ public class PlayerInteraction {
         eventBus.publish(new InventoryChangeEvent());
         dropStack(dropStack);
     }
+
+
 
     public void resetCooldown() {
         this.clickCooldown = 0.5f;

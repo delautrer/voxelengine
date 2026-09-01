@@ -6,7 +6,7 @@ import de.delautrer.game.ui.UIMeshBuilder;
 public class UIProgressBar extends UIElement {
     private float progress = 0.0f;
 
-    private static final float CORNER_SIZE = 8.0f;
+    private static final float CORNER_SIZE = 4.0f;
 
     public UIProgressBar(float x, float y, float width, float height) {
         super(x, y, width, height);
@@ -27,12 +27,10 @@ public class UIProgressBar extends UIElement {
             return;
 
         // 1. HINTERGRUND (Z = 0.1f)
-        // builder.addAtlasQuad(x, y, 0.1f, width, height, 8, 0, 8, 1, MENU_GRID_SIZE,
-        // false);
         builder.add9Slice(x, y, 0.1f, width, height, 1, 0, CORNER_SIZE);
 
         // 2. FÜLLUNG (Z = 0.2f)
-        float padding = 4.0f;
+        float padding = 2.0f;
 
         float maxFillWidth = width - (padding * 2);
         float currentFillWidth = maxFillWidth * progress;

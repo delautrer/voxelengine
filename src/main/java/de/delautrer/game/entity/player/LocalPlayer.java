@@ -292,10 +292,14 @@ public class LocalPlayer extends Player {
                 velocity.z = moveDir.z;
                 velocity.y = moveDir.y;
 
-                int blockAtTop = chunkManager.getWorld().getBlockAt(bx, (int) Math.floor(position.y + height + 0.1f),
-                        bz);
+                int blockAtTop = chunkManager.getWorld().getBlockAt(bx, (int) Math.floor(position.y + height + 0.1f), bz);
                 if (blockAtTop != waterId && velocity.y > 0 && !input.isActionActive("JUMP")) {
                     velocity.y *= 0.1f;
+                    
+                    // SPAWN WATER SURFACE SPLASH PARTICLES
+                    if (chunkManager.getWorld() != null && Math.random() < 0.3f) {
+                        de.delautrer.game.particle.ParticleSpawner.spawnSplash(chunkManager.getWorld(), (float) position.x, (float) position.y + height + 0.1f, (float) position.z, new org.joml.Vector3f(0.2f, 0.4f, 1.0f));
+                    }
                 }
 
                 if (input.isActionActive("JUMP"))
@@ -413,6 +417,11 @@ public class LocalPlayer extends Player {
         if (!wasInWater && isInWater && !onGround) {
             playMovementSound(chunkManager, "jump_land", 0.3f, 0.8f, 1.2f, "Player");
             fallDistance = 0.0f;
+            
+            // SPAWN LARGE WATER SPLASH
+            if (chunkManager.getWorld() != null) {
+                de.delautrer.game.particle.ParticleSpawner.spawnLargeSplash(chunkManager.getWorld(), (float) position.x, (float) position.y + 0.5f, (float) position.z, new org.joml.Vector3f(0.2f, 0.4f, 1.0f));
+            }
         }
 
         if (!wasOnGround && onGround && !isInWater) {

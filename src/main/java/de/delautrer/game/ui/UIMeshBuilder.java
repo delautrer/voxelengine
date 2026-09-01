@@ -202,7 +202,7 @@ public class UIMeshBuilder {
     }
 
     public void addRect(float x, float y, float z, float w, float h, float r, float g, float b, float a) {
-        addClippedQuad(UITexture.UI, x, y, x + w, y + h, z, r, g, b, 0.0f, 0.0f, 0.0f, 0.0f);
+        addClippedQuad(UITexture.UI, x, y, x + w, y + h, z, r, g, b, -1.0f, -1.0f, -1.0f, -1.0f);
     }
 
     public void addCroppedAtlasQuad(float x, float y, float z, float w, float h, int gridX, int gridY, float cropRatio,

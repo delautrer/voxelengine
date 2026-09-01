@@ -41,7 +41,23 @@ public class BlockTickSystem implements WorldSystem {
 
     @Override
     public void update(World world, float deltaTime, LocalPlayer localPlayer) {
-        // Die Logik wurde in onTick verschoben, damit sie FPS-unabhängig 20-mal pro Sekunde läuft.
+        org.joml.Vector3d pos = localPlayer.getCamera().getPosition();
+        int radius = 16;
+        int count = (int) (20000 * deltaTime);
+
+        for (int i = 0; i < count; i++) {
+            int x = (int) pos.x + random.nextInt(radius * 2) - radius;
+            int y = (int) pos.y + random.nextInt(radius * 2) - radius;
+            int z = (int) pos.z + random.nextInt(radius * 2) - radius;
+
+            if (y < Chunk.MIN_Y || y >= Chunk.MAX_Y) continue;
+
+            byte blockId = world.getBlockAt(x, y, z);
+            if (blockId != 0) {
+                Block block = BlockRegistry.get(blockId);
+                block.randomDisplayTick(world, new Vector3i(x, y, z), random);
+            }
+        }
     }
 
     @Override

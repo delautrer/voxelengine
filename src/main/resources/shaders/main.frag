@@ -33,7 +33,7 @@ void main() {
     }
 
     vec4 textureColor;
-    if (pc.useVertexColorOnly > 0.5) {
+    if (pc.useVertexColorOnly > 0.5 || fragTexCoord.z < -0.5) {
         textureColor = vec4(1.0);
     } else {
         textureColor = texture(texSampler, fragTexCoord);

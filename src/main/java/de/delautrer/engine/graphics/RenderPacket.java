@@ -15,6 +15,8 @@ public class RenderPacket {
     public List<IMesh> opaqueMeshes;
     public List<IMesh> waterMeshes;
 
+    public IMesh particleMesh;
+
     public List<Entity> entities;
 
     public IMesh highlightMesh;

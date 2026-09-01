@@ -98,14 +98,6 @@ public class VulkanRenderer {
             long inFlightFence = sync.getInFlightFence(currentFrame);
             long imageAvailableSemaphore = sync.getImageAvailableSemaphore(currentFrame);
 
-            if (de.delautrer.Constants.VULKAN_DEBUG) {
-                System.out.println("[VulkanRenderer] Waiting for fence of currentFrame " + currentFrame + " (fence: 0x" + Long.toHexString(inFlightFence) + ")...");
-            }
-            waitForCurrentFrame();
-            if (de.delautrer.Constants.VULKAN_DEBUG) {
-                System.out.println("[VulkanRenderer] Fence of currentFrame " + currentFrame + " signaled.");
-            }
-
             java.util.Iterator<ScreenshotTask> it = pendingTasks.iterator();
             while (it.hasNext()) {
                 ScreenshotTask task = it.next();

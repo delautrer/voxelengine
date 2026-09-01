@@ -471,6 +471,19 @@ public class WaterBlock extends Block {
     public boolean canBeReplaced(BlockState state, BlockItem item, Vector3i hitFace, Vector3f exactHit) {
         return true;
     }
+    
+    @Override
+    public void randomDisplayTick(World world, Vector3i pos, java.util.Random random) {
+        if (random.nextFloat() < 0.1f) {
+            byte blockBelowId = world.getBlockAt(pos.x, pos.y - 1, pos.z);
+            if (blockBelowId != Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air").getId() && blockBelowId != this.getId()) {
+                byte blockTwoBelowId = world.getBlockAt(pos.x, pos.y - 2, pos.z);
+                if (blockTwoBelowId == Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air").getId()) {
+                    de.delautrer.game.particle.ParticleSpawner.spawnDrop(world, pos.x + 0.5f, pos.y - 1.05f, pos.z + 0.5f);
+                }
+            }
+        }
+    }
 
     @Override
     public int getOpacity(BlockState state) {

@@ -24,6 +24,79 @@ public class GameSettings {
     public static final int MAX_FPS = 240;
     public static final int UNLIMITED_FPS = 1000;
 
+    public static class SkinToneKeyframe {
+        public final float pos;
+        public final float r, g, b;
+
+        public SkinToneKeyframe(float pos, float r, float g, float b) {
+            this.pos = pos;
+            this.r = r;
+            this.g = g;
+            this.b = b;
+        }
+    }
+
+    public static final SkinToneKeyframe[] SKIN_KEYFRAMES = new SkinToneKeyframe[] {
+        new SkinToneKeyframe(0.00f, 1.00f, 0.90f, 0.82f), // Alabaster / Lightest
+        new SkinToneKeyframe(0.05f, 0.95f, 0.80f, 0.70f), // Light Fair
+        new SkinToneKeyframe(0.10f, 0.78f, 0.60f, 0.44f), // Mocha / Medium Tan (formerly at 0.5)
+        new SkinToneKeyframe(0.25f, 0.60f, 0.42f, 0.28f), // Warm Bronze
+        new SkinToneKeyframe(0.45f, 0.44f, 0.28f, 0.17f), // Rich Chestnut
+        new SkinToneKeyframe(0.65f, 0.28f, 0.16f, 0.09f), // Deep Espresso
+        new SkinToneKeyframe(0.82f, 0.16f, 0.09f, 0.05f), // Dark Cocoa
+        new SkinToneKeyframe(1.00f, 0.07f, 0.04f, 0.02f)  // Ebony / Deepest Dark
+    };
+
+    // Backwards compatibility SkinTone class
+    public static class SkinTone {
+        public final String name;
+        public final float r, g, b;
+        public SkinTone(String name, float r, float g, float b) {
+            this.name = name; this.r = r; this.g = g; this.b = b;
+        }
+    }
+
+    // Player Customization
+    @SerializedName("player_name")
+    public String playerName = "Player";
+
+    @SerializedName("skin_tone_factor")
+    public float skinToneFactor = 0.05f;
+
+    @SerializedName("skin_tone_index")
+    public int skinToneIndex = 1;
+
+    @SerializedName("first_launch")
+    public boolean firstLaunch = true;
+
+    public float[] getSkinToneColorRGB() {
+        float f = Math.max(0.0f, Math.min(1.0f, skinToneFactor));
+        SkinToneKeyframe[] kf = SKIN_KEYFRAMES;
+
+        if (f <= kf[0].pos) return new float[] { kf[0].r, kf[0].g, kf[0].b };
+        if (f >= kf[kf.length - 1].pos) {
+            SkinToneKeyframe last = kf[kf.length - 1];
+            return new float[] { last.r, last.g, last.b };
+        }
+
+        for (int i = 0; i < kf.length - 1; i++) {
+            if (f >= kf[i].pos && f <= kf[i + 1].pos) {
+                float t = (f - kf[i].pos) / (kf[i + 1].pos - kf[i].pos);
+                float r = kf[i].r + (kf[i + 1].r - kf[i].r) * t;
+                float g = kf[i].g + (kf[i + 1].g - kf[i].g) * t;
+                float b = kf[i].b + (kf[i + 1].b - kf[i].b) * t;
+                return new float[] { r, g, b };
+            }
+        }
+
+        return new float[] { kf[0].r, kf[0].g, kf[0].b };
+    }
+
+    public SkinTone getSkinTone() {
+        float[] rgb = getSkinToneColorRGB();
+        return new SkinTone("Custom", rgb[0], rgb[1], rgb[2]);
+    }
+
     // Grafik / Kamera
     @SerializedName("fov")
     public float fov = 70.0f;

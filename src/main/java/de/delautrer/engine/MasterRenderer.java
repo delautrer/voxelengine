@@ -46,8 +46,10 @@ public class MasterRenderer {
     // --- NEU: Beide dynamischen Meshes werden dauerhaft gespeichert ---
     private IMesh[] dynamicHighlightMeshes = new IMesh[de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT];
     private IMesh[] dynamicOverlayMeshes = new IMesh[de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT];
+    private IMesh[] dynamicParticleMeshes = new IMesh[de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT];
     private IMesh[] firstPersonMeshes = new IMesh[de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT];
     private de.delautrer.game.items.Item[] lastFirstPersonItems = new de.delautrer.game.items.Item[de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT];
+    private float[] lastFirstPersonSkinTones = new float[de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT];
     
     private Vector3i[] lastSelectedBlockPositions = new Vector3i[de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT];
     private byte[] lastSelectedBlockStateIds = new byte[de.delautrer.engine.graphics.vulkan.core.VulkanSync.MAX_FRAMES_IN_FLIGHT];
@@ -73,6 +75,12 @@ public class MasterRenderer {
         this.uiRenderer = new UIRenderer(graphicsFactory, graphicsContext);
 
         initResources();
+    }
+
+    public void waitForCurrentFrame() {
+        if (renderer != null) {
+            renderer.waitForCurrentFrame();
+        }
     }
 
     private void initResources() {
@@ -161,6 +169,18 @@ public class MasterRenderer {
         packet.cameraPos = camera.getPosition();
         packet.renderDistance = SettingsManager.get().renderDistance * 16.0f;
 
+        MeshData particleData = world.getParticleManager().generateMesh(world.getEntities(), camera.getFront(), camera.getUp());
+        if (particleData != null) {
+            if (dynamicParticleMeshes[frameIndex] == null) {
+                dynamicParticleMeshes[frameIndex] = graphicsFactory.createMesh(particleData.vertices(), particleData.indices());
+            } else {
+                dynamicParticleMeshes[frameIndex].updateMesh(particleData.vertices(), particleData.indices());
+            }
+            packet.particleMesh = dynamicParticleMeshes[frameIndex];
+        } else {
+            packet.particleMesh = null;
+        }
+
         packet.blockUITexture = blockUITexture;
         packet.uiCombinedMesh = uiRenderer.getCombinedMesh(frameIndex);
         packet.uiDrawCalls = uiRenderer.getDrawCalls(frameIndex);
@@ -241,43 +261,51 @@ public class MasterRenderer {
         } else {
             de.delautrer.game.items.ItemStack handStack = interaction.getPlayer().getInventory().getStack(interaction.getPlayer().getInventory().getSelectedSlot());
             de.delautrer.game.items.Item currentItem = (handStack != null) ? handStack.type : null;
+            float currentSkinToneFactor = de.delautrer.game.settings.SettingsManager.get().skinToneFactor;
             
-            if (currentItem != lastFirstPersonItems[frameIndex] || firstPersonMeshes[frameIndex] == null) {
+            if (currentItem != lastFirstPersonItems[frameIndex] || Math.abs(currentSkinToneFactor - lastFirstPersonSkinTones[frameIndex]) > 0.001f || firstPersonMeshes[frameIndex] == null) {
                 if (firstPersonMeshes[frameIndex] != null) firstPersonMeshes[frameIndex].cleanup();
+                lastFirstPersonItems[frameIndex] = currentItem;
+                lastFirstPersonSkinTones[frameIndex] = currentSkinToneFactor;
                 
                 if (currentItem == null) {
                     // Empty hand -> Render block hand (4x12x4 pixels -> 0.25 x 0.75 x 0.25)
+                    de.delautrer.game.settings.GameSettings.SkinTone skin = de.delautrer.game.settings.SettingsManager.get().getSkinTone();
+                    float sr = skin.r;
+                    float sg = skin.g;
+                    float sb = skin.b;
+
                     MeshData md = new MeshData(new float[] {
                         // Front (Z = 0)
-                        0.0f, 0.0f, 0.0f, 1.0f, 0.8f, 0.6f, 1.0f, 0, 0, 1, 1, 1,
-                        0.0f, 0.75f, 0.0f, 1.0f, 0.8f, 0.6f, 1.0f, 0, 0, 1, 1, 1,
-                        0.25f, 0.75f, 0.0f, 1.0f, 0.8f, 0.6f, 1.0f, 0, 0, 1, 1, 1,
-                        0.25f, 0.0f, 0.0f, 1.0f, 0.8f, 0.6f, 1.0f, 0, 0, 1, 1, 1,
+                        0.0f, 0.0f, 0.0f, sr * 1.0f, sg * 1.0f, sb * 1.0f, 1.0f, 0, 0, -1.0f, 1, 1,
+                        0.0f, 0.75f, 0.0f, sr * 1.0f, sg * 1.0f, sb * 1.0f, 1.0f, 0, 0, -1.0f, 1, 1,
+                        0.25f, 0.75f, 0.0f, sr * 1.0f, sg * 1.0f, sb * 1.0f, 1.0f, 0, 0, -1.0f, 1, 1,
+                        0.25f, 0.0f, 0.0f, sr * 1.0f, sg * 1.0f, sb * 1.0f, 1.0f, 0, 0, -1.0f, 1, 1,
                         // Back (Z = 0.25)
-                        0.25f, 0.0f, 0.25f, 0.8f, 0.6f, 0.4f, 1.0f, 0, 0, 1, 1, 1,
-                        0.25f, 0.75f, 0.25f, 0.8f, 0.6f, 0.4f, 1.0f, 0, 0, 1, 1, 1,
-                        0.0f, 0.75f, 0.25f, 0.8f, 0.6f, 0.4f, 1.0f, 0, 0, 1, 1, 1,
-                        0.0f, 0.0f, 0.25f, 0.8f, 0.6f, 0.4f, 1.0f, 0, 0, 1, 1, 1,
+                        0.25f, 0.0f, 0.25f, sr * 0.8f, sg * 0.8f, sb * 0.8f, 1.0f, 0, 0, -1.0f, 1, 1,
+                        0.25f, 0.75f, 0.25f, sr * 0.8f, sg * 0.8f, sb * 0.8f, 1.0f, 0, 0, -1.0f, 1, 1,
+                        0.0f, 0.75f, 0.25f, sr * 0.8f, sg * 0.8f, sb * 0.8f, 1.0f, 0, 0, -1.0f, 1, 1,
+                        0.0f, 0.0f, 0.25f, sr * 0.8f, sg * 0.8f, sb * 0.8f, 1.0f, 0, 0, -1.0f, 1, 1,
                         // Top (Y = 0.75)
-                        0.25f, 0.75f, 0.25f, 0.9f, 0.7f, 0.5f, 1.0f, 0, 0, 1, 1, 1,
-                        0.25f, 0.75f, 0.0f, 0.9f, 0.7f, 0.5f, 1.0f, 0, 0, 1, 1, 1,
-                        0.0f, 0.75f, 0.0f, 0.9f, 0.7f, 0.5f, 1.0f, 0, 0, 1, 1, 1,
-                        0.0f, 0.75f, 0.25f, 0.9f, 0.7f, 0.5f, 1.0f, 0, 0, 1, 1, 1,
+                        0.25f, 0.75f, 0.25f, sr * 0.9f, sg * 0.9f, sb * 0.9f, 1.0f, 0, 0, -1.0f, 1, 1,
+                        0.25f, 0.75f, 0.0f, sr * 0.9f, sg * 0.9f, sb * 0.9f, 1.0f, 0, 0, -1.0f, 1, 1,
+                        0.0f, 0.75f, 0.0f, sr * 0.9f, sg * 0.9f, sb * 0.9f, 1.0f, 0, 0, -1.0f, 1, 1,
+                        0.0f, 0.75f, 0.25f, sr * 0.9f, sg * 0.9f, sb * 0.9f, 1.0f, 0, 0, -1.0f, 1, 1,
                         // Right (X = 0.25)
-                        0.25f, 0.0f, 0.0f, 0.7f, 0.5f, 0.3f, 1.0f, 0, 0, 1, 1, 1,
-                        0.25f, 0.75f, 0.0f, 0.7f, 0.5f, 0.3f, 1.0f, 0, 0, 1, 1, 1,
-                        0.25f, 0.75f, 0.25f, 0.7f, 0.5f, 0.3f, 1.0f, 0, 0, 1, 1, 1,
-                        0.25f, 0.0f, 0.25f, 0.7f, 0.5f, 0.3f, 1.0f, 0, 0, 1, 1, 1,
+                        0.25f, 0.0f, 0.0f, sr * 0.7f, sg * 0.7f, sb * 0.7f, 1.0f, 0, 0, -1.0f, 1, 1,
+                        0.25f, 0.75f, 0.0f, sr * 0.7f, sg * 0.7f, sb * 0.7f, 1.0f, 0, 0, -1.0f, 1, 1,
+                        0.25f, 0.75f, 0.25f, sr * 0.7f, sg * 0.7f, sb * 0.7f, 1.0f, 0, 0, -1.0f, 1, 1,
+                        0.25f, 0.0f, 0.25f, sr * 0.7f, sg * 0.7f, sb * 0.7f, 1.0f, 0, 0, -1.0f, 1, 1,
                         // Bottom (Y = 0.0)
-                        0.25f, 0.0f, 0.0f, 0.5f, 0.4f, 0.3f, 1.0f, 0, 0, 1, 1, 1,
-                        0.25f, 0.0f, 0.25f, 0.5f, 0.4f, 0.3f, 1.0f, 0, 0, 1, 1, 1,
-                        0.0f, 0.0f, 0.25f, 0.5f, 0.4f, 0.3f, 1.0f, 0, 0, 1, 1, 1,
-                        0.0f, 0.0f, 0.0f, 0.5f, 0.4f, 0.3f, 1.0f, 0, 0, 1, 1, 1,
+                        0.25f, 0.0f, 0.0f, sr * 0.5f, sg * 0.5f, sb * 0.5f, 1.0f, 0, 0, -1.0f, 1, 1,
+                        0.25f, 0.0f, 0.25f, sr * 0.5f, sg * 0.5f, sb * 0.5f, 1.0f, 0, 0, -1.0f, 1, 1,
+                        0.0f, 0.0f, 0.25f, sr * 0.5f, sg * 0.5f, sb * 0.5f, 1.0f, 0, 0, -1.0f, 1, 1,
+                        0.0f, 0.0f, 0.0f, sr * 0.5f, sg * 0.5f, sb * 0.5f, 1.0f, 0, 0, -1.0f, 1, 1,
                         // Left (X = 0.0)
-                        0.0f, 0.0f, 0.25f, 0.9f, 0.7f, 0.5f, 1.0f, 0, 0, 1, 1, 1,
-                        0.0f, 0.75f, 0.25f, 0.9f, 0.7f, 0.5f, 1.0f, 0, 0, 1, 1, 1,
-                        0.0f, 0.75f, 0.0f, 0.9f, 0.7f, 0.5f, 1.0f, 0, 0, 1, 1, 1,
-                        0.0f, 0.0f, 0.0f, 0.9f, 0.7f, 0.5f, 1.0f, 0, 0, 1, 1, 1
+                        0.0f, 0.0f, 0.25f, sr * 0.85f, sg * 0.85f, sb * 0.85f, 1.0f, 0, 0, -1.0f, 1, 1,
+                        0.0f, 0.75f, 0.25f, sr * 0.85f, sg * 0.85f, sb * 0.85f, 1.0f, 0, 0, -1.0f, 1, 1,
+                        0.0f, 0.75f, 0.0f, sr * 0.85f, sg * 0.85f, sb * 0.85f, 1.0f, 0, 0, -1.0f, 1, 1,
+                        0.0f, 0.0f, 0.0f, sr * 0.85f, sg * 0.85f, sb * 0.85f, 1.0f, 0, 0, -1.0f, 1, 1
                     }, new int[] {
                         0, 1, 2, 2, 3, 0,
                         4, 5, 6, 6, 7, 4,

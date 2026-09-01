@@ -65,6 +65,10 @@ public class MainMenuScene extends Scene {
                 float centerY = height * 0.52f - menuBox.getHeight() / 2.0f;
                 menuBox.setPosition(centerX, centerY);
                 elements.add(menuBox);
+
+                // Bottom Right Customization Button
+                UIButton customBtn = new UIButton(width - 190.0f, 20.0f, 170.0f, 38.0f, "Customize", () -> openCustomization(false));
+                elements.add(customBtn);
             }
 
             @Override
@@ -75,6 +79,9 @@ public class MainMenuScene extends Scene {
                     float centerX = (width - menuBox.getWidth()) / 2.0f;
                     float centerY = height * 0.45f - menuBox.getHeight() / 2.0f;
                     menuBox.setPosition(centerX, centerY);
+                }
+                if (elements.size() > 1 && elements.get(1) instanceof UIButton customBtn) {
+                    customBtn.setPosition(width - 190.0f, 20.0f);
                 }
 
                 // ── Background ──────────────────────────────────────────
@@ -133,18 +140,15 @@ public class MainMenuScene extends Scene {
                 // ── Footer ───────────────────────────────────────────────
                 if (font != null) {
                     String version = "v" + Constants.VERSION;
-                    String credits = "made with <3 by delautrer";
-
-                    float versionW = builder.getTextWidth(version, font);
-                    float creditsW = builder.getTextWidth(credits, font);
+                    String playerInfo = "Player: " + de.delautrer.game.settings.SettingsManager.get().playerName;
 
                     float margin = 16f;
                     float footerY = 28f;
 
                     // Version — bottom left
                     builder.drawText(version, margin, footerY, 0.08f, font);
-                    // Credits — bottom left below version
-                    builder.drawText(credits, margin, footerY + 22f, 0.08f, font);
+                    // Player Info — bottom left below version
+                    builder.drawText(playerInfo, margin, footerY + 22f, 0.08f, font);
                 }
             }
         };
@@ -152,6 +156,32 @@ public class MainMenuScene extends Scene {
         mainScreen.init(engine.getWindow().getWidth(), engine.getWindow().getHeight());
         mainScreen.setFont(menuRenderer.getFont());
         activeScreen = mainScreen;
+
+        if (de.delautrer.game.settings.SettingsManager.get().firstLaunch) {
+            openFirstLaunchWizard();
+        }
+    }
+
+    private void openFirstLaunchWizard() {
+        de.delautrer.game.ui.gui.screens.FirstLaunchWizardScreen wizard =
+            new de.delautrer.game.ui.gui.screens.FirstLaunchWizardScreen(() -> {
+                mainScreen.init(engine.getWindow().getWidth(), engine.getWindow().getHeight());
+                activeScreen = mainScreen;
+            });
+        wizard.init(engine.getWindow().getWidth(), engine.getWindow().getHeight());
+        wizard.setFont(menuRenderer.getFont());
+        activeScreen = wizard;
+    }
+
+    private void openCustomization(boolean isFirstLaunch) {
+        de.delautrer.game.ui.gui.screens.CharacterCustomizationScreen customScreen =
+            new de.delautrer.game.ui.gui.screens.CharacterCustomizationScreen(() -> {
+                mainScreen.init(engine.getWindow().getWidth(), engine.getWindow().getHeight());
+                activeScreen = mainScreen;
+            });
+        customScreen.init(engine.getWindow().getWidth(), engine.getWindow().getHeight());
+        customScreen.setFont(menuRenderer.getFont());
+        activeScreen = customScreen;
     }
 
     @Override

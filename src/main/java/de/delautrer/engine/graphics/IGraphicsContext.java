@@ -13,4 +13,7 @@ public interface IGraphicsContext {
 
     /** Releases all backend resources. */
     void cleanup();
+
+    /** Waits for the current frame to finish executing on the GPU. */
+    default void waitForCurrentFrame() {}
 }

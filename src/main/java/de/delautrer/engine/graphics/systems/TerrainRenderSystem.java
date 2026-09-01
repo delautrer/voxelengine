@@ -128,6 +128,23 @@ public class TerrainRenderSystem implements IRenderSystem {
                     drawMesh(cmd, stack, mesh);
                 }
             }
+
+            // 4. PARTIKEL ZEICHNEN (TRANSPARENT)
+            if (packet.particleMesh != null && ((VulkanMesh) packet.particleMesh).getIndexCount() > 0) {
+                VK10.vkCmdBindPipeline(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getTransparentHandle());
+                VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayout(), 0,
+                        stack.longs(((VulkanTextureArray) packet.worldTexture).getDescriptorSet()), null);
+
+                pcBuffer.put(22, (float) -packet.cameraPos.x);
+                pcBuffer.put(23, (float) -packet.cameraPos.y);
+                pcBuffer.put(24, (float) -packet.cameraPos.z);
+                pcBuffer.put(28, 0.0f); // useVertexColorOnly (handled in shader via fragTexCoord.z < -0.5)
+                pcBuffer.put(29, 0.0f); // isFirstPerson (MUST be 0.0f so inLight is used!)
+                VK10.vkCmdPushConstants(cmd, pipeline.getPipelineLayout(),
+                        VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, pcBuffer);
+
+                drawMesh(cmd, stack, (VulkanMesh) packet.particleMesh);
+            }
         }
     }
 

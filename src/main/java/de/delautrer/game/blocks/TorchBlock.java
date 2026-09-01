@@ -75,6 +75,34 @@ public class TorchBlock extends CubeBlock {
     }
 
     @Override
+    public void randomDisplayTick(World world, Vector3i pos, java.util.Random random) {
+        if (world.getParticleManager() == null) return;
+        
+        BlockState state = world.getBlockState(pos);
+        if (state == null) return;
+
+        TorchAttach attach = state.getValue(ATTACH);
+        float x = pos.x + 0.5f;
+        float y = pos.y + 0.7f;
+        float z = pos.z + 0.5f;
+
+        if (attach == TorchAttach.NORTH) { y += 0.2f; z -= 0.3f; }
+        else if (attach == TorchAttach.SOUTH) { y += 0.2f; z += 0.3f; }
+        else if (attach == TorchAttach.WEST) { y += 0.2f; x -= 0.3f; }
+        else if (attach == TorchAttach.EAST) { y += 0.2f; x += 0.3f; }
+
+        // Flame
+        if (random.nextFloat() < 0.85f) {
+            de.delautrer.game.particle.ParticleSpawner.spawnFire(world, x, y, z);
+        }
+
+        // Smoke
+        if (random.nextFloat() < 0.5f) {
+            de.delautrer.game.particle.ParticleSpawner.spawnSmoke(world, x, y + 0.1f, z);
+        }
+    }
+
+    @Override
     public boolean canWaterFlowInto() {
         return true;
     }

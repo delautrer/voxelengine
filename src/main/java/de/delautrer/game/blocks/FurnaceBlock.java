@@ -123,4 +123,34 @@ public class FurnaceBlock extends CubeBlock implements IInteractable {
         }
         return false;
     }
+
+    @Override
+    public void randomDisplayTick(World world, Vector3i pos, java.util.Random random) {
+        if (world.getParticleManager() == null) return;
+        
+        BlockState state = world.getBlockState(pos);
+        if (state == null) return;
+        
+        if (state.getValue(LIT)) {
+            Direction facing = state.getValue(FACING);
+            float x = pos.x + 0.5f;
+            float y = pos.y + 0.3f;
+            float z = pos.z + 0.5f;
+
+            if (facing == Direction.NORTH) { z -= 0.52f; }
+            else if (facing == Direction.SOUTH) { z += 0.52f; }
+            else if (facing == Direction.WEST) { x -= 0.52f; }
+            else if (facing == Direction.EAST) { x += 0.52f; }
+
+            // Flame
+            if (random.nextFloat() < 0.8f) {
+                de.delautrer.game.particle.ParticleSpawner.spawnFire(world, x, y, z);
+            }
+            
+            // Smoke
+            if (random.nextFloat() < 0.65f) {
+                de.delautrer.game.particle.ParticleSpawner.spawnSmoke(world, x, y + 0.1f, z);
+            }
+        }
+    }
 }

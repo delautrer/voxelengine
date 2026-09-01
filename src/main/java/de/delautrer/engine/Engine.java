@@ -82,6 +82,7 @@ public class Engine {
         BlockModelManager.loadAllModels(blockAtlas);
 
         sceneManager = new SceneManager(this);
+        //sceneManager.changeScene(new de.delautrer.game.states.PlayScene(this, "TestWorld", "TestWorld"));
         sceneManager.changeScene(new MainMenuScene(this));
     }
 

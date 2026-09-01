@@ -36,6 +36,14 @@ public abstract class Entity {
         this.position = new Vector3d(spawnPosition);
         this.velocity = new Vector3f(0, 0, 0);
     }
+    
+    public float getGravity() {
+        return gravity;
+    }
+    
+    public void setGravity(float gravity) {
+        this.gravity = gravity;
+    }
 
     public abstract void update(float deltaTime, ChunkManager chunkManager);
 

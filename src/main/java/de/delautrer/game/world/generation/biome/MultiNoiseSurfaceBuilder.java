@@ -220,9 +220,10 @@ public class MultiNoiseSurfaceBuilder {
             }
         }
         // --- BÄUME ---
-        // Wir suchen in einem Radius von 8 um den Chunk nach Baum-Startpunkten,
-        // um sicherzustellen, dass überlappende Kronen korrekt generiert werden.
-        int searchRadius = 8;
+        // Wir suchen in einem Radius von 16 um den Chunk nach Baum-Startpunkten,
+        // um sicherzustellen, dass überlappende Kronen (z. B. Baobab, Fichten, Mahagoni)
+        // in allen benachbarten Chunks vollständig und deterministisch generiert werden.
+        int searchRadius = 16;
         for (int ox = -searchRadius; ox < Chunk.SIZE + searchRadius; ox++) {
             for (int oz = -searchRadius; oz < Chunk.SIZE + searchRadius; oz++) {
                 int worldX = chunkX * Chunk.SIZE + ox;
