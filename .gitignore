@@ -5,7 +5,7 @@ build/
 !**/src/test/**/build/
 .kotlin
 *.log
-
+src.zip
 COPYLOG.txt
 
 asesprite_files/

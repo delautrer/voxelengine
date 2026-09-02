@@ -1,0 +1,11 @@
+﻿{
+  "id": "veinstride:plant_survives_moss",
+  "timeout_ticks": 40,
+  "tags": ["plant", "moss"],
+  "origin": "player",
+  "steps": [
+    { "type": "set_block", "pos": [0, 0, 0], "block": "veinstride:moss" },
+    { "type": "set_block", "pos": [0, 1, 0], "block": "veinstride:grass" },
+    { "type": "assert_block", "pos": [0, 1, 0], "block": "veinstride:grass" }
+  ]
+}

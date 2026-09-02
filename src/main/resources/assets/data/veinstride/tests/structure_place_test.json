@@ -1,0 +1,12 @@
+{
+  "id": "veinstride:structure_place_test",
+  "timeout_ticks": 40,
+  "tags": ["structure"],
+  "origin": "player",
+  "steps": [
+    { "type": "fill", "from": [-1, -1, -1], "to": [8, 6, 8], "block": "veinstride:air" },
+    { "type": "place_template", "template": "veinstride:desert_camp", "pos": [0, 0, 0] },
+    { "type": "assert_block", "pos": [0, 0, 0], "block": "veinstride:sandstone" },
+    { "type": "assert_air", "pos": [1, 1, 1] }
+  ]
+}

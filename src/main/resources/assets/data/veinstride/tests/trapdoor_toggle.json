@@ -1,0 +1,12 @@
+﻿{
+  "id": "veinstride:trapdoor_toggle",
+  "timeout_ticks": 40,
+  "tags": ["door"],
+  "origin": "player",
+  "steps": [
+    { "type": "set_block", "pos": [0, 0, 0], "block": "veinstride:stone" },
+    { "type": "place_block", "pos": [0, 1, 0], "block": "veinstride:oak_trapdoor", "face": "up" },
+    { "type": "interact", "pos": [0, 1, 0] },
+    { "type": "assert_state", "pos": [0, 1, 0], "prop": "open", "value": "true" }
+  ]
+}

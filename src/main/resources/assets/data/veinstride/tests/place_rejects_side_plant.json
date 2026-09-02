@@ -1,0 +1,11 @@
+﻿{
+  "id": "veinstride:place_rejects_side_plant",
+  "timeout_ticks": 40,
+  "tags": ["placement", "plant"],
+  "origin": "player",
+  "steps": [
+    { "type": "set_block", "pos": [0, 0, 0], "block": "veinstride:grass_block" },
+    { "type": "place_block", "pos": [1, 0, 0], "block": "veinstride:grass", "face": "east" },
+    { "type": "assert_air", "pos": [1, 0, 0] }
+  ]
+}

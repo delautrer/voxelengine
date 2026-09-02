@@ -37,6 +37,10 @@ public abstract class Entity {
         this.velocity = new Vector3f(0, 0, 0);
     }
     
+    public Vector3d getPosition() {
+        return position;
+    }
+
     public float getGravity() {
         return gravity;
     }

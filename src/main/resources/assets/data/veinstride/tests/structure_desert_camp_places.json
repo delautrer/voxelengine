@@ -1,0 +1,10 @@
+﻿{
+  "id": "veinstride:structure_desert_camp_places",
+  "timeout_ticks": 40,
+  "tags": ["structure"],
+  "origin": "player",
+  "steps": [
+    { "type": "place_template", "template": "veinstride:desert_camp", "pos": [0, 0, 0] },
+    { "type": "assert_block", "pos": [0, 0, 0], "block": "veinstride:sandstone" }
+  ]
+}

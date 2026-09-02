@@ -1,0 +1,12 @@
+﻿{
+  "id": "veinstride:water_source_stays",
+  "timeout_ticks": 40,
+  "tags": ["water"],
+  "origin": "player",
+  "steps": [
+    { "type": "set_block", "pos": [0, 0, 0], "block": "veinstride:stone" },
+    { "type": "set_block", "pos": [0, 1, 0], "block": "veinstride:water", "state": 8 },
+    { "type": "tick", "count": 10 },
+    { "type": "assert_state", "pos": [0, 1, 0], "prop": "level", "value": "8" }
+  ]
+}

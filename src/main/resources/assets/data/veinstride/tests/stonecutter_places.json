@@ -1,0 +1,11 @@
+﻿{
+  "id": "veinstride:stonecutter_places",
+  "timeout_ticks": 40,
+  "tags": ["stonecutter"],
+  "origin": "player",
+  "steps": [
+    { "type": "set_block", "pos": [0, 0, 0], "block": "veinstride:stone" },
+    { "type": "place_block", "pos": [0, 1, 0], "block": "veinstride:stonecutter", "face": "up" },
+    { "type": "assert_block", "pos": [0, 1, 0], "block": "veinstride:stonecutter" }
+  ]
+}

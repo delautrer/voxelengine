@@ -1,0 +1,11 @@
+﻿{
+  "id": "veinstride:leaves_persistent_stay",
+  "timeout_ticks": 40,
+  "tags": ["leaves"],
+  "origin": "player",
+  "steps": [
+    { "type": "set_block", "pos": [0, 1, 0], "block": "veinstride:oak_leaves", "state": 1 },
+    { "type": "call_scheduled", "pos": [0, 1, 0], "count": 5 },
+    { "type": "assert_block", "pos": [0, 1, 0], "block": "veinstride:oak_leaves" }
+  ]
+}

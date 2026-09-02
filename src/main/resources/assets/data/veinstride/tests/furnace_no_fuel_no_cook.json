@@ -1,0 +1,13 @@
+﻿{
+  "id": "veinstride:furnace_no_fuel_no_cook",
+  "timeout_ticks": 100,
+  "tags": ["furnace"],
+  "origin": "player",
+  "steps": [
+    { "type": "set_block", "pos": [0, 0, 0], "block": "veinstride:furnace" },
+    { "type": "set_slot", "pos": [0, 0, 0], "slot": 0, "item": "veinstride:cobblestone", "count": 1 },
+    { "type": "tick", "count": 40 },
+    { "type": "assert_item", "pos": [0, 0, 0], "slot": 0, "item": "veinstride:cobblestone", "min_count": 1 },
+    { "type": "assert_item", "pos": [0, 0, 0], "slot": 2, "item": "veinstride:air" }
+  ]
+}

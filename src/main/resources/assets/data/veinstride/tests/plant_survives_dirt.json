@@ -1,0 +1,11 @@
+﻿{
+  "id": "veinstride:plant_survives_dirt",
+  "timeout_ticks": 40,
+  "tags": ["plant"],
+  "origin": "player",
+  "steps": [
+    { "type": "set_block", "pos": [0, 0, 0], "block": "veinstride:dirt" },
+    { "type": "set_block", "pos": [0, 1, 0], "block": "veinstride:grass" },
+    { "type": "assert_block", "pos": [0, 1, 0], "block": "veinstride:grass" }
+  ]
+}

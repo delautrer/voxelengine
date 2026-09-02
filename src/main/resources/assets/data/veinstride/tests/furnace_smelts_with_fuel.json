@@ -1,0 +1,13 @@
+﻿{
+  "id": "veinstride:furnace_smelts_with_fuel",
+  "timeout_ticks": 500,
+  "tags": ["furnace"],
+  "origin": "player",
+  "steps": [
+    { "type": "set_block", "pos": [0, 0, 0], "block": "veinstride:furnace" },
+    { "type": "set_slot", "pos": [0, 0, 0], "slot": 0, "item": "veinstride:cobblestone", "count": 1 },
+    { "type": "set_slot", "pos": [0, 0, 0], "slot": 1, "item": "veinstride:coal", "count": 1 },
+    { "type": "tick", "count": 400 },
+    { "type": "assert_item", "pos": [0, 0, 0], "slot": 2, "item": "veinstride:stone", "min_count": 1 }
+  ]
+}

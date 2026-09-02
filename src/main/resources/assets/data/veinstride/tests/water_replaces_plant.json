@@ -1,0 +1,13 @@
+﻿{
+  "id": "veinstride:water_replaces_plant",
+  "timeout_ticks": 40,
+  "tags": ["water", "plant"],
+  "origin": "player",
+  "steps": [
+    { "type": "set_block", "pos": [0, 0, 0], "block": "veinstride:grass_block" },
+    { "type": "set_block", "pos": [0, 1, 0], "block": "veinstride:grass" },
+    { "type": "set_block", "pos": [1, 1, 0], "block": "veinstride:water", "state": 8 },
+    { "type": "tick", "count": 20 },
+    { "type": "assert_block", "pos": [0, 1, 0], "block": "veinstride:water" }
+  ]
+}

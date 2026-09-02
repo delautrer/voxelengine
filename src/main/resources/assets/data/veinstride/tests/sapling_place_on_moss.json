@@ -1,0 +1,11 @@
+﻿{
+  "id": "veinstride:sapling_place_on_moss",
+  "timeout_ticks": 40,
+  "tags": ["plant", "sapling"],
+  "origin": "player",
+  "steps": [
+    { "type": "set_block", "pos": [0, 0, 0], "block": "veinstride:moss" },
+    { "type": "place_block", "pos": [0, 1, 0], "block": "veinstride:oak_sapling", "face": "up" },
+    { "type": "assert_block", "pos": [0, 1, 0], "block": "veinstride:oak_sapling" }
+  ]
+}

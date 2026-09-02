@@ -1,0 +1,14 @@
+﻿{
+  "id": "veinstride:sand_on_water_does_not_vanish",
+  "timeout_ticks": 60,
+  "tags": ["gravity", "water"],
+  "origin": "player",
+  "steps": [
+    { "type": "set_block", "pos": [0, 0, 0], "block": "veinstride:stone" },
+    { "type": "set_block", "pos": [0, 1, 0], "block": "veinstride:water", "state": 8 },
+    { "type": "set_block", "pos": [0, 3, 0], "block": "veinstride:sand" },
+    { "type": "call_scheduled", "pos": [0, 3, 0], "count": 1 },
+    { "type": "tick", "count": 40 },
+    { "type": "assert_block", "pos": [0, 1, 0], "block": "veinstride:sand" }
+  ]
+}

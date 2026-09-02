@@ -1,0 +1,13 @@
+﻿{
+  "id": "veinstride:plant_breaks_on_stone",
+  "timeout_ticks": 40,
+  "tags": ["plant"],
+  "origin": "player",
+  "steps": [
+    { "type": "set_block", "pos": [0, 0, 0], "block": "veinstride:grass_block" },
+    { "type": "set_block", "pos": [0, 1, 0], "block": "veinstride:grass" },
+    { "type": "set_block", "pos": [0, 0, 0], "block": "veinstride:stone" },
+    { "type": "tick", "count": 1 },
+    { "type": "assert_air", "pos": [0, 1, 0] }
+  ]
+}

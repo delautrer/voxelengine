@@ -1,0 +1,12 @@
+﻿{
+  "id": "veinstride:plant_survives_grass",
+  "timeout_ticks": 40,
+  "tags": ["plant"],
+  "origin": "player",
+  "steps": [
+    { "type": "set_block", "pos": [0, 0, 0], "block": "veinstride:grass_block" },
+    { "type": "set_block", "pos": [0, 1, 0], "block": "veinstride:grass" },
+    { "type": "tick", "count": 1 },
+    { "type": "assert_block", "pos": [0, 1, 0], "block": "veinstride:grass" }
+  ]
+}

@@ -1,0 +1,12 @@
+﻿{
+  "id": "veinstride:sapling_grows_or_stages",
+  "timeout_ticks": 40,
+  "tags": ["sapling"],
+  "origin": "player",
+  "steps": [
+    { "type": "set_block", "pos": [0, 0, 0], "block": "veinstride:grass_block" },
+    { "type": "set_block", "pos": [0, 1, 0], "block": "veinstride:oak_sapling" },
+    { "type": "call_scheduled", "pos": [0, 1, 0], "count": 8 },
+    { "type": "sapling_grows_or_stages", "pos": [0, 1, 0] }
+  ]
+}

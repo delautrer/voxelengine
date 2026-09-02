@@ -34,6 +34,9 @@ public class CommandManager implements EventListener<CommandExecutedEvent> {
         register(new GiveCommand());
         register(new SetCommand());
         register(new FillCommand());
+        if (de.delautrer.Constants.IS_DEV) {
+            register(new TestCommand());
+        }
     }
 
     public void register(ICommand command) {

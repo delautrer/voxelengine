@@ -1,0 +1,10 @@
+﻿{
+  "id": "veinstride:structure_void_in_template_becomes_air",
+  "timeout_ticks": 40,
+  "tags": ["structure"],
+  "origin": "player",
+  "steps": [
+    { "type": "place_template", "template": "veinstride:desert_camp", "pos": [0, 0, 0] },
+    { "type": "assert_air", "pos": [1, 1, 1] }
+  ]
+}

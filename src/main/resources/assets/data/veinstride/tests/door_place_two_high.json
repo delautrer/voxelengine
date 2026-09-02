@@ -1,0 +1,12 @@
+﻿{
+  "id": "veinstride:door_place_two_high",
+  "timeout_ticks": 40,
+  "tags": ["door"],
+  "origin": "player",
+  "steps": [
+    { "type": "set_block", "pos": [0, 0, 0], "block": "veinstride:stone" },
+    { "type": "place_block", "pos": [0, 1, 0], "block": "veinstride:oak_door", "face": "up" },
+    { "type": "assert_block", "pos": [0, 1, 0], "block": "veinstride:oak_door" },
+    { "type": "assert_block", "pos": [0, 2, 0], "block": "veinstride:oak_door" }
+  ]
+}

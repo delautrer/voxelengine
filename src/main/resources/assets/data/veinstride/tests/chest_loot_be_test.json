@@ -1,0 +1,12 @@
+{
+  "id": "veinstride:chest_loot_be_test",
+  "timeout_ticks": 40,
+  "tags": ["loot"],
+  "origin": "player",
+  "steps": [
+    { "type": "set_block", "pos": [0, 0, 0], "block": "veinstride:oak_chest" },
+    { "type": "set_be_tag", "pos": [0, 0, 0], "nbt": { "LootTable": "veinstride:chests/desert_camp" } },
+    { "type": "assert_be", "pos": [0, 0, 0], "type": "chest" },
+    { "type": "assert_loot", "pos": [0, 0, 0] }
+  ]
+}

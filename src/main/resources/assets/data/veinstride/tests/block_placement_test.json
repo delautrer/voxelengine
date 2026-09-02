@@ -1,0 +1,12 @@
+{
+  "id": "veinstride:block_placement_test",
+  "timeout_ticks": 40,
+  "tags": ["blocks"],
+  "origin": "player",
+  "steps": [
+    { "type": "set_block", "pos": [0, 0, 0], "block": "veinstride:cobblestone" },
+    { "type": "assert_block", "pos": [0, 0, 0], "block": "veinstride:cobblestone" },
+    { "type": "set_block", "pos": [0, 0, 0], "block": "veinstride:air" },
+    { "type": "assert_air", "pos": [0, 0, 0] }
+  ]
+}

@@ -1,0 +1,13 @@
+﻿{
+  "id": "veinstride:sand_falls_through_air",
+  "timeout_ticks": 80,
+  "tags": ["gravity"],
+  "origin": "player",
+  "steps": [
+    { "type": "set_block", "pos": [0, 0, 0], "block": "veinstride:stone" },
+    { "type": "set_block", "pos": [0, 5, 0], "block": "veinstride:sand" },
+    { "type": "call_scheduled", "pos": [0, 5, 0], "count": 1 },
+    { "type": "tick", "count": 60 },
+    { "type": "assert_block", "pos": [0, 1, 0], "block": "veinstride:sand" }
+  ]
+}

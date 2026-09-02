@@ -53,6 +53,10 @@ public class StructureRegistry {
         return TEMPLATES.size();
     }
 
+    public static StructureTemplate getTemplate(NamespacedKey key) {
+        return TEMPLATES.get(key);
+    }
+
     public static int getStructuresCount() {
         return STRUCTURES.size();
     }

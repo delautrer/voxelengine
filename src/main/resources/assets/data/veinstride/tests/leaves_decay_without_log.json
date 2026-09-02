@@ -1,0 +1,12 @@
+﻿{
+  "id": "veinstride:leaves_decay_without_log",
+  "timeout_ticks": 40,
+  "tags": ["leaves"],
+  "origin": "player",
+  "steps": [
+    { "type": "set_block", "pos": [0, 1, 0], "block": "veinstride:oak_leaves", "state": 0 },
+    { "type": "call_scheduled", "pos": [0, 1, 0], "count": 20 },
+    { "type": "tick", "count": 20 },
+    { "type": "assert_air", "pos": [0, 1, 0] }
+  ]
+}

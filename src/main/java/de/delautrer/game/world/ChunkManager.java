@@ -344,6 +344,10 @@ public final class ChunkManager {
         return c;
     }
 
+    public Chunk getChunk(int chunkX, int chunkZ) {
+        return chunks.get(packPos(chunkX, chunkZ));
+    }
+
     public void addChunk(Chunk chunk) {
         if (chunk != null) {
             long pos = packPos(chunk.getWorldX(), chunk.getWorldZ());

@@ -1,0 +1,10 @@
+﻿{
+  "id": "veinstride:structure_void_is_not_air_block",
+  "timeout_ticks": 40,
+  "tags": ["structure"],
+  "origin": "player",
+  "steps": [
+    { "type": "set_block", "pos": [0, 1, 0], "block": "veinstride:structure_void" },
+    { "type": "assert_block", "pos": [0, 1, 0], "block": "veinstride:structure_void" }
+  ]
+}
