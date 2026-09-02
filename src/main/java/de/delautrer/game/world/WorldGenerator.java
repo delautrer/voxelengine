@@ -19,8 +19,12 @@ public class WorldGenerator {
         public final int x, y, z;
         public final Block block;
         public final byte state;
+        public final de.delautrer.game.nbt.CompoundTag nbt;
         public PendingBlock(int x, int y, int z, Block block, byte state) {
-            this.x = x; this.y = y; this.z = z; this.block = block; this.state = state;
+            this(x, y, z, block, state, null);
+        }
+        public PendingBlock(int x, int y, int z, Block block, byte state, de.delautrer.game.nbt.CompoundTag nbt) {
+            this.x = x; this.y = y; this.z = z; this.block = block; this.state = state; this.nbt = nbt;
         }
     }
 
@@ -71,9 +75,18 @@ public class WorldGenerator {
     }
 
     public void addPendingBlock(int worldX, int worldY, int worldZ, Block block, byte state) {
+        addPendingBlock(worldX, worldY, worldZ, block, state, null);
+    }
+
+    public void addPendingBlock(int worldX, int worldY, int worldZ, Block block, byte state, de.delautrer.game.nbt.CompoundTag nbt) {
+        if (block != null && block.isStructureVoid()) {
+            block = de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:air");
+            state = 0;
+            nbt = null;
+        }
         long pos = ChunkManager.packPos(worldX >> 4, worldZ >> 4);
         pendingCrossChunkBlocks.computeIfAbsent(pos, k -> new ConcurrentLinkedQueue<>())
-            .add(new PendingBlock(worldX, worldY, worldZ, block, state));
+            .add(new PendingBlock(worldX, worldY, worldZ, block, state, nbt));
     }
 
     public MultiNoiseChunkGenerator getTerrainGenerator() {

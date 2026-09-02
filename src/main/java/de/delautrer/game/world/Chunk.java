@@ -23,6 +23,23 @@ public class Chunk {
     private boolean isDirty = false;
     private boolean needsMeshUpdate = false;
     private long lastAccessedTime;
+    private final java.util.Map<org.joml.Vector3i, de.delautrer.game.nbt.CompoundTag> blockEntityTags = new java.util.concurrent.ConcurrentHashMap<>();
+
+    public void setBlockEntityTag(int lx, int y, int lz, de.delautrer.game.nbt.CompoundTag tag) {
+        if (tag != null) {
+            int wx = this.worldX * SIZE + lx;
+            int wz = this.worldZ * SIZE + lz;
+            blockEntityTags.put(new org.joml.Vector3i(wx, y, wz), tag);
+        }
+    }
+
+    public de.delautrer.game.nbt.CompoundTag getBlockEntityTag(org.joml.Vector3i pos) {
+        return blockEntityTags.get(pos);
+    }
+
+    public java.util.Map<org.joml.Vector3i, de.delautrer.game.nbt.CompoundTag> getBlockEntityTags() {
+        return blockEntityTags;
+    }
 
     private static final float[] highlightVertices = { 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1 };
     private static final int[] highlightIndices = { 0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7 };
@@ -104,6 +121,16 @@ public class Chunk {
 
     public Block getBlock(int x, int y, int z) {
         return getBlock(x, y, z, this.palette);
+    }
+
+    public int getTopBlockY(int x, int z) {
+        for (int y = MAX_Y - 1; y >= MIN_Y; y--) {
+            Block b = getBlock(x, y, z);
+            if (b != null && !b.isAir()) {
+                return y;
+            }
+        }
+        return MIN_Y;
     }
 
     public Block getBlock(int x, int y, int z, ChunkManager cm) {

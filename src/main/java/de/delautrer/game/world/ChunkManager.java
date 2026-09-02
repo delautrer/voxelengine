@@ -344,6 +344,13 @@ public final class ChunkManager {
         return c;
     }
 
+    public void addChunk(Chunk chunk) {
+        if (chunk != null) {
+            long pos = packPos(chunk.getWorldX(), chunk.getWorldZ());
+            chunks.put(pos, chunk);
+        }
+    }
+
     public AsyncChunkBuilder getAsyncBuilder() {
         return asyncBuilder;
     }

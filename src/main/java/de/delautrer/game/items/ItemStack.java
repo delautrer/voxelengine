@@ -1,9 +1,12 @@
 package de.delautrer.game.items;
 
+import de.delautrer.game.nbt.CompoundTag;
+
 public class ItemStack {
     public final Item type;
     public int amount;
     public int durability;
+    public CompoundTag tag;
 
     public ItemStack(Item type, int amount) {
         this.type = type;

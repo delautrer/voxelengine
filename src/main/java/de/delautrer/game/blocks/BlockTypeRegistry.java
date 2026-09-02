@@ -46,6 +46,7 @@ public class BlockTypeRegistry {
         register("gravity", (def, key) -> new GravityBlock());
         register("crafting_table", (def, key) -> new CraftingTableBlock());
         register("furnace", (def, key) -> new FurnaceBlock());
+        register("structure_void", (def, key) -> new StructureVoidBlock());
         register("sapling", (def, key) -> {
             if (def.tree == null || def.tree.trim().isEmpty() ||
                 def.log == null || def.log.trim().isEmpty() ||

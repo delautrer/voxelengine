@@ -1,0 +1,16 @@
+{
+  "type": "veinstride:standard",
+  "template": "veinstride:desert_camp",
+  "step": "surface_structures",
+  "biomes": "veinstride:desert",
+  "processors": [
+    {
+      "type": "veinstride:gravity",
+      "heightmap": "WORLD_SURFACE"
+    },
+    {
+      "type": "veinstride:integrity",
+      "integrity": 0.95
+    }
+  ]
+}

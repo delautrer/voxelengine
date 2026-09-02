@@ -27,13 +27,15 @@ public class GravityBlock extends CubeBlock {
     }
 
     private void checkFalling(World world, int x, int y, int z) {
+        if (y <= Chunk.MIN_Y) return;
         Block blockBelow = world.getBlock(x, y - 1, z);
-        if (y > Chunk.MIN_Y && (blockBelow == null || blockBelow.isAir() || blockBelow.canWaterFlowInto())) {
+        boolean canFall = blockBelow == null || blockBelow.isAir() || (blockBelow instanceof WaterBlock) || !blockBelow.isSolid || blockBelow.isPassable || blockBelow.canWaterFlowInto();
+        if (canFall) {
             Block blockSelf = world.getBlock(x, y, z);
             if (blockSelf != this) return;
 
             BlockState stateObj = world.getBlockState(x, y, z);
-            byte state = stateObj.getStateId();
+            byte state = stateObj != null ? stateObj.getStateId() : 0;
             
             world.setBlock(x, y, z, de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:air"));
             

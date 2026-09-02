@@ -27,7 +27,7 @@ public class BlockModelManager {
             String fullId = entry.getKey();
             Block block = entry.getValue();
 
-            if (block == Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air"))
+            if (block == Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "air") || block.isStructureVoid())
                 continue;
 
             String blockName = fullId.replace(Constants.NAMESPACE + ":", "");

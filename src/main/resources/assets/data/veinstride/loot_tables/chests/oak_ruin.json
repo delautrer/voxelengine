@@ -1,0 +1,12 @@
+{
+  "pools": [
+    {
+      "rolls": 2,
+      "entries": [
+        { "item": "veinstride:iron_ingot", "chance": 0.5, "min": 1, "max": 2 },
+        { "item": "veinstride:oak_planks", "chance": 0.9, "min": 3, "max": 10 },
+        { "item": "veinstride:copper_ingot", "chance": 0.7, "min": 1, "max": 4 }
+      ]
+    }
+  ]
+}

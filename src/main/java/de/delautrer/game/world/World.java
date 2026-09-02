@@ -22,7 +22,9 @@ import org.joml.Vector3d;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import de.delautrer.game.world.systems.WorldSystem;
@@ -166,7 +168,7 @@ public class World {
                 localPlayer.getInventory().importFromSavedData(pData.inventory);
                 localPlayer.getInventory().setSelectedSlot(pData.selectedHotbarSlot);
             }
-        } else {
+        } else if (localPlayer != null) {
             localPlayer.setGameMode(initialGameMode);
             if (this.worldSpawnpoint != null) {
                 localPlayer.position.set(this.worldSpawnpoint);
@@ -184,7 +186,9 @@ public class World {
         storageManager.loadBlockEntities(this);
         storageManager.loadEntities(this);
 
-        chunkManager.update(localPlayer.position.x, localPlayer.position.z);
+        if (localPlayer != null) {
+            chunkManager.update(localPlayer.position.x, localPlayer.position.z);
+        }
     }
 
     public void update(float deltaTime, LocalPlayer localPlayer) {
@@ -279,12 +283,14 @@ public class World {
 
         chunkManager.getLightEngine().processLightUpdates();
 
-        eventBus.publish(new BlockChangeEvent(pos, oldBlock, newBlock, targetChunk));
+        if (eventBus != null) {
+            eventBus.publish(new BlockChangeEvent(pos, oldBlock, newBlock, targetChunk));
 
-        int[][] dirs = { { 0, 1, 0 }, { 0, -1, 0 }, { 1, 0, 0 }, { -1, 0, 0 }, { 0, 0, 1 }, { 0, 0, -1 } };
-        for (int[] dir : dirs) {
-            Vector3i nPos = new Vector3i(x + dir[0], y + dir[1], z + dir[2]);
-            eventBus.publish(new BlockNeighborUpdateEvent(nPos, pos, newBlock));
+            int[][] dirs = { { 0, 1, 0 }, { 0, -1, 0 }, { 1, 0, 0 }, { -1, 0, 0 }, { 0, 0, 1 }, { 0, 0, -1 } };
+            for (int[] dir : dirs) {
+                Vector3i nPos = new Vector3i(x + dir[0], y + dir[1], z + dir[2]);
+                eventBus.publish(new BlockNeighborUpdateEvent(nPos, pos, newBlock));
+            }
         }
 
         if (newBlock != null) {
@@ -435,7 +441,50 @@ public class World {
     }
 
     public BlockEntity getBlockEntity(Vector3i pos) {
-        return blockEntities.get(pos);
+        if (pos == null) return null;
+        BlockEntity be = blockEntities.get(pos);
+        if (be == null) {
+            de.delautrer.game.blocks.Block block = getBlock(pos.x, pos.y, pos.z);
+            if (block != null && block.hasBlockEntity()) {
+                be = block.createBlockEntity(this, pos);
+                if (be != null) {
+                    Chunk chunk = chunkManager != null ? chunkManager.getChunkAtBlock(pos.x, pos.y, pos.z) : null;
+                    if (chunk != null) {
+                        de.delautrer.game.nbt.CompoundTag tag = chunk.getBlockEntityTag(pos);
+                        if (tag != null) {
+                            if (be instanceof de.delautrer.game.blocks.entities.ChestBlockEntity chest && tag.contains("LootTable")) {
+                                String lootTablePath = tag.getString("LootTable");
+                                if (lootTablePath.startsWith("veinstride:")) {
+                                    lootTablePath = lootTablePath.substring("veinstride:".length());
+                                }
+                                de.delautrer.game.loot.LootTable table = de.delautrer.game.loot.LootTableManager.load(lootTablePath);
+                                if (table != null) {
+                                    List<de.delautrer.game.items.ItemStack> drops = table.generateLoot();
+                                    int invSize = chest.getInventory().getSize();
+                                    if (invSize > 0 && !drops.isEmpty()) {
+                                        List<Integer> slots = new ArrayList<>(invSize);
+                                        for (int s = 0; s < invSize; s++) {
+                                            slots.add(s);
+                                        }
+                                        long posHash = (long) pos.x * 3121L ^ (long) pos.y * 4567L ^ (long) pos.z * 8901L;
+                                        Random lootRand = new Random(seed ^ posHash);
+                                        Collections.shuffle(slots, lootRand);
+
+                                        for (int i = 0; i < drops.size() && i < slots.size(); i++) {
+                                            chest.getInventory().setStack(slots.get(i), drops.get(i));
+                                        }
+                                    }
+                                }
+                            } else {
+                                be.readTag(tag);
+                            }
+                        }
+                    }
+                    blockEntities.put(pos, be);
+                }
+            }
+        }
+        return be;
     }
 
     public void setBlockEntity(Vector3i pos, BlockEntity entity) {

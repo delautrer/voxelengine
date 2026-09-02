@@ -55,17 +55,36 @@ public class FallingBlockEntity extends Entity {
         int y = (int) Math.floor(position.y + 0.1);
         int z = (int) Math.floor(position.z);
 
-        Block bAt = world.getBlock(x, y, z);
-        Block bAbove = world.getBlock(x, y + 1, z);
-        if (bAt.isAir() || bAbove.isAir()) {
-            int targetY = bAt.isAir() ? y : y + 1;
-            world.setBlockWithState(x, targetY, z, block, blockState, true);
-
-            this.setDead(true);
-        } else {
-            // Cannot land here, just die
-            this.setDead(true);
+        int landY = -1;
+        for (int curY = Math.min(y, Chunk.MAX_Y - 1); curY >= Chunk.MIN_Y; curY--) {
+            Block b = world.getBlock(x, curY, z);
+            if (b != null && b.isSolid && !(b instanceof de.delautrer.game.blocks.WaterBlock) && !b.isPassable && !b.isAir()) {
+                landY = curY + 1;
+                break;
+            }
         }
+
+        if (landY >= Chunk.MIN_Y && landY < Chunk.MAX_Y) {
+            Block targetBlock = world.getBlock(x, landY, z);
+            if (targetBlock == null || targetBlock.isAir() || targetBlock instanceof de.delautrer.game.blocks.WaterBlock || targetBlock.isPassable || !targetBlock.isSolid) {
+                world.setBlockWithState(x, landY, z, block, blockState, true);
+                this.setDead(true);
+                return;
+            }
+        }
+
+        // Spawn ItemEntity if block cannot be placed
+        de.delautrer.game.registry.NamespacedKey key = de.delautrer.game.registry.Registries.BLOCKS.getKey(block);
+        de.delautrer.game.items.Item item = (key != null) ? de.delautrer.game.registry.Registries.ITEMS.get(key.toString()) : null;
+        if (item != null) {
+            de.delautrer.game.entity.ItemEntity ie = new de.delautrer.game.entity.ItemEntity(
+                new de.delautrer.game.items.ItemStack(item, 1),
+                new Vector3d(position.x, position.y, position.z),
+                new Vector3f(0, 0, 0)
+            );
+            world.spawnEntity(ie);
+        }
+        this.setDead(true);
     }
 
     public Block getBlock() {

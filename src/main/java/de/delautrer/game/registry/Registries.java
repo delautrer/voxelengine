@@ -67,6 +67,9 @@ public class Registries {
         // 12. Configured + Placed Features
         FeatureRegistry.init();
 
+        // 12b. Data-Driven Structures (Templates, Structures, StructureSets)
+        de.delautrer.game.world.generation.structure.StructureRegistry.init();
+
         // 13. Validierung
         validate();
 
@@ -75,6 +78,7 @@ public class Registries {
         ITEMS.freeze();
         BIOMES.freeze();
         BlockEntityTypeRegistry.REGISTRY.freeze();
+        de.delautrer.game.world.generation.structure.StructureRegistry.freeze();
 
         System.out.println("Veinstride Bootstrap Pipeline Completed Successfully.");
     }
@@ -87,7 +91,7 @@ public class Registries {
             if (block == null) {
                 throw new IllegalStateException("Null block registered under key: " + key);
             }
-            if (!key.getKey().equals("air")) {
+            if (!key.getKey().equals("air") && !key.getKey().equals("structure_void")) {
                 String modelPath = "assets/models/block/" + key.getKey() + ".json";
                 if (!de.delautrer.engine.utils.ResourceUtils.hasResource(modelPath)) {
                     throw new IllegalStateException("Missing block model resource for block: " + key + " (" + modelPath + ")");

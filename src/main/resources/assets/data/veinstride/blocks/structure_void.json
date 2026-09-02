@@ -1,0 +1,10 @@
+{
+  "type": "structure_void",
+  "isSolid": false,
+  "isTransparent": true,
+  "isPassable": true,
+  "isRaycastable": true,
+  "hardness": 0,
+  "category": "technical",
+  "min_tool_tier": "HAND"
+}

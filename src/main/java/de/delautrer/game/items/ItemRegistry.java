@@ -65,7 +65,7 @@ public class ItemRegistry {
     private static void generateAutoBlockItems() {
         for (Map.Entry<NamespacedKey, Block> entry : Registries.BLOCKS.entrySet()) {
             NamespacedKey blockKey = entry.getKey();
-            if (blockKey.getKey().equals("air")) continue;
+            if (blockKey.getKey().equals("air") || blockKey.getKey().equals("structure_void")) continue;
 
             if (!REGISTRY.contains(blockKey)) {
                 Block block = entry.getValue();

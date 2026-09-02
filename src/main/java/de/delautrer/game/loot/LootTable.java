@@ -33,7 +33,7 @@ public class LootTable {
                 for (LootEntry entry : pool.entries) {
                     if (rand.nextFloat() <= entry.chance) {
                         int amount = entry.min + rand.nextInt(entry.max - entry.min + 1);
-                        Item item = ItemRegistry.get(entry.item);
+                        de.delautrer.game.items.Item item = de.delautrer.game.registry.Registries.ITEMS.get(entry.item);
                         if (item != null) {
                             drops.add(new ItemStack(item, amount));
                         }

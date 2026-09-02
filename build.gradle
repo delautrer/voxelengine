@@ -69,6 +69,43 @@ dependencies {
     implementation "org.joml:joml:1.10.5"
 
     implementation 'com.google.code.gson:gson:2.13.2'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+task runTagIoTest(type: JavaExec) {
+    group = 'verification'
+    mainClass = 'de.delautrer.game.nbt.TagIoTest'
+    classpath = sourceSets.test.runtimeClasspath
+}
+
+task runFeatureRegistryTest(type: JavaExec) {
+    group = 'verification'
+    mainClass = 'de.delautrer.game.world.generation.feature.FeatureRegistryTest'
+    classpath = sourceSets.test.runtimeClasspath
+}
+
+task runStructureRegistryTest(type: JavaExec) {
+    group = 'verification'
+    mainClass = 'de.delautrer.game.world.generation.structure.StructureRegistryTest'
+    classpath = sourceSets.test.runtimeClasspath
+}
+
+task runFindCommandTest(type: JavaExec) {
+    group = 'verification'
+    mainClass = 'de.delautrer.game.commands.FindCommandTest'
+    classpath = sourceSets.test.runtimeClasspath
+}
+
+task runChestInteractionTest(type: JavaExec) {
+    group = 'verification'
+    mainClass = 'de.delautrer.game.blocks.ChestInteractionTest'
+    classpath = sourceSets.test.runtimeClasspath
+}
+
+test {
+    dependsOn runTagIoTest, runFeatureRegistryTest, runStructureRegistryTest, runFindCommandTest, runChestInteractionTest
 }
 
 task compileShaders {

@@ -1,0 +1,19 @@
+{
+  "type": "veinstride:standard",
+  "template": "veinstride:oak_ruin",
+  "step": "surface_structures",
+  "biomes": [
+    "veinstride:forest",
+    "veinstride:plains"
+  ],
+  "processors": [
+    {
+      "type": "veinstride:gravity",
+      "heightmap": "WORLD_SURFACE"
+    },
+    {
+      "type": "veinstride:integrity",
+      "integrity": 0.85
+    }
+  ]
+}

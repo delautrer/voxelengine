@@ -217,6 +217,9 @@ public abstract class Block {
     public boolean canWaterFlowInto() {
         return false;
     }
+    public boolean isStructureVoid() {
+        return this == de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:structure_void");
+    }
     public void randomDisplayTick(World world, Vector3i pos, Random random) {}
     public void setModel(BlockModelData model) {
         this.model = model;

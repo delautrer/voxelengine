@@ -6,8 +6,7 @@ import de.delautrer.game.blocks.Block;
 import de.delautrer.game.registry.NamespacedKey;
 import de.delautrer.game.registry.Registries;
 import de.delautrer.game.world.Chunk;
-import de.delautrer.game.world.generation.feature.config.ConfiguredFeatureDTO;
-import de.delautrer.game.world.generation.feature.config.PlacedFeatureDTO;
+import de.delautrer.game.world.generation.feature.config.*;
 import de.delautrer.game.world.generation.feature.placement.DistributionModel;
 import de.delautrer.game.world.generation.feature.placement.PlacementModifier;
 import de.delautrer.game.world.generation.feature.placement.TrapezoidDistribution;
@@ -63,19 +62,23 @@ public class FeatureRegistry {
             try {
                 Reader reader = ResourceUtils.readResourceToReader("assets/data/veinstride/worldgen/placed_feature/" + file);
                 PlacedFeatureDTO dto = GSON.fromJson(reader, PlacedFeatureDTO.class);
-                if (dto != null && dto.placement != null) {
+                if (dto != null) {
+                    DistributionDTO distDTO = dto.getDistribution();
+                    ModifiersDTO modDTO = dto.getModifiers();
+                    int count = dto.getCount();
+
                     String featureKeyStr = (dto.feature != null) ? dto.feature : ("veinstride:" + id);
                     ConfiguredFeature configured = CONFIGURED_FEATURES.get(NamespacedKey.fromString(featureKeyStr));
                     if (configured == null) {
                         throw new IllegalStateException("Placed feature '" + id + "' in file " + file + " references unknown configured feature '" + featureKeyStr + "'");
                     }
-                    DistributionModel distribution = parseDistribution(dto.placement.distribution);
+                    DistributionModel distribution = parseDistribution(distDTO);
                     PlacementModifier modifier = new PlacementModifier(
-                            dto.placement.modifiers != null ? dto.placement.modifiers.target_blocks : null,
-                            dto.placement.modifiers != null ? dto.placement.modifiers.air_exposure_chance : 0.0,
-                            dto.placement.modifiers != null ? dto.placement.modifiers.biomes : null
+                            modDTO != null ? modDTO.getTargetBlocksList() : null,
+                            modDTO != null ? modDTO.air_exposure_chance : 0.0,
+                            modDTO != null ? modDTO.getBiomesList() : null
                     );
-                    FEATURES.add(new PlacedFeature(id, configured, dto.placement.count, distribution, modifier));
+                    FEATURES.add(new PlacedFeature(id, configured, count, distribution, modifier));
                 }
             } catch (Exception e) {
                 System.err.println("[FeatureRegistry] Failed to load placed feature: " + file);
@@ -86,6 +89,10 @@ public class FeatureRegistry {
 
     public static ConfiguredFeature getConfiguredFeature(NamespacedKey key) {
         return CONFIGURED_FEATURES.get(key);
+    }
+
+    public static int getPlacedFeaturesCount() {
+        return FEATURES.size();
     }
 
     private static ConfiguredFeature parseConfiguredFeature(ConfiguredFeatureDTO dto, String file) {

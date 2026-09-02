@@ -1,7 +1,7 @@
 ﻿{
     "type":  "tree",
     "shape":  "willow",
-    "log":  "veinstride:oak_log",
+    "log":  "veinstride:willow_log",
     "leaves":  "veinstride:willow_leaves",
     "baseHeight":  4,
     "heightVariation":  2

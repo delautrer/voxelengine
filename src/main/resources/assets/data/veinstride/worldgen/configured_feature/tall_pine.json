@@ -1,8 +1,8 @@
 ﻿{
     "type":  "tree",
     "shape":  "tall_pine",
-    "log":  "veinstride:oak_log",
-    "leaves":  "veinstride:oak_leaves",
+    "log":  "veinstride:pine_log",
+    "leaves":  "veinstride:pine_leaves",
     "baseHeight":  9,
     "heightVariation":  4
 }

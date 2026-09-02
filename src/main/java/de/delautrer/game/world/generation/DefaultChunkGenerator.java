@@ -4,8 +4,10 @@ import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.WorldGenerator;
 import de.delautrer.game.world.generation.biome.CaveCarver;
 import de.delautrer.game.world.generation.feature.FeatureRegistry;
+import de.delautrer.game.world.generation.structure.StructureRegistry;
 
 import java.util.Collection;
+
 public class DefaultChunkGenerator implements IChunkGenerator {
     private final long seed;
 
@@ -33,11 +35,15 @@ public class DefaultChunkGenerator implements IChunkGenerator {
                     if (existing == null || existing.isAir() || existing instanceof de.delautrer.game.blocks.PlantBlock || existing instanceof de.delautrer.game.blocks.LeavesBlock) {
                         de.delautrer.game.world.persistence.WorldPalette palette = worldGenerator.getBlockPalette();
                         chunk.setBlock(lx, pb.y, lz, pb.block, pb.state, palette);
+                        if (pb.nbt != null) {
+                            chunk.setBlockEntityTag(lx, pb.y, lz, pb.nbt);
+                        }
                     }
                 }
             }
         }
         
         FeatureRegistry.generateOres(chunk, seed, worldGenerator);
+        StructureRegistry.generateStructures(chunk, seed, worldGenerator);
     }
 }

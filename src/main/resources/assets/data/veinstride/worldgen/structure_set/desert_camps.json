@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "veinstride:desert_camp",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "random_spread",
+    "spacing": 16,
+    "separation": 8,
+    "salt": 1234567
+  }
+}

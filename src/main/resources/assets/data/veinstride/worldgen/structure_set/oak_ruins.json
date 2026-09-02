@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "veinstride:oak_ruin",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "random_spread",
+    "spacing": 20,
+    "separation": 10,
+    "salt": 7654321
+  }
+}
