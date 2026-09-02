@@ -77,6 +77,7 @@ public class Engine {
             ItemModelManager.loadAllModels(itemAtlas);
         } catch (Exception e) {
             System.err.println("Error while creating item atlas: " + e.getMessage());
+            throw new RuntimeException("Failed to create item atlas: " + e.getMessage(), e);
         }
 
         BlockModelManager.loadAllModels(blockAtlas);

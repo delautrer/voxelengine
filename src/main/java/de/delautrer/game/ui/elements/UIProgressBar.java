@@ -30,14 +30,12 @@ public class UIProgressBar extends UIElement {
         builder.add9Slice(x, y, 0.1f, width, height, 1, 0, CORNER_SIZE);
 
         // 2. FÜLLUNG (Z = 0.2f)
-        float padding = 2.0f;
+        float padding = CORNER_SIZE;
 
-        float maxFillWidth = width - (padding * 2);
-        float currentFillWidth = maxFillWidth * progress;
+        float currentFillWidth = (width - 2.0f * padding) * progress;
 
         if (currentFillWidth > 0.0f) {
-            builder.addCroppedAtlasQuad(x + padding, y + padding, 0.2f, currentFillWidth, height - (padding * 2), 2, 0,
-                    progress, MENU_GRID_SIZE);
+            builder.add9Slice(x + padding, y + padding, 0.2f, currentFillWidth, height - 2.0f * padding, 2, 0, CORNER_SIZE);
         }
     }
 }

@@ -1,6 +1,6 @@
 {
   "parent": "item/generated",
   "textures": {
-    "layer0": "leaves"
+    "layer0": "oak_leaves"
   }
 }

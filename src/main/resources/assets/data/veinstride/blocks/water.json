@@ -1,6 +1,6 @@
-﻿{
+{
     "type":  "water",
     "hardness":  -1.0,
     "sound_material":  "veinstride:water",
-    "category":  "misc"
+    "category":  "hidden"
 }

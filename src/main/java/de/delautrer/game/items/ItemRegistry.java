@@ -65,10 +65,10 @@ public class ItemRegistry {
     private static void generateAutoBlockItems() {
         for (Map.Entry<NamespacedKey, Block> entry : Registries.BLOCKS.entrySet()) {
             NamespacedKey blockKey = entry.getKey();
-            if (blockKey.getKey().equals("air") || blockKey.getKey().equals("structure_void")) continue;
+            Block block = entry.getValue();
+            if (blockKey.getKey().equals("air") || blockKey.getKey().equals("structure_void") || blockKey.getKey().equals("water") || block instanceof de.delautrer.game.blocks.WaterBlock) continue;
 
             if (!REGISTRY.contains(blockKey)) {
-                Block block = entry.getValue();
                 BlockItem blockItem = new BlockItem(blockKey.getKey(), blockKey.getKey(), block);
                 REGISTRY.register(blockKey, blockItem);
             }

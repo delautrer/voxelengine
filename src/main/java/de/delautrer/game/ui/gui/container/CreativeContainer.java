@@ -48,7 +48,17 @@ public class CreativeContainer extends BaseContainer {
         this.playerInventory = playerInv;
         this.currentTab = lastTab; // Merk dir den letzten Tab!
         
-        this.allItems = new ArrayList<>(ItemRegistry.getAll().values());
+        this.allItems = ItemRegistry.getAll().values().stream()
+                .filter(item -> {
+                    if ("hidden".equalsIgnoreCase(item.getCategory())) return false;
+                    String id = ItemRegistry.getId(item);
+                    if (id != null && (id.equals("water") || id.equals(Constants.NAMESPACE + ":water"))) return false;
+                    if (item instanceof de.delautrer.game.items.BlockItem blockItem) {
+                        if (blockItem.getBlock() instanceof de.delautrer.game.blocks.WaterBlock) return false;
+                    }
+                    return true;
+                })
+                .collect(Collectors.toList());
 
         this.allItems.sort(java.util.Comparator.comparing(item -> {
             String id = ItemRegistry.getId(item);

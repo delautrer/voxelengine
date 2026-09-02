@@ -10,8 +10,8 @@ public class LoadingScreen extends MenuScreen {
     @Override
     protected void onInit() {
         elements.clear();
-        float barWidth = 400.0f;
-        float barHeight = 40.0f;
+        float barWidth = 280.0f;
+        float barHeight = 24.0f;
 
         UIVBox menuBox = new UIVBox(0, 0, 0.0f);
         progressBar = new UIProgressBar(0, 0, barWidth, barHeight);
