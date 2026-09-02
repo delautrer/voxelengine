@@ -26,5 +26,8 @@
     "undergroundBlobs": {
         "sand": 0.4,
         "dirt": 0.2
+    },
+    "effects": {
+        "grass_color": "#6b8a14"
     }
 }

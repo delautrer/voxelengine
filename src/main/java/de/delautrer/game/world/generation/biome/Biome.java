@@ -42,6 +42,7 @@ public class Biome {
     public Map<String, Float> undergroundBlobs; // Für Taschen im Stein (Erze, Erde, Kies)
     public float underwaterBlobScale = 0.1f;
     public Map<String, Float> underwaterBlobs;
+    public float puddles = 0.0f;
 
     // Phase 3 optional fields
     public String precipitation = "rain";

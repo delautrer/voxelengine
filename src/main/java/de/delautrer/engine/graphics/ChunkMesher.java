@@ -112,6 +112,22 @@ public class ChunkMesher {
             float texLayer, float directionalLight, Block block,
             float sl0, float sl1, float sl2, float sl3,
             float bl0, float bl1, float bl2, float bl3) {
+        addFace(x0, y0, z0, ao0, x1, y1, z1, ao1, x2, y2, z2, ao2, x3, y3, z3, ao3,
+                uv0_u, uv0_v, uv1_u, uv1_v, uv2_u, uv2_v, uv3_u, uv3_v,
+                texLayer, directionalLight, block, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3,
+                1.0f, 1.0f, 1.0f);
+    }
+
+    public static void addFace(float x0, float y0, float z0, float ao0,
+            float x1, float y1, float z1, float ao1,
+            float x2, float y2, float z2, float ao2,
+            float x3, float y3, float z3, float ao3,
+            float uv0_u, float uv0_v, float uv1_u, float uv1_v,
+            float uv2_u, float uv2_v, float uv3_u, float uv3_v,
+            float texLayer, float directionalLight, Block block,
+            float sl0, float sl1, float sl2, float sl3,
+            float bl0, float bl1, float bl2, float bl3,
+            float tintR, float tintG, float tintB) {
 
         MeshBuffers buf = MESH_BUFFER.get();
         boolean isWater = (block == BlockRegistry.get(Constants.NAMESPACE + ":water"));
@@ -132,6 +148,10 @@ public class ChunkMesher {
             b = 1.0f;
             alpha = 0.7f;
             directionalLight = Math.min(1.0f, directionalLight * 1.2f);
+        } else {
+            r = tintR;
+            g = tintG;
+            b = tintB;
         }
 
         float c0 = ao0 * directionalLight;

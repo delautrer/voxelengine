@@ -7,10 +7,10 @@
     "weirdness": [0.08, 1.00],
     "topBlock": "grass_block",
     "underBlock": "dirt",
-    "underwaterBlock": "water",
+    "underwaterBlock": "dirt",
     "shoreBlock": "dirt",
     "deepBlock": "stone",
-    "baseHeight": -2.0,
+    "baseHeight": 0.0,
     "heightVariation": 5.0,
     "floraProbability": 0.6,
     "floraPatchThreshold": -0.3,
@@ -25,6 +25,16 @@
         "veinstride:willow": 1
     },
     "surfaceBlobs": {
-        "moss": 0.55
+        "moss": 0.22,
+        "dirt": 0.3,
+        "grass_block": 0.27
+    },
+    "puddles": 1,
+    "effects": {
+        "grass_color": "#3a5c18"
+    },
+    "underwaterBlobs": {
+        "dirt": 0.5,
+        "gravel": 0.5
     }
 }

@@ -173,35 +173,74 @@ public class MultiNoiseSurfaceBuilder {
                                         }
                                     }
 
-                                    chunk.setBlock(lx, y, lz, currentTop, (byte) 0, palette);
-                                    if (currentTop == grassBlock && y - 1 >= Chunk.MIN_Y && chunk.getBlock(lx, y - 1, lz, palette) == grassBlock) {
-                                        chunk.setBlock(lx, y - 1, lz, dirt, (byte) 0, palette);
-                                    }
+                                    boolean hasPuddle = false;
+                                    if (biome.puddles > 0.0f && y >= MultiNoiseChunkGenerator.WATER_LEVEL && y + 1 < Chunk.MAX_Y && chunk.getBlock(lx, y + 1, lz, palette) == air) {
+                                        float puddleN = patchNoise.getFractalNoise2D(worldX * 0.09f, worldZ * 0.09f, 2, 0.5f, 2.0f);
+                                        if (puddleN > (1.0f - biome.puddles)) {
+                                            // Kanten-Prüfung: Pfütze darf niemals an einer Kante liegen, wo ein Nachbar bei y Luft ist
+                                            boolean hasAirNeighbor = false;
+                                            int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+                                            for (int[] d : dirs) {
+                                                if (getExpectedHeight(worldX + d[0], worldZ + d[1]) < y) {
+                                                    hasAirNeighbor = true;
+                                                    break;
+                                                }
+                                            }
 
-                                    // FLORA (NUR OBEN)
-                                    if (y + 1 < Chunk.MAX_Y && chunk.getBlock(lx, y + 1, lz, palette) == air) {
-                                        if (currentTop == sand) {
-                                            if (random.nextFloat() < 0.05f) chunk.setBlock(lx, y + 1, lz, sandyGrass, (byte) 0, palette);
-                                        } else if ((biome.floraProbability > 0 || "veinstride:savanna".equals(biome.id)) && !"veinstride:desert".equals(biome.id) && !"veinstride:dune_sea".equals(biome.id)) {
-                                            float patchN = patchNoise.getFractalNoise2D(worldX * 0.12f, worldZ * 0.12f, 2, 0.5f, 2.0f);
-                                            float patchThreshold = (biome.floraPatchThreshold != 0) ? biome.floraPatchThreshold : -0.4f;
-
-                                            if (patchN > patchThreshold) {
-                                                float density = (biome.floraDensity != 0) ? biome.floraDensity : 0.8f;
-                                                if (random.nextFloat() < (density * (biome.floraProbability > 0 ? biome.floraProbability * 2.0f : 1.0f))) {
-                                                    Block floraToSet = null;
-                                                    if (biome.flora != null && !biome.flora.isEmpty()) {
-                                                        String flowerName = WeightedRandomHelper.getRandom(biome.flora, random);
-                                                        if (flowerName != null) {
-                                                            Block fl = Registries.BLOCKS.get("veinstride:" + flowerName);
-                                                            if (fl != null) floraToSet = fl;
+                                            if (!hasAirNeighbor) {
+                                                hasPuddle = true;
+                                                // Pfütze ersetzt die Oberfläche bei y durch Wasser (Quelle Level 8)
+                                                chunk.setBlock(lx, y, lz, water, (byte) 8, palette);
+                                                // Boden unter der Pfütze bei y - 1 aus underwaterBlock & underwaterBlobs bestimmen
+                                                if (y - 1 >= Chunk.MIN_Y) {
+                                                    Block puddleBottom = underwaterBlock;
+                                                    if (biome.underwaterBlobs != null && !biome.underwaterBlobs.isEmpty()) {
+                                                        float bottomN = blobNoise.getFractalNoise2D(worldX * 0.08f, worldZ * 0.08f, 2, 0.5f, 2.0f);
+                                                        for (java.util.Map.Entry<String, Float> entry : biome.underwaterBlobs.entrySet()) {
+                                                            if (Math.abs(bottomN) > entry.getValue()) {
+                                                                Block patch = Registries.BLOCKS.get("veinstride:" + entry.getKey());
+                                                                if (patch != null) { puddleBottom = patch; break; }
+                                                            }
                                                         }
                                                     }
-                                                    if (floraToSet == null) {
-                                                        floraToSet = grass;
-                                                    }
-                                                    if (floraToSet != null) {
-                                                        chunk.setBlock(lx, y + 1, lz, floraToSet, (byte) 0, palette);
+                                                    chunk.setBlock(lx, y - 1, lz, puddleBottom, (byte) 0, palette);
+                                                    columnUnderBlock = puddleBottom;
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    if (!hasPuddle) {
+                                        chunk.setBlock(lx, y, lz, currentTop, (byte) 0, palette);
+                                        if (currentTop == grassBlock && y - 1 >= Chunk.MIN_Y && chunk.getBlock(lx, y - 1, lz, palette) == grassBlock) {
+                                            chunk.setBlock(lx, y - 1, lz, dirt, (byte) 0, palette);
+                                        }
+
+                                        // FLORA (NUR OBEN, WENN KEINE PFÜTZE)
+                                        if (y + 1 < Chunk.MAX_Y && chunk.getBlock(lx, y + 1, lz, palette) == air) {
+                                            if (currentTop == sand) {
+                                                if (random.nextFloat() < 0.05f) chunk.setBlock(lx, y + 1, lz, sandyGrass, (byte) 0, palette);
+                                            } else if ((biome.floraProbability > 0 || "veinstride:savanna".equals(biome.id)) && !"veinstride:desert".equals(biome.id) && !"veinstride:dune_sea".equals(biome.id)) {
+                                                float patchN = patchNoise.getFractalNoise2D(worldX * 0.12f, worldZ * 0.12f, 2, 0.5f, 2.0f);
+                                                float patchThreshold = (biome.floraPatchThreshold != 0) ? biome.floraPatchThreshold : -0.4f;
+
+                                                if (patchN > patchThreshold) {
+                                                    float density = (biome.floraDensity != 0) ? biome.floraDensity : 0.8f;
+                                                    if (random.nextFloat() < (density * (biome.floraProbability > 0 ? biome.floraProbability * 2.0f : 1.0f))) {
+                                                        Block floraToSet = null;
+                                                        if (biome.flora != null && !biome.flora.isEmpty()) {
+                                                            String flowerName = WeightedRandomHelper.getRandom(biome.flora, random);
+                                                            if (flowerName != null) {
+                                                                Block fl = Registries.BLOCKS.get("veinstride:" + flowerName);
+                                                                if (fl != null) floraToSet = fl;
+                                                            }
+                                                        }
+                                                        if (floraToSet == null) {
+                                                            floraToSet = grass;
+                                                        }
+                                                        if (floraToSet != null) {
+                                                            chunk.setBlock(lx, y + 1, lz, floraToSet, (byte) 0, palette);
+                                                        }
                                                     }
                                                 }
                                             }
@@ -275,7 +314,7 @@ public class MultiNoiseSurfaceBuilder {
                         // WICHTIG: getExpectedHeight ist deterministisch für jeden Punkt in der Welt!
                         int surfaceY = getExpectedHeight(worldX, worldZ);
 
-                        if (surfaceY != -1 && surfaceY > MultiNoiseChunkGenerator.WATER_LEVEL) {
+                        if (surfaceY != -1 && surfaceY >= MultiNoiseChunkGenerator.WATER_LEVEL) {
                             // DETERMINISTISCHER CHECK:
                             // Statt im Chunk nachzuschauen (was bei Nachbar-Chunks nicht geht),
                             // prüfen wir das Biome und die theoretische Beschaffenheit.

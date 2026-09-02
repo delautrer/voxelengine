@@ -24,5 +24,8 @@
     "underwaterBlobs": {
         "gravel": 0.8,
         "stone": 0.2
+    },
+    "effects": {
+        "grass_color": "#4a8218"
     }
 }

@@ -9,7 +9,10 @@ import de.delautrer.game.blocks.state.BlockState;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.ChunkManager;
 import de.delautrer.Constants;
+import de.delautrer.engine.graphics.utils.BiomeTintHelper;
+import de.delautrer.game.registry.NamespacedKey;
 import de.delautrer.game.registry.Registries;
+import de.delautrer.game.world.generation.biome.Biome;
 
 public class CubeBlock extends Block {
 
@@ -133,6 +136,14 @@ public class CubeBlock extends Block {
             float ao1, float x2, float y2, float z2, float ao2, float x3, float y3, float z3, float ao3, float lu0,
             float lv0, float lu1, float lv1, AtlasRegion reg, float light, float sl0, float sl1, float sl2, float sl3,
             float bl0, float bl1, float bl2, float bl3, int rotation, boolean mirrorHorizontal) {
+        addMappedFace(chunk, x0, y0, z0, ao0, x1, y1, z1, ao1, x2, y2, z2, ao2, x3, y3, z3, ao3, lu0, lv0, lu1, lv1, reg, light, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3, rotation, mirrorHorizontal, 1.0f, 1.0f, 1.0f);
+    }
+
+    protected void addMappedFace(Chunk chunk, float x0, float y0, float z0, float ao0, float x1, float y1, float z1,
+            float ao1, float x2, float y2, float z2, float ao2, float x3, float y3, float z3, float ao3, float lu0,
+            float lv0, float lu1, float lv1, AtlasRegion reg, float light, float sl0, float sl1, float sl2, float sl3,
+            float bl0, float bl1, float bl2, float bl3, int rotation, boolean mirrorHorizontal,
+            float tintR, float tintG, float tintB) {
         if (reg == null)
             return;
 
@@ -141,11 +152,6 @@ public class CubeBlock extends Block {
         float u1 = reg.u0 + (reg.u1 - reg.u0) * (mirrorHorizontal ? lu0 : lu1);
         float v1 = reg.v0 + (reg.v1 - reg.v0) * lv1;
 
-        // Base mapping (rotation 0):
-        // Vertex 0: u0, v1
-        // Vertex 1: u1, v1
-        // Vertex 2: u1, v0
-        // Vertex 3: u0, v0
         float[][] uvs = {
                 { u0, v1 }, { u1, v1 }, { u1, v0 }, { u0, v0 }
         };
@@ -158,7 +164,7 @@ public class CubeBlock extends Block {
 
         chunk.addFace(x0, y0, z0, ao0, x1, y1, z1, ao1, x2, y2, z2, ao2, x3, y3, z3, ao3,
                 uv0_u, uv0_v, uv1_u, uv1_v, uv2_u, uv2_v, uv3_u, uv3_v,
-                reg.layer, light, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
+                reg.layer, light, this, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3, tintR, tintG, tintB);
     }
 
     public void renderBox(BlockState state, int x, int y, int z, float minX, float minY, float minZ, float maxX,
@@ -212,6 +218,11 @@ public class CubeBlock extends Block {
         float tint = getColorTint();
         float lightTop = 1.0f * tint, lightBot = 0.50f * tint, lightFrontBack = 0.82f * tint,
                 lightLeftRight = 0.70f * tint;
+
+        boolean isGrassBlock = (this == Registries.BLOCKS.get("veinstride:grass_block"));
+        boolean isMossBlock = (this == Registries.BLOCKS.get("veinstride:moss"));
+        boolean needsGrassTint = isGrassBlock || isMossBlock;
+        BiomeTintHelper.Tint grassTint = needsGrassTint ? BiomeTintHelper.getBlendedGrassTint(chunk, x, z, cm) : BiomeTintHelper.DEFAULT_TINT;
 
         AtlasRegion tTop = getTextureForFace(state, BlockFace.UP);
         AtlasRegion tBot = getTextureForFace(state, BlockFace.DOWN);
@@ -279,7 +290,10 @@ public class CubeBlock extends Block {
                     lightTop, bilerp(sl0, sl3, sl2, sl1, minX, maxZ), bilerp(sl0, sl3, sl2, sl1, maxX, maxZ),
                     bilerp(sl0, sl3, sl2, sl1, maxX, minZ), bilerp(sl0, sl3, sl2, sl1, minX, minZ),
                     bilerp(bl0, bl3, bl2, bl1, minX, maxZ), bilerp(bl0, bl3, bl2, bl1, maxX, maxZ),
-                    bilerp(bl0, bl3, bl2, bl1, maxX, minZ), bilerp(bl0, bl3, bl2, bl1, minX, minZ), rotTop, mirTop);
+                    bilerp(bl0, bl3, bl2, bl1, maxX, minZ), bilerp(bl0, bl3, bl2, bl1, minX, minZ), rotTop, mirTop,
+                    (isGrassBlock || isMossBlock) ? grassTint.r : 1.0f,
+                    (isGrassBlock || isMossBlock) ? grassTint.g : 1.0f,
+                    (isGrassBlock || isMossBlock) ? grassTint.b : 1.0f);
         }
         BlockState sBot = getNeighborState(chunk, cm, x, y - 1, z);
         if (rBot && (minY > 0.0f || (y > Chunk.MIN_Y && shouldRenderFaceAgainstState(state, sBot, BlockFace.DOWN)))) {
@@ -305,7 +319,10 @@ public class CubeBlock extends Block {
                     lightBot, bilerp(sl1, sl2, sl3, sl0, minX, minZ), bilerp(sl1, sl2, sl3, sl0, maxX, minZ),
                     bilerp(sl1, sl2, sl3, sl0, maxX, maxZ), bilerp(sl1, sl2, sl3, sl0, minX, maxZ),
                     bilerp(bl1, bl2, bl3, bl0, minX, minZ), bilerp(bl1, bl2, bl3, bl0, maxX, minZ),
-                    bilerp(bl1, bl2, bl3, bl0, maxX, maxZ), bilerp(bl1, bl2, bl3, bl0, minX, maxZ), rotBot, mirBot);
+                    bilerp(bl1, bl2, bl3, bl0, maxX, maxZ), bilerp(bl1, bl2, bl3, bl0, minX, maxZ), rotBot, mirBot,
+                    isMossBlock ? grassTint.r : 1.0f,
+                    isMossBlock ? grassTint.g : 1.0f,
+                    isMossBlock ? grassTint.b : 1.0f);
         }
         BlockState sSouth = getNeighborState(chunk, cm, x, y, z + 1);
         if (rS && (maxZ < 1.0f || shouldRenderFaceAgainstState(state, sSouth, BlockFace.SOUTH))) {
@@ -332,7 +349,10 @@ public class CubeBlock extends Block {
                     bilerp(sl0, sl1, sl2, sl3, maxX, minY), bilerp(sl0, sl1, sl2, sl3, maxX, maxY),
                     bilerp(sl0, sl1, sl2, sl3, minX, maxY), bilerp(bl0, bl1, bl2, bl3, minX, minY),
                     bilerp(bl0, bl1, bl2, bl3, maxX, minY), bilerp(bl0, bl1, bl2, bl3, maxX, maxY),
-                    bilerp(bl0, bl1, bl2, bl3, minX, maxY), rotS, mirS);
+                    bilerp(bl0, bl1, bl2, bl3, minX, maxY), rotS, mirS,
+                    isMossBlock ? grassTint.r : 1.0f,
+                    isMossBlock ? grassTint.g : 1.0f,
+                    isMossBlock ? grassTint.b : 1.0f);
         }
         BlockState sNorth = getNeighborState(chunk, cm, x, y, z - 1);
         if (rN && (minZ > 0.0f || shouldRenderFaceAgainstState(state, sNorth, BlockFace.NORTH))) {
@@ -358,7 +378,10 @@ public class CubeBlock extends Block {
                     bilerp(sl1, sl0, sl3, sl2, minX, minY), bilerp(sl1, sl0, sl3, sl2, minX, maxY),
                     bilerp(sl1, sl0, sl3, sl2, maxX, maxY), bilerp(bl1, bl0, bl3, bl2, maxX, minY),
                     bilerp(bl1, bl0, bl3, bl2, minX, minY), bilerp(bl1, bl0, bl3, bl2, minX, maxY),
-                    bilerp(bl1, bl0, bl3, bl2, maxX, maxY), rotN, mirN);
+                    bilerp(bl1, bl0, bl3, bl2, maxX, maxY), rotN, mirN,
+                    isMossBlock ? grassTint.r : 1.0f,
+                    isMossBlock ? grassTint.g : 1.0f,
+                    isMossBlock ? grassTint.b : 1.0f);
         }
         BlockState sWest = getNeighborState(chunk, cm, x - 1, y, z);
         if (rW && (minX > 0.0f || shouldRenderFaceAgainstState(state, sWest, BlockFace.WEST))) {
@@ -385,7 +408,10 @@ public class CubeBlock extends Block {
                     bilerp(sl0, sl1, sl2, sl3, maxZ, minY), bilerp(sl0, sl1, sl2, sl3, maxZ, maxY),
                     bilerp(sl0, sl1, sl2, sl3, minZ, maxY), bilerp(bl0, bl1, bl2, bl3, minZ, minY),
                     bilerp(bl0, bl1, bl2, bl3, maxZ, minY), bilerp(bl0, bl1, bl2, bl3, maxZ, maxY),
-                    bilerp(bl0, bl1, bl2, bl3, minZ, maxY), rotW, mirW);
+                    bilerp(bl0, bl1, bl2, bl3, minZ, maxY), rotW, mirW,
+                    isMossBlock ? grassTint.r : 1.0f,
+                    isMossBlock ? grassTint.g : 1.0f,
+                    isMossBlock ? grassTint.b : 1.0f);
         }
         BlockState sEast = getNeighborState(chunk, cm, x + 1, y, z);
         if (rE && (maxX < 1.0f || shouldRenderFaceAgainstState(state, sEast, BlockFace.EAST))) {
@@ -411,7 +437,10 @@ public class CubeBlock extends Block {
                     bilerp(sl1, sl0, sl3, sl2, minZ, minY), bilerp(sl1, sl0, sl3, sl2, minZ, maxY),
                     bilerp(sl1, sl0, sl3, sl2, maxZ, maxY), bilerp(bl1, bl0, bl3, bl2, maxZ, minY),
                     bilerp(bl1, bl0, bl3, bl2, minZ, minY), bilerp(bl1, bl0, bl3, bl2, minZ, maxY),
-                    bilerp(bl1, bl0, bl3, bl2, maxZ, maxY), rotE, mirE);
+                    bilerp(bl1, bl0, bl3, bl2, maxZ, maxY), rotE, mirE,
+                    isMossBlock ? grassTint.r : 1.0f,
+                    isMossBlock ? grassTint.g : 1.0f,
+                    isMossBlock ? grassTint.b : 1.0f);
         }
     }
 }

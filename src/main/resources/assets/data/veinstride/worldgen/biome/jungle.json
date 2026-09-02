@@ -28,5 +28,8 @@
     },
     "surfaceBlobs": {
         "moss": 0.55
+    },
+    "effects": {
+        "grass_color": "#3d9a12"
     }
 }

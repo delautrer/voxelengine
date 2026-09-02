@@ -30,6 +30,7 @@
     "effects": {
         "sky_color": "#7a9bb8",
         "fog_color": "#8aa3b5",
-        "water_color": "#1f4a63"
+        "water_color": "#1f4a63",
+        "grass_color": "#4a6e3a"
     }
 }

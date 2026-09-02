@@ -20,5 +20,8 @@
     "treeProbability": 0.015,
     "trees": {
         "veinstride:oak": 1
+    },
+    "effects": {
+        "grass_color": "#4a8218"
     }
 }
