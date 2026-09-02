@@ -17,6 +17,7 @@ import de.delautrer.game.items.BlockItem;
 public class SlabBlock extends CubeBlock {
     public static final EnumProperty<SlabType> TYPE = EnumProperty.create("type", SlabType.class);
 
+    @SuppressWarnings("this-escape")
     public SlabBlock(boolean isSolid, boolean isTransparent) {
         super(isSolid, isTransparent);
         this.mesher = new de.delautrer.engine.graphics.meshing.SlabMesher(this);

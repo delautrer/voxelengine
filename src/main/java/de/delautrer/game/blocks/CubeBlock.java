@@ -13,16 +13,19 @@ import de.delautrer.game.registry.Registries;
 
 public class CubeBlock extends Block {
 
+    @SuppressWarnings("this-escape")
     public CubeBlock(boolean isSolid, boolean isTransparent, boolean isPassable, boolean isRaycastable) {
         super(isSolid, isTransparent, isPassable, isRaycastable);
         this.mesher = new de.delautrer.engine.graphics.meshing.CubeMesher(this);
     }
 
+    @SuppressWarnings("this-escape")
     public CubeBlock(boolean isSolid, boolean isTransparent, boolean isPassable) {
         super(isSolid, isTransparent, isPassable, true);
         this.mesher = new de.delautrer.engine.graphics.meshing.CubeMesher(this);
     }
 
+    @SuppressWarnings("this-escape")
     public CubeBlock(boolean isSolid, boolean isTransparent) {
         super(isSolid, isTransparent, false, true);
         this.mesher = new de.delautrer.engine.graphics.meshing.CubeMesher(this);

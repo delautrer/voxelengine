@@ -22,6 +22,7 @@ import de.delautrer.game.world.WorldGenerator;
 
 public class FeatureRegistry {
     private static final Map<NamespacedKey, ConfiguredFeature> CONFIGURED_FEATURES = new HashMap<>();
+    private static final Map<NamespacedKey, PlacedFeature> PLACED_FEATURES = new HashMap<>();
     private static final List<PlacedFeature> FEATURES = new ArrayList<>();
     private static final Gson GSON = new Gson();
     private static boolean isInitialized = false;
@@ -78,7 +79,9 @@ public class FeatureRegistry {
                             modDTO != null ? modDTO.air_exposure_chance : 0.0,
                             modDTO != null ? modDTO.getBiomesList() : null
                     );
-                    FEATURES.add(new PlacedFeature(id, configured, count, distribution, modifier));
+                    PlacedFeature pf = new PlacedFeature(id, configured, count, distribution, modifier);
+                    FEATURES.add(pf);
+                    PLACED_FEATURES.put(NamespacedKey.fromString("veinstride:" + id), pf);
                 }
             } catch (Exception e) {
                 System.err.println("[FeatureRegistry] Failed to load placed feature: " + file);
@@ -89,6 +92,10 @@ public class FeatureRegistry {
 
     public static ConfiguredFeature getConfiguredFeature(NamespacedKey key) {
         return CONFIGURED_FEATURES.get(key);
+    }
+
+    public static PlacedFeature getPlacedFeature(NamespacedKey key) {
+        return PLACED_FEATURES.get(key);
     }
 
     public static int getPlacedFeaturesCount() {

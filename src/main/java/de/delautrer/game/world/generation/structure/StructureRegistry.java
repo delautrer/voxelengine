@@ -147,13 +147,20 @@ public class StructureRegistry {
                 List<String> rawBiomes = dto.getBiomesList();
                 for (String bStr : rawBiomes) {
                     if (bStr.startsWith("#")) {
-                        throw new IllegalStateException("Structure " + file + " references biome tag '" + bStr + "' which is not supported until Phase 1b!");
+                        de.delautrer.game.registry.Tag<de.delautrer.game.world.generation.biome.Biome> bTag = de.delautrer.game.registry.TagRegistry.getBiomeTag(bStr);
+                        if (bTag == null || bTag.getElements().isEmpty()) {
+                            throw new IllegalStateException("Structure " + file + " references unknown or empty biome tag '" + bStr + "'");
+                        }
+                        for (de.delautrer.game.world.generation.biome.Biome b : bTag.getElements()) {
+                            biomes.add(NamespacedKey.fromString(b.id));
+                        }
+                    } else {
+                        NamespacedKey bKey = bStr.contains(":") ? NamespacedKey.fromString(bStr) : NamespacedKey.fromString("veinstride:" + bStr);
+                        if (Registries.BIOMES.get(bKey) == null) {
+                            throw new IllegalStateException("Structure " + file + " references unknown biome '" + bStr + "'");
+                        }
+                        biomes.add(bKey);
                     }
-                    NamespacedKey bKey = bStr.contains(":") ? NamespacedKey.fromString(bStr) : NamespacedKey.fromString("veinstride:" + bStr);
-                    if (Registries.BIOMES.get(bKey) == null) {
-                        throw new IllegalStateException("Structure " + file + " references unknown biome '" + bStr + "'");
-                    }
-                    biomes.add(bKey);
                 }
 
                 List<StructureProcessor> processors = new ArrayList<>();

@@ -72,7 +72,7 @@ public class SaplingBlock extends PlantBlock {
         NamespacedKey belowKey = Registries.BLOCKS.getKey(belowBlock);
         if (belowKey == null) return;
         String belowPath = belowKey.getKey();
-        boolean isSoil = belowPath.equals("grass_block") || belowPath.equals("dirt");
+        boolean isSoil = belowPath.equals("grass_block") || belowPath.equals("dirt") || belowPath.equals("moss");
         if (!isSoil) return;
 
         int stage = state.getValue(STAGE);

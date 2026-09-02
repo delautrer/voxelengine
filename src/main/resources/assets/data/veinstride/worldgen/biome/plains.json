@@ -1,41 +1,25 @@
-﻿{
-    "id":  "veinstride:plains",
-    "temperature":  [
-                        -0.1,
-                        0.1
-                    ],
-    "humidity":  [
-                     -0.2,
-                     0.1
-                 ],
-    "continentalness":  [
-                            -0.1,
-                            1.0
-                        ],
-    "erosion":  [
-                    -1.0,
-                    0.15
-                ],
-    "weirdness":  [
-                      -1.0,
-                      1.0
-                  ],
-    "topBlock":  "grass_block",
-    "underBlock":  "dirt",
-    "underwaterBlock":  "sand",
-    "shoreBlock":  "grass_block",
-    "deepBlock":  "stone",
-    "baseHeight":  0.0,
-    "heightVariation":  10.0,
-    "floraProbability":  0.2,
-    "flora":  {
-                  "grass":  200,
-                  "dandelion":  20,
-                  "red_tulip":  5
-              },
-    "treeProbability":  0.0015,
-    "trees":  {
-                  "veinstride:oak":  1
-              }
+{
+    "id": "veinstride:plains",
+    "temperature": [-0.03, 0.03],
+    "humidity": [-0.06, 0.04],
+    "continentalness": [-0.10, 1.00],
+    "erosion": [-1.00, 0.16],
+    "weirdness": [-1.00, 1.00],
+    "topBlock": "grass_block",
+    "underBlock": "dirt",
+    "underwaterBlock": "sand",
+    "shoreBlock": "grass_block",
+    "deepBlock": "stone",
+    "baseHeight": 0.0,
+    "heightVariation": 10.0,
+    "floraProbability": 0.2,
+    "flora": {
+        "grass": 200,
+        "dandelion": 20,
+        "red_tulip": 5
+    },
+    "treeProbability": 0.0015,
+    "trees": {
+        "veinstride:oak": 1
+    }
 }
-

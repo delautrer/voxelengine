@@ -29,6 +29,7 @@ public class WaterBlock extends Block {
 
     public static final IntProperty LEVEL = IntProperty.create("level", 0, 8);
 
+    @SuppressWarnings("this-escape")
     public WaterBlock() {
         super(false, true, true, false);
         this.mesher = new de.delautrer.engine.graphics.meshing.WaterMesher(this);

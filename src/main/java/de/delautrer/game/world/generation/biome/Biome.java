@@ -3,6 +3,7 @@ package de.delautrer.game.world.generation.biome;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.BlockRegistry;
 import de.delautrer.Constants;
+import java.util.List;
 import java.util.Map;
 
 public class Biome {
@@ -42,6 +43,12 @@ public class Biome {
     public float underwaterBlobScale = 0.1f;
     public Map<String, Float> underwaterBlobs;
 
+    // Phase 3 optional fields
+    public String precipitation = "rain";
+    public Map<String, String> effects;
+    public List<String> features;
+    public List<String> structureIds;
+
     // Helper für die Berechnung
     private float distanceTo(float[] range, float value) {
         if (range == null || range.length < 2) return 0f;
@@ -58,6 +65,22 @@ public class Biome {
         float distW = distanceTo(weirdness, point.weirdness);
 
         return (distT * distT) + (distH * distH) + (distC * distC) + (distE * distE) + (distW * distW);
+    }
+
+    private float getRangeSpan(float[] range) {
+        if (range == null || range.length < 2) return 2.0f;
+        return Math.max(0.0f, range[1] - range[0]);
+    }
+
+    public float calculateVolume() {
+        float tempSpan = getRangeSpan(temperature);
+        float humSpan = getRangeSpan(humidity);
+        float contSpan = getRangeSpan(continentalness);
+        float eroSpan = getRangeSpan(erosion);
+        float wrdSpan = getRangeSpan(weirdness);
+
+        float rawVolume = tempSpan * humSpan * contSpan * eroSpan * wrdSpan;
+        return Math.max(1e-4f, rawVolume);
     }
 
     public String getName() {

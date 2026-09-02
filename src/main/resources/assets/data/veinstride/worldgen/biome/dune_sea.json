@@ -1,0 +1,26 @@
+{
+    "id": "veinstride:dune_sea",
+    "temperature": [0.18, 1.00],
+    "humidity": [-1.00, -0.28],
+    "continentalness": [-0.05, 1.00],
+    "erosion": [-1.00, 0.50],
+    "weirdness": [0.00, 1.00],
+    "topBlock": "sand",
+    "underBlock": "sandstone",
+    "underwaterBlock": "sand",
+    "shoreBlock": "sand",
+    "deepBlock": "sandstone",
+    "baseHeight": 2.0,
+    "heightVariation": 22.0,
+    "treeProbability": 0.0,
+    "floraProbability": 0.0,
+    "precipitation": "none",
+    "effects": {
+        "sky_color": "#c8b46a",
+        "fog_color": "#c4a35a",
+        "water_color": "#3d6b8a"
+    },
+    "surfaceBlobs": {
+        "sandstone": 0.20
+    }
+}

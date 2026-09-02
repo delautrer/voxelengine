@@ -1,47 +1,31 @@
-﻿{
-    "id":  "veinstride:flower_plains",
-    "temperature":  [
-                        0.0,
-                        0.3
-                    ],
-    "humidity":  [
-                     0.3,
-                     0.6
-                 ],
-    "continentalness":  [
-                            -0.1,
-                            1.0
-                        ],
-    "erosion":  [
-                    -1.0,
-                    0.2
-                ],
-    "weirdness":  [
-                      -1.0,
-                      1.0
-                  ],
-    "topBlock":  "grass_block",
-    "underBlock":  "dirt",
-    "underwaterBlock":  "sand",
-    "shoreBlock":  "grass_block",
-    "deepBlock":  "stone",
-    "baseHeight":  0.0,
-    "heightVariation":  10.0,
-    "floraProbability":  0.55,
-    "floraPatchThreshold":  -0.5,
-    "floraDensity":  0.9,
-    "flora":  {
-                  "grass":  300,
-                  "dotty":  40,
-                  "red_tulip":  40,
-                  "purple_tulip":  40,
-                  "poppy":  25,
-                  "dandelion":  25,
-                  "fairy_bell":  10
-              },
-    "treeProbability":  0.000,
-    "trees":  {
-                  "veinstride:oak":  1
-              }
+{
+    "id": "veinstride:flower_plains",
+    "temperature": [0.06, 0.34],
+    "humidity": [0.16, 0.22],
+    "continentalness": [-0.10, 1.00],
+    "erosion": [-1.00, 0.22],
+    "weirdness": [-1.00, 1.00],
+    "topBlock": "grass_block",
+    "underBlock": "dirt",
+    "underwaterBlock": "sand",
+    "shoreBlock": "grass_block",
+    "deepBlock": "stone",
+    "baseHeight": 0.0,
+    "heightVariation": 10.0,
+    "floraProbability": 0.55,
+    "floraPatchThreshold": -0.5,
+    "floraDensity": 0.9,
+    "flora": {
+        "grass": 300,
+        "dotty": 40,
+        "red_tulip": 40,
+        "purple_tulip": 40,
+        "poppy": 25,
+        "dandelion": 25,
+        "fairy_bell": 10
+    },
+    "treeProbability": 0.000,
+    "trees": {
+        "veinstride:oak": 1
+    }
 }
-

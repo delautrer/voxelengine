@@ -2,10 +2,7 @@
   "type": "veinstride:standard",
   "template": "veinstride:oak_ruin",
   "step": "surface_structures",
-  "biomes": [
-    "veinstride:forest",
-    "veinstride:plains"
-  ],
+  "biomes": "#veinstride:has_oak_ruins",
   "processors": [
     {
       "type": "veinstride:gravity",

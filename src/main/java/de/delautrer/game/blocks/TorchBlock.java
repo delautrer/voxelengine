@@ -65,6 +65,7 @@ public class TorchBlock extends CubeBlock {
         }
     }
 
+    @SuppressWarnings("this-escape")
     public TorchBlock() {
         super(false, true, true);
         this.mesher = new de.delautrer.engine.graphics.meshing.TorchMesher(this);

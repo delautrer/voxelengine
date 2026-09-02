@@ -22,6 +22,7 @@ import de.delautrer.game.registry.Registries;
 
 public class PlantBlock extends Block {
 
+    @SuppressWarnings("this-escape")
     public PlantBlock() {
         super(false, true, true, true);
         this.mesher = new de.delautrer.engine.graphics.meshing.PlantMesher(this);
@@ -46,7 +47,7 @@ public class PlantBlock extends Block {
     }
 
     protected boolean canSurviveOn(String blockName) {
-        if (blockName.equals("grass_block") || blockName.equals("dirt")) {
+        if (blockName.equals("grass_block") || blockName.equals("dirt") || blockName.equals("moss")) {
             return true;
         }
         NamespacedKey myKey = BlockRegistry.REGISTRY.getKey(this);

@@ -9,6 +9,7 @@ import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.NoiseGenerator;
 import de.delautrer.game.world.generation.feature.ConfiguredFeature;
 import de.delautrer.game.world.generation.feature.FeatureRegistry;
+import de.delautrer.game.world.generation.feature.PlacedFeature;
 import de.delautrer.game.world.persistence.WorldPalette;
 import java.util.Map;
 import java.util.Random;
@@ -181,23 +182,27 @@ public class MultiNoiseSurfaceBuilder {
                                     if (y + 1 < Chunk.MAX_Y && chunk.getBlock(lx, y + 1, lz, palette) == air) {
                                         if (currentTop == sand) {
                                             if (random.nextFloat() < 0.05f) chunk.setBlock(lx, y + 1, lz, sandyGrass, (byte) 0, palette);
-                                        } else if (biome.floraProbability > 0 || "veinstride:savanna".equals(biome.id)) {
+                                        } else if ((biome.floraProbability > 0 || "veinstride:savanna".equals(biome.id)) && !"veinstride:desert".equals(biome.id) && !"veinstride:dune_sea".equals(biome.id)) {
                                             float patchN = patchNoise.getFractalNoise2D(worldX * 0.12f, worldZ * 0.12f, 2, 0.5f, 2.0f);
                                             float patchThreshold = (biome.floraPatchThreshold != 0) ? biome.floraPatchThreshold : -0.4f;
 
                                             if (patchN > patchThreshold) {
                                                 float density = (biome.floraDensity != 0) ? biome.floraDensity : 0.8f;
                                                 if (random.nextFloat() < (density * (biome.floraProbability > 0 ? biome.floraProbability * 2.0f : 1.0f))) {
-                                                    Block floraToSet = grass;
-                                                    float flowerChance = "veinstride:flower_plains".equals(biome.id) ? 0.6f : 0.45f;
-                                                    if (random.nextFloat() < flowerChance) {
+                                                    Block floraToSet = null;
+                                                    if (biome.flora != null && !biome.flora.isEmpty()) {
                                                         String flowerName = WeightedRandomHelper.getRandom(biome.flora, random);
                                                         if (flowerName != null) {
                                                             Block fl = Registries.BLOCKS.get("veinstride:" + flowerName);
                                                             if (fl != null) floraToSet = fl;
                                                         }
                                                     }
-                                                    chunk.setBlock(lx, y + 1, lz, floraToSet, (byte) 0, palette);
+                                                    if (floraToSet == null) {
+                                                        floraToSet = grass;
+                                                    }
+                                                    if (floraToSet != null) {
+                                                        chunk.setBlock(lx, y + 1, lz, floraToSet, (byte) 0, palette);
+                                                    }
                                                 }
                                             }
                                         }
@@ -211,10 +216,25 @@ public class MultiNoiseSurfaceBuilder {
                             }
                         } else if (solidRun < currentSurfaceDepth) {
                             solidRun++;
-                            chunk.setBlock(lx, y, lz, columnUnderBlock, (byte) 0, palette);
+                            Block toPlace = columnUnderBlock;
+                            int surfaceDist = expectedSurfaceY - y;
+                            Block sandstoneBlock = Registries.BLOCKS.get("veinstride:sandstone");
+                            if (sandstoneBlock != null && (topBlock == sand || columnUnderBlock == sand || "veinstride:desert".equals(biome.id)) && !isNearWater) {
+                                if (surfaceDist >= 4 && surfaceDist <= 9) {
+                                    toPlace = sandstoneBlock;
+                                }
+                            }
+                            chunk.setBlock(lx, y, lz, toPlace, (byte) 0, palette);
                         } else {
+                            solidRun++;
                             Block currentDeep = deepBlock;
-                            if (biome.undergroundBlobs != null && !biome.undergroundBlobs.isEmpty()) {
+                            int surfaceDist = expectedSurfaceY - y;
+                            Block sandstoneBlock = Registries.BLOCKS.get("veinstride:sandstone");
+                            if (sandstoneBlock != null && (topBlock == sand || columnUnderBlock == sand || "veinstride:desert".equals(biome.id)) && !isNearWater) {
+                                if (surfaceDist >= 4 && surfaceDist <= 9) {
+                                    currentDeep = sandstoneBlock;
+                                }
+                            } else if (biome.undergroundBlobs != null && !biome.undergroundBlobs.isEmpty()) {
                                 float blobN = blobNoise.getFractalNoise3D(worldX * 0.04f, y * 0.04f, worldZ * 0.04f, 2, 0.5f, 2.0f);
                                 for (java.util.Map.Entry<String, Float> entry : biome.undergroundBlobs.entrySet()) {
                                     if (Math.abs(blobN) > (1.0f - entry.getValue())) {
@@ -255,15 +275,16 @@ public class MultiNoiseSurfaceBuilder {
                         // WICHTIG: getExpectedHeight ist deterministisch für jeden Punkt in der Welt!
                         int surfaceY = getExpectedHeight(worldX, worldZ);
 
-                        if (surfaceY != -1 && surfaceY > MultiNoiseChunkGenerator.WATER_LEVEL + 2) {
+                        if (surfaceY != -1 && surfaceY > MultiNoiseChunkGenerator.WATER_LEVEL) {
                             // DETERMINISTISCHER CHECK:
                             // Statt im Chunk nachzuschauen (was bei Nachbar-Chunks nicht geht),
                             // prüfen wir das Biome und die theoretische Beschaffenheit.
                             Block topBlock = biome.getTopBlock();
                             Block sandBlock = Registries.BLOCKS.get("veinstride:sand");
                             Block dirtBlock = Registries.BLOCKS.get("veinstride:dirt");
+                            Block mossBlock = Registries.BLOCKS.get("veinstride:moss");
                             
-                            if (topBlock == grassBlock || topBlock == sandBlock || topBlock == dirtBlock) {
+                            if (topBlock == grassBlock || topBlock == dirtBlock || topBlock == mossBlock) {
                                 String treeFeatureKeyStr = WeightedRandomHelper.getRandom(biome.trees, checkRandom);
                                 if (treeFeatureKeyStr != null) {
                                     NamespacedKey featKey = NamespacedKey.fromString(treeFeatureKeyStr);
@@ -272,11 +293,78 @@ public class MultiNoiseSurfaceBuilder {
                                         System.err.println("Configured feature missing: " + featKey);
                                     } else {
                                         feature.generate(chunk, wg, worldX, surfaceY + 1, worldZ, seed);
+
+                                        if ("veinstride:pine_forest".equals(biome.id)) {
+                                            boolean hasCloseNeighbor = false;
+                                            int[][] offsets = {
+                                                {2, 0}, {-2, 0}, {0, 2}, {0, -2},
+                                                {2, 2}, {2, -2}, {-2, 2}, {-2, -2},
+                                                {4, 0}, {-4, 0}, {0, 4}, {0, -4}
+                                            };
+                                            for (int[] off : offsets) {
+                                                int nx = worldX + off[0];
+                                                int nz = worldZ + off[1];
+                                                long nSeed = seed ^ ((long) nx * 341873128712L ^ (long) nz * 132897987541L);
+                                                Random nRand = new Random(nSeed);
+                                                Climate.TargetPoint nClimate = sampler.sample(nx, nz);
+                                                Biome nBiome = MultiNoiseBiomeRegistry.getBiomeFor(nClimate);
+                                                if (nBiome != null && "veinstride:pine_forest".equals(nBiome.id) && nRand.nextFloat() < nBiome.treeProbability) {
+                                                    hasCloseNeighbor = true;
+                                                    break;
+                                                }
+                                            }
+
+                                            if (hasCloseNeighbor) {
+                                                if (mossBlock != null) {
+                                                    for (int mx = -2; mx <= 2; mx++) {
+                                                        for (int mz = -2; mz <= 2; mz++) {
+                                                            int twx = worldX + mx;
+                                                            int twz = worldZ + mz;
+                                                            int tlx = twx - (chunkX * Chunk.SIZE);
+                                                            int tlz = twz - (chunkZ * Chunk.SIZE);
+
+                                                            if (tlx >= 0 && tlx < Chunk.SIZE && tlz >= 0 && tlz < Chunk.SIZE) {
+                                                                int gy = getExpectedHeight(twx, twz);
+                                                                if (gy != -1) {
+                                                                    Block cur = chunk.getBlock(tlx, gy, tlz, palette);
+                                                                    if (cur == grassBlock || cur == dirtBlock || cur == sandBlock) {
+                                                                        chunk.setBlock(tlx, gy, tlz, mossBlock, (byte) 0, null);
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
                         }
                     }
+                }
+            }
+        }
+
+        // --- DATA-DRIVEN FEATURES (biome.features) ---
+        int centerWorldX = chunkX * Chunk.SIZE + (Chunk.SIZE / 2);
+        int centerWorldZ = chunkZ * Chunk.SIZE + (Chunk.SIZE / 2);
+        Climate.TargetPoint chunkCenterClimate = sampler.sample(centerWorldX, centerWorldZ);
+        Biome chunkCenterBiome = MultiNoiseBiomeRegistry.getBiomeFor(chunkCenterClimate);
+        if (chunkCenterBiome != null && chunkCenterBiome.features != null && !chunkCenterBiome.features.isEmpty()) {
+            Climate.TargetPoint[] chunkClimates = new Climate.TargetPoint[Chunk.SIZE * Chunk.SIZE];
+            for (int lx = 0; lx < Chunk.SIZE; lx++) {
+                for (int lz = 0; lz < Chunk.SIZE; lz++) {
+                    int wx = chunkX * Chunk.SIZE + lx;
+                    int wz = chunkZ * Chunk.SIZE + lz;
+                    chunkClimates[lx * Chunk.SIZE + lz] = sampler.sample(wx, wz);
+                }
+            }
+            for (String featId : chunkCenterBiome.features) {
+                NamespacedKey fKey = NamespacedKey.fromString(featId.contains(":") ? featId : "veinstride:" + featId);
+                PlacedFeature pf = FeatureRegistry.getPlacedFeature(fKey);
+                if (pf != null) {
+                    pf.generate(chunk, seed, chunkClimates);
                 }
             }
         }

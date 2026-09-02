@@ -74,6 +74,7 @@ public class World {
     private final WorldPalette blockPalette;
     private final BiomePalette biomePalette;
 
+    @SuppressWarnings("this-escape")
     public World(IGraphicsFactory graphicsFactory, LocalPlayer localPlayer, EventBus eventBus, long defaultSeed,
             String worldName, String worldSave, String generatorType, String generatorOptions, de.delautrer.game.entity.player.GameMode initialGameMode, boolean allowCheats) {
         this.eventBus = eventBus;

@@ -78,13 +78,16 @@ public class MultiNoiseBiomeRegistry {
 
         Biome bestBiome = currentBiomes.get(0);
         float bestFitness = bestBiome.calculateFitness(point);
+        float bestVolume = bestBiome.calculateVolume();
 
         for (int i = 1; i < currentBiomes.size(); i++) {
             Biome candidate = currentBiomes.get(i);
             float fitness = candidate.calculateFitness(point);
+            float volume = candidate.calculateVolume();
 
-            if (fitness < bestFitness) {
+            if (fitness < bestFitness || (Math.abs(fitness - bestFitness) < 1e-6f && volume < bestVolume)) {
                 bestFitness = fitness;
+                bestVolume = volume;
                 bestBiome = candidate;
             }
         }

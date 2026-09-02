@@ -22,6 +22,7 @@ import java.util.List;
 public class ChestBlock extends CubeBlock implements IInteractable {
     public static final EnumProperty<Direction> FACING = EnumProperty.create("facing", Direction.class);
 
+    @SuppressWarnings("this-escape")
     public ChestBlock() {
         super(true, true);
         this.mesher = new de.delautrer.engine.graphics.meshing.ChestMesher(this);

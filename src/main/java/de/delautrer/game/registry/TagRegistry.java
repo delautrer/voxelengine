@@ -8,6 +8,9 @@ import de.delautrer.Constants;
 import de.delautrer.engine.utils.ResourceUtils;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.items.Item;
+import de.delautrer.game.world.generation.biome.Biome;
+import de.delautrer.game.world.generation.biome.MultiNoiseBiomeRegistry;
+
 import java.io.Reader;
 import java.util.*;
 
@@ -15,6 +18,7 @@ public class TagRegistry {
 
     public static final Map<NamespacedKey, Tag<Block>> BLOCK_TAGS = new HashMap<>();
     public static final Map<NamespacedKey, Tag<Item>> ITEM_TAGS = new HashMap<>();
+    public static final Map<NamespacedKey, Tag<Biome>> BIOME_TAGS = new HashMap<>();
     private static final Gson GSON = new Gson();
 
     public static void loadTags() {
@@ -28,6 +32,12 @@ public class TagRegistry {
         resolveItemTags();
     }
 
+    public static void loadBiomeTags() {
+        BIOME_TAGS.clear();
+        loadTagsForType("assets/data/veinstride/tags/worldgen/biome", BIOME_TAGS);
+        resolveBiomeTags();
+    }
+
     private static <T> void loadTagsForType(String folderPath, Map<NamespacedKey, Tag<T>> targetMap) {
         List<String> files = ResourceUtils.listResources(folderPath, ".json");
         for (String file : files) {
@@ -36,6 +46,9 @@ public class TagRegistry {
             try {
                 Reader reader = ResourceUtils.readResourceToReader(folderPath + "/" + file);
                 JsonObject json = GSON.fromJson(reader, JsonObject.class);
+                if (json == null) {
+                    throw new IllegalStateException("Tag file is empty: " + folderPath + "/" + file);
+                }
                 boolean replace = json.has("replace") && json.get("replace").getAsBoolean();
                 Set<String> values = new HashSet<>();
                 if (json.has("values")) {
@@ -47,7 +60,7 @@ public class TagRegistry {
                 targetMap.put(key, new Tag<>(key, replace, values));
             } catch (Exception e) {
                 System.err.println("[TagRegistry] Failed to load tag: " + folderPath + "/" + file);
-                e.printStackTrace();
+                throw new IllegalStateException("Failed to load tag: " + folderPath + "/" + file, e);
             }
         }
     }
@@ -120,11 +133,52 @@ public class TagRegistry {
         }
     }
 
+    private static void resolveBiomeTags() {
+        for (Map.Entry<NamespacedKey, Tag<Biome>> entry : BIOME_TAGS.entrySet()) {
+            resolveBiomeTag(entry.getValue(), new HashSet<>());
+        }
+    }
+
+    private static void resolveBiomeTag(Tag<Biome> tag, Set<NamespacedKey> visited) {
+        if (!visited.add(tag.getKey())) {
+            throw new IllegalStateException("Circular dependency in biome tag: " + tag.getKey());
+        }
+        for (String val : tag.getRawValues()) {
+            if (val.startsWith("#")) {
+                NamespacedKey parentKey = NamespacedKey.fromString(val.substring(1));
+                Tag<Biome> parentTag = BIOME_TAGS.get(parentKey);
+                if (parentTag != null) {
+                    resolveBiomeTag(parentTag, visited);
+                    for (Biome b : parentTag.getElements()) {
+                        tag.addElement(b);
+                    }
+                } else {
+                    throw new IllegalStateException("Biome tag " + tag.getKey() + " references unknown parent tag: #" + parentKey);
+                }
+            } else {
+                NamespacedKey biomeKey = NamespacedKey.fromString(val.contains(":") ? val : "veinstride:" + val);
+                Biome b = Registries.BIOMES.get(biomeKey);
+                if (b != null) {
+                    tag.addElement(b);
+                } else {
+                    throw new IllegalStateException("Biome tag " + tag.getKey() + " references unknown biome: " + biomeKey);
+                }
+            }
+        }
+    }
+
     public static Tag<Block> getBlockTag(String tagString) {
+        if (tagString.startsWith("#")) tagString = tagString.substring(1);
         return BLOCK_TAGS.get(NamespacedKey.fromString(tagString));
     }
 
     public static Tag<Item> getItemTag(String tagString) {
+        if (tagString.startsWith("#")) tagString = tagString.substring(1);
         return ITEM_TAGS.get(NamespacedKey.fromString(tagString));
+    }
+
+    public static Tag<Biome> getBiomeTag(String tagString) {
+        if (tagString.startsWith("#")) tagString = tagString.substring(1);
+        return BIOME_TAGS.get(NamespacedKey.fromString(tagString));
     }
 }

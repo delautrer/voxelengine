@@ -107,15 +107,15 @@ public final class ChunkManager {
 
             // Sortieren: Nächste Chunks zuerst
             chunksToLoad.sort(Comparator.comparingDouble(pos -> {
-                int cx = (int) (pos >> 32);
-                int cz = (int) (long) pos;
+                int cx = (int) (pos.longValue() >> 32);
+                int cz = pos.intValue();
                 return Math.hypot(cx - pX, cz - pZ);
             }));
 
             for (long pos : chunksToLoad) {
                 chunksLoading.add(pos);
                 int finalX = (int) (pos >> 32);
-                int finalZ = (int) (long) pos;
+                int finalZ = (int) pos;
                 chunkExecutor.submit(() -> {
                     try {
                         Chunk newChunk = new Chunk(finalX, finalZ);

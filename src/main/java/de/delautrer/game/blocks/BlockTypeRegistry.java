@@ -45,6 +45,7 @@ public class BlockTypeRegistry {
         register("door", (def, key) -> new DoorBlock());
         register("gravity", (def, key) -> new GravityBlock());
         register("crafting_table", (def, key) -> new CraftingTableBlock());
+        register("stonecutter", (def, key) -> new StonecutterBlock());
         register("furnace", (def, key) -> new FurnaceBlock());
         register("structure_void", (def, key) -> new StructureVoidBlock());
         register("sapling", (def, key) -> {

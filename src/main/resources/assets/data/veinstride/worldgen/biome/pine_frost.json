@@ -1,0 +1,35 @@
+{
+    "id": "veinstride:pine_frost",
+    "temperature": [-1.00, -0.28],
+    "humidity": [0.12, 1.00],
+    "continentalness": [-0.10, 1.00],
+    "erosion": [-1.00, 0.50],
+    "weirdness": [-1.00, 1.00],
+    "topBlock": "grass_block",
+    "underBlock": "dirt",
+    "underwaterBlock": "gravel",
+    "shoreBlock": "grass_block",
+    "deepBlock": "stone",
+    "baseHeight": 3.0,
+    "heightVariation": 18.0,
+    "treeProbability": 0.09,
+    "trees": {
+        "veinstride:pine": 3,
+        "veinstride:tall_pine": 1
+    },
+    "floraProbability": 0.25,
+    "flora": {
+        "grass": 120,
+        "dotty": 8
+    },
+    "surfaceBlobs": {
+        "moss": 0.70,
+        "gravel": 0.08
+    },
+    "precipitation": "rain",
+    "effects": {
+        "sky_color": "#7a9bb8",
+        "fog_color": "#8aa3b5",
+        "water_color": "#1f4a63"
+    }
+}

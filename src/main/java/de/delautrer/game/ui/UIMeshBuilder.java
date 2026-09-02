@@ -156,6 +156,32 @@ public class UIMeshBuilder {
         addClippedQuad(UITexture.UI, x, y, x + w, y + h, z, 1f, 1f, 1f, u0, flipV ? v1 : v0, u1, flipV ? v0 : v1);
     }
 
+    public void addAtlasQuadRotated90CW(float x, float y, float z, float w, float h, int gridX, int gridY, int gridW, int gridH, boolean flipV) {
+        float epsilon = 0.0005f;
+        float u0 = (float) gridX / UI_GRID + epsilon;
+        float v0 = (float) gridY / UI_GRID + epsilon;
+        float u1 = (float) (gridX + gridW) / UI_GRID - epsilon;
+        float v1 = (float) (gridY + gridH) / UI_GRID - epsilon;
+
+        if (flipV) {
+            float tmp = v0;
+            v0 = v1;
+            v1 = tmp;
+        }
+
+        Map<Object, Batch> layer = layers.computeIfAbsent(z, k -> new HashMap<>());
+        Batch batch = layer.computeIfAbsent(UITexture.UI, k -> new Batch());
+
+        int offset = batch.verts.size() / 8;
+        batch.verts.addAll(List.of(
+                x, y, z, 1f, 1f, 1f, u1, v0,
+                x + w, y, z, 1f, 1f, 1f, u1, v1,
+                x + w, y + h, z, 1f, 1f, 1f, u0, v1,
+                x, y + h, z, 1f, 1f, 1f, u0, v0
+        ));
+        batch.inds.addAll(List.of(offset, offset + 1, offset + 2, offset + 2, offset + 3, offset));
+    }
+
     public void addAtlasQuadInvert(float x, float y, float z, float w, float h, int gridX, int gridY, int gridW, int gridH,
             boolean flipV) {
         float epsilon = 0.0005f;

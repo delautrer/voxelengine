@@ -2,7 +2,7 @@
   "type": "veinstride:standard",
   "template": "veinstride:desert_camp",
   "step": "surface_structures",
-  "biomes": "veinstride:desert",
+  "biomes": "#veinstride:is_desert",
   "processors": [
     {
       "type": "veinstride:gravity",

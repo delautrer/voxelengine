@@ -10,6 +10,7 @@ import de.delautrer.game.ui.gui.container.CreativeContainer;
 import de.delautrer.game.ui.gui.container.ChestContainer;
 import de.delautrer.game.ui.gui.container.CraftingTableContainer;
 import de.delautrer.game.ui.gui.container.FurnaceContainer;
+import de.delautrer.game.ui.gui.container.StonecutterContainer;
 import de.delautrer.game.ui.gui.screens.*;
 import de.delautrer.game.ui.gui.container.PlayerContainer;
 import de.delautrer.game.ui.gui.screens.ContainerScreen;
@@ -41,6 +42,7 @@ public class UIManager {
             } else {
                 if (externalInv instanceof ChestInventory && !(currentScreen instanceof ChestScreen)) needsNewScreen = true;
                 else if (externalInv instanceof de.delautrer.game.inventory.CraftingTableInventory && !(currentScreen instanceof CraftingTableScreen)) needsNewScreen = true;
+                else if (externalInv instanceof de.delautrer.game.inventory.StonecutterInventory && !(currentScreen instanceof StonecutterScreen)) needsNewScreen = true;
                 else if (externalInv instanceof de.delautrer.game.inventory.FurnaceInventory && !(currentScreen instanceof FurnaceScreen)) needsNewScreen = true;
             }
 
@@ -54,6 +56,9 @@ public class UIManager {
                 } else if (externalInv instanceof de.delautrer.game.inventory.CraftingTableInventory) {
                     currentScreen = new CraftingTableScreen(
                             new CraftingTableContainer(interaction.getInventory(), (de.delautrer.game.inventory.CraftingTableInventory) externalInv));
+                } else if (externalInv instanceof de.delautrer.game.inventory.StonecutterInventory) {
+                    currentScreen = new StonecutterScreen(
+                            new StonecutterContainer(interaction.getInventory(), (de.delautrer.game.inventory.StonecutterInventory) externalInv));
                 } else if (externalInv instanceof de.delautrer.game.inventory.FurnaceInventory) {
                     currentScreen = new FurnaceScreen(
                             new FurnaceContainer(interaction.getInventory(), (de.delautrer.game.inventory.FurnaceInventory) externalInv));
@@ -74,9 +79,7 @@ public class UIManager {
         // 2. Hat der Spieler nur sein eigenes Inventar offen?
         else if (isPlayerInvOpen) {
             boolean needsNewScreen = false;
-            // Prüfen, ob wir den Screen neu laden müssen (falls er vorher null oder ein
-            // ChestScreen/CraftingScreen/FurnaceScreen war)
-            if (currentScreen == null || currentScreen instanceof ChestScreen || currentScreen instanceof CraftingTableScreen || currentScreen instanceof FurnaceScreen) {
+            if (currentScreen == null || currentScreen instanceof ChestScreen || currentScreen instanceof CraftingTableScreen || currentScreen instanceof StonecutterScreen || currentScreen instanceof FurnaceScreen) {
                 needsNewScreen = true;
                 if (currentScreen != null) {
                     currentScreen.onClose();
@@ -102,7 +105,7 @@ public class UIManager {
         // 3. Gar kein Inventar offen
         else {
             if (currentScreen != null) {
-                currentScreen.onClose(); // <--- WICHTIGSTES NEU: Hier wird das Inventar komplett geschlossen!
+                currentScreen.onClose();
             }
             currentScreen = null;
         }

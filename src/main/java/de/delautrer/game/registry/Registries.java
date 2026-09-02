@@ -64,6 +64,9 @@ public class Registries {
         // 11. Biomes
         MultiNoiseBiomeRegistry.init();
 
+        // 11b. Biome Tags
+        TagRegistry.loadBiomeTags();
+
         // 12. Configured + Placed Features
         FeatureRegistry.init();
 
@@ -140,7 +143,7 @@ public class Registries {
             }
         }
 
-        // 4. Every biome: topBlock, underBlock, underwaterBlock, deepBlock, shoreBlock exist; flora exist; trees exist
+        // 4. Every biome: topBlock, underBlock, underwaterBlock, deepBlock, shoreBlock exist; flora exist; trees exist; blobs exist; features exist
         for (Biome biome : MultiNoiseBiomeRegistry.getBiomes()) {
             validateBiomeBlock(biome.id, "topBlock", biome.topBlock);
             validateBiomeBlock(biome.id, "underBlock", biome.underBlock);
@@ -148,6 +151,24 @@ public class Registries {
             validateBiomeBlock(biome.id, "deepBlock", biome.deepBlock != null ? biome.deepBlock : "stone");
             if (biome.shoreBlock != null) {
                 validateBiomeBlock(biome.id, "shoreBlock", biome.shoreBlock);
+            }
+
+            if (biome.surfaceBlobs != null) {
+                for (String blobKeyStr : biome.surfaceBlobs.keySet()) {
+                    validateBiomeBlock(biome.id, "surfaceBlobs", blobKeyStr);
+                }
+            }
+
+            if (biome.undergroundBlobs != null) {
+                for (String blobKeyStr : biome.undergroundBlobs.keySet()) {
+                    validateBiomeBlock(biome.id, "undergroundBlobs", blobKeyStr);
+                }
+            }
+
+            if (biome.underwaterBlobs != null) {
+                for (String blobKeyStr : biome.underwaterBlobs.keySet()) {
+                    validateBiomeBlock(biome.id, "underwaterBlobs", blobKeyStr);
+                }
             }
 
             if (biome.flora != null) {
@@ -161,6 +182,15 @@ public class Registries {
                     NamespacedKey tKey = NamespacedKey.fromString(treeKeyStr.contains(":") ? treeKeyStr : "veinstride:" + treeKeyStr);
                     if (FeatureRegistry.getConfiguredFeature(tKey) == null) {
                         throw new IllegalStateException("Biome " + biome.id + " references missing configured feature: " + treeKeyStr);
+                    }
+                }
+            }
+
+            if (biome.features != null) {
+                for (String featKeyStr : biome.features) {
+                    NamespacedKey fKey = NamespacedKey.fromString(featKeyStr.contains(":") ? featKeyStr : "veinstride:" + featKeyStr);
+                    if (FeatureRegistry.getPlacedFeature(fKey) == null) {
+                        throw new IllegalStateException("Biome " + biome.id + " references missing placed feature: " + featKeyStr);
                     }
                 }
             }

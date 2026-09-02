@@ -28,6 +28,7 @@ public class RecipeManager {
         }
         System.out.println("Loaded " + RECIPES.size() + " recipes.");
         de.delautrer.game.crafting.FurnaceRecipeManager.init();
+        de.delautrer.game.crafting.StonecutterRecipeManager.init();
     }
 
     public static void loadRecipe(String filename) {
@@ -37,7 +38,9 @@ public class RecipeManager {
             JsonObject json = GSON.fromJson(reader, JsonObject.class);
             String type = json.get("type").getAsString();
 
-            if (type.equals("shaped")) {
+            if (type.equals("stonecutter")) {
+                return;
+            } else if (type.equals("shaped")) {
                 loadShaped(json, filename);
             } else if (type.equals("shapeless")) {
                 loadShapeless(json, filename);

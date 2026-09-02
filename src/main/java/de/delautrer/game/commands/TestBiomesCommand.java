@@ -51,6 +51,9 @@ public class TestBiomesCommand implements ICommand {
             int count = counts.get(b.getName());
             float percent = (count * 100.0f) / totalPoints;
             String line = String.format("%s: %.2f%% (%d points)", b.getName(), percent, count);
+            if (b.effects != null && !b.effects.isEmpty()) {
+                line += " " + b.effects.toString();
+            }
             manager.sendMessageInChat(line);
             sb.append(line).append("\n");
         }

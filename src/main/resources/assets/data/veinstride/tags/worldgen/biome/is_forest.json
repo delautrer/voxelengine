@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "veinstride:forest",
+    "veinstride:birch_forest",
+    "veinstride:pine_forest",
+    "veinstride:pine_frost",
+    "veinstride:jungle"
+  ]
+}

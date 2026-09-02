@@ -1,41 +1,28 @@
-﻿{
-    "id":  "veinstride:pine_forest",
-    "temperature":  [
-                        -1.0,
-                        -0.1
-                    ],
-    "humidity":  [
-                     0.1,
-                     1.0
-                 ],
-    "continentalness":  [
-                            -0.1,
-                            1.0
-                        ],
-    "erosion":  [
-                    -1.0,
-                    1.0
-                ],
-    "weirdness":  [
-                      -1.0,
-                      1.0
-                  ],
-    "topBlock":  "grass_block",
-    "underBlock":  "dirt",
-    "underwaterBlock":  "sand",
-    "shoreBlock":  "grass_block",
-    "deepBlock":  "stone",
-    "baseHeight":  2.0,
-    "heightVariation":  15.0,
-    "floraProbability":  0.4,
-    "flora":  {
-                  "grass":  200,
-                  "dotty":  15,
-                  "fairy_bell":  5
-              },
-    "treeProbability":  0.07,
-    "trees":  {
-                  "veinstride:pine":  1
-              }
+{
+    "id": "veinstride:pine_forest",
+    "temperature": [-0.28, -0.04],
+    "humidity": [0.12, 1.00],
+    "continentalness": [-0.10, 1.00],
+    "erosion": [-1.00, 0.50],
+    "weirdness": [-1.00, 1.00],
+    "topBlock": "grass_block",
+    "underBlock": "dirt",
+    "underwaterBlock": "sand",
+    "shoreBlock": "grass_block",
+    "deepBlock": "stone",
+    "baseHeight": 2.0,
+    "heightVariation": 15.0,
+    "floraProbability": 0.4,
+    "flora": {
+        "grass": 200,
+        "dotty": 15,
+        "fairy_bell": 5
+    },
+    "treeProbability": 0.07,
+    "trees": {
+        "veinstride:pine": 1
+    },
+    "surfaceBlobs": {
+        "moss": 0.55
+    }
 }
-

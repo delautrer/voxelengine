@@ -1,4 +1,4 @@
-﻿{
+{
     "replace":  false,
     "values":  [
                    "veinstride:oak_stairs",
@@ -12,6 +12,10 @@
                    "veinstride:cobblestone_stairs",
                    "veinstride:bricks_stairs",
                    "veinstride:dirt_stairs",
-                   "veinstride:grass_block_stairs"
+                   "veinstride:grass_block_stairs",
+                   "veinstride:sandstone_stairs",
+                   "veinstride:stone_bricks_stairs",
+                   "veinstride:mossy_cobblestone_stairs",
+                   "veinstride:mossy_stone_bricks_stairs"
                ]
 }

@@ -73,7 +73,7 @@ public class TreeFeature {
     private static void generatePine(BlockSetter setter, int worldX, int worldY, int worldZ, long worldSeed, Block log, Block leaves, int baseHeight, int varHeight, boolean isTall) {
         Random random = new Random(worldSeed ^ ((long) worldX * 7312345L ^ (long) worldZ * 91612345L));
         int totalHeight = baseHeight + random.nextInt(Math.max(1, varHeight));
-        
+
         int leafStartY = isTall ? (4 + random.nextInt(3)) : (1 + random.nextInt(2));
         int crownHeight = totalHeight - leafStartY;
         if (crownHeight < 5) crownHeight = 5;
@@ -87,25 +87,25 @@ public class TreeFeature {
 
         int numSections = (crownHeight > 8) ? 3 : 2;
         float sectionH = (float)crownHeight / numSections;
-        
+
         for (int s = 0; s < numSections; s++) {
             int sectionBottom = worldY + leafStartY + (int)(s * sectionH);
             int sectionTop = sectionBottom + (int)sectionH;
             if (s == numSections - 1) sectionTop = worldY + totalHeight;
-            
+
             int maxRadius = numSections - s;
             if (maxRadius < 1) maxRadius = 1;
-            
+
             for (int y = sectionBottom; y <= sectionTop; y++) {
                 float t = (float)(y - sectionBottom) / (sectionTop - sectionBottom + 1);
                 int r = Math.round(maxRadius * (1.0f - t));
                 if (r < 0) r = 0;
-                
+
                 for (int x = worldX - r; x <= worldX + r; x++) {
                     for (int z = worldZ - r; z <= worldZ + r; z++) {
-                        if (y < worldY) continue; 
+                        if (y < worldY) continue;
                         if (x == worldX && z == worldZ && y < worldY + trunkHeight) continue;
-                        
+
                         if (Math.abs(x - worldX) + Math.abs(z - worldZ) <= r + (y == sectionBottom ? 1 : 0)) {
                             setter.setBlock(x, y, z, leaves, (byte) 0);
                         }
@@ -113,7 +113,7 @@ public class TreeFeature {
                 }
             }
         }
-        
+
         for (int y = Math.max(trunkHeight, worldY); y <= worldY + totalHeight; y++) {
             setter.setBlock(worldX, y, worldZ, leaves, (byte) 0);
         }
@@ -226,34 +226,35 @@ public class TreeFeature {
         WorldPalette palette = null;
         if (lx >= 0 && lx < Chunk.SIZE && lz >= 0 && lz < Chunk.SIZE && worldY >= Chunk.MIN_Y && worldY < Chunk.MAX_Y) {
             Block existing = chunk.getBlock(lx, worldY, lz, palette);
-            
+
             if (state == LOG_VERTICAL) {
                 Block grassBlock = Registries.BLOCKS.get("veinstride:grass_block");
                 Block sGrassBlock = Registries.BLOCKS.get("veinstride:sandy_grass");
                 Block dirtBlock = Registries.BLOCKS.get("veinstride:dirt");
                 Block sandBlock = Registries.BLOCKS.get("veinstride:sand");
-                
-                if (existing == grassBlock || existing == sGrassBlock || existing == dirtBlock || existing == sandBlock) {
+                Block mossBlock = Registries.BLOCKS.get("veinstride:moss");
+
+                if (existing == grassBlock || existing == sGrassBlock || existing == dirtBlock || existing == sandBlock || existing == mossBlock) {
                     chunk.setBlock(lx, worldY, lz, block, state, palette);
                     if (worldY - 1 >= Chunk.MIN_Y) {
                         Block below = chunk.getBlock(lx, worldY - 1, lz, palette);
-                        if (below == grassBlock || below == sGrassBlock) {
+                        if (below == grassBlock || below == sGrassBlock || below == mossBlock) {
                             chunk.setBlock(lx, worldY - 1, lz, dirtBlock, (byte) 0, palette);
                         }
                     }
                 } else if (canReplace(existing)) {
                     chunk.setBlock(lx, worldY, lz, block, state, palette);
-                    
+
                     for (int d = 1; d <= 256; d++) {
                         int dy = worldY - d;
                         if (dy < Chunk.MIN_Y) break;
                         Block below = chunk.getBlock(lx, dy, lz, palette);
                         if (below == block) break;
-                        
+
                         if (canReplace(below)) {
                             chunk.setBlock(lx, dy, lz, block, state, palette);
                         } else {
-                            if (below == grassBlock || below == sGrassBlock) {
+                            if (below == grassBlock || below == sGrassBlock || below == mossBlock) {
                                 chunk.setBlock(lx, dy, lz, dirtBlock, (byte) 0, palette);
                             }
                             break;

@@ -20,6 +20,7 @@ public class StairBlock extends CubeBlock {
     public static final EnumProperty<Half> HALF = EnumProperty.create("half", Half.class);
     public static final EnumProperty<StairShape> SHAPE = EnumProperty.create("shape", StairShape.class);
 
+    @SuppressWarnings("this-escape")
     public StairBlock(boolean isSolid, boolean isTransparent) {
         super(isSolid, isTransparent);
         this.mesher = new de.delautrer.engine.graphics.meshing.StairMesher(this);
