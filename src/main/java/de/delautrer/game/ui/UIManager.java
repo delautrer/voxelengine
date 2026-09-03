@@ -44,6 +44,7 @@ public class UIManager {
                 else if (externalInv instanceof de.delautrer.game.inventory.CraftingTableInventory && !(currentScreen instanceof CraftingTableScreen)) needsNewScreen = true;
                 else if (externalInv instanceof de.delautrer.game.inventory.StonecutterInventory && !(currentScreen instanceof StonecutterScreen)) needsNewScreen = true;
                 else if (externalInv instanceof de.delautrer.game.inventory.FurnaceInventory && !(currentScreen instanceof FurnaceScreen)) needsNewScreen = true;
+                else if (externalInv instanceof de.delautrer.game.inventory.StructureBlockInventory && !(currentScreen instanceof StructureBlockScreen)) needsNewScreen = true;
             }
 
             if (needsNewScreen) {
@@ -62,6 +63,10 @@ public class UIManager {
                 } else if (externalInv instanceof de.delautrer.game.inventory.FurnaceInventory) {
                     currentScreen = new FurnaceScreen(
                             new FurnaceContainer(interaction.getInventory(), (de.delautrer.game.inventory.FurnaceInventory) externalInv));
+                } else if (externalInv instanceof de.delautrer.game.inventory.StructureBlockInventory sbi) {
+                    StructureBlockScreen sbs = new StructureBlockScreen(sbi.getBlockEntity());
+                    sbs.setInteraction(interaction);
+                    currentScreen = sbs;
                 }
                 if (lastWidth > 0 && currentScreen != null) {
                     currentScreen.init(lastWidth, lastHeight);
@@ -79,7 +84,7 @@ public class UIManager {
         // 2. Hat der Spieler nur sein eigenes Inventar offen?
         else if (isPlayerInvOpen) {
             boolean needsNewScreen = false;
-            if (currentScreen == null || currentScreen instanceof ChestScreen || currentScreen instanceof CraftingTableScreen || currentScreen instanceof StonecutterScreen || currentScreen instanceof FurnaceScreen) {
+            if (currentScreen == null || currentScreen instanceof ChestScreen || currentScreen instanceof CraftingTableScreen || currentScreen instanceof StonecutterScreen || currentScreen instanceof FurnaceScreen || currentScreen instanceof StructureBlockScreen) {
                 needsNewScreen = true;
                 if (currentScreen != null) {
                     currentScreen.onClose();
@@ -97,6 +102,8 @@ public class UIManager {
             if (!needsNewScreen && currentScreen != null) {
                 if (currentScreen instanceof ContainerScreen containerScreen) {
                     containerScreen.setInteraction(interaction);
+                } else if (currentScreen instanceof StructureBlockScreen structureBlockScreen) {
+                    structureBlockScreen.setInteraction(interaction);
                 }
                 currentScreen.handleInput(input);
             }
@@ -140,6 +147,8 @@ public class UIManager {
         if (currentScreen != null) {
             if (currentScreen instanceof MenuScreen) {
                 ((MenuScreen) currentScreen).setFont(font);
+            } else if (currentScreen instanceof StructureBlockScreen) {
+                ((StructureBlockScreen) currentScreen).setFont(font);
             }
             currentScreen.render(builder, mouseX, mouseY);
         }

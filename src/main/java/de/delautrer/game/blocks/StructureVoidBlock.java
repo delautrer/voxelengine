@@ -6,6 +6,8 @@ public class StructureVoidBlock extends Block {
 
     public StructureVoidBlock() {
         super(false, true, true, true);
+        setHardness(-1.0f);
+        setLootTable(null);
     }
 
     @Override

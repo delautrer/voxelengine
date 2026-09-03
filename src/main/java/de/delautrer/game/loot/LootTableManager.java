@@ -42,4 +42,21 @@ public class LootTableManager {
     public static void clearCache() {
         CACHE.clear();
     }
+
+    public static java.util.List<String> getAvailableLootTableKeys() {
+        java.util.List<String> results = new java.util.ArrayList<>();
+        java.util.List<String> files = ResourceUtils.listResources("assets/data/veinstride/loot_tables", ".json");
+        for (String f : files) {
+            String clean = f.replace('\\', '/');
+            if (clean.endsWith(".json")) {
+                clean = clean.substring(0, clean.length() - 5);
+            }
+            results.add(clean);
+            results.add("veinstride:" + clean);
+            if (clean.startsWith("chests/")) {
+                results.add(clean.substring(7));
+            }
+        }
+        return results;
+    }
 }

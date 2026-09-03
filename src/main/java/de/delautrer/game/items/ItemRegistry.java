@@ -70,10 +70,13 @@ public class ItemRegistry {
         for (Map.Entry<NamespacedKey, Block> entry : Registries.BLOCKS.entrySet()) {
             NamespacedKey blockKey = entry.getKey();
             Block block = entry.getValue();
-            if (blockKey.getKey().equals("air") || blockKey.getKey().equals("structure_void") || blockKey.getKey().equals("water") || block instanceof de.delautrer.game.blocks.WaterBlock) continue;
+            if (blockKey.getKey().equals("air") || blockKey.getKey().equals("water") || block instanceof de.delautrer.game.blocks.WaterBlock) continue;
 
             if (!REGISTRY.contains(blockKey)) {
                 BlockItem blockItem = new BlockItem(blockKey.getKey(), blockKey.getKey(), block);
+                if ("structure_void".equals(blockKey.getKey()) || "structure_block".equals(blockKey.getKey())) {
+                    blockItem.setRenderAsItem(true);
+                }
                 REGISTRY.register(blockKey, blockItem);
             }
         }

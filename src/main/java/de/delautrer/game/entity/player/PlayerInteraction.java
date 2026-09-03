@@ -77,6 +77,10 @@ public class PlayerInteraction {
         return player;
     }
 
+    public World getWorld() {
+        return world;
+    }
+
     private boolean wasInventoryOpen = false;
 
     public void update(InputManager input, float deltaTime) {
@@ -119,8 +123,10 @@ public class PlayerInteraction {
             // hitFace = BlockProperties.BlockFace.UP;
         } else {
             // 1.2 Sonst normaler raycast
+            ItemStack heldStack = player.getInventory().getSelectedHotbarStack();
+            boolean holdingVoid = heldStack != null && heldStack.type != null && "veinstride:structure_void".equals(ItemRegistry.getId(heldStack.type));
             Raycaster.RaycastResult result = Raycaster.raycast(world, new Vector3f((float) camera.getPosition().x,
-                    (float) camera.getPosition().y, (float) camera.getPosition().z), camera.getFront(), 6.0f);
+                    (float) camera.getPosition().y, (float) camera.getPosition().z), camera.getFront(), 6.0f, holdingVoid);
             if (result != null) {
                 selectedBlockPos = result.hitPos;
                 adjacentBlockPos = result.adjacentPos;

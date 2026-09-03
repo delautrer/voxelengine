@@ -470,7 +470,7 @@ public class PlayScene extends Scene {
             uiNeedsRebuild = true;
         }
 
-        if (!isChatOpen && !localPlayer.getInventory().isOpen() && !isPaused) {
+        if (!isChatOpen && !localPlayer.getInventory().isOpen() && localPlayer.getOpenedInventory() == null && !isPaused) {
             if (engine.getInputManager().isActionJustPressed("CHAT_OPEN_T")) {
                 openChat(false);
             } else if (engine.getInputManager().isActionJustPressed("CHAT_OPEN_SLASH")) {

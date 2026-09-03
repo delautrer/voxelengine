@@ -27,8 +27,10 @@ public class Chunk {
 
     public void setBlockEntityTag(int lx, int y, int lz, de.delautrer.game.nbt.CompoundTag tag) {
         if (tag != null) {
-            int wx = this.worldX * SIZE + lx;
-            int wz = this.worldZ * SIZE + lz;
+            int localX = Math.floorMod(lx, SIZE);
+            int localZ = Math.floorMod(lz, SIZE);
+            int wx = this.worldX * SIZE + localX;
+            int wz = this.worldZ * SIZE + localZ;
             blockEntityTags.put(new org.joml.Vector3i(wx, y, wz), tag);
         }
     }
@@ -78,13 +80,49 @@ public class Chunk {
         return biomeMap;
     }
 
+    private final java.util.Set<org.joml.Vector3i> structureVoidPositions = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    public java.util.Set<org.joml.Vector3i> getStructureVoidPositions() {
+        return structureVoidPositions;
+    }
+
+    public void rebuildStructureVoidIndex() {
+        structureVoidPositions.clear();
+        for (int sIdx = 0; sIdx < sections.length; sIdx++) {
+            ChunkSection sec = sections[sIdx];
+            if (sec == null || sec.isAir()) continue;
+            int startY = MIN_Y + (sIdx << 4);
+            for (int ly = 0; ly < 16; ly++) {
+                int y = startY + ly;
+                for (int lz = 0; lz < SIZE; lz++) {
+                    for (int lx = 0; lx < SIZE; lx++) {
+                        Block b = getBlock(lx, y, lz);
+                        if (b instanceof de.delautrer.game.blocks.StructureVoidBlock) {
+                            structureVoidPositions.add(new org.joml.Vector3i(worldX * SIZE + lx, y, worldZ * SIZE + lz));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public void setBlock(int x, int y, int z, int paletteIndex, byte state) {
         if (x < 0 || x >= SIZE || y < MIN_Y || y >= MAX_Y || z < 0 || z >= SIZE) return;
+        Block oldBlock = getBlock(x, y, z);
         ChunkSection sec = getOrCreateSection(y);
         if (sec != null) {
             sec.setBlock(x, (y - MIN_Y) & 15, z, paletteIndex, state);
             this.isDirty = true;
             this.needsMeshUpdate = true;
+
+            Block newBlock = getBlock(x, y, z);
+            boolean oldIsVoid = oldBlock instanceof de.delautrer.game.blocks.StructureVoidBlock;
+            boolean newIsVoid = newBlock instanceof de.delautrer.game.blocks.StructureVoidBlock;
+            if (oldIsVoid && !newIsVoid) {
+                structureVoidPositions.remove(new org.joml.Vector3i(worldX * SIZE + x, y, worldZ * SIZE + z));
+            } else if (newIsVoid && !oldIsVoid) {
+                structureVoidPositions.add(new org.joml.Vector3i(worldX * SIZE + x, y, worldZ * SIZE + z));
+            }
         }
     }
 

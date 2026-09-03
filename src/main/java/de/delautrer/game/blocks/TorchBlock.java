@@ -49,13 +49,13 @@ public class TorchBlock extends CubeBlock {
             if (attach == TorchAttach.FLOOR) {
                 mat.translate(0.5f, 0.0f, 0.5f);
             } else if (attach == TorchAttach.NORTH) {
-                mat.translate(0.5f, 0.2f, 0.5f - 0.3f).rotateX((float) Math.toRadians(15));
+                mat.translate(0.5f, 0.2f, 0.5f - 0.49f).rotateX((float) Math.toRadians(15));
             } else if (attach == TorchAttach.SOUTH) {
-                mat.translate(0.5f, 0.2f, 0.5f + 0.3f).rotateX((float) Math.toRadians(-15));
+                mat.translate(0.5f, 0.2f, 0.5f + 0.49f).rotateX((float) Math.toRadians(-15));
             } else if (attach == TorchAttach.WEST) {
-                mat.translate(0.5f - 0.3f, 0.2f, 0.5f).rotateZ((float) Math.toRadians(-15));
+                mat.translate(0.5f - 0.49f, 0.2f, 0.5f).rotateZ((float) Math.toRadians(-15));
             } else if (attach == TorchAttach.EAST) {
-                mat.translate(0.5f + 0.3f, 0.2f, 0.5f).rotateZ((float) Math.toRadians(15));
+                mat.translate(0.5f + 0.49f, 0.2f, 0.5f).rotateZ((float) Math.toRadians(15));
             }
 
             VERTS[attach.ordinal()] = new Vector3f[8];
@@ -85,13 +85,13 @@ public class TorchBlock extends CubeBlock {
 
         TorchAttach attach = state.getValue(ATTACH);
         float x = pos.x + 0.5f;
-        float y = pos.y + 0.7f;
+        float y = pos.y + 0.625f;
         float z = pos.z + 0.5f;
 
-        if (attach == TorchAttach.NORTH) { y += 0.2f; z -= 0.3f; }
-        else if (attach == TorchAttach.SOUTH) { y += 0.2f; z += 0.3f; }
-        else if (attach == TorchAttach.WEST) { y += 0.2f; x -= 0.3f; }
-        else if (attach == TorchAttach.EAST) { y += 0.2f; x += 0.3f; }
+        if (attach == TorchAttach.NORTH) { y = pos.y + 0.8f; z = pos.z + 0.224f; }
+        else if (attach == TorchAttach.SOUTH) { y = pos.y + 0.8f; z = pos.z + 0.776f; }
+        else if (attach == TorchAttach.WEST) { y = pos.y + 0.8f; x = pos.x + 0.224f; }
+        else if (attach == TorchAttach.EAST) { y = pos.y + 0.8f; x = pos.x + 0.776f; }
 
         // Flame
         if (random.nextFloat() < 0.85f) {

@@ -57,6 +57,14 @@ public class StructureRegistry {
         return TEMPLATES.get(key);
     }
 
+    public static void registerTemplate(NamespacedKey key, StructureTemplate template) {
+        TEMPLATES.put(key, template);
+    }
+
+    public static Set<NamespacedKey> getTemplateKeys() {
+        return Collections.unmodifiableSet(TEMPLATES.keySet());
+    }
+
     public static int getStructuresCount() {
         return STRUCTURES.size();
     }
@@ -73,6 +81,44 @@ public class StructureRegistry {
         return Collections.unmodifiableList(STRUCTURE_SETS);
     }
 
+    private static StructureTemplate parseTemplate(NamespacedKey key, Reader reader, String file) throws Exception {
+        StructureTemplateDTO dto = GSON.fromJson(reader, StructureTemplateDTO.class);
+        if (dto == null || dto.palette == null || dto.blocks == null || dto.size == null || dto.size.length < 3) {
+            throw new IllegalStateException("Invalid structure template file: " + file);
+        }
+
+        Block[] paletteBlocks = new Block[dto.palette.size()];
+        for (int i = 0; i < dto.palette.size(); i++) {
+            String blockKeyStr = dto.palette.get(i);
+            Block b = Registries.BLOCKS.get(blockKeyStr);
+            if (b == null) {
+                throw new IllegalStateException("Template " + file + " references unknown block '" + blockKeyStr + "'");
+            }
+            paletteBlocks[i] = b;
+        }
+
+        List<StructureTemplate.StructureBlock> blocks = new ArrayList<>();
+        for (StructureTemplateDTO.BlockElementDTO elem : dto.blocks) {
+            if (elem.pos == null || elem.pos.length < 3) continue;
+            int dx = elem.pos[0];
+            int dy = elem.pos[1];
+            int dz = elem.pos[2];
+            int stateIdx = elem.state;
+            if (stateIdx < 0 || stateIdx >= paletteBlocks.length) {
+                throw new IllegalStateException("Template " + file + " block pos [" + dx + "," + dy + "," + dz + "] has out-of-range state index " + stateIdx);
+            }
+            Block block = paletteBlocks[stateIdx];
+            byte stateByte = (byte) elem.stateId;
+            CompoundTag nbt = null;
+            if (elem.nbt != null && !elem.nbt.isJsonNull()) {
+                nbt = (CompoundTag) TagIo.fromJson(elem.nbt);
+            }
+            blocks.add(new StructureTemplate.StructureBlock(dx, dy, dz, block, stateByte, nbt));
+        }
+
+        return new StructureTemplate(key, dto.size[0], dto.size[1], dto.size[2], blocks);
+    }
+
     private static void loadTemplates() {
         List<String> files = ResourceUtils.listResources("assets/data/veinstride/worldgen/structure/template", ".json");
         for (String file : files) {
@@ -80,45 +126,33 @@ public class StructureRegistry {
             NamespacedKey key = NamespacedKey.fromString("veinstride:" + id);
             try {
                 Reader reader = ResourceUtils.readResourceToReader("assets/data/veinstride/worldgen/structure/template/" + file);
-                StructureTemplateDTO dto = GSON.fromJson(reader, StructureTemplateDTO.class);
-                if (dto == null || dto.palette == null || dto.blocks == null || dto.size == null || dto.size.length < 3) {
-                    throw new IllegalStateException("Invalid structure template file: " + file);
-                }
-
-                Block[] paletteBlocks = new Block[dto.palette.size()];
-                for (int i = 0; i < dto.palette.size(); i++) {
-                    String blockKeyStr = dto.palette.get(i);
-                    Block b = Registries.BLOCKS.get(blockKeyStr);
-                    if (b == null) {
-                        throw new IllegalStateException("Template " + file + " references unknown block '" + blockKeyStr + "'");
-                    }
-                    paletteBlocks[i] = b;
-                }
-
-                List<StructureTemplate.StructureBlock> blocks = new ArrayList<>();
-                for (StructureTemplateDTO.BlockElementDTO elem : dto.blocks) {
-                    if (elem.pos == null || elem.pos.length < 3) continue;
-                    int dx = elem.pos[0];
-                    int dy = elem.pos[1];
-                    int dz = elem.pos[2];
-                    int stateIdx = elem.state;
-                    if (stateIdx < 0 || stateIdx >= paletteBlocks.length) {
-                        throw new IllegalStateException("Template " + file + " block pos [" + dx + "," + dy + "," + dz + "] has out-of-range state index " + stateIdx);
-                    }
-                    Block block = paletteBlocks[stateIdx];
-                    byte stateByte = (byte) stateIdx;
-                    CompoundTag nbt = null;
-                    if (elem.nbt != null && !elem.nbt.isJsonNull()) {
-                        nbt = (CompoundTag) TagIo.fromJson(elem.nbt);
-                    }
-                    blocks.add(new StructureTemplate.StructureBlock(dx, dy, dz, block, stateByte, nbt));
-                }
-
-                TEMPLATES.put(key, new StructureTemplate(key, dto.size[0], dto.size[1], dto.size[2], blocks));
+                TEMPLATES.put(key, parseTemplate(key, reader, file));
             } catch (Exception e) {
                 System.err.println("[StructureRegistry] Failed to load template: " + file);
                 throw new IllegalStateException("Failed to load template: " + file, e);
             }
+        }
+
+        try {
+            java.nio.file.Path structDir = de.delautrer.engine.utils.GamePaths.STRUCTURES_DIR;
+            if (java.nio.file.Files.exists(structDir)) {
+                try (java.nio.file.DirectoryStream<java.nio.file.Path> stream = java.nio.file.Files.newDirectoryStream(structDir, "*.json")) {
+                    for (java.nio.file.Path entry : stream) {
+                        String file = entry.getFileName().toString();
+                        String id = file.substring(0, file.length() - 5);
+                        NamespacedKey key = NamespacedKey.fromString("veinstride:" + id);
+                        if (!TEMPLATES.containsKey(key)) {
+                            try (Reader reader = java.nio.file.Files.newBufferedReader(entry, java.nio.charset.StandardCharsets.UTF_8)) {
+                                TEMPLATES.put(key, parseTemplate(key, reader, file));
+                            } catch (Exception e) {
+                                System.err.println("[StructureRegistry] Failed to load external template: " + file);
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("[StructureRegistry] Error scanning structures directory: " + e.getMessage());
         }
     }
 

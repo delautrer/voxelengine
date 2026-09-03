@@ -25,6 +25,10 @@ public class Raycaster {
     }
 
     public static RaycastResult raycast(World world, Vector3f start, Vector3f dir, float maxDistance) {
+        return raycast(world, start, dir, maxDistance, false);
+    }
+
+    public static RaycastResult raycast(World world, Vector3f start, Vector3f dir, float maxDistance, boolean holdingVoid) {
         int x = (int) Math.floor(start.x);
         int y = (int) Math.floor(start.y);
         int z = (int) Math.floor(start.z);
@@ -47,7 +51,8 @@ public class Raycaster {
         while (dist <= maxDistance) {
             Block block = world.getBlock(x, y, z);
 
-            if (block != null && block.isRaycastable) {
+            boolean isVoid = block instanceof de.delautrer.game.blocks.StructureVoidBlock;
+            if (block != null && block.isRaycastable && (!isVoid || holdingVoid)) {
                 BlockState state = world.getBlockState(x, y, z);
                 List<AABB> boxes = block.getBoundingBoxes(state);
 

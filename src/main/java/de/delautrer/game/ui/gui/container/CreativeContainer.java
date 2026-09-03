@@ -51,8 +51,13 @@ public class CreativeContainer extends BaseContainer {
         this.allItems = ItemRegistry.getAll().values().stream()
                 .filter(item -> {
                     if ("hidden".equalsIgnoreCase(item.getCategory())) return false;
+                    if ("technical".equalsIgnoreCase(item.getCategory())) return false;
                     String id = ItemRegistry.getId(item);
-                    if (id != null && (id.equals("water") || id.equals(Constants.NAMESPACE + ":water"))) return false;
+                    if (id != null) {
+                        if (id.equals("water") || id.equals(Constants.NAMESPACE + ":water")) return false;
+                        if (id.equals("structure_void") || id.equals(Constants.NAMESPACE + ":structure_void")) return false;
+                        if (id.equals("structure_block") || id.equals(Constants.NAMESPACE + ":structure_block")) return false;
+                    }
                     if (item instanceof de.delautrer.game.items.BlockItem blockItem) {
                         if (blockItem.getBlock() instanceof de.delautrer.game.blocks.WaterBlock) return false;
                     }
@@ -225,5 +230,9 @@ public class CreativeContainer extends BaseContainer {
 
     public int getScrollOffset() {
         return scrollOffset;
+    }
+
+    public List<Item> getAllItems() {
+        return allItems;
     }
 }

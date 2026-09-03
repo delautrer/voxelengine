@@ -51,8 +51,12 @@ public class ChatOverlay implements EventListener<ChatMessageEvent> {
 
     @Override
     public void onEvent(ChatMessageEvent event) {
-        if (event != null && event.message != null) {
-            addComponent(ChatComponent.parseLegacy(event.message));
+        if (event != null) {
+            if (event.component != null) {
+                addComponent(event.component);
+            } else if (event.message != null) {
+                addComponent(ChatComponent.parseLegacy(event.message));
+            }
         }
     }
 

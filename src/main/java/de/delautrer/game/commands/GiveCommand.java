@@ -82,20 +82,10 @@ public class GiveCommand implements ICommand {
             String input = args[0].toLowerCase();
             for (String key : ItemRegistry.getAll().keySet()) {
                 String lowerKey = key.toLowerCase();
-                
-                // Full ID match (e.g. "engine:dirt" or "mod:item")
-                if (lowerKey.startsWith(input)) {
-                    completions.add(key);
-                }
-                
-                // Short ID match (only for default namespace)
-                if (key.startsWith(Constants.NAMESPACE + ":")) {
-                    String shortKey = key.substring(Constants.NAMESPACE.length() + 1);
-                    if (shortKey.toLowerCase().startsWith(input)) {
-                        // Avoid duplicates if input matches both full and short ID
-                        if (!completions.contains(shortKey)) {
-                            completions.add(shortKey);
-                        }
+                String shortKey = key.contains(":") ? key.substring(key.indexOf(":") + 1).toLowerCase() : lowerKey;
+                if (lowerKey.startsWith(input) || shortKey.startsWith(input)) {
+                    if (!completions.contains(key)) {
+                        completions.add(key);
                     }
                 }
             }

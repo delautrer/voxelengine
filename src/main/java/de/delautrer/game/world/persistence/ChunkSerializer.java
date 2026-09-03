@@ -203,6 +203,7 @@ public class ChunkSerializer {
                         sections[i] = null;
                     }
                 }
+                chunk.rebuildStructureVoidIndex();
 
                 // Read Biomes
                 Biome[] biomeMap = chunk.getBiomeMap();

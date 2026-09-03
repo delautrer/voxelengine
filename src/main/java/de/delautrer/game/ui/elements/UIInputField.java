@@ -26,11 +26,23 @@ public class UIInputField extends UIElement {
         this.maxLength = maxLength;
     }
 
+    private void sanitizeIndices() {
+        if (text == null) text = "";
+        cursorIndex = Math.max(0, Math.min(text.length(), cursorIndex));
+        if (selectAnchor != -1) {
+            selectAnchor = Math.max(0, Math.min(text.length(), selectAnchor));
+            if (selectAnchor == cursorIndex) {
+                selectAnchor = -1;
+            }
+        }
+    }
+
     public void setFocused(boolean focused) {
         this.isFocused = focused;
         if (!focused) {
             this.selectAnchor = -1;
         }
+        sanitizeIndices();
     }
 
     public boolean isFocused() {
@@ -42,6 +54,7 @@ public class UIInputField extends UIElement {
         this.cursorIndex = this.text.length();
         this.selectAnchor = -1;
         this.scrollOffset = 0.0f;
+        sanitizeIndices();
     }
 
     public String getText() {
@@ -49,29 +62,40 @@ public class UIInputField extends UIElement {
     }
 
     public boolean hasSelection() {
+        sanitizeIndices();
         return selectAnchor != -1 && selectAnchor != cursorIndex;
     }
 
     public int getSelectionStart() {
+        sanitizeIndices();
+        if (selectAnchor == -1) return cursorIndex;
         return Math.min(selectAnchor, cursorIndex);
     }
 
     public int getSelectionEnd() {
+        sanitizeIndices();
+        if (selectAnchor == -1) return cursorIndex;
         return Math.max(selectAnchor, cursorIndex);
     }
 
     public String getSelectedText() {
+        sanitizeIndices();
         if (!hasSelection()) return "";
-        return text.substring(getSelectionStart(), getSelectionEnd());
+        int start = getSelectionStart();
+        int end = getSelectionEnd();
+        if (start < 0 || end > text.length() || start >= end) return "";
+        return text.substring(start, end);
     }
 
     public void deleteSelection() {
+        sanitizeIndices();
         if (hasSelection()) {
             int start = getSelectionStart();
             int end = getSelectionEnd();
             text = text.substring(0, start) + text.substring(end);
             cursorIndex = start;
             selectAnchor = -1;
+            sanitizeIndices();
         }
     }
 
@@ -184,6 +208,7 @@ public class UIInputField extends UIElement {
     @Override
     public void render(UIMeshBuilder builder, IFont font, float mouseX, float mouseY) {
         if (!isVisible) return;
+        sanitizeIndices();
 
         int gridX = isFocused ? GRID_X_HOVER : GRID_X_NORMAL;
         int gridY = isFocused ? GRID_Y_HOVER : GRID_Y_NORMAL;

@@ -147,28 +147,7 @@ public class GameTestRunner {
                     if (template == null) {
                         return GameTestResult.fail(test, i, "step " + i + " place_template unknown template '" + step.template + "'");
                     }
-                    for (StructureTemplate.StructureBlock sb : template.getBlocks()) {
-                        int wx = pos.x + sb.dx;
-                        int wy = pos.y + sb.dy;
-                        int wz = pos.z + sb.dz;
-                        Block b = sb.block;
-                        byte st = sb.state;
-                        CompoundTag nbt = sb.nbt;
-                        if (b != null && b.isStructureVoid()) {
-                            b = Registries.BLOCKS.get("veinstride:air");
-                            st = 0;
-                            nbt = null;
-                        }
-                        world.setBlockWithState(wx, wy, wz, b, st, false);
-                        if (nbt != null) {
-                            int cx = wx >> 4;
-                            int cz = wz >> 4;
-                            Chunk chunk = world.getChunkManager().getChunk(cx, cz);
-                            if (chunk != null) {
-                                chunk.setBlockEntityTag(wx & 15, wy, wz & 15, nbt);
-                            }
-                        }
-                    }
+                    template.place(world, pos.x, pos.y, pos.z);
                     break;
                 }
                 case "set_be_tag": {

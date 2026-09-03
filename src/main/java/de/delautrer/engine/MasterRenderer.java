@@ -19,9 +19,14 @@ import de.delautrer.game.ui.gui.screens.MenuScreen;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.sky.SkyManager;
 import de.delautrer.game.world.World;
+import de.delautrer.game.blocks.entities.BlockEntity;
+import java.util.ArrayList;
+import java.util.List;
 import org.joml.Matrix4f;
+import org.joml.Vector3d;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
+import org.joml.Vector4f;
 
 public class MasterRenderer {
     private final VulkanContext vulkanContext;
@@ -192,6 +197,18 @@ public class MasterRenderer {
         packet.worldTexture = worldTexture;
 
         Vector3i selectedBlockPos = interaction.getSelectedBlockPos();
+        boolean holdingVoid = false;
+        if (interaction != null && interaction.getPlayer() != null) {
+            de.delautrer.game.items.ItemStack held = interaction.getPlayer().getInventory().getSelectedHotbarStack();
+            if (held != null && held.type != null && "veinstride:structure_void".equals(de.delautrer.game.items.ItemRegistry.getId(held.type))) {
+                holdingVoid = true;
+            }
+        }
+
+        if (selectedBlockPos != null && world != null && world.getBlock(selectedBlockPos) instanceof de.delautrer.game.blocks.StructureVoidBlock && !holdingVoid) {
+            selectedBlockPos = null;
+        }
+
         packet.selectedBlockPos = selectedBlockPos;
 
         if (selectedBlockPos != null) {
@@ -215,6 +232,70 @@ public class MasterRenderer {
         } else {
             packet.highlightMesh = highlightMesh;
         }
+        packet.unitCubeMesh = highlightMesh;
+
+        // STRUCTURE BOX OUTLINES
+        List<StructureBox> structBoxes = new ArrayList<>();
+        if (world != null) {
+            Vector3d playerPos = packet.cameraPos != null ? packet.cameraPos : new Vector3d(0, 0, 0);
+            for (BlockEntity be : world.getBlockEntities().values()) {
+                if (be instanceof de.delautrer.game.blocks.entities.StructureBlockEntity sbe && sbe.isShowBounds()) {
+                    Vector3i pos = sbe.getPos();
+                    double distSq = playerPos.distanceSquared(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5);
+                    if (distSq <= 64.0 * 64.0) {
+                        double minX = pos.x + sbe.getOffX();
+                        double minY = pos.y + sbe.getOffY();
+                        double minZ = pos.z + sbe.getOffZ();
+                        double maxX = minX + sbe.getSizeX();
+                        double maxY = minY + sbe.getSizeY();
+                        double maxZ = minZ + sbe.getSizeZ();
+
+                        Vector4f color = "load".equalsIgnoreCase(sbe.getMode())
+                                ? new Vector4f(0.33f, 1.0f, 1.0f, 1.0f)   // Cyan 0x55FFFF
+                                : new Vector4f(1.0f, 0.33f, 1.0f, 1.0f);  // Magenta 0xFF55FF
+
+                        structBoxes.add(new StructureBox(minX, minY, minZ, maxX, maxY, maxZ, color));
+                    }
+                }
+            }
+            if (world.getChunkManager() != null) {
+                for (de.delautrer.game.world.Chunk chunk : world.getChunkManager().getLoadedChunks()) {
+                    for (Vector3i pos : chunk.getBlockEntityTags().keySet()) {
+                        if (!world.getBlockEntities().containsKey(pos)) {
+                            Block b = world.getBlock(pos);
+                            if (b instanceof de.delautrer.game.blocks.StructureBlock) {
+                                BlockEntity be = world.getBlockEntity(pos);
+                                if (be instanceof de.delautrer.game.blocks.entities.StructureBlockEntity sbe && sbe.isShowBounds()) {
+                                    double distSq = playerPos.distanceSquared(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5);
+                                    if (distSq <= 64.0 * 64.0) {
+                                        double minX = pos.x + sbe.getOffX();
+                                        double minY = pos.y + sbe.getOffY();
+                                        double minZ = pos.z + sbe.getOffZ();
+                                        double maxX = minX + sbe.getSizeX();
+                                        double maxY = minY + sbe.getSizeY();
+                                        double maxZ = minZ + sbe.getSizeZ();
+
+                                        Vector4f color = "load".equalsIgnoreCase(sbe.getMode())
+                                                ? new Vector4f(0.33f, 1.0f, 1.0f, 1.0f)
+                                                : new Vector4f(1.0f, 0.33f, 1.0f, 1.0f);
+
+                                        structBoxes.add(new StructureBox(minX, minY, minZ, maxX, maxY, maxZ, color));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (holdingVoid) {
+                Vector4f voidBoxColor = new Vector4f(1.0f, 0.2f, 0.4f, 1.0f);
+                List<Vector3i> voidPositions = world.getStructureVoidsNear(playerPos.x, playerPos.y, playerPos.z, 16);
+                for (Vector3i vpos : voidPositions) {
+                    structBoxes.add(new StructureBox(vpos.x + 0.3, vpos.y + 0.3, vpos.z + 0.3, vpos.x + 0.7, vpos.y + 0.7, vpos.z + 0.7, voidBoxColor));
+                }
+            }
+        }
+        packet.structureBoxes = structBoxes;
 
         // MULTI-BLOCK CRACKING OVERLAY
         java.util.Map<Vector3i, Float> cracks = interaction.getAllMiningProgresses();

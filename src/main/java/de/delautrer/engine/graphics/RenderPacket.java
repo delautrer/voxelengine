@@ -20,6 +20,8 @@ public class RenderPacket {
     public List<Entity> entities;
 
     public IMesh highlightMesh;
+    public IMesh unitCubeMesh;
+    public List<StructureBox> structureBoxes;
 
     public IMesh uiCombinedMesh;
     public List<UIDrawCall> uiDrawCalls;

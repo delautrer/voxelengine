@@ -205,9 +205,41 @@ public class World {
                 localPlayer.velocity.set(0);
             } else {
                 localPlayer.position.y = Chunk.MIN_Y - 49.0;
-                localPlayer.velocity.y = 0.0f;
             }
         }
+    }
+
+    public List<Vector3i> getStructureVoidsNear(double px, double py, double pz, int radius) {
+        List<Vector3i> result = new ArrayList<>();
+        if (chunkManager == null) return result;
+
+        int minChunkX = (int) Math.floor((px - radius) / 16.0);
+        int maxChunkX = (int) Math.floor((px + radius) / 16.0);
+        int minChunkZ = (int) Math.floor((pz - radius) / 16.0);
+        int maxChunkZ = (int) Math.floor((pz + radius) / 16.0);
+
+        int minX = (int) Math.floor(px - radius);
+        int maxX = (int) Math.floor(px + radius);
+        int minY = (int) Math.floor(py - radius);
+        int maxY = (int) Math.floor(py + radius);
+        int minZ = (int) Math.floor(pz - radius);
+        int maxZ = (int) Math.floor(pz + radius);
+
+        for (int cx = minChunkX; cx <= maxChunkX; cx++) {
+            for (int cz = minChunkZ; cz <= maxChunkZ; cz++) {
+                Chunk chunk = chunkManager.getChunk(cx, cz);
+                if (chunk != null) {
+                    for (Vector3i pos : chunk.getStructureVoidPositions()) {
+                        if (pos.x >= minX && pos.x <= maxX &&
+                            pos.y >= minY && pos.y <= maxY &&
+                            pos.z >= minZ && pos.z <= maxZ) {
+                            result.add(pos);
+                        }
+                    }
+                }
+            }
+        }
+        return result;
     }
 
     public void onTick(LocalPlayer localPlayer) {
@@ -453,7 +485,8 @@ public class World {
                     if (chunk != null) {
                         de.delautrer.game.nbt.CompoundTag tag = chunk.getBlockEntityTag(pos);
                         if (tag != null) {
-                            if (be instanceof de.delautrer.game.blocks.entities.ChestBlockEntity chest && tag.contains("LootTable")) {
+                            be.readTag(tag);
+                            if (be instanceof de.delautrer.game.blocks.entities.ChestBlockEntity chest && tag.contains("LootTable") && isInventoryEmpty(chest.getInventory())) {
                                 String lootTablePath = tag.getString("LootTable");
                                 if (lootTablePath.startsWith("veinstride:")) {
                                     lootTablePath = lootTablePath.substring("veinstride:".length());
@@ -476,8 +509,6 @@ public class World {
                                         }
                                     }
                                 }
-                            } else {
-                                be.readTag(tag);
                             }
                         }
                     }
@@ -486,6 +517,14 @@ public class World {
             }
         }
         return be;
+    }
+
+    private boolean isInventoryEmpty(de.delautrer.game.inventory.IInventory inv) {
+        if (inv == null) return true;
+        for (int i = 0; i < inv.getSize(); i++) {
+            if (inv.getStack(i) != null) return false;
+        }
+        return true;
     }
 
     public void setBlockEntity(Vector3i pos, BlockEntity entity) {
@@ -509,6 +548,10 @@ public class World {
 
     public boolean isCheatsAllowed() {
         return allowCheats;
+    }
+
+    public void setCheatsAllowed(boolean allowCheats) {
+        this.allowCheats = allowCheats;
     }
 
     public Vector3d findSafeSpawn(Vector3d preferred) {

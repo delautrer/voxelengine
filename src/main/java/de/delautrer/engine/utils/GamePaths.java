@@ -31,6 +31,7 @@ public class GamePaths {
     public static final Path SAVES_DIR = ROOT_DIR.resolve("saves");
     public static final Path SCREENSHOTS_DIR = ROOT_DIR.resolve("screenshots");
     public static final Path LOGS_DIR = ROOT_DIR.resolve("logs");
+    public static final Path STRUCTURES_DIR = ROOT_DIR.resolve("structures");
 
     // Dateien
     public static final Path SETTINGS_FILE = ROOT_DIR.resolve("settings.json");
@@ -40,6 +41,7 @@ public class GamePaths {
             Files.createDirectories(SAVES_DIR);
             Files.createDirectories(SCREENSHOTS_DIR);
             Files.createDirectories(LOGS_DIR);
+            Files.createDirectories(STRUCTURES_DIR);
         } catch (IOException e) {
             System.err.println("[GameFiles] Critical error. Game folders couldnt not be created: " + e.getMessage());
         }

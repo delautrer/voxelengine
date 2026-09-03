@@ -34,6 +34,7 @@ public class CommandManager implements EventListener<CommandExecutedEvent> {
         register(new GiveCommand());
         register(new SetCommand());
         register(new FillCommand());
+        register(new StructureCommand());
         if (de.delautrer.Constants.IS_DEV) {
             register(new TestCommand());
         }
@@ -66,6 +67,10 @@ public class CommandManager implements EventListener<CommandExecutedEvent> {
 
     public void sendMessageInChat(String message){
         eventBus.publish(new ChatMessageEvent(message));
+    }
+
+    public void sendMessageInChat(de.delautrer.game.ui.chat.ChatComponent component) {
+        eventBus.publish(new ChatMessageEvent(component));
     }
 
     public List<String> getTabCompletions(LocalPlayer player, de.delautrer.game.world.World world, String input) {

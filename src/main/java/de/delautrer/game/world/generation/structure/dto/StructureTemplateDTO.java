@@ -11,6 +11,7 @@ public class StructureTemplateDTO {
     public static class BlockElementDTO {
         public int[] pos;
         public int state;
+        public int stateId = 0;
         public JsonElement nbt;
     }
 }
