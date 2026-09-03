@@ -3,7 +3,7 @@ package de.delautrer;
 import java.io.File;
 
 public class Constants {
-    public static final String VERSION = "0.0.4.0_alpha";
+    public static final String VERSION = "0.0.4.5_alpha";
     public static final String NAMESPACE = "veinstride";
 
     public static final boolean IS_DEV = checkIsDev();

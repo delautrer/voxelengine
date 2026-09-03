@@ -133,21 +133,23 @@ public abstract class BaseContainer {
         ItemStack stack = clickedSlot.getStack();
         if (stack == null) return;
 
-        // 1. Durchlauf: Versuche, existierende Stacks desselben Typs aufzufüllen
-        for (Slot target : slots) {
-            if (isTargetRegion(clickedSlot, target)) {
-                ItemStack targetStack = target.getStack();
-                if (targetStack != null && targetStack.type == stack.type) {
-                    int space = targetStack.type.getMaxStackSize() - targetStack.amount;
-                    if (space > 0) {
-                        int toAdd = Math.min(space, stack.amount);
-                        targetStack.amount += toAdd;
-                        stack.amount -= toAdd;
-                        target.onSlotChanged();
+        // 1. Durchlauf: Versuche, existierende Stacks desselben Typs aufzufüllen (nur wenn stapelbar!)
+        if (stack.type.getMaxStackSize() > 1) {
+            for (Slot target : slots) {
+                if (isTargetRegion(clickedSlot, target)) {
+                    ItemStack targetStack = target.getStack();
+                    if (targetStack != null && targetStack.type == stack.type) {
+                        int space = targetStack.type.getMaxStackSize() - targetStack.amount;
+                        if (space > 0) {
+                            int toAdd = Math.min(space, stack.amount);
+                            targetStack.amount += toAdd;
+                            stack.amount -= toAdd;
+                            target.onSlotChanged();
 
-                        if (stack.amount <= 0) {
-                            clickedSlot.putStack(null);
-                            return;
+                            if (stack.amount <= 0) {
+                                clickedSlot.putStack(null);
+                                return;
+                            }
                         }
                     }
                 }
@@ -158,7 +160,7 @@ public abstract class BaseContainer {
         for (Slot target : slots) {
             if (isTargetRegion(clickedSlot, target) && target.isItemValid(stack)) {
                 if (target.getStack() == null) {
-                    target.putStack(new ItemStack(stack.type, stack.amount));
+                    target.putStack(stack.copy());
                     clickedSlot.putStack(null);
                     return;
                 }

@@ -14,6 +14,8 @@ import de.delautrer.game.entity.player.LocalPlayer;
 import de.delautrer.game.events.*;
 import de.delautrer.game.registry.Registries;
 import de.delautrer.game.ui.ChatOverlay;
+import de.delautrer.game.ui.chat.*;
+import java.nio.file.Path;
 import de.delautrer.game.ui.DebugOverlay;
 import de.delautrer.game.ui.gui.screens.*;
 import de.delautrer.game.world.*;
@@ -421,10 +423,15 @@ public class PlayScene extends Scene {
                 uiNeedsRebuild = true;
             } else {
                 // Normaler Screenshot
-                String path = GamePaths.SCREENSHOTS_DIR.resolve(date + ".png").toString();
-                masterRenderer.requestScreenshot(path);
+                Path file = GamePaths.SCREENSHOTS_DIR.resolve(date + ".png");
+                masterRenderer.requestScreenshot(file.toString());
                 screenshotCooldown = 2.0f;
-                chatOverlay.getMessages().add(new ChatOverlay.ChatMessage("Saved screenshot: " + path));
+                String name = file.getFileName().toString();
+                ChatComponent msg = ChatComponent.plain("Saved screenshot: ")
+                        .append(new TextRun(name, Style.EMPTY.withUnderline(true)
+                                .withColor(0x55FFFF)
+                                .withClick(ClickEvent.Action.OPEN_FILE, file.toAbsolutePath().toString())));
+                chatOverlay.addComponent(msg);
             }
         }
 
@@ -435,11 +442,16 @@ public class PlayScene extends Scene {
             } else if (isoFramesToWait == 0) {
                 // JETZT den Screenshot an Vulkan in Auftrag geben
                 String date = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date());
-                String path = GamePaths.SCREENSHOTS_DIR.resolve(date + "_isometric.png").toString();
+                Path file = GamePaths.SCREENSHOTS_DIR.resolve(date + "_isometric.png");
 
-                masterRenderer.requestScreenshot(path);
+                masterRenderer.requestScreenshot(file.toString());
                 screenshotCooldown = 2.0f;
-                chatOverlay.getMessages().add(new ChatOverlay.ChatMessage("Saved Isometric screenshot: " + path));
+                String name = file.getFileName().toString();
+                ChatComponent msg = ChatComponent.plain("Saved Isometric screenshot: ")
+                        .append(new TextRun(name, Style.EMPTY.withUnderline(true)
+                                .withColor(0x55FFFF)
+                                .withClick(ClickEvent.Action.OPEN_FILE, file.toAbsolutePath().toString())));
+                chatOverlay.addComponent(msg);
 
                 isoFramesToWait = -1;
             } else if (isoFramesToWait == -1) {
@@ -467,8 +479,8 @@ public class PlayScene extends Scene {
         }
 
         if (isChatOpen) {
-            chatScreen.handleMenuInput(engine.getInputManager(), engine.getInputManager().getMouseX(),
-                    engine.getInputManager().getMouseY());
+            float uiMouseY = engine.getWindow().getHeight() - engine.getInputManager().getMouseY();
+            chatScreen.handleMenuInput(engine.getInputManager(), engine.getInputManager().getMouseX(), uiMouseY);
             uiNeedsRebuild = true;
         }
 
@@ -616,6 +628,7 @@ public class PlayScene extends Scene {
         chatScreen.open(startWithSlash);
 
         engine.getWindow().enableCursor();
+        engine.getInputManager().setUICursorState(true, false);
         localPlayer.getCamera().resetMouseTracking();
 
         engine.getInputManager().setTypingMode(true);
@@ -627,6 +640,7 @@ public class PlayScene extends Scene {
         isChatOpen = false;
         localPlayer.setChatOpen(false);
         engine.getWindow().disableCursor();
+        engine.getInputManager().setUICursorState(false, false);
         engine.getInputManager().setTypingMode(false);
         localPlayer.getCamera().resetMouseTracking();
         uiNeedsRebuild = true;

@@ -32,20 +32,20 @@ public abstract class BaseInventory implements IInventory {
     public int addItem(ItemStack stackToAdd) {
         if (stackToAdd == null || stackToAdd.type == null || stackToAdd.amount <= 0) return 0;
 
-        // 1. Auffüllen von existierenden Stacks
-        for (int i = 0; i < slots.length; i++) {
-            ItemStack current = getStack(i);
-            if (current != null && current.type == stackToAdd.type) {
+        // 1. Auffüllen von existierenden Stacks (nur wenn stapelbar!)
+        if (stackToAdd.type.getMaxStackSize() > 1) {
+            for (int i = 0; i < slots.length; i++) {
+                ItemStack current = getStack(i);
+                if (current != null && current.type == stackToAdd.type) {
+                    int maxStack = current.type.getMaxStackSize();
+                    int spaceLeft = maxStack - current.amount;
 
-                // HIER GEÄNDERT: Statt 64 fragen wir das Item nach seiner maxStackSize
-                int maxStack = current.type.getMaxStackSize();
-                int spaceLeft = maxStack - current.amount;
-
-                if (spaceLeft > 0) {
-                    int amountToAdd = Math.min(spaceLeft, stackToAdd.amount);
-                    current.amount += amountToAdd;
-                    stackToAdd.amount -= amountToAdd;
-                    if (stackToAdd.amount == 0) return 0;
+                    if (spaceLeft > 0) {
+                        int amountToAdd = Math.min(spaceLeft, stackToAdd.amount);
+                        current.amount += amountToAdd;
+                        stackToAdd.amount -= amountToAdd;
+                        if (stackToAdd.amount == 0) return 0;
+                    }
                 }
             }
         }
@@ -53,13 +53,18 @@ public abstract class BaseInventory implements IInventory {
         // 2. Leeren Slot suchen
         for (int i = 0; i < slots.length; i++) {
             if (getStack(i) == null) {
-                // Falls wir mehr hinzufügen wollen, als in einen Stack passt,
-                // splitten wir es auf.
                 int maxStack = stackToAdd.type.getMaxStackSize();
                 int amountToAdd = Math.min(maxStack, stackToAdd.amount);
 
-                setStack(i, new ItemStack(stackToAdd.type, amountToAdd));
-                stackToAdd.amount -= amountToAdd;
+                if (amountToAdd == stackToAdd.amount) {
+                    setStack(i, stackToAdd);
+                    return 0;
+                } else {
+                    ItemStack copy = stackToAdd.copy();
+                    copy.amount = amountToAdd;
+                    setStack(i, copy);
+                    stackToAdd.amount -= amountToAdd;
+                }
 
                 if (stackToAdd.amount == 0) return 0;
             }

@@ -8,9 +8,12 @@ import de.delautrer.game.entity.player.LocalPlayer;
 import de.delautrer.game.events.ChatMessageEvent;
 import de.delautrer.game.events.CommandExecutedEvent;
 import de.delautrer.game.ui.ChatOverlay;
+import de.delautrer.game.ui.chat.TextRun;
 import de.delautrer.game.ui.elements.UIInputField;
 import de.delautrer.game.ui.UIMeshBuilder;
 import de.delautrer.game.world.World;
+import org.lwjgl.glfw.GLFW;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +28,6 @@ public class ChatScreen extends MenuScreen {
     private final Runnable closeCallback;
     private IFont font;
 
-    // History & Autocomplete Features
     private final List<String> history = new ArrayList<>();
     private int historyIndex = -1;
 
@@ -33,8 +35,10 @@ public class ChatScreen extends MenuScreen {
     private int completionIndex = -1;
     private boolean isTabCycling = false;
 
+    private long lastClickTime = 0;
+
     public ChatScreen(EventBus eventBus, LocalPlayer player, World world, CommandManager commandManager,
-            ChatOverlay chatOverlay, Runnable closeCallback) {
+                      ChatOverlay chatOverlay, Runnable closeCallback) {
         this.eventBus = eventBus;
         this.player = player;
         this.world = world;
@@ -46,8 +50,8 @@ public class ChatScreen extends MenuScreen {
     public void open(boolean startWithSlash) {
         inputField.setText(startWithSlash ? "/" : "");
         inputField.setFocused(true);
-        historyIndex = history.size(); // Reset an ans Ende der History
-        chatOverlay.resetScroll(); // Springt nach unten, wenn der Chat neu geöffnet wird
+        historyIndex = history.size();
+        chatOverlay.resetScroll();
     }
 
     public void setFont(IFont font) {
@@ -56,9 +60,9 @@ public class ChatScreen extends MenuScreen {
 
     @Override
     protected void onInit() {
-        float fieldWidth = width - 20.0f;
-        float fieldHeight = 30.0f;
-        inputField = new UIInputField(10.0f, 10.0f, fieldWidth, fieldHeight, "Befehl oder Nachricht eingeben...", 100);
+        float fieldWidth = width - 8.0f;
+        float fieldHeight = 28.0f;
+        inputField = new UIInputField(4.0f, 4.0f, fieldWidth, fieldHeight, "Befehl oder Nachricht eingeben...", 256);
         inputField.setFocused(true);
     }
 
@@ -69,20 +73,38 @@ public class ChatScreen extends MenuScreen {
         }
     }
 
-    // --- NEU: Input für das Mausrad UND für Tastatur/Tippen ---
     @Override
     public void handleInput(InputManager input) {
         super.handleInput(input);
-
-        inputField.handleInput(input); // Pfeiltasten, Backspace, Entf etc.
+        inputField.handleInput(input);
 
         double scroll = input.consumeScroll();
         if (scroll != 0) {
-            chatOverlay.scroll((int) Math.signum(scroll) * 3);
+            chatOverlay.scroll((int) Math.signum(scroll) * 3, font, width * 0.6f);
         }
     }
 
-    public void handleMenuInput(InputManager input, float mouseX, float mouseY) {
+    public void handleMenuInput(InputManager input, float mouseX, float uiMouseY) {
+        TextRun hoveredRun = chatOverlay.hitTest(mouseX, uiMouseY, font, width, height, true);
+        boolean isHoveringClick = hoveredRun != null && hoveredRun.getStyle().getClick() != null;
+        input.setUICursorState(true, isHoveringClick);
+
+        if (input.isActionJustPressed("INTERACT_BREAK")) {
+            TextRun clickedRun = chatOverlay.hitTest(mouseX, uiMouseY, font, width, height, true);
+            if (clickedRun != null && clickedRun.getStyle().getClick() != null) {
+                ChatOverlay.executeClickAction(clickedRun.getStyle().getClick());
+            } else if (inputField != null) {
+                inputField.setFocused(true);
+                long now = System.currentTimeMillis();
+                if (now - lastClickTime < 300) {
+                    inputField.onDoubleClick(mouseX, uiMouseY, font);
+                } else {
+                    inputField.onMouseDown(mouseX, uiMouseY, font, false);
+                }
+                lastClickTime = now;
+            }
+        }
+
         handleInput(input);
     }
 
@@ -93,26 +115,19 @@ public class ChatScreen extends MenuScreen {
 
     @Override
     protected void mouseClicked(float mouseX, float mouseY, int button) {
+        // Handled in handleMenuInput with correct uiMouseY coordinate
     }
 
     @Override
     protected void onCharTyped(char c) {
         inputField.typeChar(c);
-        isTabCycling = false; // Bricht Autocomplete ab, wenn man selbst weitertippt
+        isTabCycling = false;
     }
 
     @Override
     protected void onKeyPressed(InputManager input) {
-        // HINWEIS: UI_BACKSPACE, Pfeiltasten etc. werden jetzt direkt im inputField.handleInput(input)
-        // innerhalb von handleInput(input) verarbeitet. Hier nur noch Logik, die den Screen-State ändert.
-
-        // HINWEIS: Die PAUSE (ESC) Abfrage ist hier raus, weil deine PlayScene das
-        // jetzt global und viel sauberer managt!
-
-        // --- AUTOCOMPLETE (TAB) ---
         if (input.isActionJustPressed("UI_TAB")) {
             String currentText = inputField.getText();
-
             if (!isTabCycling) {
                 currentCompletions = commandManager.getTabCompletions(player, world, currentText);
                 if (!currentCompletions.isEmpty()) {
@@ -128,7 +143,6 @@ public class ChatScreen extends MenuScreen {
             }
         }
 
-        // --- HISTORY (UP/DOWN) ---
         if (input.isActionJustPressed("UI_UP")) {
             isTabCycling = false;
             if (historyIndex > 0) {
@@ -147,27 +161,23 @@ public class ChatScreen extends MenuScreen {
             }
         }
 
-        // --- ABSENDEN (ENTER) ---
         if (input.isActionJustPressed("CHAT_SEND")) {
             String inputText = inputField.getText();
-
             if (!inputText.isEmpty()) {
-                history.add(inputText); // Zur History hinzufügen
-
+                history.add(inputText);
                 if (inputText.startsWith("/")) {
                     String[] parts = inputText.substring(1).split(" ");
                     String command = parts[0];
                     String[] args = new String[parts.length - 1];
                     System.arraycopy(parts, 1, args, 0, args.length);
-
                     eventBus.publish(new CommandExecutedEvent(command, args, player, world));
                 } else {
                     String pName = de.delautrer.game.settings.SettingsManager.get().playerName;
                     if (pName == null || pName.trim().isEmpty()) pName = "Player";
-                    eventBus.publish(new ChatMessageEvent("" + pName + ": " + inputText));
+                    eventBus.publish(new ChatMessageEvent(pName + ": " + inputText));
                 }
             }
-            closeCallback.run(); // Chat schließen
+            closeCallback.run();
             isTabCycling = false;
         }
     }

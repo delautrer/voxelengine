@@ -137,6 +137,13 @@ public class ParticleBuilder {
         return this;
     }
     
+    private boolean isEmissive = false;
+
+    public ParticleBuilder emissive(boolean emissive) {
+        this.isEmissive = emissive;
+        return this;
+    }
+
     public Particle build() {
         Particle p = new Particle(position, velocity, life, startSize, startColor);
         p.endSize = this.endSize;
@@ -150,6 +157,7 @@ public class ParticleBuilder {
         p.drag = this.drag;
         p.collideWithBlocks = this.collideWithBlocks;
         p.bounciness = this.bounciness;
+        p.isEmissive = this.isEmissive;
         
         p.rotation = this.rotation;
         p.angularVelocity = this.angularVelocity;
@@ -157,6 +165,23 @@ public class ParticleBuilder {
         
         if (this.hasTexture) {
             p.setTexture(uMin, vMin, uMax, vMax, textureLayer);
+        }
+
+        if (this.isEmissive) {
+            p.setLight(1.0f, 1.0f);
+        } else if (world != null && world.getChunkManager() != null) {
+            int px = (int) Math.floor(position.x);
+            int py = (int) Math.floor(position.y);
+            int pz = (int) Math.floor(position.z);
+            de.delautrer.game.world.Chunk chunk = world.getChunkManager().getChunkAtBlock(px, py, pz);
+            if (chunk != null) {
+                int lx = Math.floorMod(px, de.delautrer.game.world.Chunk.SIZE);
+                int lz = Math.floorMod(pz, de.delautrer.game.world.Chunk.SIZE);
+                int sky = chunk.getSkyLightAt(lx, py, lz, world.getChunkManager());
+                int block = chunk.getBlockLightAt(lx, py, lz, world.getChunkManager());
+                p.skyLightBrightness = sky / 15.0f;
+                p.blockLightBrightness = block / 15.0f;
+            }
         }
         
         return p;

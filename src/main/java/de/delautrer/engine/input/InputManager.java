@@ -45,11 +45,17 @@ public class InputManager {
         });
 
         GLFW.glfwSetKeyCallback(windowHandle, (window, key, scancode, action, mods) -> {
-            if (action == GLFW.GLFW_PRESS) {
+            if (action == GLFW.GLFW_PRESS || action == GLFW.GLFW_REPEAT) {
+                if (action == GLFW.GLFW_REPEAT && (key == GLFW.GLFW_KEY_ENTER || key == GLFW.GLFW_KEY_KP_ENTER || key == GLFW.GLFW_KEY_ESCAPE)) {
+                    return;
+                }
                 lastKeyPressed = key;
+                isLastKeyRepeated = (action == GLFW.GLFW_REPEAT);
             }
         });
     }
+
+    private boolean isLastKeyRepeated = false;
 
     public final void reloadBindings() {
         keyBindings.clear();
@@ -123,16 +129,21 @@ public class InputManager {
         return copy;
     }
 
+    private long currentCursorHandle = -1;
+
     public void setUICursorState(boolean showCursor, boolean isHovering) {
+        int targetMode = showCursor ? GLFW.GLFW_CURSOR_NORMAL : GLFW.GLFW_CURSOR_DISABLED;
+        long targetCursor = isHovering ? handCursor : normalCursor;
+
         int currentMode = GLFW.glfwGetInputMode(windowHandle, GLFW.GLFW_CURSOR);
 
-        if (currentMode == GLFW.GLFW_CURSOR_DISABLED) return;
-
-        if (showCursor) {
-            GLFW.glfwSetInputMode(windowHandle, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL);
-            GLFW.glfwSetCursor(windowHandle, isHovering ? handCursor : normalCursor);
-        } else {
-            GLFW.glfwSetInputMode(windowHandle, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_HIDDEN);
+        if (currentMode != targetMode) {
+            GLFW.glfwSetInputMode(windowHandle, GLFW.GLFW_CURSOR, targetMode);
+            currentCursorHandle = -1;
+        }
+        if (showCursor && currentCursorHandle != targetCursor) {
+            GLFW.glfwSetCursor(windowHandle, targetCursor);
+            currentCursorHandle = targetCursor;
         }
     }
 
@@ -172,8 +183,16 @@ public class InputManager {
         previousActionStates.put(action, true);
     }
 
+    public boolean isShiftDown() {
+        return isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT) || isKeyDown(GLFW.GLFW_KEY_RIGHT_SHIFT);
+    }
+
     public boolean isControlDown() {
         return isKeyDown(GLFW.GLFW_KEY_LEFT_CONTROL) || isKeyDown(GLFW.GLFW_KEY_RIGHT_CONTROL);
+    }
+
+    public boolean isLastKeyRepeated() {
+        return isLastKeyRepeated;
     }
 
     public String getClipboardString() {

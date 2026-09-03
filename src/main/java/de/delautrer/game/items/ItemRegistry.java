@@ -44,7 +44,11 @@ public class ItemRegistry {
 
                 Item item = ItemTypeRegistry.create(def.type, def, key);
                 if (item != null) {
-                    item.setMaxStackSize(def.maxStackSize);
+                    if (item instanceof ToolItem) {
+                        item.setMaxStackSize(def.maxStackSize != 64 ? def.maxStackSize : 1);
+                    } else {
+                        item.setMaxStackSize(def.maxStackSize);
+                    }
                     item.setCategory(def.category);
 
                     if (def.renderAsItem != null) {

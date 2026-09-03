@@ -40,26 +40,38 @@ public class HUD {
             float textY = height - 25.0f;
             float textX = 10.0f;
             for (String line : debugOverlay.getLinesToRender()) {
+                if (line != null && !line.isEmpty() && font != null) {
+                    float lineWidth = builder.getTextWidth(line, font);
+                    if (lineWidth > 0) {
+                        float bgWidth = lineWidth + 8.0f;
+                        builder.add9Slice(textX - 4.0f, textY - 2.0f, 0.45f, bgWidth, 20.0f, 14, 15, 4.0f);
+                    }
+                }
                 builder.drawText(line, textX, textY, 0.5f, font);
-                textY -= 24.0f;
+                textY -= 22.0f;
             }
         }
 
         // --- CHAT ---
-        if (chatOverlay != null) {
-            float textY = 60.0f;
-            List<ChatOverlay.ChatMessage> messages = chatOverlay.getMessages();
-
+        if (chatOverlay != null && font != null) {
+            float maxWidth = width * 0.6f;
+            List<ChatOverlay.WrappedLine> allLines = chatOverlay.getAllWrappedLines(font, maxWidth);
             int maxVisible = 10;
-            int startIndex = messages.size() - 1 - chatOverlay.getScrollOffset();
+            int startIndex = allLines.size() - 1 - chatOverlay.getScrollOffset();
             int endIndex = Math.max(0, startIndex - maxVisible + 1);
+            float textY = 50.0f;
 
             for (int i = startIndex; i >= endIndex; i--) {
-                ChatOverlay.ChatMessage msg = messages.get(i);
-
-                if (isChatOpen || msg.timeRemaining > 0) {
-                    builder.drawText(msg.text, 10.0f, textY, 0.4f, font);
-                    textY += 20.0f;
+                ChatOverlay.WrappedLine line = allLines.get(i);
+                if (isChatOpen || line.parentMessage.timeRemaining > 0) {
+                    float alpha = isChatOpen ? 1.0f : Math.min(1.0f, line.parentMessage.timeRemaining);
+                    float lineWidth = builder.getStyledWidth(line.runs, font);
+                    if (lineWidth > 0) {
+                        float bgWidth = Math.min(lineWidth + 8.0f, maxWidth + 8.0f);
+                        builder.add9Slice(6.0f, textY - 2.0f, 0.35f, bgWidth, 20.0f, 14, 15, 4.0f);
+                    }
+                    builder.drawStyledText(line.runs, 10.0f, textY, 0.4f, font, alpha);
+                    textY += 22.0f;
                 }
             }
         }

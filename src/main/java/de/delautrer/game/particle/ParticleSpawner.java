@@ -106,16 +106,14 @@ public class ParticleSpawner {
     }
 
     public static void spawnFire(World world, float x, float y, float z) {
-        Particle p = new ParticleBuilder(world, x + (random.nextFloat()-0.5f)*0.05f, y, z + (random.nextFloat()-0.5f)*0.05f)
+        new ParticleBuilder(world, x + (random.nextFloat()-0.5f)*0.05f, y, z + (random.nextFloat()-0.5f)*0.05f)
             .velocity((random.nextFloat()-0.5f)*0.1f, 0.3f + random.nextFloat()*0.2f, (random.nextFloat()-0.5f)*0.1f) // Drift + Auftrieb
             .life(0.4f + random.nextFloat()*0.2f)
             .size(0.08f, 0.0f) // schrumpfen leicht bevor sie sich auflösen
             .color(new Vector3f(1.0f, 0.9f, 0.0f), new Vector3f(1.0f, 0.3f, 0.0f)) // gelb-orange
             .alpha(1.0f, 0.0f) // verblassen
             .gravity(0.0f) // ignoriert Schwerkraft
+            .emissive(true)
             .spawn();
-            
-        // Fullbright erzwingen (ignoriert dynamische Beleuchtung)
-        p.setLight(15.0f, 15.0f);
     }
 }

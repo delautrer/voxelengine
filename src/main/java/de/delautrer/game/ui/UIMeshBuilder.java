@@ -316,6 +316,103 @@ public class UIMeshBuilder {
         return textWidth;
     }
 
+    public void drawStyledText(List<de.delautrer.game.ui.chat.TextRun> runs, float startX, float startY, float z, IFont font, float alpha) {
+        if (font == null || font.getCharData() == null || runs == null || runs.isEmpty())
+            return;
+        float currentX = startX;
+        STBTTBakedChar.Buffer charData = font.getCharData();
+
+        for (de.delautrer.game.ui.chat.TextRun run : runs) {
+            if (run == null || run.getText().isEmpty()) continue;
+            de.delautrer.game.ui.chat.Style style = run.getStyle();
+
+            int rgb = style.getRgb();
+            float r = (((rgb >> 16) & 0xFF) / 255.0f) * alpha;
+            float g = (((rgb >> 8) & 0xFF) / 255.0f) * alpha;
+            float b = ((rgb & 0xFF) / 255.0f) * alpha;
+
+            String text = run.getText();
+            float runStartX = currentX;
+
+            for (int i = 0; i < text.length(); i++) {
+                char c = text.charAt(i);
+                if (c >= 32 && c < 256) {
+                    STBTTBakedChar bakedChar = charData.get(c - 32);
+                    float x0 = currentX + bakedChar.xoff();
+                    float yTop = startY - bakedChar.yoff();
+                    float w = (bakedChar.x1() - bakedChar.x0());
+                    float h = (bakedChar.y1() - bakedChar.y0());
+
+                    addClippedQuad(UITexture.FONT, x0, yTop - h, x0 + w, yTop, z, r, g, b,
+                            bakedChar.x0() / (float) font.getBitmapSize(), bakedChar.y1() / (float) font.getBitmapSize(),
+                            bakedChar.x1() / (float) font.getBitmapSize(), bakedChar.y0() / (float) font.getBitmapSize());
+
+                    if (style.isBold()) {
+                        addClippedQuad(UITexture.FONT, x0 + 1.0f, yTop - h, x0 + w + 1.0f, yTop, z, r, g, b,
+                                bakedChar.x0() / (float) font.getBitmapSize(), bakedChar.y1() / (float) font.getBitmapSize(),
+                                bakedChar.x1() / (float) font.getBitmapSize(), bakedChar.y0() / (float) font.getBitmapSize());
+                    }
+
+                    currentX += bakedChar.xadvance() + (style.isBold() ? 1.0f : 0.0f);
+                }
+            }
+
+            float runWidth = currentX - runStartX;
+
+            if (style.isUnderline()) {
+                addRect(runStartX, startY - 2.0f, z + 0.01f, runWidth, 1.0f, r, g, b, alpha);
+            }
+
+            if (style.isStrikethrough()) {
+                addRect(runStartX, startY + 6.0f, z + 0.01f, runWidth, 1.0f, r, g, b, alpha);
+            }
+        }
+    }
+
+    public float getStyledWidth(List<de.delautrer.game.ui.chat.TextRun> runs, IFont font) {
+        if (font == null || font.getCharData() == null || runs == null || runs.isEmpty())
+            return 0.0f;
+        float width = 0.0f;
+        STBTTBakedChar.Buffer charData = font.getCharData();
+        for (de.delautrer.game.ui.chat.TextRun run : runs) {
+            if (run == null) continue;
+            String text = run.getText();
+            boolean isBold = run.getStyle().isBold();
+            for (int i = 0; i < text.length(); i++) {
+                char c = text.charAt(i);
+                if (c >= 32 && c < 256) {
+                    width += charData.get(c - 32).xadvance() + (isBold ? 1.0f : 0.0f);
+                }
+            }
+        }
+        return width;
+    }
+
+    public de.delautrer.game.ui.chat.TextRun hitTestStyled(List<de.delautrer.game.ui.chat.TextRun> runs, float originX, float originY, float lineHeight, float mouseX, float mouseY, IFont font) {
+        if (runs == null || font == null || font.getCharData() == null) return null;
+        if (mouseY < originY - lineHeight || mouseY > originY + 4.0f) return null;
+
+        float currentX = originX;
+        STBTTBakedChar.Buffer charData = font.getCharData();
+        for (de.delautrer.game.ui.chat.TextRun run : runs) {
+            if (run == null) continue;
+            float runStartX = currentX;
+            String text = run.getText();
+            boolean isBold = run.getStyle().isBold();
+            for (int i = 0; i < text.length(); i++) {
+                char c = text.charAt(i);
+                if (c >= 32 && c < 256) {
+                    currentX += charData.get(c - 32).xadvance() + (isBold ? 1.0f : 0.0f);
+                }
+            }
+            float runEndX = currentX;
+            if (mouseX >= runStartX && mouseX <= runEndX) {
+                return run;
+            }
+        }
+        return null;
+    }
+
     public void addTooltipBackground(float x, float y, float z, float w, float h, int gridX, int gridY,
             float cornerRenderSize) {
         add9Slice(x, y, z, w, h, gridX, gridY, cornerRenderSize);

@@ -23,4 +23,11 @@ public class ItemStack {
             this.durability -= amount;
         }
     }
+
+    public ItemStack copy() {
+        ItemStack copy = new ItemStack(this.type, this.amount);
+        copy.durability = this.durability;
+        copy.tag = this.tag != null ? (CompoundTag) this.tag.copy() : null;
+        return copy;
+    }
 }

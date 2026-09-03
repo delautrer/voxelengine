@@ -127,21 +127,12 @@ public class UIManager {
         boolean showCursor = false;
         boolean isHovering = false;
 
-        if (currentScreen != null) {
+        if (currentScreen != null && !(currentScreen instanceof ChatScreen)) {
             showCursor = true;
             hoveredSlot = currentScreen.getHoveredSlot(mouseX, mouseY);
             isHovering = (hoveredSlot != -1);
 
-            if (currentScreen instanceof ContainerScreen containerScreen) {
-                if (containerScreen.getContainer().getMouseStack() != null) {
-                    showCursor = false;
-                }
-            }
-
             input.setUICursorState(showCursor, isHovering);
-
-        } else {
-            input.setUICursorState(false, false);
         }
 
         hud.render(builder, width, height, interaction, hoveredSlot, debugOverlay, chatOverlay, font, blockAtlasWidth);

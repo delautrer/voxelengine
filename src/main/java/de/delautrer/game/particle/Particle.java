@@ -65,6 +65,8 @@ public class Particle extends Entity {
         this.blockLightBrightness = 1.0f;
     }
 
+    public boolean isEmissive = false;
+
     public Particle setTexture(float uMin, float vMin, float uMax, float vMax, float layer) {
         this.hasTexture = true;
         this.uvRect = new Vector4f(uMin, vMin, uMax, vMax);
@@ -73,14 +75,29 @@ public class Particle extends Entity {
     }
     
     public Particle setLight(float skyLight, float blockLight) {
-        this.skyLightBrightness = skyLight;
-        this.blockLightBrightness = blockLight;
+        this.skyLightBrightness = Math.min(1.0f, skyLight > 1.0f ? skyLight / 15.0f : skyLight);
+        this.blockLightBrightness = Math.min(1.0f, blockLight > 1.0f ? blockLight / 15.0f : blockLight);
+        this.isEmissive = true;
         return this;
     }
 
     @Override
     public void update(float deltaTime, ChunkManager chunkManager) {
-        
+        if (!isEmissive && chunkManager != null) {
+            int px = (int) Math.floor(position.x);
+            int py = (int) Math.floor(position.y);
+            int pz = (int) Math.floor(position.z);
+            de.delautrer.game.world.Chunk chunk = chunkManager.getChunkAtBlock(px, py, pz);
+            if (chunk != null) {
+                int lx = Math.floorMod(px, de.delautrer.game.world.Chunk.SIZE);
+                int lz = Math.floorMod(pz, de.delautrer.game.world.Chunk.SIZE);
+                int sky = chunk.getSkyLightAt(lx, py, lz, chunkManager);
+                int block = chunk.getBlockLightAt(lx, py, lz, chunkManager);
+                this.skyLightBrightness = sky / 15.0f;
+                this.blockLightBrightness = block / 15.0f;
+            }
+        }
+
         life -= deltaTime;
         if (life < 0) {
             life = 0;

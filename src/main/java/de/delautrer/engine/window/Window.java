@@ -92,11 +92,19 @@ public class Window {
     }
 
     public void disableCursor() {
-        GLFW.glfwSetInputMode(handle, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED);
+        if (de.delautrer.engine.input.InputManager.INSTANCE != null) {
+            de.delautrer.engine.input.InputManager.INSTANCE.setUICursorState(false, false);
+        } else {
+            GLFW.glfwSetInputMode(handle, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED);
+        }
     }
 
     public void enableCursor() {
-        GLFW.glfwSetInputMode(handle, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL);
+        if (de.delautrer.engine.input.InputManager.INSTANCE != null) {
+            de.delautrer.engine.input.InputManager.INSTANCE.setUICursorState(true, false);
+        } else {
+            GLFW.glfwSetInputMode(handle, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL);
+        }
     }
 
     public boolean shouldClose() {

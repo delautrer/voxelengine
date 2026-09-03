@@ -158,7 +158,7 @@ public class World {
         this.systems.add(new de.delautrer.game.world.systems.BlockTickSystem());
 
         PlayerData pData = storageManager.loadPlayerData("lokaler-spieler");
-        if (pData != null) {
+        if (pData != null && localPlayer != null) {
             localPlayer.position.set(pData.x, pData.y, pData.z);
             localPlayer.getCamera().setPitch(pData.pitch);
             localPlayer.getCamera().setYaw(pData.yaw);
