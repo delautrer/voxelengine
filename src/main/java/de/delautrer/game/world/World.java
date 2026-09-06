@@ -318,10 +318,8 @@ public class World {
             chunkManager.getLightEngine().addBlockLightSource(x, y, z, newLightEmission);
         }
 
-        chunkManager.getLightEngine().processLightUpdates();
-
         if (eventBus != null) {
-            eventBus.publish(new BlockChangeEvent(pos, oldBlock, newBlock, targetChunk));
+            eventBus.publish(new BlockChangeEvent(pos, oldBlock, newBlock, targetChunk, playSound));
 
             if (notifyNeighbors) {
                 int[][] dirs = { { 0, 1, 0 }, { 0, -1, 0 }, { 1, 0, 0 }, { -1, 0, 0 }, { 0, 0, 1 }, { 0, 0, -1 } };

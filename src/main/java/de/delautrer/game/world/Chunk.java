@@ -23,6 +23,11 @@ public class Chunk {
     private boolean isDirty = false;
     private boolean needsMeshUpdate = false;
     private long lastAccessedTime;
+    private final java.util.concurrent.atomic.AtomicInteger meshEpoch = new java.util.concurrent.atomic.AtomicInteger(0);
+
+    public int getMeshEpoch() { return meshEpoch.get(); }
+    public int incrementMeshEpoch() { return meshEpoch.incrementAndGet(); }
+
     private final java.util.Map<org.joml.Vector3i, de.delautrer.game.nbt.CompoundTag> blockEntityTags = new java.util.concurrent.ConcurrentHashMap<>();
 
     public void setBlockEntityTag(int lx, int y, int lz, de.delautrer.game.nbt.CompoundTag tag) {
@@ -393,7 +398,7 @@ public class Chunk {
     public static int[] getHighlightIndices() { return highlightIndices; }
     public int getWorldX() { return worldX; }
     public int getWorldZ() { return worldZ; }
-    public void markDirty() { this.isDirty = true; this.needsMeshUpdate = true; }
+    public void markDirty() { this.isDirty = true; }
     public boolean isDirty() { return isDirty; }
     public void clearDirty() { this.isDirty = false; }
     public boolean needsMeshUpdate() { return needsMeshUpdate; }

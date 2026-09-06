@@ -15,6 +15,18 @@ public class VulkanMesh implements de.delautrer.engine.graphics.IMesh {
     private long maxVertexBufferSize = 0;
     private long maxIndexBufferSize = 0;
 
+    private static class PendingBufferToDelete {
+        final VulkanBuffer buffer;
+        int framesToLive;
+
+        PendingBufferToDelete(VulkanBuffer buffer, int framesToLive) {
+            this.buffer = buffer;
+            this.framesToLive = framesToLive;
+        }
+    }
+
+    private final java.util.List<PendingBufferToDelete> pendingBuffers = new java.util.ArrayList<>();
+
     public float chunkOffsetX = 0.0f;
     public float chunkOffsetZ = 0.0f;
 
@@ -60,6 +72,17 @@ public class VulkanMesh implements de.delautrer.engine.graphics.IMesh {
         if (de.delautrer.Constants.VULKAN_DEBUG) {
             System.out.println("[VulkanMesh] Updating mesh 0x" + Integer.toHexString(hashCode()) + ": " + vertexCount + " elements (" + (vertexCount / 8) + " vertices), " + indexCount + " indices. Max sizes: vertex=" + maxVertexBufferSize + " bytes, index=" + maxIndexBufferSize + " bytes");
         }
+
+        // Processing old pending buffers without blocking the thread
+        for (int i = pendingBuffers.size() - 1; i >= 0; i--) {
+            PendingBufferToDelete item = pendingBuffers.get(i);
+            item.framesToLive--;
+            if (item.framesToLive <= 0) {
+                item.buffer.cleanup();
+                pendingBuffers.remove(i);
+            }
+        }
+
         this.indexCount = indexCount;
         if (indexCount == 0)
             return;
@@ -69,16 +92,11 @@ public class VulkanMesh implements de.delautrer.engine.graphics.IMesh {
 
         // --- 1. VERTEX BUFFER UPDATE ---
         if (requiredVertexSize > maxVertexBufferSize) {
-            // FIX: Wir warten auf die GPU, BEVOR wir ihr den Speicher unter den Füßen
-            // wegziehen!
             if (vertexBuffer != null) {
-                VK10.vkDeviceWaitIdle(context.getDevice());
-                vertexBuffer.cleanup();
+                pendingBuffers.add(new PendingBufferToDelete(vertexBuffer, 3));
+                vertexBuffer = null;
             }
 
-            // ANTI-STUTTER FIX: Wenn wir vergrößern, dann direkt massiv!
-            // Min. 128 KB vorab-allozieren. Dadurch muss die Engine beim Droppen von Items
-            // nie wieder warten!
             maxVertexBufferSize = Math.max((long) (requiredVertexSize * 2.0), 128 * 1024L);
 
             vertexBuffer = new VulkanBuffer(context, maxVertexBufferSize,
@@ -86,8 +104,6 @@ public class VulkanMesh implements de.delautrer.engine.graphics.IMesh {
                     VK10.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK10.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
         }
 
-        // Daten flink in den reservierten (und garantiert ausreichend großen) Speicher
-        // schreiben
         try (MemoryStack stack = MemoryStack.stackPush()) {
             org.lwjgl.PointerBuffer data = stack.mallocPointer(1);
             VK10.vkMapMemory(context.getDevice(), vertexBuffer.getBufferMemory(), 0, requiredVertexSize, 0, data);
@@ -98,13 +114,11 @@ public class VulkanMesh implements de.delautrer.engine.graphics.IMesh {
 
         // --- 2. INDEX BUFFER UPDATE ---
         if (requiredIndexSize > maxIndexBufferSize) {
-            // FIX: Auch hier auf die GPU warten
             if (indexBuffer != null) {
-                VK10.vkDeviceWaitIdle(context.getDevice());
-                indexBuffer.cleanup();
+                pendingBuffers.add(new PendingBufferToDelete(indexBuffer, 3));
+                indexBuffer = null;
             }
 
-            // ANTI-STUTTER FIX: Min. 64 KB für Indices reservieren
             maxIndexBufferSize = Math.max((long) (requiredIndexSize * 2.0), 64 * 1024L);
 
             indexBuffer = new VulkanBuffer(context, maxIndexBufferSize,
@@ -138,6 +152,11 @@ public class VulkanMesh implements de.delautrer.engine.graphics.IMesh {
         if (de.delautrer.Constants.VULKAN_DEBUG) {
             System.out.println("[VulkanMesh] Cleaning up mesh 0x" + Integer.toHexString(hashCode()) + " (vertexBuffer: 0x" + (vertexBuffer != null ? Long.toHexString(vertexBuffer.getBuffer()) : "null") + ", indexBuffer: 0x" + (indexBuffer != null ? Long.toHexString(indexBuffer.getBuffer()) : "null") + ")");
         }
+        for (PendingBufferToDelete item : pendingBuffers) {
+            item.buffer.cleanup();
+        }
+        pendingBuffers.clear();
+
         if (vertexBuffer != null) {
             vertexBuffer.cleanup();
             vertexBuffer = null;
@@ -148,6 +167,5 @@ public class VulkanMesh implements de.delautrer.engine.graphics.IMesh {
         }
         indexCount = 0;
         maxVertexBufferSize = 0;
-        maxIndexBufferSize = 0;
     }
 }

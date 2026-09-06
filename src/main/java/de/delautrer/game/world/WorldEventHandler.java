@@ -31,46 +31,42 @@ public class WorldEventHandler {
         int localX = Math.floorMod(x, Chunk.SIZE);
         int localZ = Math.floorMod(z, Chunk.SIZE);
 
-        LightEngine le = world.getChunkManager().getLightEngine();
+        ChunkManager cm = world.getChunkManager();
 
-        int oldBlockLight = le.getBlockLight(x, y, z);
-        if (oldBlockLight > 0) {
-            le.removeBlockLight(x, y, z, oldBlockLight);
+        if (event.playSound) {
+            // Spieler-Edit: Haupt-Chunk sofort auf dem Main-Thread neu bauen
+            cm.rebuildChunkMeshImmediate(event.chunk);
+
+            // Direkte Chunk-Naht-Nachbarn sofort neu bauen (verhindert Lücken auf Chunk-Grenzen)
+            if (localX == 0) rebuildChunkMeshImmediateAtBlock(x - 1, z);
+            if (localX == Chunk.SIZE - 1) rebuildChunkMeshImmediateAtBlock(x + 1, z);
+            if (localZ == 0) rebuildChunkMeshImmediateAtBlock(x, z - 1);
+            if (localZ == Chunk.SIZE - 1) rebuildChunkMeshImmediateAtBlock(x, z + 1);
+        } else {
+            // Worldgen / Jigsaw / Strukturen: Async belassen
+            cm.requestMeshUpdate(event.chunk);
+
+            if (localX == 0) markChunkMeshDirty(x - 1, z);
+            if (localX == Chunk.SIZE - 1) markChunkMeshDirty(x + 1, z);
+            if (localZ == 0) markChunkMeshDirty(x, z - 1);
+            if (localZ == Chunk.SIZE - 1) markChunkMeshDirty(x, z + 1);
         }
 
-        int oldSkyLight = le.getSkyLight(x, y, z);
-        if (oldSkyLight > 0) {
-            le.setSkyLight(x, y, z, 0);
-            le.addSkyLightRemoval(x, y, z, oldSkyLight);
-        }
-
-        event.chunk.recalculateSunlightColumn(localX, localZ, le);
-
-        Block newBlock = world.getBlock(x, y, z);
-        de.delautrer.game.blocks.state.BlockState newState = world.getBlockState(x, y, z);
-        int newEmission = newBlock.getLightEmission(newState);
-        if (newEmission > 0) {
-            le.addBlockLightSource(x, y, z, newEmission);
-        }
-
-        le.notifyBlockChanged(x, y, z);
-
-        event.chunk.requestMeshUpdate();
-
-        if (localX == 0) markChunkMeshDirty(x - 1, z);
-        if (localX == Chunk.SIZE - 1) markChunkMeshDirty(x + 1, z);
-        if (localZ == 0) markChunkMeshDirty(x, z - 1);
-        if (localZ == Chunk.SIZE - 1) markChunkMeshDirty(x, z + 1);
-
+        // Diagonale Ecken in allen Fällen async belassen (requestMeshUpdate)
         if (localX == 0 && localZ == 0) markChunkMeshDirty(x - 1, z - 1);
         if (localX == 0 && localZ == Chunk.SIZE - 1) markChunkMeshDirty(x - 1, z + 1);
         if (localX == Chunk.SIZE - 1 && localZ == 0) markChunkMeshDirty(x + 1, z - 1);
         if (localX == Chunk.SIZE - 1 && localZ == Chunk.SIZE - 1) markChunkMeshDirty(x + 1, z + 1);
     }
 
+    private void rebuildChunkMeshImmediateAtBlock(int blockX, int blockZ) {
+        Chunk c = world.getChunkManager().getChunkAtBlock(blockX, 0, blockZ);
+        if (c != null) world.getChunkManager().rebuildChunkMeshImmediate(c);
+    }
+
     private void markChunkMeshDirty(int blockX, int blockZ) {
         Chunk c = world.getChunkManager().getChunkAtBlock(blockX, 0, blockZ);
-        if (c != null) c.requestMeshUpdate();
+        if (c != null) world.getChunkManager().requestMeshUpdate(c);
     }
 
     private void onNeighborUpdate(BlockNeighborUpdateEvent event) {

@@ -15,13 +15,12 @@ public class TerrainSystem implements WorldSystem {
 
     @Override
     public void update(World world, float deltaTime, LocalPlayer localPlayer) {
-        chunkManager.getLightEngine().processLightUpdates();
+        chunkManager.getLightEngine().processLightUpdates(2048);
         for (Chunk c : chunkManager.getLightEngine().getAndClearDirtiedChunks()) {
-            c.requestMeshUpdate();
+            chunkManager.requestMeshUpdate(c);
         }
 
         chunkManager.update(localPlayer.position.x, localPlayer.position.z);
-        chunkManager.getAsyncBuilder().uploadReadyMeshes(chunkManager);
     }
 
     public ChunkManager getChunkManager() {

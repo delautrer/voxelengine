@@ -1,13 +1,38 @@
 package de.delautrer.game.world;
 
 import de.delautrer.game.blocks.BlockRegistry;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class LightEngine {
 
+    private enum OpType {
+        ADD_BLOCK_LIGHT,
+        REMOVE_BLOCK_LIGHT,
+        ADD_SKY_LIGHT_REMOVAL,
+        ADD_SKY_LIGHT_UPDATE,
+        NOTIFY_BLOCK_CHANGED
+    }
+
+    private static class PendingLightOp {
+        final OpType type;
+        final int x, y, z, param;
+
+        PendingLightOp(OpType type, int x, int y, int z, int param) {
+            this.type = type;
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.param = param;
+        }
+    }
+
     private final ChunkManager chunkManager;
     private final Set<Chunk> dirtiedChunks = new HashSet<>();
+    private final ConcurrentLinkedQueue<PendingLightOp> pendingOps = new ConcurrentLinkedQueue<>();
 
     // Unsere Zero-Allocation Queues!
     private final LongQueue blockLightQueue = new LongQueue(1024);
@@ -21,8 +46,46 @@ public class LightEngine {
             {0, 0, 1}, {0, 0, -1}
     };
 
+    private final ReentrantLock lightLock = new ReentrantLock();
+
     public LightEngine(ChunkManager chunkManager) {
         this.chunkManager = chunkManager;
+    }
+
+    private void drainPendingOps() {
+        PendingLightOp op;
+        while ((op = pendingOps.poll()) != null) {
+            switch (op.type) {
+                case ADD_BLOCK_LIGHT -> {
+                    setBlockLight(op.x, op.y, op.z, op.param);
+                    blockLightQueue.add(pack(op.x, op.y, op.z, 0));
+                }
+                case REMOVE_BLOCK_LIGHT -> {
+                    setBlockLight(op.x, op.y, op.z, 0);
+                    blockLightRemovalQueue.add(pack(op.x, op.y, op.z, op.param));
+                }
+                case ADD_SKY_LIGHT_REMOVAL -> {
+                    skyLightRemovalQueue.add(pack(op.x, op.y, op.z, op.param));
+                }
+                case ADD_SKY_LIGHT_UPDATE -> {
+                    skyLightQueue.add(pack(op.x, op.y, op.z, 0));
+                }
+                case NOTIFY_BLOCK_CHANGED -> {
+                    for (int[] dir : DIRS) {
+                        int nx = op.x + dir[0];
+                        int ny = op.y + dir[1];
+                        int nz = op.z + dir[2];
+
+                        if (getBlockLight(nx, ny, nz) > 0) {
+                            blockLightQueue.add(pack(nx, ny, nz, 0));
+                        }
+                        if (getSkyLight(nx, ny, nz) > 0) {
+                            skyLightQueue.add(pack(nx, ny, nz, 0));
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // ==========================================
@@ -65,14 +128,24 @@ public class LightEngine {
 
     // --- 1. BLOCK LICHT (Fackeln etc.) ---
     public void addBlockLightSource(int x, int y, int z, int lightLevel) {
-        setBlockLight(x, y, z, lightLevel);
-        blockLightQueue.add(pack(x, y, z, 0));
-        propagateBlockLight();
+        if (lightLock.tryLock()) {
+            try {
+                drainPendingOps();
+                setBlockLight(x, y, z, lightLevel);
+                blockLightQueue.add(pack(x, y, z, 0));
+            } finally {
+                lightLock.unlock();
+            }
+        } else {
+            pendingOps.add(new PendingLightOp(OpType.ADD_BLOCK_LIGHT, x, y, z, lightLevel));
+        }
     }
 
-    private void propagateBlockLight() {
-        while (!blockLightQueue.isEmpty()) {
+    private int propagateBlockLight(int maxNodes) {
+        int processed = 0;
+        while (processed < maxNodes && !blockLightQueue.isEmpty()) {
             long node = blockLightQueue.poll();
+            processed++;
             int nx = unpackX(node);
             int ny = unpackY(node);
             int nz = unpackZ(node);
@@ -93,100 +166,121 @@ public class LightEngine {
                 }
             }
         }
+        return processed;
     }
 
     public void initSkyLightForChunk(Chunk chunk) {
-        int cx = chunk.getWorldX() * Chunk.SIZE;
-        int cz = chunk.getWorldZ() * Chunk.SIZE;
+        lightLock.lock();
+        try {
+            drainPendingOps();
+            int cx = chunk.getWorldX() * Chunk.SIZE;
+            int cz = chunk.getWorldZ() * Chunk.SIZE;
 
-        for (int x = 0; x < Chunk.SIZE; x++) {
-            for (int z = 0; z < Chunk.SIZE; z++) {
-                for (int y = Chunk.MIN_Y; y < Chunk.MAX_Y; y++) {
-                    int light = chunk.getSkyLight(x, y, z);
-                    if (light > 0) {
-                        boolean edge = false;
-                        if (x > 0 && chunk.getSkyLight(x - 1, y, z) < light) edge = true;
-                        else if (x < 15 && chunk.getSkyLight(x + 1, y, z) < light) edge = true;
-                        else if (z > 0 && chunk.getSkyLight(x, y, z - 1) < light) edge = true;
-                        else if (z < 15 && chunk.getSkyLight(x, y, z + 1) < light) edge = true;
+            for (int x = 0; x < Chunk.SIZE; x++) {
+                for (int z = 0; z < Chunk.SIZE; z++) {
+                    for (int y = Chunk.MIN_Y; y < Chunk.MAX_Y; y++) {
+                        int light = chunk.getSkyLight(x, y, z);
+                        if (light > 0) {
+                            boolean edge = false;
+                            if (x > 0 && chunk.getSkyLight(x - 1, y, z) < light) edge = true;
+                            else if (x < 15 && chunk.getSkyLight(x + 1, y, z) < light) edge = true;
+                            else if (z > 0 && chunk.getSkyLight(x, y, z - 1) < light) edge = true;
+                            else if (z < 15 && chunk.getSkyLight(x, y, z + 1) < light) edge = true;
 
-                        if (edge) {
-                            skyLightQueue.add(pack(cx + x, y, cz + z, 0));
+                            if (edge) {
+                                skyLightQueue.add(pack(cx + x, y, cz + z, 0));
+                            }
                         }
                     }
                 }
             }
+            propagateSkyLight(Integer.MAX_VALUE);
+        } finally {
+            lightLock.unlock();
         }
-        propagateSkyLight();
     }
 
     public void stitchChunkBorders(Chunk chunk) {
-        int cx = chunk.getWorldX() * Chunk.SIZE;
-        int cz = chunk.getWorldZ() * Chunk.SIZE;
+        lightLock.lock();
+        try {
+            drainPendingOps();
+            int cx = chunk.getWorldX() * Chunk.SIZE;
+            int cz = chunk.getWorldZ() * Chunk.SIZE;
 
-        // X Borders (x=0 und x=15) mit den Nachbar-Chunks abgleichen
-        for (int z = 0; z < Chunk.SIZE; z++) {
-            for (int y = Chunk.MIN_Y; y < Chunk.MAX_Y; y++) {
-                int sl1 = getSkyLight(cx, y, cz + z);
-                int sl2 = getSkyLight(cx - 1, y, cz + z);
-                if (sl1 > sl2) skyLightQueue.add(pack(cx, y, cz + z, 0));
-                else if (sl2 > sl1) skyLightQueue.add(pack(cx - 1, y, cz + z, 0));
+            // X Borders (x=0 und x=15) mit den Nachbar-Chunks abgleichen
+            for (int z = 0; z < Chunk.SIZE; z++) {
+                for (int y = Chunk.MIN_Y; y < Chunk.MAX_Y; y++) {
+                    int sl1 = getSkyLight(cx, y, cz + z);
+                    int sl2 = getSkyLight(cx - 1, y, cz + z);
+                    if (sl1 > sl2) skyLightQueue.add(pack(cx, y, cz + z, 0));
+                    else if (sl2 > sl1) skyLightQueue.add(pack(cx - 1, y, cz + z, 0));
 
-                int bl1 = getBlockLight(cx, y, cz + z);
-                int bl2 = getBlockLight(cx - 1, y, cz + z);
-                if (bl1 > bl2) blockLightQueue.add(pack(cx, y, cz + z, 0));
-                else if (bl2 > bl1) blockLightQueue.add(pack(cx - 1, y, cz + z, 0));
+                    int bl1 = getBlockLight(cx, y, cz + z);
+                    int bl2 = getBlockLight(cx - 1, y, cz + z);
+                    if (bl1 > bl2) blockLightQueue.add(pack(cx, y, cz + z, 0));
+                    else if (bl2 > bl1) blockLightQueue.add(pack(cx - 1, y, cz + z, 0));
 
-                int sl3 = getSkyLight(cx + 15, y, cz + z);
-                int sl4 = getSkyLight(cx + 16, y, cz + z);
-                if (sl3 > sl4) skyLightQueue.add(pack(cx + 15, y, cz + z, 0));
-                else if (sl4 > sl3) skyLightQueue.add(pack(cx + 16, y, cz + z, 0));
+                    int sl3 = getSkyLight(cx + 15, y, cz + z);
+                    int sl4 = getSkyLight(cx + 16, y, cz + z);
+                    if (sl3 > sl4) skyLightQueue.add(pack(cx + 15, y, cz + z, 0));
+                    else if (sl4 > sl3) skyLightQueue.add(pack(cx + 16, y, cz + z, 0));
 
-                int bl3 = getBlockLight(cx + 15, y, cz + z);
-                int bl4 = getBlockLight(cx + 16, y, cz + z);
-                if (bl3 > bl4) blockLightQueue.add(pack(cx + 15, y, cz + z, 0));
-                else if (bl4 > bl3) blockLightQueue.add(pack(cx + 16, y, cz + z, 0));
+                    int bl3 = getBlockLight(cx + 15, y, cz + z);
+                    int bl4 = getBlockLight(cx + 16, y, cz + z);
+                    if (bl3 > bl4) blockLightQueue.add(pack(cx + 15, y, cz + z, 0));
+                    else if (bl4 > bl3) blockLightQueue.add(pack(cx + 16, y, cz + z, 0));
+                }
             }
-        }
-        // Z Borders (z=0 und z=15) mit den Nachbar-Chunks abgleichen
-        for (int x = 0; x < Chunk.SIZE; x++) {
-            for (int y = Chunk.MIN_Y; y < Chunk.MAX_Y; y++) {
-                int sl1 = getSkyLight(cx + x, y, cz);
-                int sl2 = getSkyLight(cx + x, y, cz - 1);
-                if (sl1 > sl2) skyLightQueue.add(pack(cx + x, y, cz, 0));
-                else if (sl2 > sl1) skyLightQueue.add(pack(cx + x, y, cz - 1, 0));
+            // Z Borders (z=0 und z=15) mit den Nachbar-Chunks abgleichen
+            for (int x = 0; x < Chunk.SIZE; x++) {
+                for (int y = Chunk.MIN_Y; y < Chunk.MAX_Y; y++) {
+                    int sl1 = getSkyLight(cx + x, y, cz);
+                    int sl2 = getSkyLight(cx + x, y, cz - 1);
+                    if (sl1 > sl2) skyLightQueue.add(pack(cx + x, y, cz, 0));
+                    else if (sl2 > sl1) skyLightQueue.add(pack(cx + x, y, cz - 1, 0));
 
-                int bl1 = getBlockLight(cx + x, y, cz);
-                int bl2 = getBlockLight(cx + x, y, cz - 1);
-                if (bl1 > bl2) blockLightQueue.add(pack(cx + x, y, cz, 0));
-                else if (bl2 > bl1) blockLightQueue.add(pack(cx + x, y, cz - 1, 0));
+                    int bl1 = getBlockLight(cx + x, y, cz);
+                    int bl2 = getBlockLight(cx + x, y, cz - 1);
+                    if (bl1 > bl2) blockLightQueue.add(pack(cx + x, y, cz, 0));
+                    else if (bl2 > bl1) blockLightQueue.add(pack(cx + x, y, cz - 1, 0));
 
-                int sl3 = getSkyLight(cx + x, y, cz + 15);
-                int sl4 = getSkyLight(cx + x, y, cz + 16);
-                if (sl3 > sl4) skyLightQueue.add(pack(cx + x, y, cz + 15, 0));
-                else if (sl4 > sl3) skyLightQueue.add(pack(cx + x, y, cz + 16, 0));
+                    int sl3 = getSkyLight(cx + x, y, cz + 15);
+                    int sl4 = getSkyLight(cx + x, y, cz + 16);
+                    if (sl3 > sl4) skyLightQueue.add(pack(cx + x, y, cz + 15, 0));
+                    else if (sl4 > sl3) skyLightQueue.add(pack(cx + x, y, cz + 16, 0));
 
-                int bl3 = getBlockLight(cx + x, y, cz + 15);
-                int bl4 = getBlockLight(cx + x, y, cz + 16);
-                if (bl3 > bl4) blockLightQueue.add(pack(cx + x, y, cz + 15, 0));
-                else if (bl4 > bl3) blockLightQueue.add(pack(cx + x, y, cz + 16, 0));
+                    int bl3 = getBlockLight(cx + x, y, cz + 15);
+                    int bl4 = getBlockLight(cx + x, y, cz + 16);
+                    if (bl3 > bl4) blockLightQueue.add(pack(cx + x, y, cz + 15, 0));
+                    else if (bl4 > bl3) blockLightQueue.add(pack(cx + x, y, cz + 16, 0));
+                }
             }
+            processLightUpdatesInternal(Integer.MAX_VALUE);
+        } finally {
+            lightLock.unlock();
         }
-        processLightUpdates();
     }
 
     public void initSkyLightForColumn(int worldX, int worldZ) {
-        for (int y = Chunk.MIN_Y; y < Chunk.MAX_Y; y++) {
-            if (getSkyLight(worldX, y, worldZ) == 15) {
-                skyLightQueue.add(pack(worldX, y, worldZ, 0));
+        lightLock.lock();
+        try {
+            drainPendingOps();
+            for (int y = Chunk.MIN_Y; y < Chunk.MAX_Y; y++) {
+                if (getSkyLight(worldX, y, worldZ) == 15) {
+                    skyLightQueue.add(pack(worldX, y, worldZ, 0));
+                }
             }
+            propagateSkyLight(Integer.MAX_VALUE);
+        } finally {
+            lightLock.unlock();
         }
-        propagateSkyLight();
     }
 
-    private void propagateSkyLight() {
-        while (!skyLightQueue.isEmpty()) {
+    private int propagateSkyLight(int maxNodes) {
+        int processed = 0;
+        while (processed < maxNodes && !skyLightQueue.isEmpty()) {
             long node = skyLightQueue.poll();
+            processed++;
             int nx = unpackX(node);
             int ny = unpackY(node);
             int nz = unpackZ(node);
@@ -210,32 +304,79 @@ public class LightEngine {
                 }
             }
         }
+        return processed;
     }
 
     // --- 3. DYNAMISCHE UPDATES (Blöcke setzen / abbauen) ---
     public void addSkyLightRemoval(int x, int y, int z, int oldLightLevel) {
-        skyLightRemovalQueue.add(pack(x, y, z, oldLightLevel));
+        if (lightLock.tryLock()) {
+            try {
+                drainPendingOps();
+                skyLightRemovalQueue.add(pack(x, y, z, oldLightLevel));
+            } finally {
+                lightLock.unlock();
+            }
+        } else {
+            pendingOps.add(new PendingLightOp(OpType.ADD_SKY_LIGHT_REMOVAL, x, y, z, oldLightLevel));
+        }
     }
 
     public void addSkyLightUpdate(int x, int y, int z) {
-        skyLightQueue.add(pack(x, y, z, 0));
+        if (lightLock.tryLock()) {
+            try {
+                drainPendingOps();
+                skyLightQueue.add(pack(x, y, z, 0));
+            } finally {
+                lightLock.unlock();
+            }
+        } else {
+            pendingOps.add(new PendingLightOp(OpType.ADD_SKY_LIGHT_UPDATE, x, y, z, 0));
+        }
     }
 
     public void removeBlockLight(int x, int y, int z, int oldLight) {
-        setBlockLight(x, y, z, 0);
-        blockLightRemovalQueue.add(pack(x, y, z, oldLight));
+        if (lightLock.tryLock()) {
+            try {
+                drainPendingOps();
+                setBlockLight(x, y, z, 0);
+                blockLightRemovalQueue.add(pack(x, y, z, oldLight));
+            } finally {
+                lightLock.unlock();
+            }
+        } else {
+            pendingOps.add(new PendingLightOp(OpType.REMOVE_BLOCK_LIGHT, x, y, z, oldLight));
+        }
     }
 
     public void processLightUpdates() {
-        propagateSkyLightRemoval();
-        propagateSkyLight();
-        propagateBlockLightRemoval();
-        propagateBlockLight();
+        processLightUpdates(Integer.MAX_VALUE);
     }
 
-    private void propagateSkyLightRemoval() {
-        while (!skyLightRemovalQueue.isEmpty()) {
+    public void processLightUpdates(int maxNodes) {
+        if (!lightLock.tryLock()) {
+            return;
+        }
+        try {
+            processLightUpdatesInternal(maxNodes);
+        } finally {
+            lightLock.unlock();
+        }
+    }
+
+    private void processLightUpdatesInternal(int maxNodes) {
+        drainPendingOps();
+        int processed = 0;
+        processed += propagateSkyLightRemoval(maxNodes - processed);
+        if (processed < maxNodes) processed += propagateSkyLight(maxNodes - processed);
+        if (processed < maxNodes) processed += propagateBlockLightRemoval(maxNodes - processed);
+        if (processed < maxNodes) processed += propagateBlockLight(maxNodes - processed);
+    }
+
+    private int propagateSkyLightRemoval(int maxNodes) {
+        int processed = 0;
+        while (processed < maxNodes && !skyLightRemovalQueue.isEmpty()) {
             long node = skyLightRemovalQueue.poll();
+            processed++;
             int nx = unpackX(node), ny = unpackY(node), nz = unpackZ(node);
             int lightLevel = unpackLight(node);
 
@@ -251,11 +392,14 @@ public class LightEngine {
                 }
             }
         }
+        return processed;
     }
 
-    private void propagateBlockLightRemoval() {
-        while (!blockLightRemovalQueue.isEmpty()) {
+    private int propagateBlockLightRemoval(int maxNodes) {
+        int processed = 0;
+        while (processed < maxNodes && !blockLightRemovalQueue.isEmpty()) {
             long node = blockLightRemovalQueue.poll();
+            processed++;
             int nx = unpackX(node), ny = unpackY(node), nz = unpackZ(node);
             int lightLevel = unpackLight(node);
 
@@ -271,28 +415,48 @@ public class LightEngine {
                 }
             }
         }
+        return processed;
     }
 
     public void notifyBlockChanged(int x, int y, int z) {
-        for (int[] dir : DIRS) {
-            int nx = x + dir[0];
-            int ny = y + dir[1];
-            int nz = z + dir[2];
+        if (lightLock.tryLock()) {
+            try {
+                drainPendingOps();
+                for (int[] dir : DIRS) {
+                    int nx = x + dir[0];
+                    int ny = y + dir[1];
+                    int nz = z + dir[2];
 
-            if (getBlockLight(nx, ny, nz) > 0) {
-                blockLightQueue.add(pack(nx, ny, nz, 0));
+                    if (getBlockLight(nx, ny, nz) > 0) {
+                        blockLightQueue.add(pack(nx, ny, nz, 0));
+                    }
+                    if (getSkyLight(nx, ny, nz) > 0) {
+                        skyLightQueue.add(pack(nx, ny, nz, 0));
+                    }
+                }
+            } finally {
+                lightLock.unlock();
             }
-            if (getSkyLight(nx, ny, nz) > 0) {
-                skyLightQueue.add(pack(nx, ny, nz, 0));
-            }
+        } else {
+            pendingOps.add(new PendingLightOp(OpType.NOTIFY_BLOCK_CHANGED, x, y, z, 0));
         }
     }
 
     // --- 4. HILFSMETHODEN (Getter / Setter) ---
     public Set<Chunk> getAndClearDirtiedChunks() {
-        Set<Chunk> copy = new HashSet<>(dirtiedChunks);
-        dirtiedChunks.clear();
-        return copy;
+        if (lightLock.tryLock()) {
+            try {
+                if (dirtiedChunks.isEmpty()) {
+                    return Collections.emptySet();
+                }
+                Set<Chunk> copy = new HashSet<>(dirtiedChunks);
+                dirtiedChunks.clear();
+                return copy;
+            } finally {
+                lightLock.unlock();
+            }
+        }
+        return Collections.emptySet();
     }
 
     public int getBlockLight(int worldX, int worldY, int worldZ) {
