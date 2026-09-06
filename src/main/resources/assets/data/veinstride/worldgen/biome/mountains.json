@@ -1,31 +1,47 @@
-{
-    "id": "veinstride:mountains",
-    "temperature": [-1.00, 1.00],
-    "humidity": [-1.00, 1.00],
-    "continentalness": [-0.10, 1.00],
-    "erosion": [0.26, 1.00],
-    "weirdness": [-1.00, 1.00],
-    "topBlock": "stone",
-    "underBlock": "stone",
-    "underwaterBlock": "stone",
-    "shoreBlock": "stone",
-    "deepBlock": "stone",
-    "baseHeight": 46.0,
-    "heightVariation": 140.0,
-    "floraProbability": 0.0,
-    "treeProbability": 0.0,
-    "surfaceBlobs": {
-        "gravel": 0.4
-    },
-    "undergroundBlobs": {
-        "gravel": 0.1
-    },
-    "underwaterBlobScale": 0.08,
-    "underwaterBlobs": {
-        "gravel": 0.8,
-        "stone": 0.2
-    },
-    "effects": {
-        "grass_color": "#4a8218"
-    }
+﻿{
+    "id":  "veinstride:mountains",
+    "temperature":  [
+                        -1.00,
+                        1.00
+                    ],
+    "humidity":  [
+                     -1.00,
+                     1.00
+                 ],
+    "continentalness":  [
+                            -0.10,
+                            1.00
+                        ],
+    "erosion":  [
+                    0.26,
+                    1.00
+                ],
+    "weirdness":  [
+                      -1.00,
+                      1.00
+                  ],
+    "topBlock":  "stone",
+    "underBlock":  "stone",
+    "underwaterBlock":  "stone",
+    "shoreBlock":  "stone",
+    "deepBlock":  "stone",
+    "baseHeight":  46.0,
+    "heightVariation":  140.0,
+    "floraProbability":  0.0,
+    "treeProbability":  0.0,
+    "surfaceBlobs":  {
+                         "gravel":  0.4
+                     },
+    "undergroundBlobs":  {
+                             "gravel":  0.1
+                         },
+    "underwaterBlobScale":  0.08,
+    "underwaterBlobs":  {
+                            "gravel":  0.8,
+                            "stone":  0.2
+                        },
+    "effects":  {
+                    "grass_color":  "#4a8218",
+                    "water_color":  "#3a6eb0"
+                }
 }

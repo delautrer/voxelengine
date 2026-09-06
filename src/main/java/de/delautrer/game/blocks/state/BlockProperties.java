@@ -15,6 +15,17 @@ public class BlockProperties {
                 case DOWN -> UP;
             };
         }
+
+        public Direction rotateYClockwise() {
+            return switch (this) {
+                case NORTH -> EAST;
+                case EAST -> SOUTH;
+                case SOUTH -> WEST;
+                case WEST -> NORTH;
+                case UP -> UP;
+                case DOWN -> DOWN;
+            };
+        }
     }
     public enum Half { BOTTOM, TOP }
     public enum SlabType { BOTTOM, TOP, DOUBLE }

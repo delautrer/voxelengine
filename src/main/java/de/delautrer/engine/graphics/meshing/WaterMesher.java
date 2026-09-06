@@ -1,5 +1,6 @@
 package de.delautrer.engine.graphics.meshing;
 
+import de.delautrer.engine.graphics.utils.BiomeTintHelper;
 import de.delautrer.engine.graphics.utils.TextureStitcher;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.WaterBlock;
@@ -20,6 +21,7 @@ public class WaterMesher implements BlockMesher {
         float yTop = y + h;
         float lightTop = 1.0f, lightBot = 0.4f, lightFrontBack = 0.8f, lightLeftRight = 0.65f;
         TextureStitcher.AtlasRegion reg = block.getModel().top;
+        BiomeTintHelper.Tint waterTint = BiomeTintHelper.getBlendedWaterTint(chunk, x, z, cm);
 
         Block topNeighbor = chunk.getBlock(x, y + 1, z, cm);
         if (block.shouldRenderFaceAgainst(topNeighbor, h, 1.0f) || h < 0.99f) {
@@ -33,13 +35,13 @@ public class WaterMesher implements BlockMesher {
             float bl3 = chunk.getSmoothBlockLight(x, y + 1, z, 1, 0, 0, 0, 0, -1, cm);
 
             chunk.addFace(x, yTop, z, 1, x, yTop, z + 1, 1, x + 1, yTop, z + 1, 1, x + 1, yTop, z, 1, reg.u0, reg.v0,
-                    reg.u1, reg.v1, reg.layer, lightTop, block, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
+                    reg.u1, reg.v1, reg.layer, lightTop, block, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3, waterTint.r, waterTint.g, waterTint.b);
 
             if (topNeighbor != block) {
                 float surfaceY = yTop - 0.001f;
                 chunk.addFace(x, surfaceY, z + 1, 1, x, surfaceY, z, 1, x + 1, surfaceY, z, 1, x + 1, surfaceY, z + 1,
                         1, reg.u0, reg.v0, reg.u1, reg.v1, reg.layer, 0.5f, block, sl0, sl1, sl2, sl3, bl0, bl1, bl2,
-                        bl3);
+                        bl3, waterTint.r, waterTint.g, waterTint.b);
             }
         }
 
@@ -54,7 +56,7 @@ public class WaterMesher implements BlockMesher {
             float bl2 = chunk.getSmoothBlockLight(x, y - 1, z, 1, 0, 0, 0, 0, -1, cm);
             float bl3 = chunk.getSmoothBlockLight(x, y - 1, z, 1, 0, 0, 0, 0, 1, cm);
             chunk.addFace(x, y, z + 1, 1, x, y, z, 1, x + 1, y, z, 1, x + 1, y, z + 1, 1, reg.u0, reg.v0, reg.u1,
-                    reg.v1, reg.layer, lightBot, block, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
+                    reg.v1, reg.layer, lightBot, block, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3, waterTint.r, waterTint.g, waterTint.b);
         }
 
         // Z+
@@ -74,7 +76,7 @@ public class WaterMesher implements BlockMesher {
             float bl2 = chunk.getSmoothBlockLight(x, y, z + 1, 1, 0, 0, 0, 1, 0, cm);
             float bl3 = chunk.getSmoothBlockLight(x, y, z + 1, -1, 0, 0, 0, 1, 0, cm);
             chunk.addFace(x, yBot, z + 1, 1, x + 1, yBot, z + 1, 1, x + 1, yTop, z + 1, 1, x, yTop, z + 1, 1, reg.u0,
-                    reg.v0, reg.u1, vBot, reg.layer, lightFrontBack, block, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
+                    reg.v0, reg.u1, vBot, reg.layer, lightFrontBack, block, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3, waterTint.r, waterTint.g, waterTint.b);
         }
 
         // Z-
@@ -94,7 +96,7 @@ public class WaterMesher implements BlockMesher {
             float bl2 = chunk.getSmoothBlockLight(x, y, z - 1, -1, 0, 0, 0, 1, 0, cm);
             float bl3 = chunk.getSmoothBlockLight(x, y, z - 1, 1, 0, 0, 0, 1, 0, cm);
             chunk.addFace(x + 1, yBot, z, 1, x, yBot, z, 1, x, yTop, z, 1, x + 1, yTop, z, 1, reg.u0, reg.v0, reg.u1,
-                    vBot, reg.layer, lightFrontBack, block, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
+                    vBot, reg.layer, lightFrontBack, block, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3, waterTint.r, waterTint.g, waterTint.b);
         }
 
         // X-
@@ -114,7 +116,7 @@ public class WaterMesher implements BlockMesher {
             float bl2 = chunk.getSmoothBlockLight(x - 1, y, z, 0, 1, 0, 0, 0, 1, cm);
             float bl3 = chunk.getSmoothBlockLight(x - 1, y, z, 0, 1, 0, 0, 0, -1, cm);
             chunk.addFace(x, yBot, z, 1, x, yBot, z + 1, 1, x, yTop, z + 1, 1, x, yTop, z, 1, reg.u0, reg.v0, reg.u1,
-                    vBot, reg.layer, lightLeftRight, block, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
+                    vBot, reg.layer, lightLeftRight, block, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3, waterTint.r, waterTint.g, waterTint.b);
         }
 
         // X+
@@ -134,7 +136,7 @@ public class WaterMesher implements BlockMesher {
             float bl2 = chunk.getSmoothBlockLight(x + 1, y, z, 0, 1, 0, 0, 0, -1, cm);
             float bl3 = chunk.getSmoothBlockLight(x + 1, y, z, 0, 1, 0, 0, 0, 1, cm);
             chunk.addFace(x + 1, yBot, z + 1, 1, x + 1, yBot, z, 1, x + 1, yTop, z, 1, x + 1, yTop, z + 1, 1, reg.u0,
-                    reg.v0, reg.u1, vBot, reg.layer, lightLeftRight, block, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3);
+                    reg.v0, reg.u1, vBot, reg.layer, lightLeftRight, block, sl0, sl1, sl2, sl3, bl0, bl1, bl2, bl3, waterTint.r, waterTint.g, waterTint.b);
         }
     }
 }

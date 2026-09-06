@@ -143,9 +143,9 @@ public class ChunkMesher {
 
         float r = 1.0f, g = 1.0f, b = 1.0f, alpha = 1.0f;
         if (isWater) {
-            r = 0.2f;
-            g = 0.5f;
-            b = 1.0f;
+            r = tintR;
+            g = tintG;
+            b = tintB;
             alpha = 0.7f;
             directionalLight = Math.min(1.0f, directionalLight * 1.2f);
         } else {

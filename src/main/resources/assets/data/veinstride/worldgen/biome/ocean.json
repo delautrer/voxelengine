@@ -35,6 +35,9 @@
     "underwaterBlobs":  {
                             "sand":  0.7,
                             "gravel":  0.3
-                        }
+                        },
+    "effects":  {
+                    "grass_color":  "#3d7a20",
+                    "water_color":  "#1a4a9a"
+                }
 }
-

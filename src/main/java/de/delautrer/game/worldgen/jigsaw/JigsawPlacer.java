@@ -3,12 +3,18 @@ package de.delautrer.game.worldgen.jigsaw;
 import de.delautrer.engine.physics.AABB;
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.JigsawBlock;
+import de.delautrer.game.blocks.LeavesBlock;
+import de.delautrer.game.blocks.LogBlock;
+import de.delautrer.game.blocks.PlantBlock;
+import de.delautrer.game.blocks.WaterBlock;
+import de.delautrer.game.blocks.state.BlockProperties;
 import de.delautrer.game.nbt.CompoundTag;
 import de.delautrer.game.registry.NamespacedKey;
 import de.delautrer.game.registry.Registries;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.World;
 import de.delautrer.game.world.WorldGenerator;
+import de.delautrer.game.world.generation.structure.StructurePlacement;
 import de.delautrer.game.world.generation.structure.StructureRegistry;
 import de.delautrer.game.world.generation.structure.StructureTemplate;
 import de.delautrer.game.worldgen.pool.TemplatePool;
@@ -93,15 +99,19 @@ public class JigsawPlacer {
         List<PlacedPiece> placedPieces = new ArrayList<>();
         Queue<PendingJigsaw> queue = new ArrayDeque<>();
 
-        // Place start piece
-        placeTemplateRotated(world, currentChunk, wg, startTemplate, originX, originY, originZ, 0);
-        PlacedPiece startPiece = new PlacedPiece(startElem.getTemplateKey(), startTemplate, originX, originY, originZ, 0, 0);
+        // Start piece placement on terrain surface
+        int startSizeX = startTemplate.getSizeX();
+        int startSizeZ = startTemplate.getSizeZ();
+        int startY = getSolidTopY(world, currentChunk, wg, originX + startSizeX / 2, originZ + startSizeZ / 2);
+
+        placeTemplateRotated(world, currentChunk, wg, startTemplate, originX, startY, originZ, 0);
+        PlacedPiece startPiece = new PlacedPiece(startElem.getTemplateKey(), startTemplate, originX, startY, originZ, 0, 0);
         placedPieces.add(startPiece);
 
         collectPendingJigsaws(startPiece, queue, 0, null);
 
         int totalPieces = 1;
-        int maxPieces = 32;
+        int maxPieces = 24;
 
         while (!queue.isEmpty() && totalPieces < maxPieces) {
             PendingJigsaw pending = queue.poll();
@@ -131,7 +141,6 @@ public class JigsawPlacer {
                 StructureTemplate candTemplate = StructureRegistry.getTemplate(candElem.getTemplateKey());
                 if (candTemplate == null) continue;
 
-                // Find matching jigsaw in candidate piece
                 List<JigsawData> candJigsaws = getJigsawsFromTemplate(candTemplate);
                 for (JigsawData candJigsaw : candJigsaws) {
                     if (!candJigsaw.name.equals(pending.data.target)) continue;
@@ -144,12 +153,20 @@ public class JigsawPlacer {
                         Vector3i facingOffset = getFacingOffset(pending.data.orientation);
 
                         int candOriginX = pending.worldPos.x + facingOffset.x - rotCandJigsawOffset.x;
-                        int candOriginY = pending.worldPos.y + facingOffset.y - rotCandJigsawOffset.y;
                         int candOriginZ = pending.worldPos.z + facingOffset.z - rotCandJigsawOffset.z;
 
-                        Vector3i candJigsawWorldPos = new Vector3i(pending.worldPos.x + facingOffset.x, pending.worldPos.y + facingOffset.y, pending.worldPos.z + facingOffset.z);
-
                         Vector3i rotSize = getRotatedSize(candTemplate.getSizeX(), candTemplate.getSizeY(), candTemplate.getSizeZ(), rotY);
+
+                        int candOriginY;
+                        if ("terrain_matching".equalsIgnoreCase(candElem.getProjection())) {
+                            int surfaceY = getSolidTopY(world, currentChunk, wg, candOriginX + rotSize.x / 2, candOriginZ + rotSize.z / 2);
+                            candOriginY = surfaceY - rotCandJigsawOffset.y;
+                        } else { // rigid
+                            candOriginY = pending.worldPos.y + facingOffset.y - rotCandJigsawOffset.y;
+                        }
+
+                        Vector3i candJigsawWorldPos = new Vector3i(candOriginX + rotCandJigsawOffset.x, candOriginY + rotCandJigsawOffset.y, candOriginZ + rotCandJigsawOffset.z);
+
                         AABB candBox = new AABB(
                                 new Vector3f(candOriginX, candOriginY, candOriginZ),
                                 new Vector3f(candOriginX + rotSize.x, candOriginY + rotSize.y, candOriginZ + rotSize.z)
@@ -190,7 +207,48 @@ public class JigsawPlacer {
             }
         }
 
+        // Final sweep: transform any remaining Jigsaw blocks across all placed pieces into their turns_into block
+        for (PlacedPiece piece : placedPieces) {
+            for (StructureTemplate.StructureBlock sb : piece.template.getBlocks()) {
+                if (sb.block instanceof JigsawBlock || (sb.nbt != null && sb.nbt.contains("name"))) {
+                    Vector3i rotOffset = rotateOffset(sb.dx, sb.dy, sb.dz, piece.template.getSizeX(), piece.template.getSizeZ(), piece.rotY);
+                    int wx = piece.originX + rotOffset.x;
+                    int wy = piece.originY + rotOffset.y;
+                    int wz = piece.originZ + rotOffset.z;
+
+                    Block b = null;
+                    if (world != null) {
+                        b = world.getBlock(wx, wy, wz);
+                    } else if (currentChunk != null) {
+                        int cx = wx >> 4;
+                        int cz = wz >> 4;
+                        if (cx == currentChunk.getWorldX() && cz == currentChunk.getWorldZ()) {
+                            b = currentChunk.getBlock(wx & 15, wy, wz & 15);
+                        }
+                    }
+
+                    if (b instanceof JigsawBlock) {
+                        String turnsInto = (sb.nbt != null && sb.nbt.contains("turns_into")) ? sb.nbt.getString("turns_into") : "veinstride:air";
+                        transformJigsawBlock(world, currentChunk, wg, new Vector3i(wx, wy, wz), turnsInto);
+                    }
+                }
+            }
+        }
+
         return totalPieces;
+    }
+
+    public static int getSolidTopY(World world, Chunk currentChunk, WorldGenerator wg, int worldX, int worldZ) {
+        if (world != null) {
+            for (int y = Chunk.MAX_Y - 1; y >= Chunk.MIN_Y; y--) {
+                Block b = world.getBlock(worldX, y, worldZ);
+                if (b != null && b.isSolid && !(b instanceof WaterBlock) && !(b instanceof PlantBlock) && !(b instanceof LeavesBlock) && !(b instanceof LogBlock)) {
+                    return y;
+                }
+            }
+            return Chunk.MIN_Y;
+        }
+        return StructurePlacement.getSolidTopY(wg, currentChunk, worldX, worldZ);
     }
 
     private static void sendDebug(World world, String message) {
@@ -200,10 +258,43 @@ public class JigsawPlacer {
         }
     }
 
+    public static String rotateOrientation(String orientation, int rotY) {
+        if (orientation == null) return "south";
+        String lower = orientation.toLowerCase();
+        if ("up".equals(lower) || "down".equals(lower)) return lower;
+
+        int quarters = (rotY / 90) % 4;
+        quarters = (quarters % 4 + 4) % 4;
+        if (quarters == 0) return lower;
+
+        BlockProperties.Direction dir;
+        try {
+            dir = BlockProperties.Direction.valueOf(lower.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return lower;
+        }
+
+        for (int i = 0; i < quarters; i++) {
+            dir = dir.rotateYClockwise();
+        }
+        return dir.name().toLowerCase();
+    }
+
     private static void collectPendingJigsaws(PlacedPiece piece, Queue<PendingJigsaw> queue, int depth, Vector3i ignoreWorldPos) {
         for (StructureTemplate.StructureBlock sb : piece.template.getBlocks()) {
             if (sb.block instanceof JigsawBlock || (sb.nbt != null && sb.nbt.contains("name"))) {
-                JigsawData data = new JigsawData(sb.dx, sb.dy, sb.dz, sb.nbt);
+                CompoundTag tag = sb.nbt;
+                if (piece.rotY != 0) {
+                    String origOri = tag != null && tag.contains("orientation") ? tag.getString("orientation") : "south";
+                    String rotOri = rotateOrientation(origOri, piece.rotY);
+                    if (tag != null) {
+                        tag = (CompoundTag) tag.copy();
+                    } else {
+                        tag = new CompoundTag();
+                    }
+                    tag.putString("orientation", rotOri);
+                }
+                JigsawData data = new JigsawData(sb.dx, sb.dy, sb.dz, tag);
                 Vector3i rotOffset = rotateOffset(sb.dx, sb.dy, sb.dz, piece.template.getSizeX(), piece.template.getSizeZ(), piece.rotY);
                 Vector3i worldPos = new Vector3i(piece.originX + rotOffset.x, piece.originY + rotOffset.y, piece.originZ + rotOffset.z);
                 if (ignoreWorldPos != null && worldPos.equals(ignoreWorldPos)) {
@@ -307,14 +398,52 @@ public class JigsawPlacer {
         }
     }
 
+    private static void clearFoliageInAABB(World world, Chunk currentChunk, WorldGenerator wg, int originX, int originY, int originZ, Vector3i rotSize) {
+        int minX = originX - 1;
+        int maxX = originX + rotSize.x + 1;
+        int minY = originY;
+        int maxY = originY + rotSize.y + 1;
+        int minZ = originZ - 1;
+        int maxZ = originZ + rotSize.z + 1;
+
+        Block airBlock = Registries.BLOCKS.get("veinstride:air");
+
+        Block dottyBlock = Registries.BLOCKS.get("veinstride:dotty");
+
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    Block b = (world != null) ? world.getBlock(x, y, z) : (currentChunk != null && (x >> 4) == currentChunk.getWorldX() && (z >> 4) == currentChunk.getWorldZ() ? currentChunk.getBlock(x & 15, y, z & 15) : null);
+                    if (b instanceof PlantBlock || b instanceof LeavesBlock || b instanceof LogBlock || (dottyBlock != null && b == dottyBlock)) {
+                        setBlock(world, currentChunk, wg, x, y, z, airBlock, (byte) 0, null);
+                    }
+                }
+            }
+        }
+    }
+
     private static void placeTemplateRotated(World world, Chunk currentChunk, WorldGenerator wg, StructureTemplate template, int originX, int originY, int originZ, int rotY) {
+        int quarters = (rotY / 90) % 4;
+        Vector3i rotSize = getRotatedSize(template.getSizeX(), template.getSizeY(), template.getSizeZ(), rotY);
+
+        // Pre-placement foliage clear
+        clearFoliageInAABB(world, currentChunk, wg, originX, originY, originZ, rotSize);
+
+        // Place blocks with position rotation + BlockState.rotateY (FACING, TorchAttach, Log AXIS)
         for (StructureTemplate.StructureBlock sb : template.getBlocks()) {
             Vector3i rotOffset = rotateOffset(sb.dx, sb.dy, sb.dz, template.getSizeX(), template.getSizeZ(), rotY);
             int wx = originX + rotOffset.x;
             int wy = originY + rotOffset.y;
             int wz = originZ + rotOffset.z;
 
-            setBlock(world, currentChunk, wg, wx, wy, wz, sb.block, sb.state, sb.nbt);
+            byte finalState = sb.state;
+            if (sb.block != null) {
+                de.delautrer.game.blocks.state.BlockState origState = sb.block.getStateForId(sb.state);
+                de.delautrer.game.blocks.state.BlockState rotatedState = origState.rotateY(quarters);
+                finalState = rotatedState.getStateId();
+            }
+
+            setBlock(world, currentChunk, wg, wx, wy, wz, sb.block, finalState, sb.nbt);
         }
     }
 
@@ -333,7 +462,7 @@ public class JigsawPlacer {
             nbt = null;
         }
         if (world != null) {
-            world.setBlockWithState(wx, wy, wz, block, state, false);
+            world.setBlockWithState(wx, wy, wz, block, state, false, false);
             if (nbt != null) {
                 int cx = wx >> 4;
                 int cz = wz >> 4;

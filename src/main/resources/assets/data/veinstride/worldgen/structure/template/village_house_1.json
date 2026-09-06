@@ -1,0 +1,3201 @@
+{
+    "size":  [
+                 7,
+                 9,
+                 9
+             ],
+    "palette":  [
+                    "veinstride:grass_block",
+                    "veinstride:dirt",
+                    "veinstride:jigsaw",
+                    "veinstride:oak_log",
+                    "veinstride:cobblestone",
+                    "veinstride:baobab_stairs",
+                    "veinstride:furnace",
+                    "veinstride:oak_chest",
+                    "veinstride:oak_planks",
+                    "veinstride:glass",
+                    "veinstride:stone_bricks_slabs",
+                    "veinstride:cobblestone_stairs",
+                    "veinstride:structure_void",
+                    "veinstride:oak_door",
+                    "veinstride:baobab_trapdoor",
+                    "veinstride:torch",
+                    "veinstride:dotty",
+                    "veinstride:stone_bricks_stairs"
+                ],
+    "blocks":  [
+                   {
+                       "pos":  [
+                                   0,
+                                   0,
+                                   0
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   0,
+                                   0
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   0,
+                                   0
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   0,
+                                   0
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   0,
+                                   0
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   0,
+                                   0
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   6,
+                                   0,
+                                   0
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   0,
+                                   0,
+                                   1
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   0,
+                                   1
+                               ],
+                       "state":  3,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   0,
+                                   1
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   0,
+                                   1
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   0,
+                                   1
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   0,
+                                   1
+                               ],
+                       "state":  3,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   6,
+                                   0,
+                                   1
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   0,
+                                   0,
+                                   2
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   0,
+                                   2
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   0,
+                                   2
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   0,
+                                   2
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   0,
+                                   2
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   0,
+                                   2
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   6,
+                                   0,
+                                   2
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   0,
+                                   0,
+                                   3
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   0,
+                                   3
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   0,
+                                   3
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   0,
+                                   3
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   0,
+                                   3
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   0,
+                                   3
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   6,
+                                   0,
+                                   3
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   0,
+                                   0,
+                                   4
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   0,
+                                   4
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   0,
+                                   4
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   0,
+                                   4
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   0,
+                                   4
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   0,
+                                   4
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   6,
+                                   0,
+                                   4
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   0,
+                                   0,
+                                   5
+                               ],
+                       "state":  2,
+                       "stateId":  3,
+                       "nbt":  {
+                                   "orientation":  "west",
+                                   "joint":  "rollable",
+                                   "turns_into":  "veinstride:cobblestone",
+                                   "x":  18,
+                                   "name":  "veinstride:house",
+                                   "pool":  "veinstride:empty",
+                                   "y":  -122,
+                                   "z":  0,
+                                   "target":  "veinstride:house"
+                               }
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   0,
+                                   5
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   0,
+                                   5
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   0,
+                                   5
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   0,
+                                   5
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   0,
+                                   5
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   6,
+                                   0,
+                                   5
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   0,
+                                   0,
+                                   6
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   0,
+                                   6
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   0,
+                                   6
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   0,
+                                   6
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   0,
+                                   6
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   0,
+                                   6
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   6,
+                                   0,
+                                   6
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   0,
+                                   0,
+                                   7
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   0,
+                                   7
+                               ],
+                       "state":  3,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   0,
+                                   7
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   0,
+                                   7
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   0,
+                                   7
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   0,
+                                   7
+                               ],
+                       "state":  3,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   6,
+                                   0,
+                                   7
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   0,
+                                   0,
+                                   8
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   0,
+                                   8
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   0,
+                                   8
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   0,
+                                   8
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   0,
+                                   8
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   0,
+                                   8
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   6,
+                                   0,
+                                   8
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   1,
+                                   1
+                               ],
+                       "state":  3,
+                       "stateId":  1
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   1,
+                                   1
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   1,
+                                   1
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   1,
+                                   1
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   1,
+                                   1
+                               ],
+                       "state":  3,
+                       "stateId":  1
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   1,
+                                   2
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   1,
+                                   2
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   1,
+                                   2
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   1,
+                                   2
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   1,
+                                   2
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   1,
+                                   3
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   1,
+                                   3
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   1,
+                                   3
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   1,
+                                   3
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   1,
+                                   3
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   1,
+                                   4
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   1,
+                                   4
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   1,
+                                   4
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   1,
+                                   4
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   1,
+                                   4
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   1,
+                                   5
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   1,
+                                   5
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   1,
+                                   5
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   1,
+                                   5
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   1,
+                                   5
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   1,
+                                   6
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   1,
+                                   6
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   1,
+                                   6
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   1,
+                                   6
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   1,
+                                   6
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   1,
+                                   7
+                               ],
+                       "state":  3,
+                       "stateId":  1
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   1,
+                                   7
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   1,
+                                   7
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   1,
+                                   7
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   1,
+                                   7
+                               ],
+                       "state":  3,
+                       "stateId":  1
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   2,
+                                   1
+                               ],
+                       "state":  3,
+                       "stateId":  1
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   2,
+                                   1
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   2,
+                                   1
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   2,
+                                   1
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   2,
+                                   1
+                               ],
+                       "state":  3,
+                       "stateId":  1
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   2,
+                                   2
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   2,
+                                   2
+                               ],
+                       "state":  5,
+                       "stateId":  30
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   2,
+                                   2
+                               ],
+                       "state":  6,
+                       "stateId":  6,
+                       "nbt":  {
+                                   "MaxCookTime":  200,
+                                   "CookTime":  0,
+                                   "MaxBurnTime":  0,
+                                   "x":  22,
+                                   "BurnTime":  0,
+                                   "y":  -120,
+                                   "z":  -3,
+                                   "Items":  [
+
+                                             ]
+                               }
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   2,
+                                   2
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   2,
+                                   3
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   2,
+                                   3
+                               ],
+                       "state":  5,
+                       "stateId":  11
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   2,
+                                   3
+                               ],
+                       "state":  7,
+                       "stateId":  3,
+                       "nbt":  {
+                                   "x":  22,
+                                   "y":  -120,
+                                   "z":  -2,
+                                   "Items":  [
+
+                                             ]
+                               }
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   2,
+                                   3
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   2,
+                                   4
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   2,
+                                   4
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   2,
+                                   5
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   2,
+                                   6
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   2,
+                                   6
+                               ],
+                       "state":  0,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   2,
+                                   6
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   2,
+                                   7
+                               ],
+                       "state":  3,
+                       "stateId":  1
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   2,
+                                   7
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   2,
+                                   7
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   2,
+                                   7
+                               ],
+                       "state":  4,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   2,
+                                   7
+                               ],
+                       "state":  3,
+                       "stateId":  1
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   3,
+                                   1
+                               ],
+                       "state":  3,
+                       "stateId":  1
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   3,
+                                   1
+                               ],
+                       "state":  8,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   3,
+                                   1
+                               ],
+                       "state":  9,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   3,
+                                   1
+                               ],
+                       "state":  8,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   3,
+                                   1
+                               ],
+                       "state":  3,
+                       "stateId":  1
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   3,
+                                   2
+                               ],
+                       "state":  8,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   3,
+                                   2
+                               ],
+                       "state":  8,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   3,
+                                   3
+                               ],
+                       "state":  9,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   3,
+                                   3
+                               ],
+                       "state":  9,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   3,
+                                   4
+                               ],
+                       "state":  8,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   3,
+                                   4
+                               ],
+                       "state":  8,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   3,
+                                   5
+                               ],
+                       "state":  9,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   3,
+                                   6
+                               ],
+                       "state":  8,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   3,
+                                   6
+                               ],
+                       "state":  8,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   3,
+                                   7
+                               ],
+                       "state":  3,
+                       "stateId":  1
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   3,
+                                   7
+                               ],
+                       "state":  8,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   3,
+                                   7
+                               ],
+                       "state":  9,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   3,
+                                   7
+                               ],
+                       "state":  8,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   3,
+                                   7
+                               ],
+                       "state":  3,
+                       "stateId":  1
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   4,
+                                   1
+                               ],
+                       "state":  3,
+                       "stateId":  1
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   4,
+                                   1
+                               ],
+                       "state":  8,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   4,
+                                   1
+                               ],
+                       "state":  9,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   4,
+                                   1
+                               ],
+                       "state":  8,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   4,
+                                   1
+                               ],
+                       "state":  3,
+                       "stateId":  1
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   4,
+                                   2
+                               ],
+                       "state":  8,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   4,
+                                   2
+                               ],
+                       "state":  8,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   4,
+                                   3
+                               ],
+                       "state":  9,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   4,
+                                   3
+                               ],
+                       "state":  9,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   4,
+                                   4
+                               ],
+                       "state":  8,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   4,
+                                   4
+                               ],
+                       "state":  8,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   4,
+                                   5
+                               ],
+                       "state":  8,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   4,
+                                   5
+                               ],
+                       "state":  9,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   4,
+                                   6
+                               ],
+                       "state":  8,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   4,
+                                   6
+                               ],
+                       "state":  8,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   4,
+                                   7
+                               ],
+                       "state":  3,
+                       "stateId":  1
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   4,
+                                   7
+                               ],
+                       "state":  8,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   4,
+                                   7
+                               ],
+                       "state":  9,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   4,
+                                   7
+                               ],
+                       "state":  8,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   4,
+                                   7
+                               ],
+                       "state":  3,
+                       "stateId":  1
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   5,
+                                   1
+                               ],
+                       "state":  3,
+                       "stateId":  1
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   5,
+                                   1
+                               ],
+                       "state":  3,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   5,
+                                   1
+                               ],
+                       "state":  3,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   5,
+                                   1
+                               ],
+                       "state":  3,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   5,
+                                   1
+                               ],
+                       "state":  3,
+                       "stateId":  1
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   5,
+                                   2
+                               ],
+                       "state":  3,
+                       "stateId":  2
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   5,
+                                   2
+                               ],
+                       "state":  3,
+                       "stateId":  2
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   5,
+                                   3
+                               ],
+                       "state":  3,
+                       "stateId":  2
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   5,
+                                   3
+                               ],
+                       "state":  3,
+                       "stateId":  2
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   5,
+                                   4
+                               ],
+                       "state":  3,
+                       "stateId":  2
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   5,
+                                   4
+                               ],
+                       "state":  3,
+                       "stateId":  2
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   5,
+                                   5
+                               ],
+                       "state":  3,
+                       "stateId":  2
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   5,
+                                   5
+                               ],
+                       "state":  3,
+                       "stateId":  2
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   5,
+                                   6
+                               ],
+                       "state":  3,
+                       "stateId":  2
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   5,
+                                   6
+                               ],
+                       "state":  3,
+                       "stateId":  2
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   5,
+                                   7
+                               ],
+                       "state":  3,
+                       "stateId":  1
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   5,
+                                   7
+                               ],
+                       "state":  3,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   5,
+                                   7
+                               ],
+                       "state":  3,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   5,
+                                   7
+                               ],
+                       "state":  3,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   5,
+                                   7
+                               ],
+                       "state":  3,
+                       "stateId":  1
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   6,
+                                   1
+                               ],
+                       "state":  8,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   6,
+                                   1
+                               ],
+                       "state":  8,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   6,
+                                   1
+                               ],
+                       "state":  8,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   6,
+                                   7
+                               ],
+                       "state":  8,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   6,
+                                   7
+                               ],
+                       "state":  8,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   6,
+                                   7
+                               ],
+                       "state":  8,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   7,
+                                   1
+                               ],
+                       "state":  8,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   7,
+                                   7
+                               ],
+                       "state":  8,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   8,
+                                   0
+                               ],
+                       "state":  10,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   8,
+                                   1
+                               ],
+                       "state":  10,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   8,
+                                   2
+                               ],
+                       "state":  10,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   8,
+                                   3
+                               ],
+                       "state":  10,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   8,
+                                   4
+                               ],
+                       "state":  10,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   8,
+                                   5
+                               ],
+                       "state":  10,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   8,
+                                   6
+                               ],
+                       "state":  10,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   8,
+                                   7
+                               ],
+                       "state":  10,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   8,
+                                   8
+                               ],
+                       "state":  10,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   0,
+                                   1,
+                                   4
+                               ],
+                       "state":  11,
+                       "stateId":  14
+                   },
+                   {
+                       "pos":  [
+                                   0,
+                                   1,
+                                   5
+                               ],
+                       "state":  11,
+                       "stateId":  20
+                   },
+                   {
+                       "pos":  [
+                                   0,
+                                   1,
+                                   6
+                               ],
+                       "state":  11,
+                       "stateId":  3
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   2,
+                                   2
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   2,
+                                   3
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   0,
+                                   2,
+                                   4
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   2,
+                                   4
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   2,
+                                   4
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   2,
+                                   4
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   0,
+                                   2,
+                                   5
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   2,
+                                   5
+                               ],
+                       "state":  13,
+                       "stateId":  24
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   2,
+                                   5
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   2,
+                                   5
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   2,
+                                   5
+                               ],
+                       "state":  14,
+                       "stateId":  13
+                   },
+                   {
+                       "pos":  [
+                                   0,
+                                   2,
+                                   6
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   2,
+                                   6
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   2,
+                                   6
+                               ],
+                       "state":  14,
+                       "stateId":  14
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   3,
+                                   2
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   3,
+                                   2
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   3,
+                                   2
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   3,
+                                   3
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   3,
+                                   3
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   3,
+                                   3
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   0,
+                                   3,
+                                   4
+                               ],
+                       "state":  15,
+                       "stateId":  3
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   3,
+                                   4
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   3,
+                                   4
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   3,
+                                   4
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   0,
+                                   3,
+                                   5
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   3,
+                                   5
+                               ],
+                       "state":  13,
+                       "stateId":  25
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   3,
+                                   5
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   3,
+                                   5
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   3,
+                                   5
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   0,
+                                   3,
+                                   6
+                               ],
+                       "state":  15,
+                       "stateId":  3
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   3,
+                                   6
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   3,
+                                   6
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   3,
+                                   6
+                               ],
+                       "state":  16,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   4,
+                                   2
+                               ],
+                       "state":  15,
+                       "stateId":  1
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   4,
+                                   2
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   4,
+                                   2
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   4,
+                                   3
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   4,
+                                   3
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   4,
+                                   3
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   0,
+                                   4,
+                                   4
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   4,
+                                   4
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   4,
+                                   4
+                               ],
+                       "state":  15,
+                       "stateId":  3
+                   },
+                   {
+                       "pos":  [
+                                   0,
+                                   4,
+                                   5
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   4,
+                                   5
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   4,
+                                   5
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   0,
+                                   4,
+                                   6
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   4,
+                                   6
+                               ],
+                       "state":  15,
+                       "stateId":  2
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   4,
+                                   6
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   4,
+                                   6
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   0,
+                                   5,
+                                   0
+                               ],
+                       "state":  17,
+                       "stateId":  20
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   5,
+                                   0
+                               ],
+                       "state":  17,
+                       "stateId":  35
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   5,
+                                   0
+                               ],
+                       "state":  17,
+                       "stateId":  25
+                   },
+                   {
+                       "pos":  [
+                                   6,
+                                   5,
+                                   0
+                               ],
+                       "state":  17,
+                       "stateId":  30
+                   },
+                   {
+                       "pos":  [
+                                   0,
+                                   5,
+                                   1
+                               ],
+                       "state":  17,
+                       "stateId":  20
+                   },
+                   {
+                       "pos":  [
+                                   6,
+                                   5,
+                                   1
+                               ],
+                       "state":  17,
+                       "stateId":  30
+                   },
+                   {
+                       "pos":  [
+                                   0,
+                                   5,
+                                   2
+                               ],
+                       "state":  17,
+                       "stateId":  20
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   5,
+                                   2
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   5,
+                                   2
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   5,
+                                   2
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   6,
+                                   5,
+                                   2
+                               ],
+                       "state":  17,
+                       "stateId":  30
+                   },
+                   {
+                       "pos":  [
+                                   0,
+                                   5,
+                                   3
+                               ],
+                       "state":  17,
+                       "stateId":  20
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   5,
+                                   3
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   5,
+                                   3
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   5,
+                                   3
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   6,
+                                   5,
+                                   3
+                               ],
+                       "state":  17,
+                       "stateId":  30
+                   },
+                   {
+                       "pos":  [
+                                   0,
+                                   5,
+                                   4
+                               ],
+                       "state":  17,
+                       "stateId":  20
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   5,
+                                   4
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   5,
+                                   4
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   5,
+                                   4
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   6,
+                                   5,
+                                   4
+                               ],
+                       "state":  17,
+                       "stateId":  30
+                   },
+                   {
+                       "pos":  [
+                                   0,
+                                   5,
+                                   5
+                               ],
+                       "state":  17,
+                       "stateId":  20
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   5,
+                                   5
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   5,
+                                   5
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   5,
+                                   5
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   6,
+                                   5,
+                                   5
+                               ],
+                       "state":  17,
+                       "stateId":  30
+                   },
+                   {
+                       "pos":  [
+                                   0,
+                                   5,
+                                   6
+                               ],
+                       "state":  17,
+                       "stateId":  20
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   5,
+                                   6
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   5,
+                                   6
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   5,
+                                   6
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   6,
+                                   5,
+                                   6
+                               ],
+                       "state":  17,
+                       "stateId":  30
+                   },
+                   {
+                       "pos":  [
+                                   0,
+                                   5,
+                                   7
+                               ],
+                       "state":  17,
+                       "stateId":  20
+                   },
+                   {
+                       "pos":  [
+                                   6,
+                                   5,
+                                   7
+                               ],
+                       "state":  17,
+                       "stateId":  30
+                   },
+                   {
+                       "pos":  [
+                                   0,
+                                   5,
+                                   8
+                               ],
+                       "state":  17,
+                       "stateId":  20
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   5,
+                                   8
+                               ],
+                       "state":  17,
+                       "stateId":  35
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   5,
+                                   8
+                               ],
+                       "state":  17,
+                       "stateId":  25
+                   },
+                   {
+                       "pos":  [
+                                   6,
+                                   5,
+                                   8
+                               ],
+                       "state":  17,
+                       "stateId":  30
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   6,
+                                   0
+                               ],
+                       "state":  17,
+                       "stateId":  20
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   6,
+                                   0
+                               ],
+                       "state":  17,
+                       "stateId":  35
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   6,
+                                   0
+                               ],
+                       "state":  17,
+                       "stateId":  25
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   6,
+                                   0
+                               ],
+                       "state":  17,
+                       "stateId":  30
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   6,
+                                   1
+                               ],
+                       "state":  17,
+                       "stateId":  20
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   6,
+                                   1
+                               ],
+                       "state":  17,
+                       "stateId":  30
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   6,
+                                   2
+                               ],
+                       "state":  17,
+                       "stateId":  20
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   6,
+                                   2
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   6,
+                                   2
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   6,
+                                   2
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   6,
+                                   2
+                               ],
+                       "state":  17,
+                       "stateId":  30
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   6,
+                                   3
+                               ],
+                       "state":  17,
+                       "stateId":  20
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   6,
+                                   3
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   6,
+                                   3
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   6,
+                                   3
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   6,
+                                   3
+                               ],
+                       "state":  17,
+                       "stateId":  30
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   6,
+                                   4
+                               ],
+                       "state":  17,
+                       "stateId":  20
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   6,
+                                   4
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   6,
+                                   4
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   6,
+                                   4
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   6,
+                                   4
+                               ],
+                       "state":  17,
+                       "stateId":  30
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   6,
+                                   5
+                               ],
+                       "state":  17,
+                       "stateId":  20
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   6,
+                                   5
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   6,
+                                   5
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   6,
+                                   5
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   6,
+                                   5
+                               ],
+                       "state":  17,
+                       "stateId":  30
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   6,
+                                   6
+                               ],
+                       "state":  17,
+                       "stateId":  20
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   6,
+                                   6
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   6,
+                                   6
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   6,
+                                   6
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   6,
+                                   6
+                               ],
+                       "state":  17,
+                       "stateId":  30
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   6,
+                                   7
+                               ],
+                       "state":  17,
+                       "stateId":  20
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   6,
+                                   7
+                               ],
+                       "state":  17,
+                       "stateId":  30
+                   },
+                   {
+                       "pos":  [
+                                   1,
+                                   6,
+                                   8
+                               ],
+                       "state":  17,
+                       "stateId":  20
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   6,
+                                   8
+                               ],
+                       "state":  17,
+                       "stateId":  35
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   6,
+                                   8
+                               ],
+                       "state":  17,
+                       "stateId":  25
+                   },
+                   {
+                       "pos":  [
+                                   5,
+                                   6,
+                                   8
+                               ],
+                       "state":  17,
+                       "stateId":  30
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   7,
+                                   0
+                               ],
+                       "state":  17,
+                       "stateId":  20
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   7,
+                                   0
+                               ],
+                       "state":  17,
+                       "stateId":  15
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   7,
+                                   0
+                               ],
+                       "state":  17,
+                       "stateId":  30
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   7,
+                                   1
+                               ],
+                       "state":  17,
+                       "stateId":  20
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   7,
+                                   1
+                               ],
+                       "state":  17,
+                       "stateId":  30
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   7,
+                                   2
+                               ],
+                       "state":  17,
+                       "stateId":  20
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   7,
+                                   2
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   7,
+                                   2
+                               ],
+                       "state":  17,
+                       "stateId":  30
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   7,
+                                   3
+                               ],
+                       "state":  17,
+                       "stateId":  20
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   7,
+                                   3
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   7,
+                                   3
+                               ],
+                       "state":  17,
+                       "stateId":  30
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   7,
+                                   4
+                               ],
+                       "state":  17,
+                       "stateId":  20
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   7,
+                                   4
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   7,
+                                   4
+                               ],
+                       "state":  17,
+                       "stateId":  30
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   7,
+                                   5
+                               ],
+                       "state":  17,
+                       "stateId":  20
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   7,
+                                   5
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   7,
+                                   5
+                               ],
+                       "state":  17,
+                       "stateId":  30
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   7,
+                                   6
+                               ],
+                       "state":  17,
+                       "stateId":  20
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   7,
+                                   6
+                               ],
+                       "state":  12,
+                       "stateId":  0
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   7,
+                                   6
+                               ],
+                       "state":  17,
+                       "stateId":  30
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   7,
+                                   7
+                               ],
+                       "state":  17,
+                       "stateId":  20
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   7,
+                                   7
+                               ],
+                       "state":  17,
+                       "stateId":  30
+                   },
+                   {
+                       "pos":  [
+                                   2,
+                                   7,
+                                   8
+                               ],
+                       "state":  17,
+                       "stateId":  20
+                   },
+                   {
+                       "pos":  [
+                                   3,
+                                   7,
+                                   8
+                               ],
+                       "state":  17,
+                       "stateId":  5
+                   },
+                   {
+                       "pos":  [
+                                   4,
+                                   7,
+                                   8
+                               ],
+                       "state":  17,
+                       "stateId":  30
+                   }
+               ]
+}

@@ -15,6 +15,7 @@ public class TemplatePoolDTO {
     public static class ElementDTO {
         public String element_type = "single_pool_element";
         public String template;
+        public String projection = "rigid";
         public List<Object> processors;
     }
 }

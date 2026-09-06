@@ -1,28 +1,44 @@
-{
-    "id": "veinstride:birch_plains",
-    "temperature": [0.10, 0.40],
-    "humidity": [-0.06, 0.22],
-    "continentalness": [-0.10, 1.00],
-    "erosion": [-1.00, 0.22],
-    "weirdness": [-1.00, 1.00],
-    "topBlock": "grass_block",
-    "underBlock": "dirt",
-    "underwaterBlock": "sand",
-    "shoreBlock": "grass_block",
-    "deepBlock": "stone",
-    "baseHeight": 0.0,
-    "heightVariation": 10.0,
-    "floraProbability": 0.25,
-    "flora": {
-        "grass": 200,
-        "poppy": 15,
-        "purple_tulip": 5
-    },
-    "treeProbability": 0.015,
-    "trees": {
-        "veinstride:birch": 1
-    },
-    "effects": {
-        "grass_color": "#478a15"
-    }
+﻿{
+    "id":  "veinstride:birch_plains",
+    "temperature":  [
+                        0.10,
+                        0.40
+                    ],
+    "humidity":  [
+                     -0.06,
+                     0.22
+                 ],
+    "continentalness":  [
+                            -0.10,
+                            1.00
+                        ],
+    "erosion":  [
+                    -1.00,
+                    0.22
+                ],
+    "weirdness":  [
+                      -1.00,
+                      1.00
+                  ],
+    "topBlock":  "grass_block",
+    "underBlock":  "dirt",
+    "underwaterBlock":  "sand",
+    "shoreBlock":  "grass_block",
+    "deepBlock":  "stone",
+    "baseHeight":  0.0,
+    "heightVariation":  10.0,
+    "floraProbability":  0.25,
+    "flora":  {
+                  "grass":  200,
+                  "poppy":  15,
+                  "purple_tulip":  5
+              },
+    "treeProbability":  0.015,
+    "trees":  {
+                  "veinstride:birch":  1
+              },
+    "effects":  {
+                    "grass_color":  "#4a8816",
+                    "water_color":  "#3380FF"
+                }
 }

@@ -96,6 +96,74 @@ public class BiomeTintHelper {
         return getBlendedGrassTint(chunk, x, z, cm);
     }
 
+    private static final String DEFAULT_WATER_HEX = "#3380FF";
+    public static final Tint DEFAULT_WATER_TINT = new Tint(51.0f / 255.0f, 128.0f / 255.0f, 1.0f);
+
+    public static Tint getWaterTint(Biome biome) {
+        String hex = (biome != null && biome.effects != null && biome.effects.containsKey("water_color"))
+                ? biome.effects.get("water_color")
+                : DEFAULT_WATER_HEX;
+        return calculateWaterTint(hex);
+    }
+
+    public static Tint getBlendedWaterTint(Chunk chunk, int x, int z, ChunkManager cm) {
+        if (chunk == null) return DEFAULT_WATER_TINT;
+
+        float sumR = 0.0f;
+        float sumG = 0.0f;
+        float sumB = 0.0f;
+        int count = 0;
+
+        int chunkX = chunk.getWorldX();
+        int chunkZ = chunk.getWorldZ();
+
+        for (int dx = -2; dx <= 2; dx++) {
+            for (int dz = -2; dz <= 2; dz++) {
+                int tx = x + dx;
+                int tz = z + dz;
+                Biome b = null;
+
+                if (tx >= 0 && tx < 16 && tz >= 0 && tz < 16) {
+                    b = chunk.getBiome(tx, tz);
+                } else if (cm != null) {
+                    int worldX = (chunkX << 4) + tx;
+                    int worldZ = (chunkZ << 4) + tz;
+                    Chunk nChunk = cm.getChunkAtBlock(worldX, 0, worldZ);
+                    if (nChunk != null) {
+                        b = nChunk.getBiome(Math.floorMod(worldX, 16), Math.floorMod(worldZ, 16));
+                    }
+                }
+
+                if (b == null) {
+                    b = chunk.getBiome(x, z);
+                }
+
+                Tint t = getWaterTint(b);
+                sumR += t.r;
+                sumG += t.g;
+                sumB += t.b;
+                count++;
+            }
+        }
+
+        return new Tint(sumR / count, sumG / count, sumB / count);
+    }
+
+    public static Tint calculateWaterTint(String hexColor) {
+        if (hexColor == null || !hexColor.startsWith("#") || hexColor.length() < 7) {
+            return DEFAULT_WATER_TINT;
+        }
+        try {
+            int rInt = Integer.parseInt(hexColor.substring(1, 3), 16);
+            int gInt = Integer.parseInt(hexColor.substring(3, 5), 16);
+            int bInt = Integer.parseInt(hexColor.substring(5, 7), 16);
+
+            return new Tint(rInt / 255.0f, gInt / 255.0f, bInt / 255.0f);
+        } catch (Exception e) {
+            return DEFAULT_WATER_TINT;
+        }
+    }
+
     public static Tint calculateTint(String hexColor) {
         if (hexColor == null || !hexColor.startsWith("#") || hexColor.length() < 7) {
             return DEFAULT_TINT;

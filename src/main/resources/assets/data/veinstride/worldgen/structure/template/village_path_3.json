@@ -1,0 +1,118 @@
+{
+  "size": [
+    3,
+    1,
+    3
+  ],
+  "palette": [
+    "veinstride:moss",
+    "veinstride:jigsaw",
+    "veinstride:coarse_dirt",
+    "veinstride:grass_block"
+  ],
+  "blocks": [
+    {
+      "pos": [
+        0,
+        0,
+        0
+      ],
+      "state": 0,
+      "stateId": 0
+    },
+    {
+      "pos": [
+        1,
+        0,
+        0
+      ],
+      "state": 1,
+      "stateId": 0,
+      "nbt": {
+        "orientation": "north",
+        "joint": "rollable",
+        "turns_into": "veinstride:coarse_dirt",
+        "x": 30,
+        "name": "veinstride:street",
+        "pool": "veinstride:village/streets",
+        "y": -121,
+        "z": -16,
+        "target": "veinstride:street"
+      }
+    },
+    {
+      "pos": [
+        2,
+        0,
+        0
+      ],
+      "state": 2,
+      "stateId": 0
+    },
+    {
+      "pos": [
+        0,
+        0,
+        1
+      ],
+      "state": 1,
+      "stateId": 3,
+      "nbt": {
+        "orientation": "west",
+        "joint": "rollable",
+        "turns_into": "veinstride:coarse_dirt",
+        "x": 29,
+        "name": "veinstride:street",
+        "pool": "veinstride:village/streets",
+        "y": -121,
+        "z": -15,
+        "target": "veinstride:street"
+      }
+    },
+    {
+      "pos": [
+        1,
+        0,
+        1
+      ],
+      "state": 2,
+      "stateId": 0
+    },
+    {
+      "pos": [
+        2,
+        0,
+        1
+      ],
+      "state": 2,
+      "stateId": 0
+    },
+    {
+      "pos": [
+        0,
+        0,
+        2
+      ],
+      "state": 2,
+      "stateId": 0
+    },
+    {
+      "pos": [
+        1,
+        0,
+        2
+      ],
+      "state": 2,
+      "stateId": 0
+    },
+    {
+      "pos": [
+        2,
+        0,
+        2
+      ],
+      "state": 3,
+      "stateId": 0
+    }
+  ]
+}

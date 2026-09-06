@@ -264,6 +264,10 @@ public class World {
     }
 
     public void setBlockWithState(int x, int y, int z, Block newBlock, byte newState, boolean playSound) {
+        setBlockWithState(x, y, z, newBlock, newState, playSound, true);
+    }
+
+    public void setBlockWithState(int x, int y, int z, Block newBlock, byte newState, boolean playSound, boolean notifyNeighbors) {
         if (y < Chunk.MIN_Y || y >= Chunk.MAX_Y || newBlock == null)
             return;
         Chunk targetChunk = chunkManager.getChunkAtBlock(x, y, z);
@@ -319,10 +323,12 @@ public class World {
         if (eventBus != null) {
             eventBus.publish(new BlockChangeEvent(pos, oldBlock, newBlock, targetChunk));
 
-            int[][] dirs = { { 0, 1, 0 }, { 0, -1, 0 }, { 1, 0, 0 }, { -1, 0, 0 }, { 0, 0, 1 }, { 0, 0, -1 } };
-            for (int[] dir : dirs) {
-                Vector3i nPos = new Vector3i(x + dir[0], y + dir[1], z + dir[2]);
-                eventBus.publish(new BlockNeighborUpdateEvent(nPos, pos, newBlock));
+            if (notifyNeighbors) {
+                int[][] dirs = { { 0, 1, 0 }, { 0, -1, 0 }, { 1, 0, 0 }, { -1, 0, 0 }, { 0, 0, 1 }, { 0, 0, -1 } };
+                for (int[] dir : dirs) {
+                    Vector3i nPos = new Vector3i(x + dir[0], y + dir[1], z + dir[2]);
+                    eventBus.publish(new BlockNeighborUpdateEvent(nPos, pos, newBlock));
+                }
             }
         }
 
@@ -331,8 +337,10 @@ public class World {
                 setBlockEntity(pos, newBlock.createBlockEntity(this, pos));
             }
 
-            Block blockBelow = getBlock(x, y - 1, z);
-            newBlock.onNeighborChanged(this, x, y, z, new Vector3i(x, y - 1, z), blockBelow);
+            if (notifyNeighbors) {
+                Block blockBelow = getBlock(x, y - 1, z);
+                newBlock.onNeighborChanged(this, x, y, z, new Vector3i(x, y - 1, z), blockBelow);
+            }
         }
     }
 

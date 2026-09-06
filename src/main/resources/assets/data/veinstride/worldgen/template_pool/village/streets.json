@@ -1,0 +1,30 @@
+{
+  "name": "veinstride:village/streets",
+  "fallback": "veinstride:empty",
+  "elements": [
+    {
+      "weight": 4,
+      "element": {
+        "element_type": "single_pool_element",
+        "template": "veinstride:village_path_1",
+        "projection": "terrain_matching"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "single_pool_element",
+        "template": "veinstride:village_path_3",
+        "projection": "terrain_matching"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "single_pool_element",
+        "template": "veinstride:village_path_2",
+        "projection": "terrain_matching"
+      }
+    }
+  ]
+}

@@ -10,16 +10,23 @@ public class TemplatePool {
         private final int weight;
         private final String elementType;
         private final NamespacedKey templateKey;
+        private final String projection;
 
-        public PoolElement(int weight, String elementType, NamespacedKey templateKey) {
+        public PoolElement(int weight, String elementType, NamespacedKey templateKey, String projection) {
             this.weight = weight;
             this.elementType = elementType;
             this.templateKey = templateKey;
+            this.projection = projection != null ? projection : "rigid";
+        }
+
+        public PoolElement(int weight, String elementType, NamespacedKey templateKey) {
+            this(weight, elementType, templateKey, "rigid");
         }
 
         public int getWeight() { return weight; }
         public String getElementType() { return elementType; }
         public NamespacedKey getTemplateKey() { return templateKey; }
+        public String getProjection() { return projection; }
     }
 
     private final NamespacedKey key;

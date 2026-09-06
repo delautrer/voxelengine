@@ -60,7 +60,11 @@ public class StairBlock extends CubeBlock {
         if (currentState != newState) world.setBlockState(x, y, z, newState);
     }
 
-    private BlockState updateShape(World world, Vector3i pos, BlockState state) {
+    public BlockState updateShape(World world, Vector3i pos, BlockState state) {
+        return updateShape(world, null, pos, state);
+    }
+
+    public BlockState updateShape(World world, Chunk currentChunk, Vector3i pos, BlockState state) {
         if (state == null || !(state.getBlock() instanceof StairBlock) || !state.contains(FACING) || !state.contains(HALF)) {
             return state;
         }
@@ -68,8 +72,8 @@ public class StairBlock extends CubeBlock {
         Half half = state.getValue(HALF);
 
         Vector3i front = getOffset(pos, facing);
-        BlockState frontState = world.getBlockState(front.x, front.y, front.z);
-        if (frontState.getBlock() == this && frontState.getValue(HALF) == half) {
+        BlockState frontState = getBlockStateAt(world, currentChunk, front.x, front.y, front.z);
+        if (frontState != null && frontState.getBlock() == this && frontState.getValue(HALF) == half) {
             Direction frontFacing = frontState.getValue(FACING);
             if (frontFacing != facing && frontFacing != getOpposite(facing)) {
                 return state.with(SHAPE, isLeft(facing, frontFacing) ? StairShape.OUTER_RIGHT : StairShape.OUTER_LEFT);
@@ -77,14 +81,28 @@ public class StairBlock extends CubeBlock {
         }
 
         Vector3i back = getOffset(pos, getOpposite(facing));
-        BlockState backState = world.getBlockState(back.x, back.y, back.z);
-        if (backState.getBlock() == this && backState.getValue(HALF) == half) {
+        BlockState backState = getBlockStateAt(world, currentChunk, back.x, back.y, back.z);
+        if (backState != null && backState.getBlock() == this && backState.getValue(HALF) == half) {
             Direction backFacing = backState.getValue(FACING);
             if (backFacing != facing && backFacing != getOpposite(facing)) {
                 return state.with(SHAPE, isLeft(facing, backFacing) ? StairShape.INNER_RIGHT : StairShape.INNER_LEFT);
             }
         }
         return state.with(SHAPE, StairShape.STRAIGHT);
+    }
+
+    private static BlockState getBlockStateAt(World world, Chunk currentChunk, int x, int y, int z) {
+        if (world != null) {
+            return world.getBlockState(x, y, z);
+        }
+        if (currentChunk != null) {
+            int cx = x >> 4;
+            int cz = z >> 4;
+            if (cx == currentChunk.getWorldX() && cz == currentChunk.getWorldZ()) {
+                return currentChunk.getBlockState(x & 15, y, z & 15);
+            }
+        }
+        return null;
     }
 
     private Vector3i getOffset(Vector3i pos, Direction dir) {

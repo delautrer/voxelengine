@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "veinstride:village",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "random_spread",
+    "spacing": 24,
+    "separation": 10,
+    "salt": 9876543
+  }
+}

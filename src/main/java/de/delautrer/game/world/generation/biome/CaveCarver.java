@@ -134,6 +134,9 @@ public class CaveCarver {
         Block water = de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:water");
         Block bedrock = de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:bedrock");
 
+        Biome biome = MultiNoiseBiomeRegistry.getBiomeFor(climate);
+        boolean hasPuddles = (biome != null && biome.puddles > 0.0f);
+
         for (int lx = minX; lx <= maxX; lx++) {
             double dX = ((lx + chunkOffX) + 0.5 - cx) / radius;
             for (int lz = minZ; lz <= maxZ; lz++) {
@@ -141,6 +144,9 @@ public class CaveCarver {
                 if (dX * dX + dZ * dZ >= 1.0) continue;
 
                 for (int ly = maxY; ly >= minY; ly--) {
+                    if (ly >= MultiNoiseChunkGenerator.WATER_LEVEL - 1) continue;
+                    if (hasPuddles && ly >= MultiNoiseChunkGenerator.WATER_LEVEL - 2) continue;
+
                     double dY = (ly + 0.5 - cy) / radiusY;
 
                     if (dX * dX + dY * dY + dZ * dZ < 1.0) {

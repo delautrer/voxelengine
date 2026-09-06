@@ -1,40 +1,56 @@
-{
-    "id": "veinstride:swamp",
-    "temperature": [-0.10, 0.40],
-    "humidity": [0.18, 1.00],
-    "continentalness": [-0.10, 1.00],
-    "erosion": [-1.00, 0.22],
-    "weirdness": [0.08, 1.00],
-    "topBlock": "grass_block",
-    "underBlock": "dirt",
-    "underwaterBlock": "dirt",
-    "shoreBlock": "dirt",
-    "deepBlock": "stone",
-    "baseHeight": 0.0,
-    "heightVariation": 5.0,
-    "floraProbability": 0.6,
-    "floraPatchThreshold": -0.3,
-    "floraDensity": 0.6,
-    "flora": {
-        "grass": 200,
-        "fairy_bell": 40,
-        "dotty": 15
-    },
-    "treeProbability": 0.15,
-    "trees": {
-        "veinstride:willow": 1
-    },
-    "surfaceBlobs": {
-        "moss": 0.22,
-        "dirt": 0.3,
-        "grass_block": 0.27
-    },
-    "puddles": 1,
-    "effects": {
-        "grass_color": "#3a5c18"
-    },
-    "underwaterBlobs": {
-        "dirt": 0.5,
-        "gravel": 0.5
-    }
+﻿{
+    "id":  "veinstride:swamp",
+    "temperature":  [
+                        -0.10,
+                        0.40
+                    ],
+    "humidity":  [
+                     0.18,
+                     1.00
+                 ],
+    "continentalness":  [
+                            -0.10,
+                            1.00
+                        ],
+    "erosion":  [
+                    -1.00,
+                    0.22
+                ],
+    "weirdness":  [
+                      0.08,
+                      1.00
+                  ],
+    "topBlock":  "grass_block",
+    "underBlock":  "dirt",
+    "underwaterBlock":  "dirt",
+    "shoreBlock":  "dirt",
+    "deepBlock":  "stone",
+    "baseHeight":  0.0,
+    "heightVariation":  5.0,
+    "floraProbability":  0.6,
+    "floraPatchThreshold":  -0.3,
+    "floraDensity":  0.6,
+    "flora":  {
+                  "grass":  200,
+                  "fairy_bell":  40,
+                  "dotty":  15
+              },
+    "treeProbability":  0.15,
+    "trees":  {
+                  "veinstride:willow":  1
+              },
+    "surfaceBlobs":  {
+                         "moss":  0.22,
+                         "dirt":  0.3,
+                         "grass_block":  0.27
+                     },
+    "puddles":  1,
+    "effects":  {
+                    "grass_color":  "#3a5c18",
+                    "water_color":  "#3d5c32"
+                },
+    "underwaterBlobs":  {
+                            "dirt":  0.5,
+                            "gravel":  0.5
+                        }
 }

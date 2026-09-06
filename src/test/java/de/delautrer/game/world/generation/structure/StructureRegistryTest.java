@@ -263,5 +263,11 @@ public class StructureRegistryTest {
             throw new IllegalStateException("Sneak interact failed to rotate Jigsaw FACING!");
         }
         player.setSneaking(false);
+
+        // 12. Test Village Jigsaw Pools, Structure, and /structure jigsaw veinstride:village/centers
+        if (de.delautrer.game.worldgen.pool.TemplatePoolRegistry.getPool(NamespacedKey.fromString("veinstride:village/centers")) == null) {
+            throw new IllegalStateException("TemplatePool veinstride:village/centers not found!");
+        }
+        cm.onEvent(new de.delautrer.game.events.CommandExecutedEvent("structure", new String[]{"jigsaw", "village/centers", "20", "10", "20"}, player, world));
     }
 }

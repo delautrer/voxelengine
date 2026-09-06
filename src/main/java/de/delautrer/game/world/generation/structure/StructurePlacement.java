@@ -2,6 +2,7 @@ package de.delautrer.game.world.generation.structure;
 
 import de.delautrer.game.blocks.Block;
 import de.delautrer.game.blocks.LeavesBlock;
+import de.delautrer.game.blocks.LogBlock;
 import de.delautrer.game.blocks.PlantBlock;
 import de.delautrer.game.blocks.WaterBlock;
 import de.delautrer.game.registry.NamespacedKey;
@@ -91,7 +92,7 @@ public class StructurePlacement {
             int lz = worldZ & 15;
             for (int y = Chunk.MAX_Y - 1; y >= Chunk.MIN_Y; y--) {
                 Block b = currentChunk.getBlock(lx, y, lz);
-                if (b != null && b.isSolid && !(b instanceof WaterBlock) && !(b instanceof PlantBlock) && !(b instanceof LeavesBlock)) {
+                if (b != null && b.isSolid && !(b instanceof WaterBlock) && !(b instanceof PlantBlock) && !(b instanceof LeavesBlock) && !(b instanceof LogBlock)) {
                     return y;
                 }
             }

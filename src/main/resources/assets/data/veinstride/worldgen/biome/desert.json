@@ -1,23 +1,42 @@
-{
-    "id": "veinstride:desert",
-    "temperature": [0.18, 1.00],
-    "humidity": [-1.00, -0.28],
-    "continentalness": [-0.10, 1.00],
-    "erosion": [-1.00, 0.50],
-    "weirdness": [-1.00, 0.00],
-    "topBlock": "sand",
-    "underBlock": "sand",
-    "underwaterBlock": "sand",
-    "shoreBlock": "sand",
-    "deepBlock": "sandstone",
-    "baseHeight": 1.0,
-    "heightVariation": 15.0,
-    "floraProbability": 0.0,
-    "treeProbability": 0.0,
-    "surfaceBlobs": {
-        "sand": 0.10
-    },
-    "undergroundBlobs": {
-        "gravel": 0.05
-    }
+﻿{
+    "id":  "veinstride:desert",
+    "temperature":  [
+                        0.18,
+                        1.00
+                    ],
+    "humidity":  [
+                     -1.00,
+                     -0.28
+                 ],
+    "continentalness":  [
+                            -0.10,
+                            1.00
+                        ],
+    "erosion":  [
+                    -1.00,
+                    0.50
+                ],
+    "weirdness":  [
+                      -1.00,
+                      0.00
+                  ],
+    "topBlock":  "sand",
+    "underBlock":  "sand",
+    "underwaterBlock":  "sand",
+    "shoreBlock":  "sand",
+    "deepBlock":  "sandstone",
+    "baseHeight":  1.0,
+    "heightVariation":  15.0,
+    "floraProbability":  0.0,
+    "treeProbability":  0.0,
+    "surfaceBlobs":  {
+                         "sand":  0.10
+                     },
+    "undergroundBlobs":  {
+                             "gravel":  0.05
+                         },
+    "effects":  {
+                    "grass_color":  "#6b7a20",
+                    "water_color":  "#5a9ab8"
+                }
 }

@@ -1,0 +1,22 @@
+{
+  "name": "veinstride:village/houses",
+  "fallback": "veinstride:empty",
+  "elements": [
+    {
+      "weight": 1,
+      "element": {
+        "element_type": "single_pool_element",
+        "template": "veinstride:village_house_1",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 1,
+      "element": {
+        "element_type": "single_pool_element",
+        "template": "veinstride:village_house_2",
+        "projection": "rigid"
+      }
+    }
+  ]
+}

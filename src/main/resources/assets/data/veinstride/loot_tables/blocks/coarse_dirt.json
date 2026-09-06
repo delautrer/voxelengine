@@ -1,0 +1,14 @@
+{
+  "type": "block",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "item",
+          "name": "veinstride:coarse_dirt"
+        }
+      ]
+    }
+  ]
+}

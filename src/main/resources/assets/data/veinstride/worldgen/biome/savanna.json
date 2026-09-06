@@ -1,33 +1,49 @@
-{
-    "id": "veinstride:savanna",
-    "temperature": [0.26, 1.00],
-    "humidity": [-0.28, 0.18],
-    "continentalness": [-0.10, 1.00],
-    "erosion": [-1.00, 0.50],
-    "weirdness": [-1.00, 1.00],
-    "topBlock": "grass_block",
-    "underBlock": "dirt",
-    "underwaterBlock": "sand",
-    "shoreBlock": "sand",
-    "deepBlock": "stone",
-    "baseHeight": 1.0,
-    "heightVariation": 15.0,
-    "floraProbability": 0.2,
-    "floraPatchThreshold": 0.0,
-    "floraDensity": 0.4,
-    "flora": {
-        "grass": 100,
-        "dandelion": 10
-    },
-    "treeProbability": 0.01,
-    "trees": {
-        "veinstride:baobab": 1
-    },
-    "undergroundBlobs": {
-        "sand": 0.4,
-        "dirt": 0.2
-    },
-    "effects": {
-        "grass_color": "#6b8a14"
-    }
+﻿{
+    "id":  "veinstride:savanna",
+    "temperature":  [
+                        0.26,
+                        1.00
+                    ],
+    "humidity":  [
+                     -0.28,
+                     0.18
+                 ],
+    "continentalness":  [
+                            -0.10,
+                            1.00
+                        ],
+    "erosion":  [
+                    -1.00,
+                    0.50
+                ],
+    "weirdness":  [
+                      -1.00,
+                      1.00
+                  ],
+    "topBlock":  "grass_block",
+    "underBlock":  "dirt",
+    "underwaterBlock":  "sand",
+    "shoreBlock":  "sand",
+    "deepBlock":  "stone",
+    "baseHeight":  1.0,
+    "heightVariation":  15.0,
+    "floraProbability":  0.2,
+    "floraPatchThreshold":  0.0,
+    "floraDensity":  0.4,
+    "flora":  {
+                  "grass":  100,
+                  "dandelion":  10
+              },
+    "treeProbability":  0.01,
+    "trees":  {
+                  "veinstride:baobab":  1
+              },
+    "undergroundBlobs":  {
+                             "sand":  0.4,
+                             "dirt":  0.2
+                         },
+    "effects":  {
+                    "grass_color":  "#7a8a18",
+                    "water_color":  "#4a8a80"
+                }
 }

@@ -47,7 +47,8 @@ public class TemplatePoolRegistry {
                                 String tStr = entry.element.template;
                                 NamespacedKey tKey = tStr.contains(":") ? NamespacedKey.fromString(tStr) : new NamespacedKey(Constants.NAMESPACE, tStr);
                                 String elType = entry.element.element_type != null ? entry.element.element_type : "single_pool_element";
-                                poolElements.add(new TemplatePool.PoolElement(entry.weight, elType, tKey));
+                                String proj = entry.element.projection != null ? entry.element.projection : "rigid";
+                                poolElements.add(new TemplatePool.PoolElement(entry.weight, elType, tKey, proj));
                             }
                         }
                     }

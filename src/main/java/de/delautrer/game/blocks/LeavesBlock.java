@@ -81,6 +81,17 @@ public class LeavesBlock extends CubeBlock {
         BlockState state = world.getBlockState(x, y, z);
         if (state.getBlock() != this || state.getValue(PERSISTENT)) return;
 
+        if (world.getChunkManager() != null) {
+            if (world.getChunkManager().getChunkAtBlock(x, y, z) == null ||
+                world.getChunkManager().getChunkAtBlock(x - 16, y, z) == null ||
+                world.getChunkManager().getChunkAtBlock(x + 16, y, z) == null ||
+                world.getChunkManager().getChunkAtBlock(x, y, z - 16) == null ||
+                world.getChunkManager().getChunkAtBlock(x, y, z + 16) == null) {
+                world.getTickScheduler().scheduleTick(new Vector3i(x, y, z), this, 20);
+                return;
+            }
+        }
+
         if (!isLogNearby(world, x, y, z, 6)) {
             dropBlockAsItem(world, x, y, z, state);
             world.setBlock(x, y, z, de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:air"));
@@ -104,6 +115,11 @@ public class LeavesBlock extends CubeBlock {
         while (!queue.isEmpty() && currentDistance <= maxDistance) {
             Vector3i current = queue.poll();
             nodesInCurrentLevel--;
+
+            Chunk c = world.getChunkManager() != null ? world.getChunkManager().getChunkAtBlock(current.x, current.y, current.z) : null;
+            if (c == null) {
+                return true;
+            }
             
             Block b = world.getBlockState(current.x, current.y, current.z).getBlock();
             if (b instanceof LogBlock) {

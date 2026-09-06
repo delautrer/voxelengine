@@ -1,0 +1,8 @@
+{
+  "type": "jigsaw",
+  "start_pool": "veinstride:village/centers",
+  "size": 4,
+  "biomes": "#veinstride:has_oak_ruins",
+  "step": "surface_structures",
+  "processors": []
+}

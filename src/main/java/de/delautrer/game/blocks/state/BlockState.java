@@ -58,4 +58,52 @@ public class BlockState {
         }
         return result;
     }
+
+    @SuppressWarnings("unchecked")
+    public BlockState rotateY(int quarters) {
+        quarters = (quarters % 4 + 4) % 4;
+        if (quarters == 0) return this;
+
+        BlockState newState = this;
+        for (Map.Entry<Property<?>, Comparable<?>> entry : properties.entrySet()) {
+            Property<?> prop = entry.getKey();
+            Object value = entry.getValue();
+
+            if (value instanceof BlockProperties.Direction dir) {
+                BlockProperties.Direction newDir = dir;
+                for (int i = 0; i < quarters; i++) {
+                    newDir = newDir.rotateYClockwise();
+                }
+                if (newDir != dir) {
+                    newState = newState.with((Property<BlockProperties.Direction>) prop, newDir);
+                }
+            } else if (value instanceof de.delautrer.game.blocks.TorchBlock.TorchAttach attach) {
+                de.delautrer.game.blocks.TorchBlock.TorchAttach newAttach = attach;
+                for (int i = 0; i < quarters; i++) {
+                    newAttach = switch (newAttach) {
+                        case NORTH -> de.delautrer.game.blocks.TorchBlock.TorchAttach.EAST;
+                        case EAST -> de.delautrer.game.blocks.TorchBlock.TorchAttach.SOUTH;
+                        case SOUTH -> de.delautrer.game.blocks.TorchBlock.TorchAttach.WEST;
+                        case WEST -> de.delautrer.game.blocks.TorchBlock.TorchAttach.NORTH;
+                        case FLOOR -> de.delautrer.game.blocks.TorchBlock.TorchAttach.FLOOR;
+                    };
+                }
+                if (newAttach != attach) {
+                    newState = newState.with((Property<de.delautrer.game.blocks.TorchBlock.TorchAttach>) prop, newAttach);
+                }
+            } else if (value instanceof BlockProperties.Axis axis) {
+                if (quarters % 2 != 0) {
+                    BlockProperties.Axis newAxis = switch (axis) {
+                        case X -> BlockProperties.Axis.Z;
+                        case Z -> BlockProperties.Axis.X;
+                        case Y -> BlockProperties.Axis.Y;
+                    };
+                    if (newAxis != axis) {
+                        newState = newState.with((Property<BlockProperties.Axis>) prop, newAxis);
+                    }
+                }
+            }
+        }
+        return newState;
+    }
 }
