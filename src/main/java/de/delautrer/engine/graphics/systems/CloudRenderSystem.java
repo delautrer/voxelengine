@@ -34,14 +34,16 @@ public class CloudRenderSystem implements IRenderSystem {
             packet.mvp.get(mvpBuffer);
             mvpBuffer.put(16, packet.globalLight);
             mvpBuffer.put(17, packet.renderDistance);
-            mvpBuffer.put(18, 0.0f);
-            mvpBuffer.put(19, (float) packet.cameraPos.x);
-            mvpBuffer.put(20, (float) packet.cameraPos.y);
-            mvpBuffer.put(21, (float) packet.cameraPos.z);
-            mvpBuffer.put(23, packet.cloudOffset.y);
-            mvpBuffer.put(25, 1.0f);
-            mvpBuffer.put(26, 0.0f);
-            mvpBuffer.put(27, -999.0f);
+            mvpBuffer.put(18, packet.skyR);
+            mvpBuffer.put(19, packet.skyG);
+            mvpBuffer.put(20, packet.skyB);
+            mvpBuffer.put(21, (float) packet.cameraPos.x);
+            mvpBuffer.put(22, (float) packet.cameraPos.y);
+            mvpBuffer.put(23, (float) packet.cameraPos.z);
+            mvpBuffer.put(25, packet.cloudOffset.y);
+            mvpBuffer.put(27, 1.0f); // isCloud
+            mvpBuffer.put(28, 0.0f); // isUnderwater
+            mvpBuffer.put(29, -999.0f); // clipY
 
             VK10.vkCmdBindVertexBuffers(cmd, 0, stack.longs(((VulkanMesh) packet.cloudMesh).getVertexBuffer()),
                     stack.longs(0));
@@ -55,8 +57,8 @@ public class CloudRenderSystem implements IRenderSystem {
                     float offsetX = packet.cloudOffset.x + dx * gridSize;
                     float offsetZ = packet.cloudOffset.z + dz * gridSize;
 
-                    mvpBuffer.put(22, offsetX);
-                    mvpBuffer.put(24, offsetZ);
+                    mvpBuffer.put(24, offsetX);
+                    mvpBuffer.put(26, offsetZ);
 
                     VK10.vkCmdPushConstants(cmd, pipeline.getPipelineLayout(),
                             VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, mvpBuffer);
@@ -76,14 +78,16 @@ public class CloudRenderSystem implements IRenderSystem {
             packet.mvp.get(mvpBuffer);
             mvpBuffer.put(16, packet.globalLight);
             mvpBuffer.put(17, packet.renderDistance);
-            mvpBuffer.put(18, 0.0f);
-            mvpBuffer.put(19, (float) packet.cameraPos.x);
-            mvpBuffer.put(20, (float) packet.cameraPos.y);
-            mvpBuffer.put(21, (float) packet.cameraPos.z);
-            mvpBuffer.put(23, packet.cloudOffset.y);
-            mvpBuffer.put(25, 1.0f);
-            mvpBuffer.put(26, 0.0f);
-            mvpBuffer.put(27, -999.0f);
+            mvpBuffer.put(18, packet.skyR);
+            mvpBuffer.put(19, packet.skyG);
+            mvpBuffer.put(20, packet.skyB);
+            mvpBuffer.put(21, (float) packet.cameraPos.x);
+            mvpBuffer.put(22, (float) packet.cameraPos.y);
+            mvpBuffer.put(23, (float) packet.cameraPos.z);
+            mvpBuffer.put(25, packet.cloudOffset.y);
+            mvpBuffer.put(27, 1.0f); // isCloud
+            mvpBuffer.put(28, 0.0f); // isUnderwater
+            mvpBuffer.put(29, -999.0f); // clipY
 
             VK10.vkCmdBindVertexBuffers(cmd, 0, stack.longs(((VulkanMesh) packet.cloudMesh).getVertexBuffer()),
                     stack.longs(0));
@@ -97,8 +101,8 @@ public class CloudRenderSystem implements IRenderSystem {
                     float offsetX = packet.cloudOffset.x + dx * gridSize;
                     float offsetZ = packet.cloudOffset.z + dz * gridSize;
 
-                    mvpBuffer.put(22, offsetX);
-                    mvpBuffer.put(24, offsetZ);
+                    mvpBuffer.put(24, offsetX);
+                    mvpBuffer.put(26, offsetZ);
 
                     VK10.vkCmdPushConstants(cmd, pipeline.getPipelineLayout(),
                             VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, mvpBuffer);

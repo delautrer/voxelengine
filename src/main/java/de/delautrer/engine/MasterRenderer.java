@@ -43,6 +43,7 @@ public class MasterRenderer {
     private ITextureArray itemTextureArray;
     private ITexture fontTexture;
     private ITexture blockUITexture;
+    private ITexture moonTexture;
     private IMesh highlightMesh;
     private IMesh starMesh;
     private IMesh cloudMesh;
@@ -94,6 +95,7 @@ public class MasterRenderer {
         itemTexture = graphicsFactory.createTexture(itemAtlas);
         itemTextureArray = graphicsFactory.createSingleLayerTextureArray(itemAtlas);
         blockUITexture = graphicsFactory.createTexture(blockAtlas);
+        moonTexture = graphicsFactory.createTexture("assets/textures/environment/moon_phases.png");
 
         font = graphicsFactory.createFont(de.delautrer.Constants.GUI_FONT_NAME, de.delautrer.Constants.GUI_FONT_HEIGHT);
         if (font.getRgbaPixels() != null) {
@@ -195,6 +197,8 @@ public class MasterRenderer {
         packet.itemTextureArray = itemTextureArray;
         packet.fontTexture = fontTexture;
         packet.worldTexture = worldTexture;
+        packet.moonTexture = moonTexture;
+        packet.moonPhaseIndex = skyManager.getMoonPhaseIndex();
 
         Vector3i selectedBlockPos = interaction.getSelectedBlockPos();
         boolean holdingVoid = false;
@@ -311,11 +315,15 @@ public class MasterRenderer {
         }
 
         Vector3f skyColor = skyManager.getCurrentSkyColor();
+        Vector3f horizonColor = skyManager.getCurrentHorizonColor();
         packet.sunDirection = skyManager.getSunDirection();
         packet.globalLight = skyManager.getGlobalLightIntensity();
         packet.skyR = skyColor.x;
         packet.skyG = skyColor.y;
         packet.skyB = skyColor.z;
+        packet.horizonR = horizonColor.x;
+        packet.horizonG = horizonColor.y;
+        packet.horizonB = horizonColor.z;
 
         int pX = (int) Math.floor(packet.cameraPos.x);
         int pY = (int) Math.floor(packet.cameraPos.y);

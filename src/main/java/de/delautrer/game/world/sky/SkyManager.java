@@ -8,12 +8,15 @@ public class SkyManager {
     // --- Zeit & Licht ---
     private float timeOfDay = 9f;
     private float timeSpeed = 0.0189f;
+    private long dayIndex = 0;
 
-    private final Vector3f colorDay = new Vector3f(0.4f, 0.7f, 1.0f);
-    private final Vector3f colorSunrise = new Vector3f(1.0f, 0.4f, 0.1f);
+    private final Vector3f colorDay = new Vector3f(0.37f, 0.62f, 0.95f);
+    private final Vector3f colorSunrise = new Vector3f(1.0f, 0.38f, 0.12f);
+    private final Vector3f colorSunset = new Vector3f(1.0f, 0.28f, 0.08f);
     private final Vector3f colorNight = new Vector3f(0.01f, 0.01f, 0.02f);
 
     private final Vector3f currentSkyColor = new Vector3f();
+    private final Vector3f currentHorizonColor = new Vector3f();
     private final Vector3f sunDirection = new Vector3f();
     private float globalLightIntensity = 1.0f;
     private float starAlpha = 0.0f;
@@ -41,18 +44,12 @@ public class SkyManager {
     }
 
     public void update(float deltaTime) {
-        // --- 1. Zeit & Licht Updates (wie vorher) ---
-        timeOfDay = (timeOfDay + deltaTime * timeSpeed) % 24.0f;
-
-        if (timeOfDay >= 18.5f && timeOfDay <= 19.5f) {
-            starAlpha = (timeOfDay - 18.5f);
-        } else if (timeOfDay > 19.5f || timeOfDay < 4.5f) {
-            starAlpha = 1.0f;
-        } else if (timeOfDay >= 4.5f && timeOfDay <= 5.5f) {
-            starAlpha = 1.0f - (timeOfDay - 4.5f);
-        } else {
-            starAlpha = 0.0f;
+        // --- 1. Zeit & Licht Updates ---
+        float nextTime = timeOfDay + deltaTime * timeSpeed;
+        if (nextTime >= 24.0f) {
+            dayIndex += (long)(nextTime / 24.0f);
         }
+        timeOfDay = nextTime % 24.0f;
 
         float celestialAngle = ((timeOfDay - 6.0f) / 24.0f) * (float) (Math.PI * 2.0);
         sunDirection.x = (float) Math.cos(celestialAngle);
@@ -96,17 +93,22 @@ public class SkyManager {
 
     private void updateSkyAndLight() {
         float h = sunDirection.y;
-        if (h > 0.2f) {
+        float DAY_H = 0.12f;
+        Vector3f duskOrDawn = (timeOfDay > 12.0f) ? colorSunset : colorSunrise;
+
+        if (h > DAY_H) {
             currentSkyColor.set(colorDay);
             globalLightIntensity = 1.0f;
         } else if (h > 0.0f) {
-            float blend = h / 0.2f;
-            colorSunrise.lerp(colorDay, (float)Math.pow(blend, 0.5), currentSkyColor);
-            globalLightIntensity = 0.15f + (float)Math.pow(blend, 2.0) * 0.85f;
-        } else if (h > -0.2f) {
-            float blend = (h + 0.2f) / 0.2f;
-            colorNight.lerp(colorSunrise, blend, currentSkyColor);
-            globalLightIntensity = 0.05f + blend * 0.1f;
+            float t = h / DAY_H;
+            float tSky = t * t;
+            float tLight = t * t;
+            duskOrDawn.lerp(colorDay, tSky, currentSkyColor);
+            globalLightIntensity = 0.18f + tLight * 0.82f;
+        } else if (h > -DAY_H) {
+            float t = (h + DAY_H) / DAY_H;
+            colorNight.lerp(duskOrDawn, t, currentSkyColor);
+            globalLightIntensity = 0.05f + t * 0.13f;
         } else {
             currentSkyColor.set(colorNight);
             globalLightIntensity = 0.05f;
@@ -116,14 +118,75 @@ public class SkyManager {
         if (currentWeather == Weather.OVERCAST) {
             globalLightIntensity *= 0.7f;
         }
+
+        // --- Horizont-Farbe zentral berechnen ---
+        float absH = Math.abs(h);
+        if (absH < DAY_H) {
+            currentHorizonColor.set(
+                currentSkyColor.x * 1.15f,
+                currentSkyColor.y * 0.85f,
+                currentSkyColor.z * 0.55f
+            );
+        } else {
+            currentHorizonColor.set(
+                currentSkyColor.x * 1.08f,
+                currentSkyColor.y * 1.08f,
+                currentSkyColor.z * 1.08f
+            );
+        }
+
+        // Rot-Mix NUR in der Abend-/Morgendämmerung
+        if ((timeOfDay >= 18.13f && timeOfDay < 18.40f) || (timeOfDay >= 5.60f && timeOfDay < 5.87f)) {
+            currentHorizonColor.lerp(duskOrDawn, 0.55f);
+        }
+
+        // Uhr-basierte Rampe (nightAmt)
+        float NIGHT_START = 18.13f;
+        float NIGHT_FULL  = 18.40f;
+        float DAWN_START  = 5.60f;
+        float DAWN_END    = 5.87f;
+
+        float nightAmt;
+        if (timeOfDay >= NIGHT_START && timeOfDay <= NIGHT_FULL) {
+            nightAmt = (timeOfDay - NIGHT_START) / (NIGHT_FULL - NIGHT_START);
+        } else if (timeOfDay > NIGHT_FULL || timeOfDay < DAWN_START) {
+            nightAmt = 1.0f;
+        } else if (timeOfDay >= DAWN_START && timeOfDay <= DAWN_END) {
+            nightAmt = 1.0f - (timeOfDay - DAWN_START) / (DAWN_END - DAWN_START);
+        } else {
+            nightAmt = 0.0f;
+        }
+
+        currentSkyColor.lerp(colorNight, nightAmt);
+        currentHorizonColor.lerp(colorNight, nightAmt);
+        globalLightIntensity = globalLightIntensity + (0.05f - globalLightIntensity) * nightAmt;
+
+        starAlpha = nightAmt;
+
+        currentHorizonColor.x = Math.min(Math.max(currentHorizonColor.x, 0.0f), 1.0f);
+        currentHorizonColor.y = Math.min(Math.max(currentHorizonColor.y, 0.0f), 1.0f);
+        currentHorizonColor.z = Math.min(Math.max(currentHorizonColor.z, 0.0f), 1.0f);
     }
 
     // Getter & Setter
     public Vector3f getSunDirection() { return sunDirection; }
     public Vector3f getCurrentSkyColor() { return currentSkyColor; }
+    public Vector3f getCurrentHorizonColor() { return currentHorizonColor; }
     public float getGlobalLightIntensity() { return globalLightIntensity; }
     public float getTimeOfDay() { return timeOfDay; }
-    public void setTimeOfDay(float timeOfDay) { this.timeOfDay = timeOfDay; }
+    public void setTimeOfDay(float time) {
+        float oldTime = this.timeOfDay;
+        float normalized = (time % 24.0f + 24.0f) % 24.0f;
+        if (normalized < oldTime || time >= 24.0f) {
+            long daysPassed = (long) Math.max(1, Math.floor(time / 24.0f));
+            if (normalized >= oldTime && time < 24.0f) daysPassed = 0;
+            dayIndex += daysPassed;
+        }
+        this.timeOfDay = normalized;
+    }
+    public long getDayIndex() { return dayIndex; }
+    public void setDayIndex(long dayIndex) { this.dayIndex = dayIndex; }
+    public int getMoonPhaseIndex() { return (int) Math.floorMod(dayIndex, 8L); }
     public float getStarAlpha() { return starAlpha; }
     public Weather getCurrentWeather() { return currentWeather; }
     public void setCurrentWeather(Weather w) { this.currentWeather = w; }

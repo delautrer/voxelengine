@@ -96,20 +96,20 @@ public class FirstPersonRenderSystem implements IRenderSystem {
             mvp.get(buf);
             buf.put(16, packet.globalLight); // The normal globalLight goes here
             buf.put(17, packet.renderDistance);
-            buf.put(18, 1.0f);
-            buf.put(19, 0.0f); // camX
-            buf.put(20, 0.0f); // camY
-            buf.put(21, 0.0f); // camZ
-            buf.put(22, 0.0f);
-            buf.put(23, 0.0f);
-            buf.put(24, 0.0f);
-            buf.put(25, 0.0f);
-            buf.put(26, 0.0f);
-            buf.put(27, packet.clipY);
-            buf.put(28, packet.isEmptyHand ? 1.0f : 0.0f); // useVertexColorOnly
-            buf.put(29, 1.0f); // isFirstPerson
-            buf.put(30, packet.playerSkyLight);
-            buf.put(31, packet.playerBlockLight);
+            buf.put(18, packet.playerSkyLight); // Reuses skyR slot when isFirstPerson > 0.5
+            buf.put(19, packet.playerBlockLight); // Reuses skyG slot when isFirstPerson > 0.5
+            buf.put(20, packet.skyB);
+            buf.put(21, 0.0f); // camX
+            buf.put(22, 0.0f); // camY
+            buf.put(23, 0.0f); // camZ
+            buf.put(24, 0.0f); // offsetX
+            buf.put(25, 0.0f); // offsetY
+            buf.put(26, 0.0f); // offsetZ
+            buf.put(27, 0.0f); // isCloud
+            buf.put(28, 0.0f); // isUnderwater
+            buf.put(29, packet.clipY);
+            buf.put(30, packet.isEmptyHand ? 1.0f : 0.0f); // useVertexColorOnly
+            buf.put(31, 1.0f); // isFirstPerson
 
             VK10.vkCmdPushConstants(cmd, pipeline.getPipelineLayout(),
                     VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, buf);

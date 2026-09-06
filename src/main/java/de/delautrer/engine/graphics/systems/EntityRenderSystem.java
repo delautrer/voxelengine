@@ -182,16 +182,20 @@ public class EntityRenderSystem implements IRenderSystem {
             mvp.get(buf);
             buf.put(16, packet.globalLight);
             buf.put(17, packet.renderDistance);
-            buf.put(18, 1.0f);
-            buf.put(19, (float) packet.cameraPos.x);
-            buf.put(20, (float) packet.cameraPos.y);
-            buf.put(21, (float) packet.cameraPos.z);
-            buf.put(22, 0.0f);
-            buf.put(23, 0.0f);
+            buf.put(18, packet.skyR);
+            buf.put(19, packet.skyG);
+            buf.put(20, packet.skyB);
+            buf.put(21, (float) packet.cameraPos.x);
+            buf.put(22, (float) packet.cameraPos.y);
+            buf.put(23, (float) packet.cameraPos.z);
             buf.put(24, 0.0f);
             buf.put(25, 0.0f);
-            buf.put(26, packet.isUnderwater ? 1.0f : 0.0f);
-            buf.put(27, packet.clipY);
+            buf.put(26, 0.0f);
+            buf.put(27, 0.0f);
+            buf.put(28, packet.isUnderwater ? 1.0f : 0.0f);
+            buf.put(29, packet.clipY);
+            buf.put(30, 0.0f);
+            buf.put(31, 0.0f);
 
             VK10.vkCmdPushConstants(cmd, pipelineLayout,
                     VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, buf);

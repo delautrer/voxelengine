@@ -135,9 +135,9 @@ public class SkyRenderSystem implements IRenderSystem {
             pc.putFloat(92, 0.0f); // Padding
 
             // 4. Horizon Color (Bytes 96 bis 111)
-            pc.putFloat(96, Math.min(packet.skyR * 1.5f, 1.0f));
-            pc.putFloat(100, Math.min(packet.skyG * 1.5f, 1.0f));
-            pc.putFloat(104, Math.min(packet.skyB * 1.5f, 1.0f));
+            pc.putFloat(96, packet.horizonR);
+            pc.putFloat(100, packet.horizonG);
+            pc.putFloat(104, packet.horizonB);
             pc.putFloat(108, 0.0f); // Padding
 
             // 5. isUnderwater & globalLight

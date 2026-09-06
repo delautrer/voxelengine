@@ -13,23 +13,23 @@ layout(location = 4) out vec3 fragWorldPos;
 layout(location = 5) out vec2 fragRelXZ; // <--- NEU FÜR NEBEL
 
 layout(push_constant) uniform PushConstants {
-    mat4 mvp;
-    float globalLight;
-    float renderDistance;
-    float fogMultiplier;
-    float camX;
-    float camY;
-    float camZ;
-    float offsetX;
-    float offsetY;
-    float offsetZ;
-    float isCloud;
-    float isUnderwater;
-    float clipY;
-    float useVertexColorOnly;
-    float isFirstPerson;
-    float playerSkyLight;
-    float playerBlockLight;
+    mat4 mvp;                 // 0..15 (64 bytes)
+    float globalLight;        // 16 (byte 64)
+    float renderDistance;     // 17 (byte 68)
+    float skyR;               // 18 (byte 72 - also playerSkyLight when isFirstPerson)
+    float skyG;               // 19 (byte 76 - also playerBlockLight when isFirstPerson)
+    float skyB;               // 20 (byte 80)
+    float camX;               // 21 (byte 84)
+    float camY;               // 22 (byte 88)
+    float camZ;               // 23 (byte 92)
+    float offsetX;            // 24 (byte 96)
+    float offsetY;            // 25 (byte 100)
+    float offsetZ;            // 26 (byte 104)
+    float isCloud;            // 27 (byte 108)
+    float isUnderwater;       // 28 (byte 112)
+    float clipY;              // 29 (byte 116)
+    float useVertexColorOnly; // 30 (byte 120)
+    float isFirstPerson;      // 31 (byte 124)
 } pc;
 
 void main() {
@@ -44,7 +44,7 @@ void main() {
     fragTexCoord = vec3(inTexCoord, inTexLayer);
     
     if (pc.isFirstPerson > 0.5) {
-        fragLight = vec2(pc.playerSkyLight, pc.playerBlockLight);
+        fragLight = vec2(pc.skyR, pc.skyG);
     } else {
         fragLight = inLight;
     }

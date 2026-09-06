@@ -26,23 +26,26 @@ public class TerrainRenderSystem implements IRenderSystem {
 
     public void renderOpaque(VkCommandBuffer cmd, RenderPacket packet) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
-            // Push Constants für den Shader vorbereiten (28 Floats / 112 Bytes)
             FloatBuffer pcBuffer = stack.callocFloat(32);
             packet.mvp.get(pcBuffer);
             pcBuffer.put(16, packet.globalLight);
             pcBuffer.put(17, packet.renderDistance);
-            pcBuffer.put(18, 1.0f); // fogMultiplier
+            pcBuffer.put(18, packet.skyR);
+            pcBuffer.put(19, packet.skyG);
+            pcBuffer.put(20, packet.skyB);
 
-            pcBuffer.put(19, (float) packet.cameraPos.x);
-            pcBuffer.put(20, (float) packet.cameraPos.y);
-            pcBuffer.put(21, (float) packet.cameraPos.z);
+            pcBuffer.put(21, (float) packet.cameraPos.x);
+            pcBuffer.put(22, (float) packet.cameraPos.y);
+            pcBuffer.put(23, (float) packet.cameraPos.z);
 
-            pcBuffer.put(22, 0.0f); // offsetX
-            pcBuffer.put(23, 0.0f); // offsetY
-            pcBuffer.put(24, 0.0f); // offsetZ
-            pcBuffer.put(25, 0.0f); // isCloud
-            pcBuffer.put(26, packet.isUnderwater ? 1.0f : 0.0f);
-            pcBuffer.put(27, packet.clipY);
+            pcBuffer.put(24, 0.0f); // offsetX
+            pcBuffer.put(25, 0.0f); // offsetY
+            pcBuffer.put(26, 0.0f); // offsetZ
+            pcBuffer.put(27, 0.0f); // isCloud
+            pcBuffer.put(28, packet.isUnderwater ? 1.0f : 0.0f);
+            pcBuffer.put(29, packet.clipY);
+            pcBuffer.put(30, 0.0f); // useVertexColorOnly
+            pcBuffer.put(31, 0.0f); // isFirstPerson
 
             // 1. SOLIDE BLÖCKE ZEICHNEN
             if (packet.opaqueMeshes != null && !packet.opaqueMeshes.isEmpty()) {
@@ -56,9 +59,9 @@ public class TerrainRenderSystem implements IRenderSystem {
                     float relX = (float) ((double) mesh.chunkOffsetX - packet.cameraPos.x);
                     float relY = (float) (0.0 - packet.cameraPos.y); // Chunks starten absolut bei Y=0
                     float relZ = (float) ((double) mesh.chunkOffsetZ - packet.cameraPos.z);
-                    pcBuffer.put(22, relX);
-                    pcBuffer.put(23, relY);
-                    pcBuffer.put(24, relZ);
+                    pcBuffer.put(24, relX);
+                    pcBuffer.put(25, relY);
+                    pcBuffer.put(26, relZ);
                     // NEU: Push Constants FÜR DIESES MESH senden
                     VK10.vkCmdPushConstants(cmd, pipeline.getPipelineLayout(),
                             VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, pcBuffer);
@@ -76,9 +79,9 @@ public class TerrainRenderSystem implements IRenderSystem {
                 // Das Overlay wird in MasterRenderer bereits in absoluten Weltkoordinaten
                 // gebaut,
                 // daher muss der Offset hier wieder auf 0.0f stehen (plus Kamera offset)
-                pcBuffer.put(22, (float) -packet.cameraPos.x);
-                pcBuffer.put(23, (float) -packet.cameraPos.y);
-                pcBuffer.put(24, (float) -packet.cameraPos.z);
+                pcBuffer.put(24, (float) -packet.cameraPos.x);
+                pcBuffer.put(25, (float) -packet.cameraPos.y);
+                pcBuffer.put(26, (float) -packet.cameraPos.z);
                 VK10.vkCmdPushConstants(cmd, pipeline.getPipelineLayout(),
                         VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, pcBuffer);
 
@@ -95,16 +98,22 @@ public class TerrainRenderSystem implements IRenderSystem {
             packet.mvp.get(pcBuffer);
             pcBuffer.put(16, packet.globalLight);
             pcBuffer.put(17, packet.renderDistance);
-            pcBuffer.put(18, 1.0f); // fogMultiplier
-            pcBuffer.put(19, (float) packet.cameraPos.x);
-            pcBuffer.put(20, (float) packet.cameraPos.y);
-            pcBuffer.put(21, (float) packet.cameraPos.z);
-            pcBuffer.put(22, 0.0f); // offsetX
-            pcBuffer.put(23, 0.0f); // offsetY
-            pcBuffer.put(24, 0.0f); // offsetZ
-            pcBuffer.put(25, 0.0f); // isCloud
-            pcBuffer.put(26, packet.isUnderwater ? 1.0f : 0.0f);
-            pcBuffer.put(27, packet.clipY);
+            pcBuffer.put(18, packet.skyR);
+            pcBuffer.put(19, packet.skyG);
+            pcBuffer.put(20, packet.skyB);
+
+            pcBuffer.put(21, (float) packet.cameraPos.x);
+            pcBuffer.put(22, (float) packet.cameraPos.y);
+            pcBuffer.put(23, (float) packet.cameraPos.z);
+
+            pcBuffer.put(24, 0.0f); // offsetX
+            pcBuffer.put(25, 0.0f); // offsetY
+            pcBuffer.put(26, 0.0f); // offsetZ
+            pcBuffer.put(27, 0.0f); // isCloud
+            pcBuffer.put(28, packet.isUnderwater ? 1.0f : 0.0f);
+            pcBuffer.put(29, packet.clipY);
+            pcBuffer.put(30, 0.0f); // useVertexColorOnly
+            pcBuffer.put(31, 0.0f); // isFirstPerson
 
             // 3. WASSER ZEICHNEN (TRANSPARENT)
             if (packet.waterMeshes != null && !packet.waterMeshes.isEmpty()) {
@@ -118,9 +127,9 @@ public class TerrainRenderSystem implements IRenderSystem {
                     float relX = (float) ((double) mesh.chunkOffsetX - packet.cameraPos.x);
                     float relY = (float) (0.0 - packet.cameraPos.y); // Chunks starten absolut bei Y=0
                     float relZ = (float) ((double) mesh.chunkOffsetZ - packet.cameraPos.z);
-                    pcBuffer.put(22, relX);
-                    pcBuffer.put(23, relY);
-                    pcBuffer.put(24, relZ);
+                    pcBuffer.put(24, relX);
+                    pcBuffer.put(25, relY);
+                    pcBuffer.put(26, relZ);
                     // NEU: Push Constants FÜR DIESES MESH senden
                     VK10.vkCmdPushConstants(cmd, pipeline.getPipelineLayout(),
                             VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, pcBuffer);
@@ -135,11 +144,11 @@ public class TerrainRenderSystem implements IRenderSystem {
                 VK10.vkCmdBindDescriptorSets(cmd, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getPipelineLayout(), 0,
                         stack.longs(((VulkanTextureArray) packet.worldTexture).getDescriptorSet()), null);
 
-                pcBuffer.put(22, (float) -packet.cameraPos.x);
-                pcBuffer.put(23, (float) -packet.cameraPos.y);
-                pcBuffer.put(24, (float) -packet.cameraPos.z);
-                pcBuffer.put(28, 0.0f); // useVertexColorOnly (handled in shader via fragTexCoord.z < -0.5)
-                pcBuffer.put(29, 0.0f); // isFirstPerson (MUST be 0.0f so inLight is used!)
+                pcBuffer.put(24, (float) -packet.cameraPos.x);
+                pcBuffer.put(25, (float) -packet.cameraPos.y);
+                pcBuffer.put(26, (float) -packet.cameraPos.z);
+                pcBuffer.put(30, 0.0f); // useVertexColorOnly (handled in shader via fragTexCoord.z < -0.5)
+                pcBuffer.put(31, 0.0f); // isFirstPerson (MUST be 0.0f so inLight is used!)
                 VK10.vkCmdPushConstants(cmd, pipeline.getPipelineLayout(),
                         VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, pcBuffer);
 

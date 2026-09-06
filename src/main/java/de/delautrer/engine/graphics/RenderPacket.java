@@ -49,6 +49,8 @@ public class RenderPacket {
     public ITexture itemTexture;
     public ITextureArray itemTextureArray;
     public ITexture blockUITexture;
+    public ITexture moonTexture;
+    public int moonPhaseIndex;
     public IMesh overlayMesh;
     public IMesh firstPersonMesh;
     public boolean firstPersonIsItem;
@@ -57,6 +59,7 @@ public class RenderPacket {
 
     public Vector3i selectedBlockPos;
     public float globalLight, skyR, skyG, skyB;
+    public float horizonR, horizonG, horizonB;
     public float playerSkyLight;
     public float playerBlockLight;
 }

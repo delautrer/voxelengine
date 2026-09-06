@@ -16,6 +16,7 @@ import static org.lwjgl.vulkan.VK10.*;
 public class CelestialRenderSystem implements IRenderSystem {
 
     private final VulkanContext context;
+    private long descriptorSetLayout;
     private long pipelineLayout;
     private long pipeline;
 
@@ -64,8 +65,7 @@ public class CelestialRenderSystem implements IRenderSystem {
                     .sType(VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO)
                     .rasterizationSamples(VK_SAMPLE_COUNT_1_BIT);
 
-            // Tiefentest für Himmel AUSSCHALTEN (das Terrain wird später drübergezeichnet,
-            // was korrekt ist!)
+            // Tiefentest für Himmel AUSSCHALTEN
             VkPipelineDepthStencilStateCreateInfo depthStencil = VkPipelineDepthStencilStateCreateInfo.calloc(stack)
                     .sType(VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO)
                     .depthTestEnable(false)
@@ -90,12 +90,28 @@ public class CelestialRenderSystem implements IRenderSystem {
                     .sType(VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO)
                     .pDynamicStates(stack.ints(VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR));
 
-            // Push Constants: 64 Bytes (Matrix) + 16 Bytes (Farbe vec4) = 80 Bytes
+            // Descriptor Set Layout für Mond-Atlas Sampler
+            VkDescriptorSetLayoutBinding.Buffer dsBinding = VkDescriptorSetLayoutBinding.calloc(1, stack);
+            dsBinding.get(0).binding(0).descriptorCount(1)
+                    .descriptorType(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+                    .stageFlags(VK_SHADER_STAGE_FRAGMENT_BIT);
+
+            VkDescriptorSetLayoutCreateInfo dsLayoutInfo = VkDescriptorSetLayoutCreateInfo.calloc(stack)
+                    .sType(VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO)
+                    .pBindings(dsBinding);
+
+            LongBuffer pDsLayout = stack.mallocLong(1);
+            vkCreateDescriptorSetLayout(context.getDevice(), dsLayoutInfo, null, pDsLayout);
+            descriptorSetLayout = pDsLayout.get(0);
+
+            // Push Constants: 64 (Matrix) + 16 (Color) + 4 (phaseIndex) + 4 (useTexture) = 88 Bytes
             VkPushConstantRange.Buffer pushConstant = VkPushConstantRange.calloc(1, stack);
-            pushConstant.stageFlags(VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT).offset(0).size(80);
+            pushConstant.stageFlags(VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT).offset(0).size(88);
 
             VkPipelineLayoutCreateInfo pipelineLayoutInfo = VkPipelineLayoutCreateInfo.calloc(stack)
-                    .sType(VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO).pPushConstantRanges(pushConstant);
+                    .sType(VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO)
+                    .pSetLayouts(stack.longs(descriptorSetLayout))
+                    .pPushConstantRanges(pushConstant);
 
             LongBuffer pPipelineLayout = stack.mallocLong(1);
             vkCreatePipelineLayout(context.getDevice(), pipelineLayoutInfo, null, pPipelineLayout);
@@ -142,13 +158,19 @@ public class CelestialRenderSystem implements IRenderSystem {
             view.m31(0);
             view.m32(0);
 
+            // Set vor Sonne und Mond binden (wichtig, damit binding 0 immer valide gebunden ist!)
+            if (packet.moonTexture != null) {
+                long ds = ((de.delautrer.engine.graphics.vulkan.texture.VulkanTexture) packet.moonTexture).getDescriptorSet();
+                VK10.vkCmdBindDescriptorSets(commandBuffer, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, stack.longs(ds), null);
+            }
+
             // Mesh binden (wird für Sonne UND Mond benutzt!)
             VK10.vkCmdBindVertexBuffers(commandBuffer, 0,
                     stack.longs(((VulkanMesh) packet.celestialMesh).getVertexBuffer()), stack.longs(0));
             VK10.vkCmdBindIndexBuffer(commandBuffer, ((VulkanMesh) packet.celestialMesh).getIndexBuffer(), 0,
                     VK10.VK_INDEX_TYPE_UINT32);
 
-            ByteBuffer pc = stack.malloc(80);
+            ByteBuffer pc = stack.malloc(88);
 
             // --- 1. SONNE ZEICHNEN ---
             Matrix4f sunMvp = new Matrix4f(packet.proj).mul(view).rotateZ(angle);
@@ -157,6 +179,8 @@ public class CelestialRenderSystem implements IRenderSystem {
             pc.putFloat(68, 0.9f); // G
             pc.putFloat(72, 0.6f); // B (warmes Minecraft-Gelb)
             pc.putFloat(76, 1.0f); // A
+            pc.putFloat(80, 0.0f); // phaseIndex
+            pc.putFloat(84, 0.0f); // useTexture = 0.0f (Sonne)
 
             VK10.vkCmdPushConstants(commandBuffer, pipelineLayout,
                     VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, pc);
@@ -166,10 +190,12 @@ public class CelestialRenderSystem implements IRenderSystem {
             // Der Mond ist exakt 180 Grad (Pi) versetzt!
             Matrix4f moonMvp = new Matrix4f(packet.proj).mul(view).rotateZ(angle + (float) Math.PI);
             moonMvp.get(0, pc);
-            pc.putFloat(64, 0.8f); // R
-            pc.putFloat(68, 0.9f); // G
-            pc.putFloat(72, 1.0f); // B (weiß/bläulich)
+            pc.putFloat(64, 1.0f); // R
+            pc.putFloat(68, 1.0f); // G
+            pc.putFloat(72, 1.0f); // B (Farbe steckt in der PNG)
             pc.putFloat(76, 1.0f); // A
+            pc.putFloat(80, (float) packet.moonPhaseIndex); // phaseIndex (0..7)
+            pc.putFloat(84, 1.0f); // useTexture = 1.0f (Mond)
 
             VK10.vkCmdPushConstants(commandBuffer, pipelineLayout,
                     VK10.VK_SHADER_STAGE_VERTEX_BIT | VK10.VK_SHADER_STAGE_FRAGMENT_BIT, 0, pc);
@@ -181,5 +207,6 @@ public class CelestialRenderSystem implements IRenderSystem {
     public void cleanup() {
         VK10.vkDestroyPipeline(context.getDevice(), pipeline, null);
         VK10.vkDestroyPipelineLayout(context.getDevice(), pipelineLayout, null);
+        VK10.vkDestroyDescriptorSetLayout(context.getDevice(), descriptorSetLayout, null);
     }
 }

@@ -11,20 +11,23 @@ layout(binding = 0) uniform sampler2DArray texSampler;
 layout(location = 0) out vec4 outColor;
 
 layout(push_constant) uniform PushConstants {
-    mat4 mvp;
-    float globalLight;
-    float renderDistance;
-    float fogMultiplier;
-    float camX;
-    float camY;
-    float camZ;
-    float offsetX;
-    float offsetY;
-    float offsetZ;
-    float isCloud;
-    float isUnderwater;
-    float clipY;
-    float useVertexColorOnly;
+    mat4 mvp;                 // 0..15 (64 bytes)
+    float globalLight;        // 16 (byte 64)
+    float renderDistance;     // 17 (byte 68)
+    float skyR;               // 18 (byte 72)
+    float skyG;               // 19 (byte 76)
+    float skyB;               // 20 (byte 80)
+    float camX;               // 21 (byte 84)
+    float camY;               // 22 (byte 88)
+    float camZ;               // 23 (byte 92)
+    float offsetX;            // 24 (byte 96)
+    float offsetY;            // 25 (byte 100)
+    float offsetZ;            // 26 (byte 104)
+    float isCloud;            // 27 (byte 108)
+    float isUnderwater;       // 28 (byte 112)
+    float clipY;              // 29 (byte 116)
+    float useVertexColorOnly; // 30 (byte 120)
+    float isFirstPerson;      // 31 (byte 124)
 } pc;
 
 void main() {
@@ -96,7 +99,8 @@ void main() {
         float distXZ = length(fragRelXZ);
         float fogFactor = clamp((distXZ - fogStart) / (fogEnd - fogStart), 0.0, 1.0);
 
-        vec3 skyDayColorFog = vec3(0.4, 0.7, 1.0) * 1.5;
+        vec3 skyColor = vec3(pc.skyR, pc.skyG, pc.skyB);
+        vec3 skyDayColorFog = mix(skyColor, vec3(0.55, 0.6, 0.75), 0.25);
         vec3 skyNightColorFog = vec3(0.01, 0.01, 0.02) * 1.5;
 
         float timeBlend = clamp((pc.globalLight - 0.05) / 0.95, 0.0, 1.0);
