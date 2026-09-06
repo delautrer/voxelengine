@@ -111,7 +111,17 @@ public class StructureRegistry {
             byte stateByte = (byte) elem.stateId;
             CompoundTag nbt = null;
             if (elem.nbt != null && !elem.nbt.isJsonNull()) {
-                nbt = (CompoundTag) TagIo.fromJson(elem.nbt);
+                de.delautrer.game.nbt.VsnbtTag parsedTag = TagIo.fromJson(elem.nbt);
+                if (parsedTag instanceof CompoundTag cTag) {
+                    nbt = cTag;
+                } else if (parsedTag instanceof de.delautrer.game.nbt.StringTag sTag) {
+                    try {
+                        de.delautrer.game.nbt.VsnbtTag innerTag = TagIo.fromJson(com.google.gson.JsonParser.parseString(sTag.getValue()));
+                        if (innerTag instanceof CompoundTag cTag) {
+                            nbt = cTag;
+                        }
+                    } catch (Exception ignored) {}
+                }
             }
             blocks.add(new StructureTemplate.StructureBlock(dx, dy, dz, block, stateByte, nbt));
         }
@@ -171,14 +181,26 @@ public class StructureRegistry {
                     throw new IllegalStateException("Structure file " + file + " is empty!");
                 }
 
-                String templateKeyStr = dto.getTemplate();
-                if (templateKeyStr == null) {
-                    throw new IllegalStateException("Structure " + file + " missing required field 'template'");
-                }
-                NamespacedKey templateKey = templateKeyStr.contains(":") ? NamespacedKey.fromString(templateKeyStr) : NamespacedKey.fromString("veinstride:" + templateKeyStr);
-                StructureTemplate template = TEMPLATES.get(templateKey);
-                if (template == null) {
-                    throw new IllegalStateException("Structure " + file + " references unknown template '" + templateKeyStr + "'");
+                boolean isJigsaw = "jigsaw".equalsIgnoreCase(dto.getType());
+                StructureTemplate template = null;
+                NamespacedKey startPoolKey = null;
+
+                if (isJigsaw) {
+                    String spStr = dto.getStartPool();
+                    if (spStr == null || spStr.trim().isEmpty()) {
+                        throw new IllegalStateException("Jigsaw structure " + file + " missing required field 'start_pool'");
+                    }
+                    startPoolKey = spStr.contains(":") ? NamespacedKey.fromString(spStr) : NamespacedKey.fromString("veinstride:" + spStr);
+                } else {
+                    String templateKeyStr = dto.getTemplate();
+                    if (templateKeyStr == null) {
+                        throw new IllegalStateException("Structure " + file + " missing required field 'template'");
+                    }
+                    NamespacedKey templateKey = templateKeyStr.contains(":") ? NamespacedKey.fromString(templateKeyStr) : NamespacedKey.fromString("veinstride:" + templateKeyStr);
+                    template = TEMPLATES.get(templateKey);
+                    if (template == null) {
+                        throw new IllegalStateException("Structure " + file + " references unknown template '" + templateKeyStr + "'");
+                    }
                 }
 
                 Set<NamespacedKey> biomes = new HashSet<>();
@@ -219,7 +241,7 @@ public class StructureRegistry {
                     }
                 }
 
-                STRUCTURES.put(key, new Structure(key, template, dto.getStep(), biomes, processors));
+                STRUCTURES.put(key, new Structure(key, isJigsaw ? "jigsaw" : "template", template, startPoolKey, dto.getSize(), dto.getStep(), biomes, processors));
             } catch (Exception e) {
                 System.err.println("[StructureRegistry] Failed to load structure: " + file);
                 throw new IllegalStateException("Failed to load structure: " + file, e);
@@ -279,6 +301,16 @@ public class StructureRegistry {
                     Structure structure = set.selectStructure(seed, ownerCX, ownerCZ);
                     if (structure == null) continue;
 
+                    if (structure.isJigsaw()) {
+                        int originX = ownerCX * 16 + 8;
+                        int originZ = ownerCZ * 16 + 8;
+                        int solidY = StructurePlacement.getSolidTopY(wg, chunk, originX, originZ);
+                        if (solidY > MultiNoiseChunkGenerator.WATER_LEVEL) {
+                            de.delautrer.game.worldgen.jigsaw.JigsawPlacer.generate(null, chunk, wg, originX, solidY, originZ, structure.getStartPoolKey(), structure.getMaxDepth(), seed ^ set.getSalt());
+                        }
+                        continue;
+                    }
+
                     StructureTemplate template = structure.getTemplate();
                     if (template == null) continue;
 
@@ -323,7 +355,7 @@ public class StructureRegistry {
         }
     }
 
-    private static void setBlockIfInChunk(Chunk chunk, WorldGenerator wg, int worldX, int worldY, int worldZ, Block block, byte state, CompoundTag nbt) {
+    public static void setBlockIfInChunk(Chunk chunk, WorldGenerator wg, int worldX, int worldY, int worldZ, Block block, byte state, CompoundTag nbt) {
         if (block != null && block.isStructureVoid()) {
             block = Registries.BLOCKS.get("veinstride:air");
             nbt = null;

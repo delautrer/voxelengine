@@ -45,6 +45,7 @@ public class UIManager {
                 else if (externalInv instanceof de.delautrer.game.inventory.StonecutterInventory && !(currentScreen instanceof StonecutterScreen)) needsNewScreen = true;
                 else if (externalInv instanceof de.delautrer.game.inventory.FurnaceInventory && !(currentScreen instanceof FurnaceScreen)) needsNewScreen = true;
                 else if (externalInv instanceof de.delautrer.game.inventory.StructureBlockInventory && !(currentScreen instanceof StructureBlockScreen)) needsNewScreen = true;
+                else if (externalInv instanceof de.delautrer.game.inventory.JigsawInventory && !(currentScreen instanceof de.delautrer.game.ui.gui.screens.JigsawScreen)) needsNewScreen = true;
             }
 
             if (needsNewScreen) {
@@ -67,6 +68,10 @@ public class UIManager {
                     StructureBlockScreen sbs = new StructureBlockScreen(sbi.getBlockEntity());
                     sbs.setInteraction(interaction);
                     currentScreen = sbs;
+                } else if (externalInv instanceof de.delautrer.game.inventory.JigsawInventory ji) {
+                    de.delautrer.game.ui.gui.screens.JigsawScreen js = new de.delautrer.game.ui.gui.screens.JigsawScreen(ji.getBlockEntity());
+                    js.setInteraction(interaction);
+                    currentScreen = js;
                 }
                 if (lastWidth > 0 && currentScreen != null) {
                     currentScreen.init(lastWidth, lastHeight);
@@ -84,7 +89,7 @@ public class UIManager {
         // 2. Hat der Spieler nur sein eigenes Inventar offen?
         else if (isPlayerInvOpen) {
             boolean needsNewScreen = false;
-            if (currentScreen == null || currentScreen instanceof ChestScreen || currentScreen instanceof CraftingTableScreen || currentScreen instanceof StonecutterScreen || currentScreen instanceof FurnaceScreen || currentScreen instanceof StructureBlockScreen) {
+            if (currentScreen == null || currentScreen instanceof ChestScreen || currentScreen instanceof CraftingTableScreen || currentScreen instanceof StonecutterScreen || currentScreen instanceof FurnaceScreen || currentScreen instanceof StructureBlockScreen || currentScreen instanceof de.delautrer.game.ui.gui.screens.JigsawScreen) {
                 needsNewScreen = true;
                 if (currentScreen != null) {
                     currentScreen.onClose();
@@ -149,6 +154,8 @@ public class UIManager {
                 ((MenuScreen) currentScreen).setFont(font);
             } else if (currentScreen instanceof StructureBlockScreen) {
                 ((StructureBlockScreen) currentScreen).setFont(font);
+            } else if (currentScreen instanceof de.delautrer.game.ui.gui.screens.JigsawScreen js) {
+                js.setFont(font);
             }
             currentScreen.render(builder, mouseX, mouseY);
         }

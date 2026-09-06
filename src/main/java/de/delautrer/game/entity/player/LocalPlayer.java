@@ -148,7 +148,7 @@ public class LocalPlayer extends Player {
 
             if (input.isActionJustPressed("INVENTORY") && gameMode != GameMode.SPECTATOR) {
                 if (getOpenedInventory() != null) {
-                    if (!(getOpenedInventory() instanceof de.delautrer.game.inventory.StructureBlockInventory)) {
+                    if (!(getOpenedInventory() instanceof de.delautrer.game.inventory.StructureBlockInventory) && !(getOpenedInventory() instanceof de.delautrer.game.inventory.JigsawInventory)) {
                         eventBus.publish(new InventoryClosedEvent(this, getOpenedInventory()));
                         closeInventory();
                     }

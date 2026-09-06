@@ -1,0 +1,8 @@
+{
+  "type": "jigsaw",
+  "start_pool": "veinstride:desert_camp/starts",
+  "size": 3,
+  "biomes": "#veinstride:is_desert",
+  "step": "surface_structures",
+  "processors": []
+}

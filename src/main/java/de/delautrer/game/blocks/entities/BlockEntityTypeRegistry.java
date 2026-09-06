@@ -13,6 +13,8 @@ public class BlockEntityTypeRegistry {
         new NamespacedKey(Constants.NAMESPACE, "furnace"), FurnaceBlockEntity::new);
     public static final BlockEntityType<StructureBlockEntity> STRUCTURE_BLOCK = new BlockEntityType<>(
         new NamespacedKey(Constants.NAMESPACE, "structure_block"), StructureBlockEntity::new);
+    public static final BlockEntityType<JigsawBlockEntity> JIGSAW = new BlockEntityType<>(
+        new NamespacedKey(Constants.NAMESPACE, "jigsaw"), JigsawBlockEntity::new);
 
     public static void init() {
         if (!REGISTRY.contains(CHEST.getKey())) {
@@ -23,6 +25,9 @@ public class BlockEntityTypeRegistry {
         }
         if (!REGISTRY.contains(STRUCTURE_BLOCK.getKey())) {
             REGISTRY.register(STRUCTURE_BLOCK.getKey(), STRUCTURE_BLOCK);
+        }
+        if (!REGISTRY.contains(JIGSAW.getKey())) {
+            REGISTRY.register(JIGSAW.getKey(), JIGSAW);
         }
     }
 }

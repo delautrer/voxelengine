@@ -57,6 +57,7 @@ public class CreativeContainer extends BaseContainer {
                         if (id.equals("water") || id.equals(Constants.NAMESPACE + ":water")) return false;
                         if (id.equals("structure_void") || id.equals(Constants.NAMESPACE + ":structure_void")) return false;
                         if (id.equals("structure_block") || id.equals(Constants.NAMESPACE + ":structure_block")) return false;
+                        if (id.equals("jigsaw") || id.equals(Constants.NAMESPACE + ":jigsaw")) return false;
                     }
                     if (item instanceof de.delautrer.game.items.BlockItem blockItem) {
                         if (blockItem.getBlock() instanceof de.delautrer.game.blocks.WaterBlock) return false;

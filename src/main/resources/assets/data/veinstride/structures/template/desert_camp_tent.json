@@ -1,0 +1,23 @@
+{
+  "size": [3, 2, 3],
+  "palette": [
+    "veinstride:sandstone",
+    "veinstride:jigsaw"
+  ],
+  "blocks": [
+    { "pos": [0, 0, 0], "state": 0, "stateId": 0 },
+    { "pos": [1, 0, 0], "state": 0, "stateId": 0 },
+    { "pos": [2, 0, 0], "state": 0, "stateId": 0 },
+    { "pos": [0, 0, 1], "state": 0, "stateId": 0 },
+    { "pos": [1, 0, 1], "state": 0, "stateId": 0 },
+    { "pos": [2, 0, 1], "state": 0, "stateId": 0 },
+    { "pos": [0, 0, 2], "state": 0, "stateId": 0 },
+    { "pos": [2, 0, 2], "state": 0, "stateId": 0 },
+    {
+      "pos": [1, 0, 2],
+      "state": 1,
+      "stateId": 0,
+      "nbt": "{\"name\":\"veinstride:building\",\"target\":\"veinstride:building\",\"pool\":\"veinstride:empty\",\"joint\":\"rollable\",\"orientation\":\"south\",\"turns_into\":\"veinstride:air\"}"
+    }
+  ]
+}

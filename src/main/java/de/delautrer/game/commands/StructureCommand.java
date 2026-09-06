@@ -69,6 +69,8 @@ public class StructureCommand implements ICommand {
             executeLoadCommand(player, world, args, commandManager);
         } else if (sub.equals("vsnbt")) {
             executeVsnbtCommand(player, world, args, commandManager);
+        } else if (sub.equals("jigsaw")) {
+            executeJigsawCommand(player, world, args, commandManager);
         } else {
             commandManager.sendMessageInChat("Usage: " + getUsage());
         }
@@ -406,6 +408,35 @@ public class StructureCommand implements ICommand {
         commandManager.sendMessageInChat(feedback);
     }
 
+    private void executeJigsawCommand(LocalPlayer player, World world, String[] args, CommandManager commandManager) {
+        if (args.length < 2) {
+            commandManager.sendMessageInChat("Usage: /structure jigsaw <pool> [x] [y] [z]");
+            return;
+        }
+
+        String rawPool = args[1];
+        NamespacedKey poolKey = rawPool.contains(":") ? NamespacedKey.fromString(rawPool) : NamespacedKey.fromString("veinstride:" + rawPool);
+
+        Vector3i targetPos = player.getInteraction() != null ? player.getInteraction().getSelectedBlockPos() : null;
+        int tx = targetPos != null ? targetPos.x : (int) Math.floor(player.position.x);
+        int ty = targetPos != null ? targetPos.y : (int) Math.floor(player.position.y);
+        int tz = targetPos != null ? targetPos.z : (int) Math.floor(player.position.z);
+
+        if (args.length >= 5) {
+            try {
+                tx = parseCoord(args[2], player.position.x);
+                ty = parseCoord(args[3], player.position.y);
+                tz = parseCoord(args[4], player.position.z);
+            } catch (NumberFormatException e) {
+                commandManager.sendMessageInChat("§cInvalid coordinates: " + args[2] + " " + args[3] + " " + args[4]);
+                return;
+            }
+        }
+
+        int count = de.delautrer.game.worldgen.jigsaw.JigsawPlacer.generate(world, null, null, tx, ty, tz, poolKey, 3, System.currentTimeMillis());
+        commandManager.sendMessageInChat("§aPlaced Jigsaw structure with " + count + " pieces.");
+    }
+
     @Override
     public List<String> getTabCompletions(LocalPlayer player, String[] args) {
         List<String> results = new ArrayList<>();
@@ -415,11 +446,28 @@ public class StructureCommand implements ICommand {
             if ("place".startsWith(input)) results.add("place");
             if ("load".startsWith(input)) results.add("load");
             if ("vsnbt".startsWith(input)) results.add("vsnbt");
+            if ("jigsaw".startsWith(input)) results.add("jigsaw");
             return results;
         }
 
         String sub = args[0].toLowerCase();
-        if (sub.equals("vsnbt")) {
+        if (sub.equals("jigsaw")) {
+            if (args.length == 2) {
+                String prefix = args[1].toLowerCase();
+                for (NamespacedKey key : de.delautrer.game.worldgen.pool.TemplatePoolRegistry.getAllKeys()) {
+                    String keyStr = key.toString();
+                    String keyPath = key.getKey();
+                    if (keyStr.toLowerCase().startsWith(prefix)) {
+                        results.add(keyStr);
+                    } else if (keyPath.toLowerCase().startsWith(prefix)) {
+                        results.add(keyPath);
+                    }
+                }
+            } else if (args.length >= 3 && args.length <= 5) {
+                int axis = args.length - 2;
+                addCoordCompletion(results, player, axis);
+            }
+        } else if (sub.equals("vsnbt")) {
             if (args.length == 2) {
                 String prefix = args[1].toLowerCase();
                 for (String key : LootTableManager.getAvailableLootTableKeys()) {

@@ -49,6 +49,7 @@ public class BlockTypeRegistry {
         register("furnace", (def, key) -> new FurnaceBlock());
         register("structure_void", (def, key) -> new StructureVoidBlock());
         register("structure_block", (def, key) -> new StructureBlock());
+        register("jigsaw", (def, key) -> new JigsawBlock());
         register("sapling", (def, key) -> {
             if (def.tree == null || def.tree.trim().isEmpty() ||
                 def.log == null || def.log.trim().isEmpty() ||

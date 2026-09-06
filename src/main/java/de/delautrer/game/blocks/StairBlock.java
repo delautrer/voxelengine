@@ -61,6 +61,9 @@ public class StairBlock extends CubeBlock {
     }
 
     private BlockState updateShape(World world, Vector3i pos, BlockState state) {
+        if (state == null || !(state.getBlock() instanceof StairBlock) || !state.contains(FACING) || !state.contains(HALF)) {
+            return state;
+        }
         Direction facing = state.getValue(FACING);
         Half half = state.getValue(HALF);
 

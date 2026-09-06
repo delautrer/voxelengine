@@ -44,7 +44,7 @@ public class StructureRegistryTest {
         World world = new World(null, null, null, 12345L, "world_test", "world_test_save", "DEFAULT", "", null, true);
         world.setCheatsAllowed(true);
         Chunk chunk = new Chunk(0, 0);
-        chunk.setPalette(de.delautrer.game.world.persistence.WorldPalette.createFreshFromRegistry());
+        chunk.setPalette(world.getBlockPalette());
         world.getChunkManager().addChunk(chunk);
 
         LocalPlayer player = new LocalPlayer(new org.joml.Vector3d(0, 5, 0));
@@ -227,5 +227,41 @@ public class StructureRegistryTest {
         if (chestTag == null || !"veinstride:chests/desert_camp".equals(chestTag.getString("LootTable"))) {
             throw new IllegalStateException("Failed to set LootTable via /structure vsnbt! Got tag: " + chestTag);
         }
+
+        // 10. Test Jigsaw Block, Template Pools, and /structure jigsaw
+        Block jigsawBlock = Registries.BLOCKS.get("veinstride:jigsaw");
+        if (jigsawBlock == null) {
+            throw new IllegalStateException("Jigsaw block veinstride:jigsaw not found in BLOCKS registry!");
+        }
+
+        if (de.delautrer.game.worldgen.pool.TemplatePoolRegistry.getPool(NamespacedKey.fromString("veinstride:desert_camp/starts")) == null) {
+            throw new IllegalStateException("TemplatePool veinstride:desert_camp/starts not found!");
+        }
+
+        cm.onEvent(new de.delautrer.game.events.CommandExecutedEvent("structure", new String[]{"jigsaw", "desert_camp/starts", "10", "10", "10"}, player, world));
+
+        // 11. Test Jigsaw Block FACING, BE Orientation Sync, and Interaction
+        de.delautrer.game.blocks.JigsawBlock jBlock = (de.delautrer.game.blocks.JigsawBlock) jigsawBlock;
+        world.setBlockState(12, 10, 12, jBlock.getDefaultState().with(de.delautrer.game.blocks.JigsawBlock.FACING, de.delautrer.game.blocks.state.BlockProperties.Direction.EAST));
+        jBlock.onBlockPlaced(world, new Vector3i(12, 10, 12), world.getBlockState(12, 10, 12), player);
+
+        de.delautrer.game.blocks.entities.JigsawBlockEntity jbe = (de.delautrer.game.blocks.entities.JigsawBlockEntity) world.getBlockEntity(new Vector3i(12, 10, 12));
+        if (jbe == null || !"east".equals(jbe.getOrientation())) {
+            throw new IllegalStateException("Jigsaw BE orientation failed to sync with block state FACING! Got: " + (jbe != null ? jbe.getOrientation() : "null"));
+        }
+
+        // Test normal interact opens JigsawInventory
+        jBlock.onInteract(world, new Vector3i(12, 10, 12), player);
+        if (!(player.getOpenedInventory() instanceof de.delautrer.game.inventory.JigsawInventory)) {
+            throw new IllegalStateException("JigsawBlock onInteract failed to open JigsawInventory!");
+        }
+
+        // Test sneak interact rotates FACING (EAST -> SOUTH)
+        player.setSneaking(true);
+        jBlock.onInteract(world, new Vector3i(12, 10, 12), player);
+        if (world.getBlockState(12, 10, 12).getValue(de.delautrer.game.blocks.JigsawBlock.FACING) != de.delautrer.game.blocks.state.BlockProperties.Direction.SOUTH) {
+            throw new IllegalStateException("Sneak interact failed to rotate Jigsaw FACING!");
+        }
+        player.setSneaking(false);
     }
 }

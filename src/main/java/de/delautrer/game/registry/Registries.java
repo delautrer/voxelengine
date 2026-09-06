@@ -73,7 +73,10 @@ public class Registries {
         // 12b. Data-Driven Structures (Templates, Structures, StructureSets)
         de.delautrer.game.world.generation.structure.StructureRegistry.init();
 
-        // 12c. Data-Driven GameTests
+        // 12c. Template Pools
+        de.delautrer.game.worldgen.pool.TemplatePoolRegistry.init();
+
+        // 12d. Data-Driven GameTests
         de.delautrer.game.testing.GameTestRegistry.init();
 
         // 13. Validierung

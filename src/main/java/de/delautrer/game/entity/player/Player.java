@@ -19,6 +19,8 @@ public class Player extends Entity {
     protected float eyeHeight = 1.62f;
 
     protected boolean isSneaking = false;
+    public boolean isSneaking() { return isSneaking; }
+    public void setSneaking(boolean isSneaking) { this.isSneaking = isSneaking; }
     protected boolean isFlying = false;
     protected boolean isSprinting = false;
 

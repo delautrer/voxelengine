@@ -8,12 +8,29 @@ import java.util.List;
 public class StructureDTO {
     public String type;
     public String template;
+    public String start_pool;
+    public int size = 3;
     public String step;
     public JsonElement biomes;
     public List<StructureProcessorDTO> processors;
 
     // Optional wrapped object
     public StructureDTO structure;
+
+    public String getType() {
+        if (structure != null && structure.type != null) return structure.type;
+        return type;
+    }
+
+    public String getStartPool() {
+        if (structure != null && structure.start_pool != null) return structure.start_pool;
+        return start_pool;
+    }
+
+    public int getSize() {
+        if (structure != null && structure.size > 0) return structure.size;
+        return size > 0 ? size : 3;
+    }
 
     public String getTemplate() {
         if (structure != null && structure.template != null) return structure.template;

@@ -1,0 +1,40 @@
+{
+  "size": [5, 2, 5],
+  "palette": [
+    "veinstride:sandstone",
+    "veinstride:jigsaw"
+  ],
+  "blocks": [
+    { "pos": [0, 0, 0], "state": 0, "stateId": 0 },
+    { "pos": [1, 0, 0], "state": 0, "stateId": 0 },
+    { "pos": [2, 0, 0], "state": 0, "stateId": 0 },
+    { "pos": [3, 0, 0], "state": 0, "stateId": 0 },
+    { "pos": [4, 0, 0], "state": 0, "stateId": 0 },
+    { "pos": [0, 0, 1], "state": 0, "stateId": 0 },
+    { "pos": [1, 0, 1], "state": 0, "stateId": 0 },
+    { "pos": [2, 0, 1], "state": 0, "stateId": 0 },
+    { "pos": [3, 0, 1], "state": 0, "stateId": 0 },
+    { "pos": [4, 0, 1], "state": 0, "stateId": 0 },
+    { "pos": [0, 0, 2], "state": 0, "stateId": 0 },
+    { "pos": [1, 0, 2], "state": 0, "stateId": 0 },
+    { "pos": [2, 0, 2], "state": 0, "stateId": 0 },
+    { "pos": [3, 0, 2], "state": 0, "stateId": 0 },
+    { "pos": [4, 0, 2], "state": 0, "stateId": 0 },
+    { "pos": [0, 0, 3], "state": 0, "stateId": 0 },
+    { "pos": [1, 0, 3], "state": 0, "stateId": 0 },
+    { "pos": [2, 0, 3], "state": 0, "stateId": 0 },
+    { "pos": [3, 0, 3], "state": 0, "stateId": 0 },
+    { "pos": [4, 0, 3], "state": 0, "stateId": 0 },
+    { "pos": [0, 0, 4], "state": 0, "stateId": 0 },
+    { "pos": [1, 0, 4], "state": 0, "stateId": 0 },
+    { "pos": [2, 0, 4], "state": 0, "stateId": 0 },
+    { "pos": [3, 0, 4], "state": 0, "stateId": 0 },
+    { "pos": [4, 0, 4], "state": 0, "stateId": 0 },
+    {
+      "pos": [2, 1, 0],
+      "state": 1,
+      "stateId": 0,
+      "nbt": "{\"name\":\"veinstride:entrance\",\"target\":\"veinstride:building\",\"pool\":\"veinstride:desert_camp/tents\",\"joint\":\"rollable\",\"orientation\":\"north\",\"turns_into\":\"veinstride:air\"}"
+    }
+  ]
+}
