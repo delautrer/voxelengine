@@ -1,0 +1,13 @@
+{
+  "type": "shaped",
+  "pattern": [
+    "AB"
+  ],
+  "keys": {
+    "A": "veinstride:dirt",
+    "B": "veinstride:gravel"
+  },
+  "result": {
+    "item": "veinstride:coarse_dirt"
+  }
+}

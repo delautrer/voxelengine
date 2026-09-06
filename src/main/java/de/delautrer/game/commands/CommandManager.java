@@ -30,13 +30,13 @@ public class CommandManager implements EventListener<CommandExecutedEvent> {
         register(new DebugCommand());
         register(new WeatherCommand());
         register(new FindCommand());
-        register(new TestBiomesCommand());
         register(new GiveCommand());
         register(new SetCommand());
         register(new FillCommand());
         register(new StructureCommand());
         if (de.delautrer.Constants.IS_DEV) {
             register(new TestCommand());
+            register(new TestBiomesCommand());
         }
     }
 
