@@ -69,6 +69,17 @@ public class BlockModelManager {
                     model.west = r;
                 }
 
+                if (textures.has("cross")) {
+                    TextureStitcher.AtlasRegion r = atlas.regions.getOrDefault(textures.get("cross").getAsString(),
+                            missingRegion);
+                    model.top = r;
+                    model.bottom = r;
+                    model.north = r;
+                    model.south = r;
+                    model.east = r;
+                    model.west = r;
+                }
+
                 if (textures.has("top")) {
                     model.top = atlas.regions.getOrDefault(textures.get("top").getAsString(), missingRegion);
                 }
@@ -122,17 +133,6 @@ public class BlockModelManager {
                 }
                 if (textures.has("right")) {
                     model.east = atlas.regions.getOrDefault(textures.get("right").getAsString(), missingRegion);
-                }
-
-                if (textures.has("cross")) {
-                    TextureStitcher.AtlasRegion r = atlas.regions.getOrDefault(textures.get("cross").getAsString(),
-                            missingRegion);
-                    model.top = r;
-                    model.bottom = r;
-                    model.north = r;
-                    model.south = r;
-                    model.east = r;
-                    model.west = r;
                 }
 
                 if (textures.has("torch")) {

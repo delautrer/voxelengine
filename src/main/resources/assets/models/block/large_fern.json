@@ -1,0 +1,8 @@
+{
+  "parent": "block/cross",
+  "textures": {
+    "bottom": "large_fern_bottom",
+    "top": "large_fern_top",
+    "cross": "large_fern_bottom"
+  }
+}

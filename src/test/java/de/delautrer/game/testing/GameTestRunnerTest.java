@@ -155,4 +155,18 @@ public class GameTestRunnerTest {
         }
         Assertions.assertTrue(ranCount >= 2, "Expected at least 2 hedge tests to run, but ran: " + ranCount);
     }
+
+    @Test
+    public void testTallPlantGameTests() {
+        World world = WorldFixture.create();
+        int ranCount = 0;
+        for (GameTest test : GameTestRegistry.getTests()) {
+            if (test.hasTag("tall_plant") || test.getId().getKey().startsWith("tall_plant_")) {
+                ranCount++;
+                GameTestResult result = GameTestRunner.run(world, null, test);
+                Assertions.assertTrue(result.isPassed(), test.getId() + " failed: " + result.getMessage());
+            }
+        }
+        Assertions.assertTrue(ranCount >= 3, "Expected at least 3 tall_plant tests to run, but ran: " + ranCount);
+    }
 }

@@ -1,0 +1,12 @@
+{
+  "id": "veinstride:tall_plant_place_two_high",
+  "timeout_ticks": 40,
+  "tags": ["tall_plant"],
+  "origin": "player",
+  "steps": [
+    { "type": "set_block", "pos": [0, 0, 0], "block": "veinstride:grass_block" },
+    { "type": "place_block", "pos": [0, 1, 0], "block": "veinstride:tall_grass", "face": "up" },
+    { "type": "assert_block", "pos": [0, 1, 0], "block": "veinstride:tall_grass" },
+    { "type": "assert_block", "pos": [0, 2, 0], "block": "veinstride:tall_grass" }
+  ]
+}

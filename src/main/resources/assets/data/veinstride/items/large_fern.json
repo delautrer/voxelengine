@@ -1,0 +1,8 @@
+{
+    "type": "block",
+    "name": "Large Fern",
+    "texture_name": "large_fern_top",
+    "max_stack_size": 64,
+    "category": "natural",
+    "render_as_item": true
+}

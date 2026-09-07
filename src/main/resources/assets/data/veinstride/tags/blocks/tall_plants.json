@@ -1,4 +1,7 @@
 {
   "replace": false,
-  "values": []
+  "values": [
+    "veinstride:tall_grass",
+    "veinstride:large_fern"
+  ]
 }

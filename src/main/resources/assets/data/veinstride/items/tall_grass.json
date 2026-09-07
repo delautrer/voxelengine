@@ -1,0 +1,8 @@
+{
+    "type": "block",
+    "name": "Tall Grass",
+    "texture_name": "tall_grass_top",
+    "max_stack_size": 64,
+    "category": "natural",
+    "render_as_item": true
+}

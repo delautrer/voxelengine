@@ -1,0 +1,8 @@
+{
+  "parent": "block/cross",
+  "textures": {
+    "bottom": "tall_grass_bottom",
+    "top": "tall_grass_top",
+    "cross": "tall_grass_bottom"
+  }
+}
