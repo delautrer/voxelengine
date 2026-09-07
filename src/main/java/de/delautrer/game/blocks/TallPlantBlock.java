@@ -31,6 +31,7 @@ public class TallPlantBlock extends CubeBlock implements IPairedBlock {
             if (reg == null) return;
 
             int baseY = (half == Half.BOTTOM) ? y : y - 1;
+            int topY = baseY + 1;
             long seed = ((long) x * 3129871L) ^ ((long) z * 116129781L) ^ ((long) baseY * 42317861L);
             seed = seed * seed * 42317861L + seed * 11L;
             float offX = (((float) (seed >> 16 & 15L) / 15.0f) - 0.5f) * 0.3f;
@@ -42,20 +43,31 @@ public class TallPlantBlock extends CubeBlock implements IPairedBlock {
             float z1 = z + 1 + offZ;
 
             float light = 1.0f;
-            float sl = chunk.getSmoothSkyLight(x, y, z, 0, 0, 0, 0, 0, 0, cm);
-            float bl = chunk.getSmoothBlockLight(x, y, z, 0, 0, 0, 0, 0, 0, cm);
-            float slBottom = sl * 0.75f;
-            float blBottom = bl * 0.75f;
+            float sl = Math.max(
+                chunk.getSmoothSkyLight(x, baseY, z, 0, 0, 0, 0, 0, 0, cm),
+                chunk.getSmoothSkyLight(x, topY, z, 0, 0, 0, 0, 0, 0, cm));
+            float bl = Math.max(
+                chunk.getSmoothBlockLight(x, baseY, z, 0, 0, 0, 0, 0, 0, cm),
+                chunk.getSmoothBlockLight(x, topY, z, 0, 0, 0, 0, 0, 0, cm));
+
+            float slLo, slHi, blLo, blHi;
+            if (half == Half.BOTTOM) {
+                slLo = sl * 0.72f; slHi = sl * 0.90f;
+                blLo = bl * 0.72f; blHi = bl * 0.90f;
+            } else {
+                slLo = sl * 0.90f; slHi = sl;
+                blLo = bl * 0.90f; blHi = bl;
+            }
 
             chunk.addFace(x0, y, z0, 1.0f, x1, y, z1, 1.0f, x1, y + 1, z1, 1.0f, x0, y + 1, z0, 1.0f,
-                    reg.u0, reg.v0, reg.u1, reg.v1, reg.layer, light, this, slBottom, slBottom, sl, sl, blBottom, blBottom, bl, bl);
+                    reg.u0, reg.v0, reg.u1, reg.v1, reg.layer, light, this, slLo, slLo, slHi, slHi, blLo, blLo, blHi, blHi);
             chunk.addFace(x1, y, z1, 1.0f, x0, y, z0, 1.0f, x0, y + 1, z0, 1.0f, x1, y + 1, z1, 1.0f,
-                    reg.u0, reg.v0, reg.u1, reg.v1, reg.layer, light, this, slBottom, slBottom, sl, sl, blBottom, blBottom, bl, bl);
+                    reg.u0, reg.v0, reg.u1, reg.v1, reg.layer, light, this, slLo, slLo, slHi, slHi, blLo, blLo, blHi, blHi);
 
             chunk.addFace(x1, y, z0, 1.0f, x0, y, z1, 1.0f, x0, y + 1, z1, 1.0f, x1, y + 1, z0, 1.0f,
-                    reg.u0, reg.v0, reg.u1, reg.v1, reg.layer, light, this, slBottom, slBottom, sl, sl, blBottom, blBottom, bl, bl);
+                    reg.u0, reg.v0, reg.u1, reg.v1, reg.layer, light, this, slLo, slLo, slHi, slHi, blLo, blLo, blHi, blHi);
             chunk.addFace(x0, y, z1, 1.0f, x1, y, z0, 1.0f, x1, y + 1, z0, 1.0f, x0, y + 1, z1, 1.0f,
-                    reg.u0, reg.v0, reg.u1, reg.v1, reg.layer, light, this, slBottom, slBottom, sl, sl, blBottom, blBottom, bl, bl);
+                    reg.u0, reg.v0, reg.u1, reg.v1, reg.layer, light, this, slLo, slLo, slHi, slHi, blLo, blLo, blHi, blHi);
         };
     }
 

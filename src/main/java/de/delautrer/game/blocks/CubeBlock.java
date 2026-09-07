@@ -124,12 +124,27 @@ public class CubeBlock extends Block {
     }
 
     private float getCrease(float vx, float vy, float vz) {
-        boolean inX = vx > 0.01f && vx < 0.99f;
-        boolean inY = vy > 0.01f && vy < 0.99f;
-        boolean inZ = vz > 0.01f && vz < 0.99f;
-        if ((inX && inY) || (inX && inZ) || (inY && inZ))
-            return 0.85f;
         return 1.0f;
+    }
+
+    private static class FaceLightOrigin {
+        final int ax, ay, az;
+        final int sx, sy, sz;
+        final int bx, by, bz;
+
+        FaceLightOrigin(int ax, int ay, int az, int sx, int sy, int sz, int bx, int by, int bz) {
+            this.ax = ax; this.ay = ay; this.az = az;
+            this.sx = sx; this.sy = sy; this.sz = sz;
+            this.bx = bx; this.by = by; this.bz = bz;
+        }
+    }
+
+    private FaceLightOrigin faceLightOrigin(int x, int y, int z, int ndx, int ndy, int ndz, boolean onBoundary) {
+        int nx = x + ndx, ny = y + ndy, nz = z + ndz;
+        if (onBoundary) {
+            return new FaceLightOrigin(nx, ny, nz, nx, ny, nz, nx, ny, nz);
+        }
+        return new FaceLightOrigin(x, y, z, nx, ny, nz, x, y, z);
     }
 
     protected void addMappedFace(Chunk chunk, float x0, float y0, float z0, float ao0, float x1, float y1, float z1,
@@ -268,18 +283,19 @@ public class CubeBlock extends Block {
 
         BlockState sTop = getNeighborState(chunk, cm, x, y + 1, z);
         if (rTop && (maxY < 1.0f || shouldRenderFaceAgainstState(state, sTop, BlockFace.UP))) {
-            float ao0 = chunk.getAO(x, y + 1, z, -1, 0, 0, 0, 0, -1, cm);
-            float ao1 = chunk.getAO(x, y + 1, z, -1, 0, 0, 0, 0, 1, cm);
-            float ao2 = chunk.getAO(x, y + 1, z, 1, 0, 0, 0, 0, 1, cm);
-            float ao3 = chunk.getAO(x, y + 1, z, 1, 0, 0, 0, 0, -1, cm);
-            float sl0 = chunk.getSmoothSkyLight(x, y + 1, z, -1, 0, 0, 0, 0, -1, cm);
-            float sl1 = chunk.getSmoothSkyLight(x, y + 1, z, -1, 0, 0, 0, 0, 1, cm);
-            float sl2 = chunk.getSmoothSkyLight(x, y + 1, z, 1, 0, 0, 0, 0, 1, cm);
-            float sl3 = chunk.getSmoothSkyLight(x, y + 1, z, 1, 0, 0, 0, 0, -1, cm);
-            float bl0 = chunk.getSmoothBlockLight(x, y + 1, z, -1, 0, 0, 0, 0, -1, cm);
-            float bl1 = chunk.getSmoothBlockLight(x, y + 1, z, -1, 0, 0, 0, 0, 1, cm);
-            float bl2 = chunk.getSmoothBlockLight(x, y + 1, z, 1, 0, 0, 0, 0, 1, cm);
-            float bl3 = chunk.getSmoothBlockLight(x, y + 1, z, 1, 0, 0, 0, 0, -1, cm);
+            FaceLightOrigin o = faceLightOrigin(x, y, z, 0, 1, 0, maxY >= 0.999f);
+            float ao0 = chunk.getAO(o.ax, o.ay, o.az, -1, 0, 0, 0, 0, -1, cm);
+            float ao1 = chunk.getAO(o.ax, o.ay, o.az, -1, 0, 0, 0, 0, 1, cm);
+            float ao2 = chunk.getAO(o.ax, o.ay, o.az, 1, 0, 0, 0, 0, 1, cm);
+            float ao3 = chunk.getAO(o.ax, o.ay, o.az, 1, 0, 0, 0, 0, -1, cm);
+            float sl0 = chunk.getSmoothSkyLight(o.sx, o.sy, o.sz, -1, 0, 0, 0, 0, -1, cm);
+            float sl1 = chunk.getSmoothSkyLight(o.sx, o.sy, o.sz, -1, 0, 0, 0, 0, 1, cm);
+            float sl2 = chunk.getSmoothSkyLight(o.sx, o.sy, o.sz, 1, 0, 0, 0, 0, 1, cm);
+            float sl3 = chunk.getSmoothSkyLight(o.sx, o.sy, o.sz, 1, 0, 0, 0, 0, -1, cm);
+            float bl0 = chunk.getSmoothBlockLight(o.bx, o.by, o.bz, -1, 0, 0, 0, 0, -1, cm);
+            float bl1 = chunk.getSmoothBlockLight(o.bx, o.by, o.bz, -1, 0, 0, 0, 0, 1, cm);
+            float bl2 = chunk.getSmoothBlockLight(o.bx, o.by, o.bz, 1, 0, 0, 0, 0, 1, cm);
+            float bl3 = chunk.getSmoothBlockLight(o.bx, o.by, o.bz, 1, 0, 0, 0, 0, -1, cm);
             addMappedFace(chunk, x + minX, y + maxY, z + maxZ,
                     bilerp(ao0, ao3, ao2, ao1, minX, maxZ) * getCrease(minX, maxY, maxZ), x + maxX, y + maxY, z + maxZ,
                     bilerp(ao0, ao3, ao2, ao1, maxX, maxZ) * getCrease(maxX, maxY, maxZ), x + maxX, y + maxY, z + minZ,
@@ -297,18 +313,19 @@ public class CubeBlock extends Block {
         }
         BlockState sBot = getNeighborState(chunk, cm, x, y - 1, z);
         if (rBot && (minY > 0.0f || (y > Chunk.MIN_Y && shouldRenderFaceAgainstState(state, sBot, BlockFace.DOWN)))) {
-            float ao0 = chunk.getAO(x, y - 1, z, -1, 0, 0, 0, 0, 1, cm);
-            float ao1 = chunk.getAO(x, y - 1, z, -1, 0, 0, 0, 0, -1, cm);
-            float ao2 = chunk.getAO(x, y - 1, z, 1, 0, 0, 0, 0, -1, cm);
-            float ao3 = chunk.getAO(x, y - 1, z, 1, 0, 0, 0, 0, 1, cm);
-            float sl0 = chunk.getSmoothSkyLight(x, y - 1, z, -1, 0, 0, 0, 0, 1, cm);
-            float sl1 = chunk.getSmoothSkyLight(x, y - 1, z, -1, 0, 0, 0, 0, -1, cm);
-            float sl2 = chunk.getSmoothSkyLight(x, y - 1, z, 1, 0, 0, 0, 0, -1, cm);
-            float sl3 = chunk.getSmoothSkyLight(x, y - 1, z, 1, 0, 0, 0, 0, 1, cm);
-            float bl0 = chunk.getSmoothBlockLight(x, y - 1, z, -1, 0, 0, 0, 0, 1, cm);
-            float bl1 = chunk.getSmoothBlockLight(x, y - 1, z, -1, 0, 0, 0, 0, -1, cm);
-            float bl2 = chunk.getSmoothBlockLight(x, y - 1, z, 1, 0, 0, 0, 0, -1, cm);
-            float bl3 = chunk.getSmoothBlockLight(x, y - 1, z, 1, 0, 0, 0, 0, 1, cm);
+            FaceLightOrigin o = faceLightOrigin(x, y, z, 0, -1, 0, minY <= 0.001f);
+            float ao0 = chunk.getAO(o.ax, o.ay, o.az, -1, 0, 0, 0, 0, 1, cm);
+            float ao1 = chunk.getAO(o.ax, o.ay, o.az, -1, 0, 0, 0, 0, -1, cm);
+            float ao2 = chunk.getAO(o.ax, o.ay, o.az, 1, 0, 0, 0, 0, -1, cm);
+            float ao3 = chunk.getAO(o.ax, o.ay, o.az, 1, 0, 0, 0, 0, 1, cm);
+            float sl0 = chunk.getSmoothSkyLight(o.sx, o.sy, o.sz, -1, 0, 0, 0, 0, 1, cm);
+            float sl1 = chunk.getSmoothSkyLight(o.sx, o.sy, o.sz, -1, 0, 0, 0, 0, -1, cm);
+            float sl2 = chunk.getSmoothSkyLight(o.sx, o.sy, o.sz, 1, 0, 0, 0, 0, -1, cm);
+            float sl3 = chunk.getSmoothSkyLight(o.sx, o.sy, o.sz, 1, 0, 0, 0, 0, 1, cm);
+            float bl0 = chunk.getSmoothBlockLight(o.bx, o.by, o.bz, -1, 0, 0, 0, 0, 1, cm);
+            float bl1 = chunk.getSmoothBlockLight(o.bx, o.by, o.bz, -1, 0, 0, 0, 0, -1, cm);
+            float bl2 = chunk.getSmoothBlockLight(o.bx, o.by, o.bz, 1, 0, 0, 0, 0, -1, cm);
+            float bl3 = chunk.getSmoothBlockLight(o.bx, o.by, o.bz, 1, 0, 0, 0, 0, 1, cm);
             addMappedFace(chunk, x + minX, y + minY, z + minZ,
                     bilerp(ao1, ao2, ao3, ao0, minX, minZ) * getCrease(minX, minY, minZ), x + maxX, y + minY, z + minZ,
                     bilerp(ao1, ao2, ao3, ao0, maxX, minZ) * getCrease(maxX, minY, minZ), x + maxX, y + minY, z + maxZ,
@@ -326,18 +343,19 @@ public class CubeBlock extends Block {
         }
         BlockState sSouth = getNeighborState(chunk, cm, x, y, z + 1);
         if (rS && (maxZ < 1.0f || shouldRenderFaceAgainstState(state, sSouth, BlockFace.SOUTH))) {
-            float ao0 = chunk.getAO(x, y, z + 1, -1, 0, 0, 0, -1, 0, cm);
-            float ao1 = chunk.getAO(x, y, z + 1, 1, 0, 0, 0, -1, 0, cm);
-            float ao2 = chunk.getAO(x, y, z + 1, 1, 0, 0, 0, 1, 0, cm);
-            float ao3 = chunk.getAO(x, y, z + 1, -1, 0, 0, 0, 1, 0, cm);
-            float sl0 = chunk.getSmoothSkyLight(x, y, z + 1, -1, 0, 0, 0, -1, 0, cm);
-            float sl1 = chunk.getSmoothSkyLight(x, y, z + 1, 1, 0, 0, 0, -1, 0, cm);
-            float sl2 = chunk.getSmoothSkyLight(x, y, z + 1, 1, 0, 0, 0, 1, 0, cm);
-            float sl3 = chunk.getSmoothSkyLight(x, y, z + 1, -1, 0, 0, 0, 1, 0, cm);
-            float bl0 = chunk.getSmoothBlockLight(x, y, z + 1, -1, 0, 0, 0, -1, 0, cm);
-            float bl1 = chunk.getSmoothBlockLight(x, y, z + 1, 1, 0, 0, 0, -1, 0, cm);
-            float bl2 = chunk.getSmoothBlockLight(x, y, z + 1, 1, 0, 0, 0, 1, 0, cm);
-            float bl3 = chunk.getSmoothBlockLight(x, y, z + 1, -1, 0, 0, 0, 1, 0, cm);
+            FaceLightOrigin o = faceLightOrigin(x, y, z, 0, 0, 1, maxZ >= 0.999f);
+            float ao0 = chunk.getAO(o.ax, o.ay, o.az, -1, 0, 0, 0, -1, 0, cm);
+            float ao1 = chunk.getAO(o.ax, o.ay, o.az, 1, 0, 0, 0, -1, 0, cm);
+            float ao2 = chunk.getAO(o.ax, o.ay, o.az, 1, 0, 0, 0, 1, 0, cm);
+            float ao3 = chunk.getAO(o.ax, o.ay, o.az, -1, 0, 0, 0, 1, 0, cm);
+            float sl0 = chunk.getSmoothSkyLight(o.sx, o.sy, o.sz, -1, 0, 0, 0, -1, 0, cm);
+            float sl1 = chunk.getSmoothSkyLight(o.sx, o.sy, o.sz, 1, 0, 0, 0, -1, 0, cm);
+            float sl2 = chunk.getSmoothSkyLight(o.sx, o.sy, o.sz, 1, 0, 0, 0, 1, 0, cm);
+            float sl3 = chunk.getSmoothSkyLight(o.sx, o.sy, o.sz, -1, 0, 0, 0, 1, 0, cm);
+            float bl0 = chunk.getSmoothBlockLight(o.bx, o.by, o.bz, -1, 0, 0, 0, -1, 0, cm);
+            float bl1 = chunk.getSmoothBlockLight(o.bx, o.by, o.bz, 1, 0, 0, 0, -1, 0, cm);
+            float bl2 = chunk.getSmoothBlockLight(o.bx, o.by, o.bz, 1, 0, 0, 0, 1, 0, cm);
+            float bl3 = chunk.getSmoothBlockLight(o.bx, o.by, o.bz, -1, 0, 0, 0, 1, 0, cm);
             addMappedFace(chunk, x + minX, y + minY, z + maxZ,
                     bilerp(ao0, ao1, ao2, ao3, minX, minY) * getCrease(minX, minY, maxZ), x + maxX, y + minY, z + maxZ,
                     bilerp(ao0, ao1, ao2, ao3, maxX, minY) * getCrease(maxX, minY, maxZ), x + maxX, y + maxY, z + maxZ,
@@ -356,18 +374,19 @@ public class CubeBlock extends Block {
         }
         BlockState sNorth = getNeighborState(chunk, cm, x, y, z - 1);
         if (rN && (minZ > 0.0f || shouldRenderFaceAgainstState(state, sNorth, BlockFace.NORTH))) {
-            float ao0 = chunk.getAO(x, y, z - 1, 1, 0, 0, 0, -1, 0, cm);
-            float ao1 = chunk.getAO(x, y, z - 1, -1, 0, 0, 0, -1, 0, cm);
-            float ao2 = chunk.getAO(x, y, z - 1, -1, 0, 0, 0, 1, 0, cm);
-            float ao3 = chunk.getAO(x, y, z - 1, 1, 0, 0, 0, 1, 0, cm);
-            float sl0 = chunk.getSmoothSkyLight(x, y, z - 1, 1, 0, 0, 0, -1, 0, cm);
-            float sl1 = chunk.getSmoothSkyLight(x, y, z - 1, -1, 0, 0, 0, -1, 0, cm);
-            float sl2 = chunk.getSmoothSkyLight(x, y, z - 1, -1, 0, 0, 0, 1, 0, cm);
-            float sl3 = chunk.getSmoothSkyLight(x, y, z - 1, 1, 0, 0, 0, 1, 0, cm);
-            float bl0 = chunk.getSmoothBlockLight(x, y, z - 1, 1, 0, 0, 0, -1, 0, cm);
-            float bl1 = chunk.getSmoothBlockLight(x, y, z - 1, -1, 0, 0, 0, -1, 0, cm);
-            float bl2 = chunk.getSmoothBlockLight(x, y, z - 1, -1, 0, 0, 0, 1, 0, cm);
-            float bl3 = chunk.getSmoothBlockLight(x, y, z - 1, 1, 0, 0, 0, 1, 0, cm);
+            FaceLightOrigin o = faceLightOrigin(x, y, z, 0, 0, -1, minZ <= 0.001f);
+            float ao0 = chunk.getAO(o.ax, o.ay, o.az, 1, 0, 0, 0, -1, 0, cm);
+            float ao1 = chunk.getAO(o.ax, o.ay, o.az, -1, 0, 0, 0, -1, 0, cm);
+            float ao2 = chunk.getAO(o.ax, o.ay, o.az, -1, 0, 0, 0, 1, 0, cm);
+            float ao3 = chunk.getAO(o.ax, o.ay, o.az, 1, 0, 0, 0, 1, 0, cm);
+            float sl0 = chunk.getSmoothSkyLight(o.sx, o.sy, o.sz, 1, 0, 0, 0, -1, 0, cm);
+            float sl1 = chunk.getSmoothSkyLight(o.sx, o.sy, o.sz, -1, 0, 0, 0, -1, 0, cm);
+            float sl2 = chunk.getSmoothSkyLight(o.sx, o.sy, o.sz, -1, 0, 0, 0, 1, 0, cm);
+            float sl3 = chunk.getSmoothSkyLight(o.sx, o.sy, o.sz, 1, 0, 0, 0, 1, 0, cm);
+            float bl0 = chunk.getSmoothBlockLight(o.bx, o.by, o.bz, 1, 0, 0, 0, -1, 0, cm);
+            float bl1 = chunk.getSmoothBlockLight(o.bx, o.by, o.bz, -1, 0, 0, 0, -1, 0, cm);
+            float bl2 = chunk.getSmoothBlockLight(o.bx, o.by, o.bz, -1, 0, 0, 0, 1, 0, cm);
+            float bl3 = chunk.getSmoothBlockLight(o.bx, o.by, o.bz, 1, 0, 0, 0, 1, 0, cm);
             addMappedFace(chunk, x + maxX, y + minY, z + minZ,
                     bilerp(ao1, ao0, ao3, ao2, maxX, minY) * getCrease(maxX, minY, minZ), x + minX, y + minY, z + minZ,
                     bilerp(ao1, ao0, ao3, ao2, minX, minY) * getCrease(minX, minY, minZ), x + minX, y + maxY, z + minZ,
@@ -385,18 +404,19 @@ public class CubeBlock extends Block {
         }
         BlockState sWest = getNeighborState(chunk, cm, x - 1, y, z);
         if (rW && (minX > 0.0f || shouldRenderFaceAgainstState(state, sWest, BlockFace.WEST))) {
-            float ao0 = chunk.getAO(x - 1, y, z, 0, -1, 0, 0, 0, -1, cm);
-            float ao1 = chunk.getAO(x - 1, y, z, 0, -1, 0, 0, 0, 1, cm);
-            float ao2 = chunk.getAO(x - 1, y, z, 0, 1, 0, 0, 0, 1, cm);
-            float ao3 = chunk.getAO(x - 1, y, z, 0, 1, 0, 0, 0, -1, cm);
-            float sl0 = chunk.getSmoothSkyLight(x - 1, y, z, 0, -1, 0, 0, 0, -1, cm);
-            float sl1 = chunk.getSmoothSkyLight(x - 1, y, z, 0, -1, 0, 0, 0, 1, cm);
-            float sl2 = chunk.getSmoothSkyLight(x - 1, y, z, 0, 1, 0, 0, 0, 1, cm);
-            float sl3 = chunk.getSmoothSkyLight(x - 1, y, z, 0, 1, 0, 0, 0, -1, cm);
-            float bl0 = chunk.getSmoothBlockLight(x - 1, y, z, 0, -1, 0, 0, 0, -1, cm);
-            float bl1 = chunk.getSmoothBlockLight(x - 1, y, z, 0, -1, 0, 0, 0, 1, cm);
-            float bl2 = chunk.getSmoothBlockLight(x - 1, y, z, 0, 1, 0, 0, 0, 1, cm);
-            float bl3 = chunk.getSmoothBlockLight(x - 1, y, z, 0, 1, 0, 0, 0, -1, cm);
+            FaceLightOrigin o = faceLightOrigin(x, y, z, -1, 0, 0, minX <= 0.001f);
+            float ao0 = chunk.getAO(o.ax, o.ay, o.az, 0, -1, 0, 0, 0, -1, cm);
+            float ao1 = chunk.getAO(o.ax, o.ay, o.az, 0, -1, 0, 0, 0, 1, cm);
+            float ao2 = chunk.getAO(o.ax, o.ay, o.az, 0, 1, 0, 0, 0, 1, cm);
+            float ao3 = chunk.getAO(o.ax, o.ay, o.az, 0, 1, 0, 0, 0, -1, cm);
+            float sl0 = chunk.getSmoothSkyLight(o.sx, o.sy, o.sz, 0, -1, 0, 0, 0, -1, cm);
+            float sl1 = chunk.getSmoothSkyLight(o.sx, o.sy, o.sz, 0, -1, 0, 0, 0, 1, cm);
+            float sl2 = chunk.getSmoothSkyLight(o.sx, o.sy, o.sz, 0, 1, 0, 0, 0, 1, cm);
+            float sl3 = chunk.getSmoothSkyLight(o.sx, o.sy, o.sz, 0, 1, 0, 0, 0, -1, cm);
+            float bl0 = chunk.getSmoothBlockLight(o.bx, o.by, o.bz, 0, -1, 0, 0, 0, -1, cm);
+            float bl1 = chunk.getSmoothBlockLight(o.bx, o.by, o.bz, 0, -1, 0, 0, 0, 1, cm);
+            float bl2 = chunk.getSmoothBlockLight(o.bx, o.by, o.bz, 0, 1, 0, 0, 0, 1, cm);
+            float bl3 = chunk.getSmoothBlockLight(o.bx, o.by, o.bz, 0, 1, 0, 0, 0, -1, cm);
             addMappedFace(chunk, x + minX, y + minY, z + minZ,
                     bilerp(ao0, ao1, ao2, ao3, minZ, minY) * getCrease(minX, minY, minZ), x + minX, y + minY, z + maxZ,
                     bilerp(ao0, ao1, ao2, ao3, maxZ, minY) * getCrease(minX, minY, maxZ), x + minX, y + maxY, z + maxZ,
@@ -415,18 +435,19 @@ public class CubeBlock extends Block {
         }
         BlockState sEast = getNeighborState(chunk, cm, x + 1, y, z);
         if (rE && (maxX < 1.0f || shouldRenderFaceAgainstState(state, sEast, BlockFace.EAST))) {
-            float ao0 = chunk.getAO(x + 1, y, z, 0, -1, 0, 0, 0, 1, cm);
-            float ao1 = chunk.getAO(x + 1, y, z, 0, -1, 0, 0, 0, -1, cm);
-            float ao2 = chunk.getAO(x + 1, y, z, 0, 1, 0, 0, 0, -1, cm);
-            float ao3 = chunk.getAO(x + 1, y, z, 0, 1, 0, 0, 0, 1, cm);
-            float sl0 = chunk.getSmoothSkyLight(x + 1, y, z, 0, -1, 0, 0, 0, 1, cm);
-            float sl1 = chunk.getSmoothSkyLight(x + 1, y, z, 0, -1, 0, 0, 0, -1, cm);
-            float sl2 = chunk.getSmoothSkyLight(x + 1, y, z, 0, 1, 0, 0, 0, -1, cm);
-            float sl3 = chunk.getSmoothSkyLight(x + 1, y, z, 0, 1, 0, 0, 0, 1, cm);
-            float bl0 = chunk.getSmoothBlockLight(x + 1, y, z, 0, -1, 0, 0, 0, 1, cm);
-            float bl1 = chunk.getSmoothBlockLight(x + 1, y, z, 0, -1, 0, 0, 0, -1, cm);
-            float bl2 = chunk.getSmoothBlockLight(x + 1, y, z, 0, 1, 0, 0, 0, -1, cm);
-            float bl3 = chunk.getSmoothBlockLight(x + 1, y, z, 0, 1, 0, 0, 0, 1, cm);
+            FaceLightOrigin o = faceLightOrigin(x, y, z, 1, 0, 0, maxX >= 0.999f);
+            float ao0 = chunk.getAO(o.ax, o.ay, o.az, 0, -1, 0, 0, 0, 1, cm);
+            float ao1 = chunk.getAO(o.ax, o.ay, o.az, 0, -1, 0, 0, 0, -1, cm);
+            float ao2 = chunk.getAO(o.ax, o.ay, o.az, 0, 1, 0, 0, 0, -1, cm);
+            float ao3 = chunk.getAO(o.ax, o.ay, o.az, 0, 1, 0, 0, 0, 1, cm);
+            float sl0 = chunk.getSmoothSkyLight(o.sx, o.sy, o.sz, 0, -1, 0, 0, 0, 1, cm);
+            float sl1 = chunk.getSmoothSkyLight(o.sx, o.sy, o.sz, 0, -1, 0, 0, 0, -1, cm);
+            float sl2 = chunk.getSmoothSkyLight(o.sx, o.sy, o.sz, 0, 1, 0, 0, 0, -1, cm);
+            float sl3 = chunk.getSmoothSkyLight(o.sx, o.sy, o.sz, 0, 1, 0, 0, 0, 1, cm);
+            float bl0 = chunk.getSmoothBlockLight(o.bx, o.by, o.bz, 0, -1, 0, 0, 0, 1, cm);
+            float bl1 = chunk.getSmoothBlockLight(o.bx, o.by, o.bz, 0, -1, 0, 0, 0, -1, cm);
+            float bl2 = chunk.getSmoothBlockLight(o.bx, o.by, o.bz, 0, 1, 0, 0, 0, -1, cm);
+            float bl3 = chunk.getSmoothBlockLight(o.bx, o.by, o.bz, 0, 1, 0, 0, 0, 1, cm);
             addMappedFace(chunk, x + maxX, y + minY, z + maxZ,
                     bilerp(ao1, ao0, ao3, ao2, maxZ, minY) * getCrease(maxX, minY, maxZ), x + maxX, y + minY, z + minZ,
                     bilerp(ao1, ao0, ao3, ao2, minZ, minY) * getCrease(maxX, minY, minZ), x + maxX, y + maxY, z + minZ,

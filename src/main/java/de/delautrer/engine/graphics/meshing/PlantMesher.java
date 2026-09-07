@@ -32,8 +32,8 @@ public class PlantMesher implements BlockMesher {
         float light = 1.0f;
         float sl = chunk.getSmoothSkyLight(x, y, z, 0, 0, 0, 0, 0, 0, cm);
         float bl = chunk.getSmoothBlockLight(x, y, z, 0, 0, 0, 0, 0, 0, cm);
-        float slBottom = sl * 0.67f;
-        float blBottom = bl * 0.67f;
+        float slBottom = sl * 0.80f;
+        float blBottom = bl * 0.80f;
 
         chunk.addFace(x0, y, z0, 1.0f, x1, y, z1, 1.0f, x1, y + 1, z1, 1.0f, x0, y + 1, z0, 1.0f,
                 reg.u0, reg.v0, reg.u1, reg.v1, reg.layer, light, plantBlock, slBottom, slBottom, sl, sl, blBottom, blBottom,

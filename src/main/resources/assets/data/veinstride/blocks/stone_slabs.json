@@ -1,7 +1,7 @@
-﻿{
+{
     "type":  "slab",
     "transparent":  true,
-    "opacity":  15,
+    "opacity":  0,
     "hardness":  1.5,
     "sound_material":  "veinstride:rock",
     "category":  "natural",
