@@ -1,0 +1,8 @@
+{
+    "type":  "block",
+    "name":  "Baobab Fence Gate",
+    "texture_name":  "baobab_fence_gate",
+    "max_stack_size":  64,
+    "category":  "wood",
+    "render_as_item":  false
+}

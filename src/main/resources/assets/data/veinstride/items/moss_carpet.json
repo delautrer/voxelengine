@@ -1,7 +1,8 @@
 {
-    "type": "block",
-    "name": "Moss Carpet",
-    "texture_name": "moss",
-    "max_stack_size": 64,
-    "category": "decoration"
+    "type":  "block",
+    "name":  "Moss Carpet",
+    "texture_name":  "moss_carpet",
+    "max_stack_size":  64,
+    "category":  "natural",
+    "render_as_item":  false
 }

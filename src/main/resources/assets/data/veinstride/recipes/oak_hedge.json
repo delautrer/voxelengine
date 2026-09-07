@@ -1,0 +1,16 @@
+{
+  "type": "shaped",
+  "pattern": [
+    "LLL",
+    "LLL",
+    " S "
+  ],
+  "keys": {
+    "L": "veinstride:oak_leaves",
+    "S": "veinstride:sticks"
+  },
+  "result": {
+    "count": 6,
+    "item": "veinstride:oak_hedge"
+  }
+}

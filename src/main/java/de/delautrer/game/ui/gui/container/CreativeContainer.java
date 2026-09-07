@@ -170,7 +170,15 @@ public class CreativeContainer extends BaseContainer {
         } else {
             String cat = currentTab.name().toLowerCase();
             filteredItems = allItems.stream()
-                    .filter(item -> item.getCategory().equalsIgnoreCase(cat))
+                    .filter(item -> {
+                        String itemCat = item.getCategory();
+                        if (itemCat == null) return false;
+                        itemCat = itemCat.toLowerCase();
+                        if (itemCat.equals(cat)) return true;
+                        if (cat.equals("building") && (itemCat.equals("building_blocks") || itemCat.equals("decoration"))) return true;
+                        if (cat.equals("natural") && (itemCat.equals("decoration") || itemCat.equals("nature"))) return true;
+                        return false;
+                    })
                     .collect(Collectors.toList());
         }
     }

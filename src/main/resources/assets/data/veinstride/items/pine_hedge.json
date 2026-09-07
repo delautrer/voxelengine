@@ -1,0 +1,8 @@
+{
+    "type":  "block",
+    "name":  "Pine Hedge",
+    "texture_name":  "pine_hedge",
+    "max_stack_size":  64,
+    "category":  "wood",
+    "render_as_item":  false
+}

@@ -1,0 +1,8 @@
+{
+    "type":  "block",
+    "name":  "Cobblestone Wall",
+    "texture_name":  "cobblestone_wall",
+    "max_stack_size":  64,
+    "category":  "building",
+    "render_as_item":  false
+}

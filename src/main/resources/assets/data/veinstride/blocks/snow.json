@@ -1,10 +1,10 @@
 {
-  "type": "layer",
-  "is_solid": false,
-  "is_transparent": true,
-  "is_passable": false,
-  "is_raycastable": true,
-  "hardness": 0.2,
-  "sound_material": "veinstride:snow",
-  "category": "building_blocks"
+    "type":  "layer",
+    "is_solid":  false,
+    "is_transparent":  true,
+    "is_passable":  false,
+    "is_raycastable":  true,
+    "hardness":  0.2,
+    "sound_material":  "veinstride:snow",
+    "category":  "natural"
 }

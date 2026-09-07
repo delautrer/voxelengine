@@ -1,0 +1,8 @@
+{
+    "type":  "block",
+    "name":  "Willow Fence",
+    "texture_name":  "willow_fence",
+    "max_stack_size":  64,
+    "category":  "wood",
+    "render_as_item":  false
+}

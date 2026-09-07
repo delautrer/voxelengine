@@ -1,0 +1,14 @@
+{
+  "type": "shaped",
+  "pattern": [
+    "CCC",
+    "CCC"
+  ],
+  "keys": {
+    "C": "veinstride:mossy_stone_bricks"
+  },
+  "result": {
+    "count": 6,
+    "item": "veinstride:mossy_stone_bricks_wall"
+  }
+}

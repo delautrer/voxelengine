@@ -1,0 +1,14 @@
+{
+  "type": "shaped",
+  "pattern": [
+    "CCC",
+    "CCC"
+  ],
+  "keys": {
+    "C": "veinstride:stone_bricks"
+  },
+  "result": {
+    "count": 6,
+    "item": "veinstride:stone_bricks_wall"
+  }
+}

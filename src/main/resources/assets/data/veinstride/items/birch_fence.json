@@ -1,0 +1,8 @@
+{
+    "type":  "block",
+    "name":  "Birch Fence",
+    "texture_name":  "birch_fence",
+    "max_stack_size":  64,
+    "category":  "wood",
+    "render_as_item":  false
+}

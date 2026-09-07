@@ -1,0 +1,8 @@
+{
+    "type":  "block",
+    "name":  "Sandstone Wall",
+    "texture_name":  "sandstone_wall",
+    "max_stack_size":  64,
+    "category":  "building",
+    "render_as_item":  false
+}

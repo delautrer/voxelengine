@@ -1,4 +1,11 @@
 {
   "replace": false,
-  "values": []
+  "values": [
+    "veinstride:cobblestone_wall",
+    "veinstride:mossy_cobblestone_wall",
+    "veinstride:bricks_wall",
+    "veinstride:stone_bricks_wall",
+    "veinstride:mossy_stone_bricks_wall",
+    "veinstride:sandstone_wall"
+  ]
 }

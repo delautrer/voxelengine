@@ -1,10 +1,10 @@
 {
-  "type": "pane",
-  "is_solid": false,
-  "is_transparent": true,
-  "is_passable": false,
-  "is_raycastable": true,
-  "hardness": 0.3,
-  "sound_material": "veinstride:glass",
-  "category": "decoration"
+    "type":  "pane",
+    "is_solid":  false,
+    "is_transparent":  true,
+    "is_passable":  false,
+    "is_raycastable":  true,
+    "hardness":  0.3,
+    "sound_material":  "veinstride:glass",
+    "category":  "building"
 }

@@ -1,0 +1,16 @@
+{
+  "type": "shaped",
+  "pattern": [
+    "WSI",
+    "WSI"
+  ],
+  "keys": {
+    "W": "veinstride:willow_planks",
+    "S": "veinstride:sticks",
+    "I": "veinstride:willow_planks"
+  },
+  "result": {
+    "count": 3,
+    "item": "veinstride:willow_fence"
+  }
+}

@@ -1,0 +1,8 @@
+{
+    "type":  "block",
+    "name":  "Palm Fence",
+    "texture_name":  "palm_fence",
+    "max_stack_size":  64,
+    "category":  "wood",
+    "render_as_item":  false
+}

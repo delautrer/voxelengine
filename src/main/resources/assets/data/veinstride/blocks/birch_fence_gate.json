@@ -1,0 +1,8 @@
+{
+    "name":  "Birch Fence Gate",
+    "type":  "fence_gate",
+    "isSolid":  false,
+    "isTransparent":  true,
+    "hardness":  2.0,
+    "category":  "wood"
+}

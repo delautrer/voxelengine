@@ -1,0 +1,13 @@
+{
+  "id": "veinstride:hedge_connects_to_leaves",
+  "timeout_ticks": 40,
+  "tags": ["hedge"],
+  "origin": "player",
+  "steps": [
+    { "type": "set_block", "pos": [0, 0, 0], "block": "veinstride:stone" },
+    { "type": "set_block", "pos": [1, 0, 0], "block": "veinstride:stone" },
+    { "type": "set_block", "pos": [0, 1, 0], "block": "veinstride:oak_leaves" },
+    { "type": "place_block", "pos": [1, 1, 0], "block": "veinstride:oak_hedge", "face": "up" },
+    { "type": "assert_state", "pos": [1, 1, 0], "prop": "west", "val": true }
+  ]
+}

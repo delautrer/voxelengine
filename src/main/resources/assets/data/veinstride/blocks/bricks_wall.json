@@ -1,0 +1,8 @@
+{
+    "name":  "Bricks Wall",
+    "type":  "wall",
+    "isSolid":  false,
+    "isTransparent":  true,
+    "hardness":  2.0,
+    "category":  "building"
+}

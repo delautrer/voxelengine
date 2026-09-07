@@ -1,0 +1,12 @@
+{
+  "replace": false,
+  "values": [
+    "veinstride:oak_hedge",
+    "veinstride:birch_hedge",
+    "veinstride:pine_hedge",
+    "veinstride:willow_hedge",
+    "veinstride:baobab_hedge",
+    "veinstride:mahogany_hedge",
+    "veinstride:palm_hedge"
+  ]
+}

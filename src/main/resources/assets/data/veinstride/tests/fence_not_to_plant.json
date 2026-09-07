@@ -1,0 +1,13 @@
+{
+  "id": "veinstride:fence_not_to_plant",
+  "timeout_ticks": 40,
+  "tags": ["fence"],
+  "origin": "player",
+  "steps": [
+    { "type": "set_block", "pos": [0, 0, 0], "block": "veinstride:stone" },
+    { "type": "set_block", "pos": [1, 0, 0], "block": "veinstride:grass_block" },
+    { "type": "place_block", "pos": [0, 1, 0], "block": "veinstride:oak_fence", "face": "up" },
+    { "type": "set_block", "pos": [1, 1, 0], "block": "veinstride:grass" },
+    { "type": "assert_state", "pos": [0, 1, 0], "prop": "east", "val": false }
+  ]
+}

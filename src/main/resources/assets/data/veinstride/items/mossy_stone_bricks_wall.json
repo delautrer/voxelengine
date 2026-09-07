@@ -1,0 +1,8 @@
+{
+    "type":  "block",
+    "name":  "Mossy Stone Bricks Wall",
+    "texture_name":  "mossy_stone_bricks_wall",
+    "max_stack_size":  64,
+    "category":  "building",
+    "render_as_item":  false
+}

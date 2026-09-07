@@ -1,0 +1,15 @@
+{
+  "type": "shaped",
+  "pattern": [
+    "SWS",
+    "SWS"
+  ],
+  "keys": {
+    "S": "veinstride:sticks",
+    "W": "veinstride:baobab_planks"
+  },
+  "result": {
+    "count": 1,
+    "item": "veinstride:baobab_fence_gate"
+  }
+}

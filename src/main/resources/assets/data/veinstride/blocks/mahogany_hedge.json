@@ -1,0 +1,8 @@
+{
+    "name":  "Mahogany Hedge",
+    "type":  "hedge",
+    "isSolid":  false,
+    "isTransparent":  true,
+    "hardness":  0.2,
+    "category":  "wood"
+}

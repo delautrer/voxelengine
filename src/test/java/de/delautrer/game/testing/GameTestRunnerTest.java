@@ -99,4 +99,60 @@ public class GameTestRunnerTest {
         }
         Assertions.assertTrue(ranCount >= 4, "Expected at least 4 pane tests to run, but ran: " + ranCount);
     }
+
+    @Test
+    public void testFenceGameTests() {
+        World world = WorldFixture.create();
+        int ranCount = 0;
+        for (GameTest test : GameTestRegistry.getTests()) {
+            if (test.hasTag("fence") || test.getId().getKey().startsWith("fence_")) {
+                ranCount++;
+                GameTestResult result = GameTestRunner.run(world, null, test);
+                Assertions.assertTrue(result.isPassed(), test.getId() + " failed: " + result.getMessage());
+            }
+        }
+        Assertions.assertTrue(ranCount >= 3, "Expected at least 3 fence tests to run, but ran: " + ranCount);
+    }
+
+    @Test
+    public void testWallGameTests() {
+        World world = WorldFixture.create();
+        int ranCount = 0;
+        for (GameTest test : GameTestRegistry.getTests()) {
+            if (test.hasTag("wall") || test.getId().getKey().startsWith("wall_")) {
+                ranCount++;
+                GameTestResult result = GameTestRunner.run(world, null, test);
+                Assertions.assertTrue(result.isPassed(), test.getId() + " failed: " + result.getMessage());
+            }
+        }
+        Assertions.assertTrue(ranCount >= 4, "Expected at least 4 wall tests to run, but ran: " + ranCount);
+    }
+
+    @Test
+    public void testGateGameTests() {
+        World world = WorldFixture.create();
+        int ranCount = 0;
+        for (GameTest test : GameTestRegistry.getTests()) {
+            if (test.hasTag("gate") || test.hasTag("fence_gate") || test.getId().getKey().startsWith("gate_")) {
+                ranCount++;
+                GameTestResult result = GameTestRunner.run(world, null, test);
+                Assertions.assertTrue(result.isPassed(), test.getId() + " failed: " + result.getMessage());
+            }
+        }
+        Assertions.assertTrue(ranCount >= 3, "Expected at least 3 gate tests to run, but ran: " + ranCount);
+    }
+
+    @Test
+    public void testHedgeGameTests() {
+        World world = WorldFixture.create();
+        int ranCount = 0;
+        for (GameTest test : GameTestRegistry.getTests()) {
+            if (test.hasTag("hedge") || test.getId().getKey().startsWith("hedge_")) {
+                ranCount++;
+                GameTestResult result = GameTestRunner.run(world, null, test);
+                Assertions.assertTrue(result.isPassed(), test.getId() + " failed: " + result.getMessage());
+            }
+        }
+        Assertions.assertTrue(ranCount >= 2, "Expected at least 2 hedge tests to run, but ran: " + ranCount);
+    }
 }

@@ -1,4 +1,12 @@
 {
   "replace": false,
-  "values": []
+  "values": [
+    "veinstride:oak_fence",
+    "veinstride:birch_fence",
+    "veinstride:pine_fence",
+    "veinstride:willow_fence",
+    "veinstride:baobab_fence",
+    "veinstride:mahogany_fence",
+    "veinstride:palm_fence"
+  ]
 }

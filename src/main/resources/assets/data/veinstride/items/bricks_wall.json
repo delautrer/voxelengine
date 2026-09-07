@@ -1,0 +1,8 @@
+{
+    "type":  "block",
+    "name":  "Bricks Wall",
+    "texture_name":  "bricks_wall",
+    "max_stack_size":  64,
+    "category":  "building",
+    "render_as_item":  false
+}

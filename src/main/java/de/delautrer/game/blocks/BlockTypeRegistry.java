@@ -39,6 +39,10 @@ public class BlockTypeRegistry {
         register("carpet", (def, key) -> new CarpetBlock());
         register("layer", (def, key) -> new LayerBlock());
         register("pane", (def, key) -> new PaneBlock());
+        register("fence", (def, key) -> new FenceBlock());
+        register("wall", (def, key) -> new WallBlock());
+        register("fence_gate", (def, key) -> new FenceGateBlock());
+        register("hedge", (def, key) -> new HedgeBlock());
         register("water", (def, key) -> new WaterBlock());
         register("leaves", (def, key) -> new LeavesBlock());
         register("torch", (def, key) -> new TorchBlock());
