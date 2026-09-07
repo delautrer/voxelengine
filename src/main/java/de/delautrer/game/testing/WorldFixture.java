@@ -1,14 +1,18 @@
 package de.delautrer.game.testing;
 
+import de.delautrer.engine.events.EventBus;
 import de.delautrer.game.registry.Registries;
 import de.delautrer.game.world.Chunk;
 import de.delautrer.game.world.World;
+import de.delautrer.game.world.WorldEventHandler;
 
 public class WorldFixture {
 
     public static World create() {
         Registries.init();
-        World world = new World(null, null, null, 12345L, "world_fixture", "world_fixture_save", "DEFAULT", "", null, false);
+        EventBus eventBus = new EventBus();
+        World world = new World(null, null, eventBus, 12345L, "world_fixture", "world_fixture_save", "DEFAULT", "", null, false);
+        new WorldEventHandler(world, eventBus);
 
         // Pre-create chunks in a 5x5 chunk grid centered at (0,0) to accommodate tests at origin
         for (int cx = -2; cx <= 2; cx++) {

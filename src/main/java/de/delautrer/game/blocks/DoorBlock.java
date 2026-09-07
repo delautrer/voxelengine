@@ -10,16 +10,14 @@ import de.delautrer.game.entity.player.LocalPlayer;
 import de.delautrer.game.entity.player.Player;
 import de.delautrer.game.items.BlockItem;
 import de.delautrer.game.world.Chunk;
-import de.delautrer.game.world.ChunkManager;
 import de.delautrer.game.world.World;
-import de.delautrer.game.registry.Registries;
 import de.delautrer.engine.graphics.utils.TextureStitcher.AtlasRegion;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DoorBlock extends CubeBlock implements IInteractable {
+public class DoorBlock extends CubeBlock implements IInteractable, IPairedBlock {
     public static final EnumProperty<Direction> FACING = EnumProperty.create("facing", Direction.class);
     public static final BooleanProperty OPEN = BooleanProperty.create("open");
     public static final EnumProperty<DoorHinge> HINGE = EnumProperty.create("hinge", DoorHinge.class);
@@ -51,6 +49,9 @@ public class DoorBlock extends CubeBlock implements IInteractable {
         if (hitPos.y >= Chunk.MAX_Y - 1) return null;
         if (!world.getBlock(hitPos.x, hitPos.y + 1, hitPos.z).isAir()) return null;
 
+        Block blockBelow = world.getBlock(hitPos.x, hitPos.y - 1, hitPos.z);
+        if (blockBelow == null || !blockBelow.isSolid || blockBelow.isPassable) return null;
+
         float yaw = ((LocalPlayer) player).getCamera().getYaw();
         yaw = (yaw % 360 + 360) % 360;
         Direction facing;
@@ -78,26 +79,46 @@ public class DoorBlock extends CubeBlock implements IInteractable {
     @Override
     public void onBlockPlaced(World world, Vector3i pos, BlockState state, Player player) {
         if (state.getValue(HALF) == Half.BOTTOM) {
-            world.setBlockState(pos.x, pos.y + 1, pos.z, state.with(HALF, Half.TOP));
+            PairedBlocks.placePair(world, pos, state);
         }
     }
 
     @Override
     public void onBlockRemoved(World world, Vector3i pos, BlockState state) {
-        Block airBlock = Registries.BLOCKS.get(de.delautrer.Constants.NAMESPACE + ":air");
+        PairedBlocks.breakPair(world, pos, state);
+    }
+
+    @Override
+    public void onNeighborChanged(World world, int x, int y, int z, Vector3i neighborPos, Block neighborBlock) {
+        super.onNeighborChanged(world, x, y, z, neighborPos, neighborBlock);
+        PairedBlocks.validateOrDrop(world, x, y, z, world.getBlockState(x, y, z));
+    }
+
+    @Override
+    public Vector3i getPartnerPos(Vector3i pos, BlockState state) {
         if (state.getValue(HALF) == Half.BOTTOM) {
-            Vector3i topPos = new Vector3i(pos.x, pos.y + 1, pos.z);
-            BlockState topState = world.getBlockState(topPos.x, topPos.y, topPos.z);
-            if (topState.getBlock() == this && topState.getValue(HALF) == Half.TOP) {
-                world.setBlock(topPos.x, topPos.y, topPos.z, airBlock);
-            }
+            return new Vector3i(pos.x, pos.y + 1, pos.z);
         } else {
-            Vector3i botPos = new Vector3i(pos.x, pos.y - 1, pos.z);
-            BlockState botState = world.getBlockState(botPos.x, botPos.y, botPos.z);
-            if (botState.getBlock() == this && botState.getValue(HALF) == Half.BOTTOM) {
-                world.setBlock(botPos.x, botPos.y, botPos.z, airBlock);
-            }
+            return new Vector3i(pos.x, pos.y - 1, pos.z);
         }
+    }
+
+    @Override
+    public Vector3i getPrimaryPos(Vector3i pos, BlockState state) {
+        if (state.getValue(HALF) == Half.TOP) {
+            return new Vector3i(pos.x, pos.y - 1, pos.z);
+        }
+        return new Vector3i(pos);
+    }
+
+    @Override
+    public boolean isValidPartner(BlockState self, BlockState other) {
+        if (self == null || other == null) return false;
+        if (self.getBlock() != other.getBlock()) return false;
+        if (self.getValue(HALF) == other.getValue(HALF)) return false;
+        return self.getValue(FACING) == other.getValue(FACING) &&
+               self.getValue(HINGE) == other.getValue(HINGE) &&
+               self.getValue(OPEN) == other.getValue(OPEN);
     }
 
     @Override
@@ -105,6 +126,10 @@ public class DoorBlock extends CubeBlock implements IInteractable {
         BlockState state = world.getBlockState(pos.x, pos.y, pos.z);
         if (state.getBlock() != this) return false;
         
+        if (!PairedBlocks.validateOrDrop(world, pos.x, pos.y, pos.z, state)) {
+            return false;
+        }
+
         boolean newOpen = !state.getValue(OPEN);
         toggleDoor(world, pos, state, newOpen);
         
@@ -113,19 +138,36 @@ public class DoorBlock extends CubeBlock implements IInteractable {
         if (sisterState.getBlock() == this && 
             sisterState.getValue(FACING) == state.getValue(FACING) && 
             sisterState.getValue(HINGE) != state.getValue(HINGE)) {
-            toggleDoor(world, sisterPos, sisterState, newOpen);
+            if (PairedBlocks.validateOrDrop(world, sisterPos.x, sisterPos.y, sisterPos.z, sisterState)) {
+                toggleDoor(world, sisterPos, sisterState, newOpen);
+            }
         }
         
         return true;
     }
 
     private void toggleDoor(World world, Vector3i pos, BlockState state, boolean open) {
-        int otherY = state.getValue(HALF) == Half.BOTTOM ? pos.y + 1 : pos.y - 1;
-        world.setBlockState(pos.x, pos.y, pos.z, state.with(OPEN, open));
-        
-        BlockState otherState = world.getBlockState(pos.x, otherY, pos.z);
-        if (otherState.getBlock() == this && otherState.getValue(HALF) != state.getValue(HALF)) {
-            world.setBlockState(pos.x, otherY, pos.z, otherState.with(OPEN, open));
+        Vector3i partnerPos = getPartnerPos(pos, state);
+        BlockState partnerState = world.getBlockState(partnerPos.x, partnerPos.y, partnerPos.z);
+        if (isValidPartner(state, partnerState)) {
+            BlockState newSelf = state.with(OPEN, open);
+            BlockState newPartner = partnerState.with(OPEN, open);
+
+            world.setBlockWithState(pos.x, pos.y, pos.z, this, newSelf.getStateId(), true, false);
+            world.setBlockWithState(partnerPos.x, partnerPos.y, partnerPos.z, this, newPartner.getStateId(), false, false);
+
+            notifyCellChanged(world, pos, this);
+            notifyCellChanged(world, partnerPos, this);
+        }
+    }
+
+    private void notifyCellChanged(World world, Vector3i pos, Block newBlock) {
+        if (world.getEventBus() != null) {
+            int[][] dirs = { { 0, 1, 0 }, { 0, -1, 0 }, { 1, 0, 0 }, { -1, 0, 0 }, { 0, 0, 1 }, { 0, 0, -1 } };
+            for (int[] dir : dirs) {
+                Vector3i nPos = new Vector3i(pos.x + dir[0], pos.y + dir[1], pos.z + dir[2]);
+                world.getEventBus().publish(new de.delautrer.game.events.BlockNeighborUpdateEvent(nPos, pos, newBlock));
+            }
         }
     }
 
@@ -144,14 +186,11 @@ public class DoorBlock extends CubeBlock implements IInteractable {
 
     @Override
     public List<AABB> getHighlightBoxes(BlockState state) {
-        // Da der Raycaster jetzt immer die UNTERE Position für Türen zurückgibt (siehe Raycaster.java),
-        // können wir hier immer eine 2-Block hohe Box ab dem Nullpunkt zurückgeben.
         List<AABB> currentBoxes = getBoundingBoxes(state);
         if (currentBoxes.isEmpty()) return currentBoxes;
         
         AABB local = currentBoxes.get(0);
         
-        // Immer von 0 bis 2 (da hitPos vom Raycaster auf die untere Hälfte korrigiert wird)
         float minY = 0.0f;
         float maxY = 2.0f;
         
@@ -201,7 +240,6 @@ public class DoorBlock extends CubeBlock implements IInteractable {
                 isWideFace = (face == BlockFace.EAST || face == BlockFace.WEST);
             }
         } else {
-            // Wenn offen, sind die weiten Seiten um 90 Grad gedreht (perpendikular zum originalen facing)
             if (facing == Direction.NORTH || facing == Direction.SOUTH) {
                 isWideFace = (face == BlockFace.EAST || face == BlockFace.WEST);
             } else {

@@ -43,4 +43,18 @@ public class GameTestRunnerTest {
         GameTestResult result = GameTestRunner.run(world, null, test);
         Assertions.assertTrue(result.isPassed(), "sand_falls_onto_stone failed: " + result.getMessage());
     }
+
+    @Test
+    public void testDoorGameTests() {
+        World world = WorldFixture.create();
+        int ranCount = 0;
+        for (GameTest test : GameTestRegistry.getTests()) {
+            if (test.hasTag("door") || test.getId().getKey().startsWith("door_")) {
+                ranCount++;
+                GameTestResult result = GameTestRunner.run(world, null, test);
+                Assertions.assertTrue(result.isPassed(), test.getId() + " failed: " + result.getMessage());
+            }
+        }
+        Assertions.assertTrue(ranCount >= 6, "Expected at least 6 door tests to run, but ran: " + ranCount);
+    }
 }

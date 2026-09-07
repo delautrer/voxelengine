@@ -89,7 +89,8 @@ public class BlockItem extends Item {
                 if (this.block == Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "water")) {
                     world.setBlockWithState(placePos.x, placePos.y, placePos.z, block, (byte)8, true);
                 } else {
-                    world.setBlockState(placePos.x, placePos.y, placePos.z, newState);
+                    boolean isPaired = this.block instanceof de.delautrer.game.blocks.IPairedBlock;
+                    world.setBlockWithState(placePos.x, placePos.y, placePos.z, block, newState.getStateId(), true, !isPaired);
                 }
 
                 this.block.onBlockPlaced(world, placePos, newState, player);

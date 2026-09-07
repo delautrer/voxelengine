@@ -117,7 +117,7 @@ public class EntityRenderSystem implements IRenderSystem {
                             .rotateY((float) ((t + phaseOffset) * 1.0));
 
                     if (itemType instanceof BlockItem blockItem && blockItem.getBlock() instanceof CubeBlock cubeBlock
-                            && !(cubeBlock instanceof TorchBlock)) {
+                            && !(cubeBlock instanceof TorchBlock) && !(cubeBlock instanceof de.delautrer.game.blocks.IPairedBlock)) {
                         modelMat.scale(0.25f);
                         build3DBlock(blockVerts, blockInds, blockOffset, modelMat, cubeBlock, sl, bl);
                         blockOffset = blockVerts.size / 12;

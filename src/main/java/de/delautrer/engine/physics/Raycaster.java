@@ -76,11 +76,9 @@ public class Raycaster {
                     Vector3i adjPos = new Vector3i(x + bestNormal.x, y + bestNormal.y, z + bestNormal.z);
                     Vector3i hitPos = new Vector3i(x, y, z);
 
-                    // Spezial-Logik für Türen: Immer die untere Position zurückgeben, um Highlight-Blipping zu vermeiden
-                    if (block.getClass().getSimpleName().equals("DoorBlock")) {
-                        if (state.getValue(de.delautrer.game.blocks.DoorBlock.HALF) == de.delautrer.game.blocks.state.BlockProperties.Half.TOP) {
-                            hitPos.y -= 1;
-                        }
+                    // Spezial-Logik für gepaarte Blöcke: Immer die untere/primäre Position zurückgeben
+                    if (block instanceof de.delautrer.game.blocks.IPairedBlock pairedBlock) {
+                        hitPos.set(pairedBlock.getPrimaryPos(hitPos, state));
                     }
 
                     return new RaycastResult(hitPos, adjPos, exactHit);
