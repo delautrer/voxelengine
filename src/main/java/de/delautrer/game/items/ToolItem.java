@@ -67,6 +67,28 @@ public class ToolItem extends Item {
     @Override
     public boolean onUseRightClick(World world, LocalPlayer localPlayer, Vector3i targetBlock,
             Vector3i adjacentBlock, PlayerInteraction interaction) {
+        if (toolType == ToolType.SHOVEL && targetBlock != null) {
+            Block block = world.getBlock(targetBlock);
+            if (block instanceof de.delautrer.game.blocks.LayerBlock layerBlock) {
+                return layerBlock.scrapeLayerWithShovel(world, targetBlock);
+            } else if (block == de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:snow_block")) {
+                Block snowLayer = de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:snow");
+                if (snowLayer instanceof de.delautrer.game.blocks.LayerBlock lb) {
+                    world.setBlockWithState(targetBlock.x, targetBlock.y, targetBlock.z, snowLayer, snowLayer.getDefaultState().with(de.delautrer.game.blocks.LayerBlock.LAYERS, 7).getStateId(), true);
+                    lb.spawnSingleDrop(world, targetBlock);
+                    de.delautrer.engine.audio.SoundManager.playEvent("snow", "place", 0.4f);
+                    return true;
+                }
+            } else if (block == de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:sand")) {
+                Block sandLayer = de.delautrer.game.registry.Registries.BLOCKS.get("veinstride:sand_layer");
+                if (sandLayer instanceof de.delautrer.game.blocks.LayerBlock lb) {
+                    world.setBlockWithState(targetBlock.x, targetBlock.y, targetBlock.z, sandLayer, sandLayer.getDefaultState().with(de.delautrer.game.blocks.LayerBlock.LAYERS, 7).getStateId(), true);
+                    lb.spawnSingleDrop(world, targetBlock);
+                    de.delautrer.engine.audio.SoundManager.playEvent("sand", "place", 0.4f);
+                    return true;
+                }
+            }
+        }
         return false;
     }
 }

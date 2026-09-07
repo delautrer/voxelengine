@@ -313,7 +313,17 @@ public class PlayerInteraction {
             String lootPath = block.getLootTable();
             List<ItemStack> drops = new ArrayList<>();
 
-            if (lootPath != null) {
+            if (block instanceof de.delautrer.game.blocks.LayerBlock) {
+                int layers = state != null && state.contains(de.delautrer.game.blocks.LayerBlock.LAYERS) ? state.getValue(de.delautrer.game.blocks.LayerBlock.LAYERS) : 1;
+                if (lootPath != null) {
+                    LootTable table = LootTableManager.load(lootPath);
+                    if (table != null) {
+                        for (int i = 0; i < layers; i++) {
+                            drops.addAll(table.generateLoot());
+                        }
+                    }
+                }
+            } else if (lootPath != null) {
                 // 1. DATA-DRIVEN LOOT: Wir laden die Drops aus der JSON
                 LootTable table = LootTableManager.load(lootPath);
                 if (table != null) {
@@ -434,6 +444,15 @@ public class PlayerInteraction {
                             new ItemStack(Registries.ITEMS.get(Constants.NAMESPACE + ":" + "water_bucket"), 1));
                     eventBus.publish(new InventoryChangeEvent());
 
+                } else if (heldStack.type instanceof ToolItem) {
+                    heldStack.damage(1);
+                    if (heldStack.durability <= 0) {
+                        player.getInventory().setStack(player.getInventory().getSelectedSlot(), null);
+                        eventBus.publish(new InventoryChangeEvent());
+                        SoundManager.playEvent("metal", "break", 1.0f, 1.0f, 1.0f, "Player");
+                    } else {
+                        eventBus.publish(new InventoryChangeEvent());
+                    }
                 } else {
                     heldStack.amount -= 1;
 

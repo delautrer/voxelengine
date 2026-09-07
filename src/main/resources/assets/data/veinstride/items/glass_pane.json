@@ -1,0 +1,8 @@
+{
+    "type": "block",
+    "name": "Glass Pane",
+    "texture_name": "glass",
+    "max_stack_size": 64,
+    "category": "decoration",
+    "render_as_item": true
+}

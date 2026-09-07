@@ -36,6 +36,9 @@ public class BlockTypeRegistry {
         register("slab", (def, key) -> new SlabBlock(def.isSolid, true));
         register("stair", (def, key) -> new StairBlock(def.isSolid, true));
         register("plant", (def, key) -> new PlantBlock());
+        register("carpet", (def, key) -> new CarpetBlock());
+        register("layer", (def, key) -> new LayerBlock());
+        register("pane", (def, key) -> new PaneBlock());
         register("water", (def, key) -> new WaterBlock());
         register("leaves", (def, key) -> new LeavesBlock());
         register("torch", (def, key) -> new TorchBlock());

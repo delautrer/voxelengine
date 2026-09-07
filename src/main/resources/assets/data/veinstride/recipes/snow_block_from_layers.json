@@ -1,0 +1,17 @@
+{
+  "type": "shapeless",
+  "ingredients": [
+    "veinstride:snow",
+    "veinstride:snow",
+    "veinstride:snow",
+    "veinstride:snow",
+    "veinstride:snow",
+    "veinstride:snow",
+    "veinstride:snow",
+    "veinstride:snow"
+  ],
+  "result": {
+    "count": 1,
+    "item": "veinstride:snow_block"
+  }
+}

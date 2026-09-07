@@ -57,4 +57,46 @@ public class GameTestRunnerTest {
         }
         Assertions.assertTrue(ranCount >= 6, "Expected at least 6 door tests to run, but ran: " + ranCount);
     }
+
+    @Test
+    public void testCarpetGameTests() {
+        World world = WorldFixture.create();
+        int ranCount = 0;
+        for (GameTest test : GameTestRegistry.getTests()) {
+            if (test.hasTag("carpet") || test.getId().getKey().startsWith("carpet_")) {
+                ranCount++;
+                GameTestResult result = GameTestRunner.run(world, null, test);
+                Assertions.assertTrue(result.isPassed(), test.getId() + " failed: " + result.getMessage());
+            }
+        }
+        Assertions.assertTrue(ranCount >= 3, "Expected at least 3 carpet tests to run, but ran: " + ranCount);
+    }
+
+    @Test
+    public void testLayerGameTests() {
+        World world = WorldFixture.create();
+        int ranCount = 0;
+        for (GameTest test : GameTestRegistry.getTests()) {
+            if (test.hasTag("layer") || test.getId().getKey().startsWith("layer_")) {
+                ranCount++;
+                GameTestResult result = GameTestRunner.run(world, null, test);
+                Assertions.assertTrue(result.isPassed(), test.getId() + " failed: " + result.getMessage());
+            }
+        }
+        Assertions.assertTrue(ranCount >= 3, "Expected at least 3 layer tests to run, but ran: " + ranCount);
+    }
+
+    @Test
+    public void testPaneGameTests() {
+        World world = WorldFixture.create();
+        int ranCount = 0;
+        for (GameTest test : GameTestRegistry.getTests()) {
+            if (test.hasTag("pane") || test.getId().getKey().startsWith("pane_")) {
+                ranCount++;
+                GameTestResult result = GameTestRunner.run(world, null, test);
+                Assertions.assertTrue(result.isPassed(), test.getId() + " failed: " + result.getMessage());
+            }
+        }
+        Assertions.assertTrue(ranCount >= 4, "Expected at least 4 pane tests to run, but ran: " + ranCount);
+    }
 }

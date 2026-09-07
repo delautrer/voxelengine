@@ -1,0 +1,8 @@
+{
+  "type": "cube",
+  "is_solid": true,
+  "is_transparent": false,
+  "hardness": 0.2,
+  "sound_material": "veinstride:snow",
+  "category": "building_blocks"
+}

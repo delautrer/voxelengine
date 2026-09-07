@@ -1,0 +1,7 @@
+{
+    "type": "block",
+    "name": "Snow Layer",
+    "texture_name": "snow",
+    "max_stack_size": 64,
+    "category": "building_blocks"
+}

@@ -1,0 +1,28 @@
+{
+  "id": "veinstride:layer_stack_to_eight",
+  "timeout_ticks": 40,
+  "tags": ["layer"],
+  "origin": "player",
+  "steps": [
+    { "type": "set_block", "pos": [0, 0, 0], "block": "veinstride:stone" },
+    { "type": "place_block", "pos": [0, 1, 0], "block": "veinstride:snow", "face": "up" },
+    { "type": "assert_state", "pos": [0, 1, 0], "prop": "layers", "val": 1 },
+    { "type": "place_block", "pos": [0, 1, 0], "block": "veinstride:snow", "face": "up" },
+    { "type": "assert_state", "pos": [0, 1, 0], "prop": "layers", "val": 2 },
+    { "type": "place_block", "pos": [0, 1, 0], "block": "veinstride:snow", "face": "up" },
+    { "type": "assert_state", "pos": [0, 1, 0], "prop": "layers", "val": 3 },
+    { "type": "place_block", "pos": [0, 1, 0], "block": "veinstride:snow", "face": "up" },
+    { "type": "assert_state", "pos": [0, 1, 0], "prop": "layers", "val": 4 },
+    { "type": "place_block", "pos": [0, 1, 0], "block": "veinstride:snow", "face": "up" },
+    { "type": "assert_state", "pos": [0, 1, 0], "prop": "layers", "val": 5 },
+    { "type": "place_block", "pos": [0, 1, 0], "block": "veinstride:snow", "face": "up" },
+    { "type": "assert_state", "pos": [0, 1, 0], "prop": "layers", "val": 6 },
+    { "type": "place_block", "pos": [0, 1, 0], "block": "veinstride:snow", "face": "up" },
+    { "type": "assert_state", "pos": [0, 1, 0], "prop": "layers", "val": 7 },
+    { "type": "place_block", "pos": [0, 1, 0], "block": "veinstride:snow", "face": "up" },
+    { "type": "assert_state", "pos": [0, 1, 0], "prop": "layers", "val": 8 },
+    { "type": "place_block", "pos": [0, 1, 0], "block": "veinstride:snow", "face": "up" },
+    { "type": "assert_block", "pos": [0, 2, 0], "block": "veinstride:snow" },
+    { "type": "assert_state", "pos": [0, 2, 0], "prop": "layers", "val": 1 }
+  ]
+}

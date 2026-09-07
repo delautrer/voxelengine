@@ -1,0 +1,13 @@
+{
+  "type": "shaped",
+  "pattern": [
+    "AA"
+  ],
+  "keys": {
+    "A": "veinstride:moss"
+  },
+  "result": {
+    "count": 16,
+    "item": "veinstride:moss_carpet"
+  }
+}

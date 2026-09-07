@@ -1,0 +1,17 @@
+{
+  "type": "shapeless",
+  "ingredients": [
+    "veinstride:sand_layer",
+    "veinstride:sand_layer",
+    "veinstride:sand_layer",
+    "veinstride:sand_layer",
+    "veinstride:sand_layer",
+    "veinstride:sand_layer",
+    "veinstride:sand_layer",
+    "veinstride:sand_layer"
+  ],
+  "result": {
+    "count": 1,
+    "item": "veinstride:sand"
+  }
+}

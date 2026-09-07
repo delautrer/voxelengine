@@ -1,0 +1,14 @@
+{
+  "type": "shaped",
+  "pattern": [
+    "AAA",
+    "AAA"
+  ],
+  "keys": {
+    "A": "veinstride:glass"
+  },
+  "result": {
+    "count": 16,
+    "item": "veinstride:glass_pane"
+  }
+}

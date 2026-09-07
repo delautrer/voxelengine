@@ -1,0 +1,15 @@
+{
+  "id": "veinstride:pane_isolated",
+  "timeout_ticks": 40,
+  "tags": ["pane"],
+  "origin": "player",
+  "steps": [
+    { "type": "set_block", "pos": [0, 0, 0], "block": "veinstride:stone" },
+    { "type": "place_block", "pos": [0, 1, 0], "block": "veinstride:glass_pane", "face": "up" },
+    { "type": "assert_block", "pos": [0, 1, 0], "block": "veinstride:glass_pane" },
+    { "type": "assert_state", "pos": [0, 1, 0], "prop": "north", "val": false },
+    { "type": "assert_state", "pos": [0, 1, 0], "prop": "east", "val": false },
+    { "type": "assert_state", "pos": [0, 1, 0], "prop": "south", "val": false },
+    { "type": "assert_state", "pos": [0, 1, 0], "prop": "west", "val": false }
+  ]
+}

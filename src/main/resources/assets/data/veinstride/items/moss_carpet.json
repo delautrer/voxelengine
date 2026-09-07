@@ -1,0 +1,7 @@
+{
+    "type": "block",
+    "name": "Moss Carpet",
+    "texture_name": "moss",
+    "max_stack_size": 64,
+    "category": "decoration"
+}

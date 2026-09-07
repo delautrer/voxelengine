@@ -89,13 +89,14 @@ public class BlockItem extends Item {
                 if (this.block == Registries.BLOCKS.get(Constants.NAMESPACE + ":" + "water")) {
                     world.setBlockWithState(placePos.x, placePos.y, placePos.z, block, (byte)8, true);
                 } else {
-                    boolean isPaired = this.block instanceof de.delautrer.game.blocks.IPairedBlock;
-                    world.setBlockWithState(placePos.x, placePos.y, placePos.z, block, newState.getStateId(), true, !isPaired);
+                    Block targetBlockToSet = newState.getBlock();
+                    boolean isPaired = targetBlockToSet instanceof de.delautrer.game.blocks.IPairedBlock;
+                    world.setBlockWithState(placePos.x, placePos.y, placePos.z, targetBlockToSet, newState.getStateId(), true, !isPaired);
                 }
 
-                this.block.onBlockPlaced(world, placePos, newState, player);
+                newState.getBlock().onBlockPlaced(world, placePos, newState, player);
 
-                SoundManager.playEvent(this.block.getSoundMaterialName(), "place", 0.4f);
+                SoundManager.playEvent(newState.getBlock().getSoundMaterialName(), "place", 0.4f);
 
                 return true;
             }

@@ -9,6 +9,7 @@ import de.delautrer.engine.graphics.utils.TextureStitcher.AtlasRegion;
 import de.delautrer.engine.physics.AABB;
 
 import de.delautrer.game.blocks.CubeBlock;
+import de.delautrer.game.blocks.PaneBlock;
 import de.delautrer.game.blocks.TorchBlock;
 import de.delautrer.game.blocks.state.BlockProperties.BlockFace;
 import de.delautrer.game.entity.Entity;
@@ -117,7 +118,7 @@ public class EntityRenderSystem implements IRenderSystem {
                             .rotateY((float) ((t + phaseOffset) * 1.0));
 
                     if (itemType instanceof BlockItem blockItem && blockItem.getBlock() instanceof CubeBlock cubeBlock
-                            && !(cubeBlock instanceof TorchBlock) && !(cubeBlock instanceof de.delautrer.game.blocks.IPairedBlock)) {
+                            && !(cubeBlock instanceof TorchBlock) && !(cubeBlock instanceof PaneBlock) && !(cubeBlock instanceof de.delautrer.game.blocks.IPairedBlock)) {
                         modelMat.scale(0.25f);
                         build3DBlock(blockVerts, blockInds, blockOffset, modelMat, cubeBlock, sl, bl);
                         blockOffset = blockVerts.size / 12;

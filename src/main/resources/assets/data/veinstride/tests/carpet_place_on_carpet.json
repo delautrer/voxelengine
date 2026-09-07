@@ -1,0 +1,12 @@
+{
+  "id": "veinstride:carpet_place_on_carpet",
+  "timeout_ticks": 40,
+  "tags": ["carpet"],
+  "origin": "player",
+  "steps": [
+    { "type": "set_block", "pos": [0, 0, 0], "block": "veinstride:stone" },
+    { "type": "set_block", "pos": [0, 1, 0], "block": "veinstride:moss_carpet" },
+    { "type": "place_block", "pos": [0, 2, 0], "block": "veinstride:moss_carpet", "face": "up" },
+    { "type": "assert_block", "pos": [0, 2, 0], "block": "veinstride:moss_carpet" }
+  ]
+}

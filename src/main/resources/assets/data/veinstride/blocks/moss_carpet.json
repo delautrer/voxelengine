@@ -1,0 +1,10 @@
+{
+  "type": "carpet",
+  "is_solid": false,
+  "is_transparent": true,
+  "is_passable": true,
+  "is_raycastable": true,
+  "hardness": 0.1,
+  "sound_material": "veinstride:grass",
+  "category": "decoration"
+}

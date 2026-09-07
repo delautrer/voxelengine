@@ -1,0 +1,13 @@
+{
+  "id": "veinstride:layer_dies_without_support",
+  "timeout_ticks": 40,
+  "tags": ["layer"],
+  "origin": "player",
+  "steps": [
+    { "type": "set_block", "pos": [0, 0, 0], "block": "veinstride:stone" },
+    { "type": "place_block", "pos": [0, 1, 0], "block": "veinstride:snow", "face": "up" },
+    { "type": "assert_block", "pos": [0, 1, 0], "block": "veinstride:snow" },
+    { "type": "set_block", "pos": [0, 0, 0], "block": "veinstride:air" },
+    { "type": "assert_air", "pos": [0, 1, 0] }
+  ]
+}
